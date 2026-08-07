@@ -28,6 +28,11 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { formatExpenseAmount } from '../expenses/expenseUi'
 import type { MileageReportResponse } from '@backend/routes/expenses/models'
 
+// Structured start/end addresses (issue #1021) for legs created after that change;
+// route is the legacy free-text fallback for older claims.
+const describeRoute = (row: MileageReportResponse['data'][number]): string =>
+  row.startAddress && row.endAddress ? `${row.startAddress} - ${row.endAddress}` : (row.route ?? '')
+
 // Never fetches or renders HETU — this is a worklist of claims to file with
 // Tulorekisteri, not the filing itself. HETU is only available per-claim via
 // the reveal button on the claim's admin detail page (issue #1022).
@@ -82,7 +87,7 @@ export const MileageTulorekisteriReport = () => {
     const csvData = reportData.data.map((row) => ({
       Member: row.memberName,
       'Journey date': row.journeyDate,
-      Route: row.route,
+      Route: describeRoute(row),
       'Distance (km)': row.distanceKm,
       'Rate (€/km)': row.ratePerKm,
       'Total (EUR)': row.totalAmount,
@@ -195,7 +200,7 @@ export const MileageTulorekisteriReport = () => {
                     <TableRow key={row.claimId}>
                       <TableCell>{row.memberName}</TableCell>
                       <TableCell>{row.journeyDate}</TableCell>
-                      <TableCell>{row.route}</TableCell>
+                      <TableCell>{describeRoute(row)}</TableCell>
                       <TableCell align='right'>{row.distanceKm}</TableCell>
                       <TableCell align='right'>{formatExpenseAmount(row.totalAmount)}</TableCell>
                       <TableCell>

@@ -1,6 +1,5 @@
 import { Router, type Request, type Response } from 'express'
 import multer from 'multer'
-import sharp from 'sharp'
 
 import {
   OccurrenceAccessSchema,
@@ -35,6 +34,7 @@ import {
 } from '../../db/occurrence-queries.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
+import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
 import dayjs from 'dayjs'
 
 import { sendOccurrenceNotification } from '../../templates/occurrenceNotification.ts'
@@ -56,13 +56,12 @@ const OCCURRENCE_ATTACHMENT_BUCKET =
 // role_id of the dedicated CAMO role, created in V1690__AddCamoRole.sql
 const CAMO_ROLE_ID = 'CAMO'
 
-const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB — raw upload limit before compression
 const MAX_ATTACHMENT_BYTES = 1 * 1024 * 1024 // 1 MB — post-compression image limit
 const MAX_ATTACHMENTS_PER_REPORT = 5
 
 const attachmentUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_ATTACHMENT_UPLOAD_BYTES },
+  limits: { fileSize: IMAGE_UPLOAD_RAW_BYTES },
   fileFilter: (_req, file, cb) => {
     if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
       cb(null, true)
@@ -88,21 +87,11 @@ const sanitizeAttachmentFileName = (fileName: string): string => {
 export async function processAttachmentImage(
   file: Express.Multer.File,
 ): Promise<{ buffer: Buffer; fileName: string; mimeType: string }> {
-  const buildImage = () =>
-    sharp(file.buffer)
-      .rotate()
-      .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true })
-
-  let buffer = await buildImage().jpeg({ quality: 85, mozjpeg: true }).toBuffer()
-  if (buffer.length > MAX_ATTACHMENT_BYTES) {
-    buffer = await buildImage().jpeg({ quality: 70, mozjpeg: true }).toBuffer()
-  }
-  if (buffer.length > MAX_ATTACHMENT_BYTES) {
-    problem({
-      status: 400,
-      detail: 'Attachment image is too large after compression. Please upload a smaller image.',
-    })
-  }
+  const buffer = await compressImageForUpload(file.buffer, {
+    maxWidth: 2000,
+    maxHeight: 2000,
+    targetBytes: MAX_ATTACHMENT_BYTES,
+  })
 
   return {
     buffer,

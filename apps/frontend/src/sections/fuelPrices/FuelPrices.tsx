@@ -11,6 +11,7 @@ import { useRoles } from '../../hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
 import { RecentFuelings } from './RecentFuelings'
+import { LocalFuelPrices } from './LocalFuelPrices'
 
 const FuelPrices = () => {
   const { t } = useTranslation()
@@ -100,6 +101,8 @@ const FuelPrices = () => {
           {!!data?.renderedHtml && <MarkdownContent html={data.renderedHtml} />}
         </Paper>
       )}
+
+      <LocalFuelPrices canEdit={canEdit} />
 
       <Box sx={{ mt: 4 }}>
         <RecentFuelings />

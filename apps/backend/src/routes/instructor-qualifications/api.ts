@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
+import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
 import {
   getInstructorQualification,
   upsertInstructorQualification,
@@ -38,10 +39,13 @@ export const router = Router()
 // All routes require at least MEMBER or MEMBER_ADMIN permission
 router.use(validateUser(MIKPermissions.MEMBER, MIKPermissions.MEMBER_ADMIN))
 
-// Multer for proof file uploads (PDF/JPEG/PNG only, 10MB max)
+const MAX_PROOF_PDF_BYTES = 5 * 1024 * 1024 // 5 MB
+const MAX_PROOF_IMAGE_BYTES = 1 * 1024 * 1024 // 1 MB — post-compression image limit
+
+// Multer for proof file uploads (PDF/JPEG/PNG only)
 const proofUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: IMAGE_UPLOAD_RAW_BYTES },
   fileFilter: (_req, file, cb) => {
     const allowed = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
     if (allowed.includes(file.mimetype)) {
@@ -51,6 +55,35 @@ const proofUpload = multer({
     }
   },
 })
+
+// Images are compressed the same way as expense receipts/event images/occurrence
+// attachments (issue #1075) — proof photos previously passed straight through
+// uncompressed, on top of having the tightest raw upload cap of any surface in the
+// app, making this route the most exposed to the "large phone photo rejected" bug.
+async function processProofFile(
+  file: Express.Multer.File,
+): Promise<{ buffer: Buffer; originalname: string; mimetype: string }> {
+  if (file.mimetype === 'application/pdf') {
+    if (file.buffer.length > MAX_PROOF_PDF_BYTES) {
+      return problem({
+        status: 400,
+        detail: `PDF is too large (max ${MAX_PROOF_PDF_BYTES / 1024 / 1024} MB).`,
+      })
+    }
+    return { buffer: file.buffer, originalname: file.originalname, mimetype: file.mimetype }
+  }
+
+  const buffer = await compressImageForUpload(file.buffer, {
+    maxWidth: 2000,
+    maxHeight: 2000,
+    targetBytes: MAX_PROOF_IMAGE_BYTES,
+  })
+  return {
+    buffer,
+    originalname: `${file.originalname.replace(/\.[^.]+$/, '')}.jpg`,
+    mimetype: 'image/jpeg',
+  }
+}
 
 // GET /api/v1/instructor-qualifications
 // List all instructor statuses (admin only).
@@ -140,10 +173,11 @@ router.post(
     const memberId = req.user!.memberId
     const historyId = req.body.historyId ? Number(req.body.historyId) : null
     const folder = `instructor-qualifications/${memberId}`
-    const fileName = `${nanoid()}-${req.file.originalname}`
+    const processed = await processProofFile(req.file)
+    const fileName = `${nanoid()}-${processed.originalname}`
 
     try {
-      await storageService.uploadFile(req.file.buffer, fileName, req.file.mimetype, folder)
+      await storageService.uploadFile(processed.buffer, fileName, processed.mimetype, folder)
     } catch (err) {
       logger.error('Proof file upload failed:', err)
       return problem({ status: 500, detail: 'Failed to upload file' })
@@ -152,9 +186,9 @@ router.post(
     const storageKey = `${folder}/${fileName}`
     const proof = await addQualificationProof(
       memberId,
-      req.file.originalname,
+      processed.originalname,
       storageKey,
-      req.file.mimetype,
+      processed.mimetype,
       req.user!.memberId,
       historyId,
       documentCategory,
@@ -163,7 +197,7 @@ router.post(
     await appendProofUploadedEvent(
       memberId,
       proof.id,
-      req.file.originalname,
+      processed.originalname,
       documentCategory,
       req.user!.memberId,
     )
@@ -310,10 +344,11 @@ router.post(
 
     const historyId = req.body.historyId ? Number(req.body.historyId) : null
     const folder = `instructor-qualifications/${memberId}`
-    const fileName = `${nanoid()}-${req.file.originalname}`
+    const processed = await processProofFile(req.file)
+    const fileName = `${nanoid()}-${processed.originalname}`
 
     try {
-      await storageService.uploadFile(req.file.buffer, fileName, req.file.mimetype, folder)
+      await storageService.uploadFile(processed.buffer, fileName, processed.mimetype, folder)
     } catch (err) {
       logger.error('Proof file upload failed:', err)
       return problem({ status: 500, detail: 'Failed to upload file' })
@@ -322,9 +357,9 @@ router.post(
     const storageKey = `${folder}/${fileName}`
     const proof = await addQualificationProof(
       memberId,
-      req.file.originalname,
+      processed.originalname,
       storageKey,
-      req.file.mimetype,
+      processed.mimetype,
       req.user!.memberId,
       historyId,
       documentCategory,
@@ -333,7 +368,7 @@ router.post(
     await appendProofUploadedEvent(
       memberId,
       proof.id,
-      req.file.originalname,
+      processed.originalname,
       documentCategory,
       req.user!.memberId,
     )

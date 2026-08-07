@@ -8,6 +8,7 @@ import logger from '../lib/logger.ts'
 import multer from 'multer'
 import type { DownloadDocument } from '../routes/documents/models.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
+import { compressImageForUpload } from './imageUpload.ts'
 
 export async function getDocument(
   documentId: number,
@@ -59,7 +60,33 @@ export async function getDocument(
   }
 }
 
-// Configure multer for file uploads
+const DOCUMENT_IMAGE_COMPRESSIBLE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const MAX_DOCUMENT_IMAGE_BYTES = 2 * 1024 * 1024 // 2 MB — post-compression limit
+
+/**
+ * Compresses an uploaded document image the same way as every other image upload
+ * surface (issue #1075) — this route previously stored images completely uncompressed.
+ * Non-image files (PDF, Office docs, etc.) and animated GIFs pass through unchanged.
+ */
+export async function processDocumentFile(
+  file: Express.Multer.File,
+): Promise<{ buffer: Buffer; mimetype: string }> {
+  if (!DOCUMENT_IMAGE_COMPRESSIBLE_TYPES.has(file.mimetype)) {
+    return { buffer: file.buffer, mimetype: file.mimetype }
+  }
+  const buffer = await compressImageForUpload(file.buffer, {
+    maxWidth: 2000,
+    maxHeight: 2000,
+    targetBytes: MAX_DOCUMENT_IMAGE_BYTES,
+  })
+  return { buffer, mimetype: 'image/jpeg' }
+}
+
+// Configure multer for file uploads. The 50MB raw limit stays generous — this route
+// also accepts large PDFs/Office documents that must pass through unmodified, unlike
+// the image-only upload surfaces elsewhere that had their raw cap raised for issue
+// #1075 (this one was never the bottleneck: 50MB already comfortably exceeds a raw
+// phone photo).
 export const documentUpload = multer({
   storage: multer.memoryStorage(),
   limits: {

@@ -25,6 +25,7 @@ import bookingRoutes from './routes/bookings/api.ts'
 import { router as tinyUrlRoute } from './routes/tiny-url-redirect.ts'
 import { router as occurrenceRoutes } from './routes/occurrences/api.ts'
 import { router as weatherRoutes } from './routes/weather/api.ts'
+import { router as mileageGeoRoutes } from './routes/mileage-geo/api.ts'
 import { router as statsRoutes } from './routes/stats/api.ts'
 import { router as dashboardRoutes } from './routes/dashboard/api.ts'
 import taxReportRoutes from './routes/tax-reports/api.ts'
@@ -169,6 +170,7 @@ app.use('/api/v1/invoices', invoiceRoutes)
 app.use('/api/v1/bookings', bookingRoutes)
 app.use('/api/v1/occurrences', occurrenceRoutes)
 app.use('/api/v1/weather', weatherRoutes)
+app.use('/api/v1/mileage', mileageGeoRoutes)
 app.use('/api/v1/stats', statsRoutes)
 app.use('/api/v1/dashboard', dashboardRoutes)
 app.use('/api/v1/tax-reports', taxReportRoutes)

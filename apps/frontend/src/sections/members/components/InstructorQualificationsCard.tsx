@@ -37,6 +37,8 @@ import type {
 } from '@backend/routes/instructor-qualifications/models'
 
 const EXPIRING_DAYS_THRESHOLD = 30
+// Matches the backend's proofUpload raw limit (apps/backend/src/routes/instructor-qualifications/api.ts).
+const MAX_PROOF_UPLOAD_BYTES = 40 * 1024 * 1024
 
 interface InstructorQualificationsCardProps {
   memberId: string
@@ -113,6 +115,15 @@ export const InstructorQualificationsCard = ({
   const [lastHistoryId, setLastHistoryId] = useState<number | null>(null)
   const licenseInputRef = useRef<HTMLInputElement>(null)
   const medicalInputRef = useRef<HTMLInputElement>(null)
+
+  const selectProofFile = (file: File | null, setFile: (f: File | null) => void) => {
+    if (file && file.size > MAX_PROOF_UPLOAD_BYTES) {
+      setProofError(t('instructorStatus.proofTooLarge', { maxSize: '40 MB' }))
+      return
+    }
+    setProofError(null)
+    setFile(file)
+  }
 
   // Snapshot / history state
   const [snapshotDate, setSnapshotDate] = useState<Dayjs | null>(null)
@@ -487,8 +498,11 @@ export const InstructorQualificationsCard = ({
                         ref={licenseInputRef}
                         type='file'
                         accept='.pdf,.jpg,.jpeg'
+                        capture='environment'
                         style={{ display: 'none' }}
-                        onChange={(e) => setLicenseFile(e.target.files?.[0] ?? null)}
+                        onChange={(e) =>
+                          selectProofFile(e.target.files?.[0] ?? null, setLicenseFile)
+                        }
                       />
                       <Button
                         variant='outlined'
@@ -522,8 +536,11 @@ export const InstructorQualificationsCard = ({
                         ref={medicalInputRef}
                         type='file'
                         accept='.pdf,.jpg,.jpeg'
+                        capture='environment'
                         style={{ display: 'none' }}
-                        onChange={(e) => setMedicalFile(e.target.files?.[0] ?? null)}
+                        onChange={(e) =>
+                          selectProofFile(e.target.files?.[0] ?? null, setMedicalFile)
+                        }
                       />
                       <Button
                         variant='outlined'

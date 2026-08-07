@@ -17,7 +17,7 @@ import {
 import { Icon } from '@iconify/react'
 import type { ExpenseClaim } from '@backend/routes/expenses/models'
 import { ExpenseClaimStatus } from '@backend/routes/expenses/models'
-import useApi from '../../hooks/useApi'
+import useApi, { sharedApi } from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import {
@@ -36,7 +36,7 @@ export default function ExpenseClaimDetail() {
   const navigate = useNavigate()
   const { data, isLoading, error, mutate } = useApi<ExpenseClaim>({ url: `v1/expenses/${id}` })
   const { mutation } = useApi<{ url: string }>({ url: 'v1/expenses', skipFetch: true })
-  const hasHetu = !!data?.mileageDetail?.hetu
+  const hasHetu = !!data?.hetu
   const { data: hetuAccessLog } = useApi<{ data: HetuAccessLogEntry[] }>({
     url: `v1/expenses/${id}/mileage/hetu/access-log`,
     skipFetch: !hasHetu,
@@ -67,6 +67,15 @@ export default function ExpenseClaimDetail() {
     if (response.data?.url) {
       window.open(response.data.url, '_blank', 'noopener,noreferrer')
     }
+  }
+
+  const openMergedAttachments = async () => {
+    if (!data) return
+    const res = await sharedApi.get(`v1/expenses/${data.id}/attachments/merged-preview`, {
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(res.data as Blob)
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -207,13 +216,79 @@ export default function ExpenseClaimDetail() {
               </Table>
             </Paper>
 
+            {data.categoryCode === 'fuel' && data.fuelReimbursementSummary && (
+              <Paper sx={{ p: 3 }}>
+                <Typography variant='h6' sx={{ mb: 2 }}>
+                  {t('expenses.fuel.summaryTitle')}
+                </Typography>
+                <Stack spacing={0.5}>
+                  <Typography variant='body2'>
+                    {t('expenses.fuel.totalLitres')}: {data.fuelReimbursementSummary.totalLitres} l
+                  </Typography>
+                  <Typography variant='body2'>
+                    {t('expenses.fuel.totalCost')}:{' '}
+                    {formatExpenseAmount(data.fuelReimbursementSummary.totalCost)}
+                  </Typography>
+                  {data.fuelReimbursementSummary.localPriceEurPerLitre != null && (
+                    <Typography variant='body2'>
+                      {t('expenses.fuel.localPriceCost')}:{' '}
+                      {formatExpenseAmount(data.fuelReimbursementSummary.localPriceCost ?? 0)} (
+                      {data.fuelReimbursementSummary.localPriceEurPerLitre.toFixed(4)} €/l)
+                    </Typography>
+                  )}
+                  {data.fuelReimbursementSummary.clubCardCost > 0 && (
+                    <Typography variant='body2'>
+                      {t('expenses.fuel.clubCardCost')}:{' '}
+                      {formatExpenseAmount(data.fuelReimbursementSummary.clubCardCost)} (
+                      {data.fuelReimbursementSummary.clubCardLitres} l)
+                    </Typography>
+                  )}
+                  <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
+                    {t('expenses.fuel.memberReimbursement')}:{' '}
+                    {formatExpenseAmount(data.fuelReimbursementSummary.memberReimbursement)}
+                  </Typography>
+                  {data.fuelReimbursementSummary.memberOwesClub > 0 && (
+                    <Alert severity='warning'>
+                      {t('expenses.fuel.memberOwesClub', {
+                        amount: formatExpenseAmount(data.fuelReimbursementSummary.memberOwesClub),
+                      })}
+                    </Alert>
+                  )}
+                  {data.fuelReimbursementSummary.capped && (
+                    <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                      {t('expenses.fuel.cappedNotice')}
+                    </Typography>
+                  )}
+                </Stack>
+              </Paper>
+            )}
+
             <Paper sx={{ p: 3 }}>
               <Typography variant='h6' sx={{ mb: 2 }}>
                 {t('expenses.fields.receipt')}
               </Typography>
-              {!data.receipt ? (
+              {!data.receipt && !data.attachments?.length && (
                 <Alert severity='info'>No receipt uploaded.</Alert>
-              ) : (
+              )}
+              {!data.receipt && !!data.attachments?.length && (
+                <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
+                  {data.attachments.map((attachment) => (
+                    <Typography
+                      key={attachment.id}
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {attachment.fileName} · {Math.round(attachment.fileSize / 1024)} kB
+                    </Typography>
+                  ))}
+                  <Button size='small' onClick={() => void openMergedAttachments()}>
+                    {t('expenses.wizard.previewMergedPdf')}
+                  </Button>
+                </Stack>
+              )}
+              {!!data.receipt && (
                 <Stack
                   direction='row'
                   sx={{

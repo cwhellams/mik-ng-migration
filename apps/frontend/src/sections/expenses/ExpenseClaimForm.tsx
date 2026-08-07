@@ -14,6 +14,7 @@ import {
   Paper,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
@@ -25,6 +26,7 @@ import {
   type CreateExpenseClaim,
   type ExpenseCategory,
   type ExpenseClaim,
+  type ExpenseClaimAttachment,
   type ExpenseClaimReceipt,
   ExpenseClaimStatus,
 } from '@backend/routes/expenses/models'
@@ -32,8 +34,9 @@ import useApi from '../../hooks/useApi'
 import { sharedApi } from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
-import { formatExpenseAmount, getExpenseCategoryLabel, isExpenseEditable } from './expenseUi'
+import { getExpenseCategoryLabel, isExpenseEditable } from './expenseUi'
 import {
+  AttachmentsUploadZone,
   BankDetailsFields,
   type EditableLineItem,
   LineItemsTable,
@@ -43,9 +46,11 @@ import {
   validateHetu,
 } from './expenseShared'
 import {
-  MileageDetailFields,
-  type MileageDetailForm,
-  makeMileageDetailForm,
+  MILEAGE_MAX_KM,
+  MileageLegsEditor,
+  type MileageLegForm,
+  isMileageLegValid,
+  makeMileageLegForm,
 } from './MileageDetailFields'
 
 // ─── Form state ───────────────────────────────────────────────────────────────
@@ -77,20 +82,25 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
   const [claimCurrency, setClaimCurrency] = useState<string>('EUR')
   const [claimFxRate, setClaimFxRate] = useState<number | null>(null)
   const [receipt, setReceipt] = useState<ExpenseClaimReceipt | undefined>()
+  const [attachments, setAttachments] = useState<ExpenseClaimAttachment[]>([])
   const [submitError, setSubmitError] = useState<string>()
   const [fieldErrors, setFieldErrors] = useState<{
+    category?: string
+    title?: string
     iban?: string
     ibanAccountName?: string
     expenseDate?: string
     lineItems?: string
-    mileageDetail?: string
+    mileageLegs?: string
+    hetu?: string
   }>({})
   const [uploadError, setUploadError] = useState<string>()
   const [infoMessage, setInfoMessage] = useState<string>()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [mileageDetail, setMileageDetail] = useState<MileageDetailForm>(makeMileageDetailForm())
+  const [mileageLegs, setMileageLegs] = useState<MileageLegForm[]>([makeMileageLegForm()])
+  const [hetu, setHetu] = useState('')
   const [fxRateLoading, setFxRateLoading] = useState(false)
 
   const categoryApi = useApi<ExpenseCategory[]>({ url: 'v1/expenses/categories' })
@@ -136,21 +146,29 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         costCentreCode: item.costCentreCode ?? null,
         fuelType: item.fuelType,
         airport: item.airport ?? null,
+        paidWithClubCard: item.paidWithClubCard ?? false,
       })) ?? [makeDefaultLineItem()],
     })
     setClaimCurrency(claimApi.data.currency ?? 'EUR')
     setClaimFxRate(claimApi.data.fxRate ?? null)
     setReceipt(claimApi.data.receipt)
-    if (claimApi.data.mileageDetail) {
-      const md = claimApi.data.mileageDetail
-      setMileageDetail({
-        route: md.route ?? '',
-        journeyDate: md.journeyDate ?? new Date().toISOString().substring(0, 10),
-        distanceKm: String(md.distanceKm),
-        hetu: '', // never pre-fill HETU from API (returned masked)
-        boardApproved: md.boardApproved ?? false,
-      })
+    setAttachments(claimApi.data.attachments ?? [])
+    if (claimApi.data.mileageLegs?.length) {
+      setMileageLegs(
+        claimApi.data.mileageLegs.map((leg) => ({
+          startAddress: { label: leg.startAddress, lat: leg.startLat, lon: leg.startLon },
+          endAddress: { label: leg.endAddress, lat: leg.endLat, lon: leg.endLon },
+          waypoints: leg.waypoints.map((w) => ({ label: w.label, lat: w.lat, lon: w.lon })),
+          journeyDate: leg.journeyDate,
+          distanceKm: String(leg.distanceKm),
+          directDistanceKm: leg.directDistanceKm ?? null,
+          justificationNote: leg.justificationNote ?? '',
+          boardApproved: leg.boardApproved ?? false,
+          distanceManuallyEdited: true, // don't overwrite a saved distance with a fresh recompute
+        })),
+      )
     }
+    setHetu('') // never pre-fill HETU from API (returned masked)
   }, [claimApi.data])
 
   const categories = categoryApi.data ?? []
@@ -160,6 +178,11 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
   )
   const isMileage = selectedCategory?.code === 'mileage'
   const isFuel = selectedCategory?.code === 'fuel'
+  // Mileage claims have no receipt to attach; every other category needs at least one
+  // (new-flow) attachment or a (legacy) single receipt on file before it can be
+  // submitted — enforced server-side too (POST /:id/submit).
+  const attachmentsRequired = !isMileage
+  const attachmentsMissing = attachmentsRequired && !receipt && attachments.length === 0
   const expenseClaimItems = useMemo(
     () =>
       (invoiceItemsData?.items ?? [])
@@ -175,13 +198,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
 
   const editable = !claimApi.data || isExpenseEditable(claimApi.data.status)
   const currentClaimId = claimApi.data?.id ?? claimId
-  const isClaimNonEur = claimCurrency !== 'EUR'
-  const totalAmount = form.lineItems.reduce(
-    (sum, item) =>
-      sum +
-      (item.totalCost ?? item.quantity * item.unitPrice) * (isClaimNonEur ? (claimFxRate ?? 1) : 1),
-    0,
-  )
 
   // Mileage claims are always EUR — no currency selector needed
   useEffect(() => {
@@ -192,33 +208,35 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMileage])
 
-  // Auto-compute the mileage line item whenever distance or effective rate changes
+  // Auto-compute one line item per mileage leg whenever a leg's distance/addresses
+  // or the effective rate changes
   useEffect(() => {
     if (!isMileage || !mileageAllowance?.effectiveRatePerKm) return
-    const km = Number(mileageDetail.distanceKm) || 0
     const rate = mileageAllowance.effectiveRatePerKm
     setForm((f) => ({
       ...f,
-      lineItems: [
-        {
-          ...f.lineItems[0],
-          description: mileageDetail.route.trim() || t('expenses.mileage.lineItemDescription'),
-          quantity: km,
-          unit: 'km',
-          unitPrice: rate,
-          // Always re-derive from quantity * unitPrice — a stale persisted totalCost
-          // from before a distance/rate correction must not survive the recompute.
-          totalCost: null,
-          currency: 'EUR',
-          fxRate: null,
-        },
-      ],
+      lineItems: mileageLegs.map((leg, idx) => ({
+        ...(f.lineItems[idx] ?? makeDefaultLineItem('km')),
+        description:
+          leg.startAddress && leg.endAddress
+            ? `${leg.startAddress.label} - ${leg.endAddress.label}`
+            : t('expenses.mileage.lineItemDescription'),
+        quantity: Number(leg.distanceKm) || 0,
+        unit: 'km',
+        unitPrice: rate,
+        // Always re-derive from quantity * unitPrice — a stale persisted totalCost
+        // from before a distance/rate correction must not survive the recompute.
+        totalCost: null,
+        currency: 'EUR',
+        fxRate: null,
+      })),
     }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isMileage,
-    mileageDetail.distanceKm,
-    mileageDetail.route,
+    JSON.stringify(
+      mileageLegs.map((l) => [l.distanceKm, l.startAddress?.label, l.endAddress?.label]),
+    ),
     mileageAllowance?.effectiveRatePerKm,
   ])
 
@@ -244,12 +262,17 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     setInfoMessage(undefined)
 
     const errors: {
+      category?: string
+      title?: string
       iban?: string
       ibanAccountName?: string
       expenseDate?: string
       lineItems?: string
-      mileageDetail?: string
+      mileageLegs?: string
+      hetu?: string
     } = {}
+    if (!(form.categoryId > 0)) errors.category = t('expenses.messages.categoryRequired')
+    if (!form.title.trim()) errors.title = t('expenses.messages.titleRequired')
     const lineTotal = form.lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
     if (lineTotal <= 0) errors.lineItems = t('expenses.messages.zeroTotal')
     if (isFuel && form.lineItems.some((item) => !item.costCentreCode)) {
@@ -267,17 +290,11 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       errors.ibanAccountName = t('expenses.messages.ibanAccountNameRequired')
     if (!form.expenseDate) errors.expenseDate = t('expenses.messages.expenseDateRequired')
     if (isMileage) {
-      const maxKm = Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100
-      const km = Number(mileageDetail.distanceKm) || 0
-      if (
-        !mileageDetail.route.trim() ||
-        !mileageDetail.journeyDate ||
-        km <= 0 ||
-        (km > maxKm && !mileageDetail.boardApproved)
-      ) {
-        errors.mileageDetail = t('expenses.validation.mileageDetailsRequired')
-      } else if (mileageDetail.hetu.trim() && !validateHetu(mileageDetail.hetu)) {
-        errors.mileageDetail = t('expenses.mileage.hetuInvalid')
+      const legInvalid = mileageLegs.some((leg) => !isMileageLegValid(leg))
+      if (legInvalid) {
+        errors.mileageLegs = t('expenses.validation.mileageDetailsRequired')
+      } else if (!validateHetu(hetu)) {
+        errors.hetu = t('expenses.mileage.hetuInvalid')
       }
     }
 
@@ -300,17 +317,25 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         ...item,
         sortOrder: index,
       })),
-      mileageDetail: isMileage
-        ? {
-            route: mileageDetail.route,
-            journeyDate: mileageDetail.journeyDate,
-            distanceKm: Number(mileageDetail.distanceKm),
-            boardApproved: mileageDetail.boardApproved,
-            // Empty means "leave unchanged" — the API never returns the HETU
-            // unmasked, so this field is blank unless the admin retyped it.
-            hetu: mileageDetail.hetu.trim() || undefined,
-          }
+      mileageLegs: isMileage
+        ? mileageLegs.map((leg) => ({
+            startAddress: leg.startAddress!.label,
+            startLat: leg.startAddress!.lat,
+            startLon: leg.startAddress!.lon,
+            endAddress: leg.endAddress!.label,
+            endLat: leg.endAddress!.lat,
+            endLon: leg.endAddress!.lon,
+            waypoints: leg.waypoints.filter((w) => w != null),
+            journeyDate: leg.journeyDate,
+            distanceKm: Number(leg.distanceKm),
+            directDistanceKm: leg.directDistanceKm ?? undefined,
+            justificationNote: leg.justificationNote.trim() || undefined,
+            boardApproved: leg.boardApproved,
+          }))
         : undefined,
+      // Empty means "leave unchanged" — the API never returns the HETU unmasked,
+      // so this field is blank unless the user retyped it.
+      hetu: isMileage ? hetu.trim() || undefined : undefined,
     }
 
     const response = currentClaimId
@@ -367,7 +392,12 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       return
     }
     setUploadError(undefined)
-    const maxBytes = file.type === 'application/pdf' ? 5 * 1024 * 1024 : 1 * 1024 * 1024
+    // Sanity ceiling only, matching the backend's raw upload cap (issue #1075) — the
+    // server compresses images down after upload, so pre-checking against the much
+    // smaller *post-compression* target here (as this used to) rejected ordinary phone
+    // photos before they ever got a chance to be compressed. PDFs still have their own
+    // tighter 5MB backend cap, enforced server-side after upload.
+    const maxBytes = 40 * 1024 * 1024
     if (file.size > maxBytes) {
       setUploadError(t('expenses.messages.fileTooLarge'))
       return
@@ -407,6 +437,51 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     setReceipt(undefined)
   }
 
+  // ── Attachment handlers (issue #955 — multi-file replacement for the receipt above) ──
+
+  const handleAttachmentsUpload = async (files: File[]) => {
+    if (!currentClaimId) {
+      setUploadError('Save the draft before uploading receipts.')
+      return
+    }
+    setUploadError(undefined)
+    const formData = new FormData()
+    files.forEach((file) => formData.append('files', file))
+    const response = await mutation.trigger<FormData, ExpenseClaimAttachment[]>(
+      'POST',
+      formData,
+      `${currentClaimId}/attachments`,
+    )
+    if (response.error) {
+      setUploadError(response.error.detail)
+      return
+    }
+    if (response.data) setAttachments((prev) => [...prev, ...response.data!])
+  }
+
+  const deleteAttachment = async (attachmentId: number) => {
+    if (!currentClaimId) return
+    const response = await mutation.trigger(
+      'DELETE',
+      undefined,
+      `${currentClaimId}/attachments/${attachmentId}`,
+    )
+    if (response.error) {
+      setUploadError(response.error.detail)
+      return
+    }
+    setAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
+  }
+
+  const previewMergedAttachments = async () => {
+    if (!currentClaimId) return
+    const res = await sharedApi.get(`v1/expenses/${currentClaimId}/attachments/merged-preview`, {
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(res.data as Blob)
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
@@ -431,6 +506,11 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             {submitError}
           </Alert>
         )}
+        {!submitError && Object.keys(fieldErrors).length > 0 && (
+          <Alert severity='error' sx={{ mb: 2 }}>
+            {t('expenses.reviewHighlightedFields')}
+          </Alert>
+        )}
         {!!infoMessage && (
           <Alert severity='success' sx={{ mb: 2 }}>
             {infoMessage}
@@ -443,6 +523,9 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             <Stack spacing={2}>
               <TextField
                 select
+                required
+                error={!!fieldErrors.category}
+                helperText={fieldErrors.category}
                 label={t('expenses.fields.category')}
                 value={form.categoryId}
                 disabled={!editable}
@@ -460,6 +543,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                         : li,
                     ),
                   }))
+                  setFieldErrors((e) => ({ ...e, category: undefined }))
                 }}
               >
                 {categories.map((cat) => (
@@ -474,7 +558,13 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 value={form.title}
                 disabled={!editable}
                 fullWidth
-                onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))}
+                required
+                error={!!fieldErrors.title}
+                helperText={fieldErrors.title}
+                onChange={(e) => {
+                  setForm((c) => ({ ...c, title: e.target.value }))
+                  if (e.target.value.trim()) setFieldErrors((err) => ({ ...err, title: undefined }))
+                }}
                 slotProps={{
                   htmlInput: { maxLength: 200 },
                 }}
@@ -511,6 +601,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 slotProps={{
                   textField: {
                     sx: { maxWidth: 200 },
+                    required: true,
                     error: !!fieldErrors.expenseDate,
                     helperText: fieldErrors.expenseDate,
                   },
@@ -584,24 +675,42 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             </Stack>
           </Paper>
 
-          {/* ── Mileage detail (only for mileage claims) ── */}
+          {/* ── Mileage legs (only for mileage claims) ── */}
           {isMileage && (
             <Paper sx={{ p: 3 }}>
-              <MileageDetailFields
-                value={mileageDetail}
-                onChange={(v) => {
-                  setMileageDetail(v)
-                  setFieldErrors((e) => ({ ...e, mileageDetail: undefined }))
+              <MileageLegsEditor
+                legs={mileageLegs}
+                onChange={(legs) => {
+                  setMileageLegs(legs)
+                  setFieldErrors((e) => ({ ...e, mileageLegs: undefined }))
                 }}
                 disabled={!editable}
                 effectiveRatePerKm={mileageAllowance?.effectiveRatePerKm}
-                maxKm={Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100}
+                maxKm={MILEAGE_MAX_KM}
+                showErrors={!!fieldErrors.mileageLegs}
               />
-              {!!fieldErrors.mileageDetail && (
+              {!!fieldErrors.mileageLegs && (
                 <Alert severity='error' sx={{ mt: 2 }}>
-                  {fieldErrors.mileageDetail}
+                  {fieldErrors.mileageLegs}
                 </Alert>
               )}
+              <TextField
+                label={t('expenses.mileage.hetu')}
+                value={hetu}
+                disabled={!editable}
+                fullWidth
+                required
+                type='password'
+                autoComplete='off'
+                error={!!fieldErrors.hetu}
+                helperText={fieldErrors.hetu ?? t('expenses.mileage.hetuHint')}
+                onChange={(e) => {
+                  setHetu(e.target.value.toUpperCase())
+                  setFieldErrors((err) => ({ ...err, hetu: undefined }))
+                }}
+                slotProps={{ htmlInput: { maxLength: 11 } }}
+                sx={{ mt: 2 }}
+              />
             </Paper>
           )}
 
@@ -674,29 +783,37 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                   {fieldErrors.lineItems}
                 </Alert>
               )}
-              <Box sx={{ mt: 2, textAlign: 'right' }}>
-                <Typography variant='h6'>
-                  {t('expenses.fields.totalAmount')}: {formatExpenseAmount(totalAmount)}
-                </Typography>
-              </Box>
             </Paper>
           )}
 
-          {/* ── Receipt (not applicable for mileage claims) ── */}
+          {/* ── Receipt / attachments (not applicable for mileage claims) ── */}
           {!isMileage && (
             <Paper sx={{ p: 3 }}>
               <Typography variant='h6' sx={{ mb: 2 }}>
                 {t('expenses.fields.receipt')}
               </Typography>
-              <ReceiptUploadZone
-                receipt={receipt}
-                onUpload={handleUpload}
-                onDelete={editable ? deleteReceipt : undefined}
-                onOpen={openReceipt}
-                disabled={!editable}
-                error={uploadError}
-                requireSaveDraftFirst={!currentClaimId}
-              />
+              {receipt ? (
+                <ReceiptUploadZone
+                  receipt={receipt}
+                  onUpload={handleUpload}
+                  onDelete={editable ? deleteReceipt : undefined}
+                  onOpen={openReceipt}
+                  disabled={!editable}
+                  error={uploadError}
+                  requireSaveDraftFirst={!currentClaimId}
+                />
+              ) : (
+                <AttachmentsUploadZone
+                  attachments={attachments}
+                  onUpload={handleAttachmentsUpload}
+                  onDelete={editable ? deleteAttachment : undefined}
+                  onPreview={previewMergedAttachments}
+                  disabled={!editable}
+                  error={uploadError}
+                  requireSaveDraftFirst={!currentClaimId}
+                  required={attachmentsRequired}
+                />
+              )}
             </Paper>
           )}
 
@@ -734,15 +851,19 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             >
               {t('expenses.actions.saveDraft')}
             </Button>
-            <Button
-              variant='contained'
-              disabled={!editable || mutation.isMutating}
-              onClick={() => setSubmitDialogOpen(true)}
-            >
-              {claimApi.data?.status === ExpenseClaimStatus.PENDING_INFO
-                ? t('expenses.actions.resubmit')
-                : t('expenses.actions.submit')}
-            </Button>
+            <Tooltip title={attachmentsMissing ? t('expenses.wizard.receiptRequiredWarning') : ''}>
+              <span>
+                <Button
+                  variant='contained'
+                  disabled={!editable || mutation.isMutating || attachmentsMissing}
+                  onClick={() => setSubmitDialogOpen(true)}
+                >
+                  {claimApi.data?.status === ExpenseClaimStatus.PENDING_INFO
+                    ? t('expenses.actions.resubmit')
+                    : t('expenses.actions.submit')}
+                </Button>
+              </span>
+            </Tooltip>
           </Stack>
 
           {/* ── Submit confirmation dialog ── */}

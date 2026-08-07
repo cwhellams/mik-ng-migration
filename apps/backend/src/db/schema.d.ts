@@ -169,6 +169,10 @@ export interface AcctsExpenseClaim {
   fuel_litres: Numeric | null
   fuel_type: string | null
   fx_rate: Numeric | null
+  /**
+   * AES-256-GCM encrypted Finnish social security number (HETU) for mileage claims — GDPR sensitive
+   */
+  hetu_encrypted: string | null
   iban: string | null
   iban_account_name: string | null
   id: Generated<string>
@@ -189,6 +193,31 @@ export interface AcctsExpenseClaim {
   updated_at: Generated<Timestamp>
 }
 
+export interface AcctsExpenseClaimAttachment {
+  claim_id: string
+  file_name: string
+  file_size: Int8
+  id: Generated<number>
+  mime_type: string
+  sort_order: Generated<number>
+  storage_key: string
+  uploaded_at: Generated<Timestamp>
+}
+
+export interface AcctsExpenseClaimEditAudit {
+  claim_id: string
+  edited_at: Generated<Timestamp>
+  edited_by: string
+  field_name: string
+  id: Generated<number>
+  /**
+   * NULL for claim-level field changes (title, aircraft, expense date)
+   */
+  line_item_id: number | null
+  new_value: string | null
+  old_value: string | null
+}
+
 export interface AcctsExpenseClaimLineItem {
   airport: string | null
   claim_id: string
@@ -198,6 +227,10 @@ export interface AcctsExpenseClaimLineItem {
   fuel_type: string | null
   id: Generated<number>
   item_id: number | null
+  /**
+   * Fuel bought with the club's card, not reimbursed to the member
+   */
+  paid_with_club_card: Generated<boolean>
   quantity: Generated<Numeric>
   sort_order: Generated<number>
   total_cost: Numeric | null
@@ -221,25 +254,45 @@ export interface AcctsExpenseMileageDetail {
   board_approved: Generated<boolean>
   claim_id: string
   created_at: Generated<Timestamp>
+  /**
+   * Server-computed start->end distance with no waypoints, for comparison against distance_km
+   */
+  direct_distance_km: Numeric | null
   distance_km: Numeric
   /**
-   * AES-256-GCM encrypted Finnish social security number (HETU) — GDPR sensitive
+   * Structured end address label (from geocoding search)
    */
-  hetu_encrypted: string | null
+  end_address: string | null
+  end_lat: Numeric | null
+  end_lon: Numeric | null
   id: Generated<number>
   /**
    * Date of the journey
    */
   journey_date: string
   /**
+   * Required when distance_km exceeds direct_distance_km by more than 20%
+   */
+  justification_note: string | null
+  /**
    * Effective rate at time of claim creation (rate_per_km * (1 - discount_pct/100))
    */
   rate_per_km: Numeric
   /**
-   * Free-text route description, e.g. "Helsinki - Tampere - Helsinki"
+   * Legacy free-text route, only populated on claims created before issue #1021
    */
-  route: string
+  route: string | null
+  /**
+   * Structured start address label (from geocoding search)
+   */
+  start_address: string | null
+  start_lat: Numeric | null
+  start_lon: Numeric | null
   updated_at: Generated<Timestamp>
+  /**
+   * Ordered [{label, lat, lon}, ...] intermediate stops for non-direct routes
+   */
+  waypoints: Generated<Json>
 }
 
 export interface AcctsInvoice {
@@ -270,6 +323,21 @@ export interface AcctsItems {
   is_other_item: Generated<boolean>
   item: Json | null
   name: string
+}
+
+export interface AcctsLocalFuelPrice {
+  created_at: Generated<Timestamp>
+  created_by: string
+  fuel_type: string
+  id: Generated<number>
+  /**
+   * Total price including fuel tax, EUR per litre
+   */
+  price_eur_per_litre: Numeric
+  /**
+   * Effective from this date until the next row for the same fuel_type
+   */
+  valid_from: string
 }
 
 export interface AcctsMileageAllowance {
@@ -2068,11 +2136,14 @@ export interface DB {
   'accts.cost_centre': AcctsCostCentre
   'accts.expense_category': AcctsExpenseCategory
   'accts.expense_claim': AcctsExpenseClaim
+  'accts.expense_claim_attachment': AcctsExpenseClaimAttachment
+  'accts.expense_claim_edit_audit': AcctsExpenseClaimEditAudit
   'accts.expense_claim_line_item': AcctsExpenseClaimLineItem
   'accts.expense_claim_message': AcctsExpenseClaimMessage
   'accts.expense_mileage_detail': AcctsExpenseMileageDetail
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
+  'accts.local_fuel_price': AcctsLocalFuelPrice
   'accts.mileage_allowance': AcctsMileageAllowance
   'accts.mileage_hetu_access_audit': AcctsMileageHetuAccessAudit
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks

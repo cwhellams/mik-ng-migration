@@ -32,6 +32,7 @@ import {
   readWizardDraftSavedAt,
   writeWizardDraft,
   clearWizardDraft,
+  discardAllOrphanWizardDrafts,
 } from '../../../utils/wizardDraft'
 import { useWizardDraftGate } from '../../../hooks/useWizardDraftGate'
 import { WizardDraftChooserBanner } from '../../../components/WizardDraftChooserBanner'
@@ -369,6 +370,11 @@ const FlightLogEntryWizardInner = ({
   const discardDraft = () => {
     draftClearedRef.current = true
     clearWizardDraft(draftKey)
+    // Orphan siblings left by other tabs (or by an earlier auto-adoption that
+    // intentionally didn't delete its source — see adoptWizardDraft) must be purged
+    // too, or the next mount's gate check silently re-adopts one and this draft comes
+    // right back even though it was just discarded/saved.
+    discardAllOrphanWizardDrafts(draftKey)
   }
 
   // Autosave the whole form plus the wizard-only bits (step, flight date, the three

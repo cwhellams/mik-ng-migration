@@ -2,11 +2,11 @@ import { Router } from 'express'
 import type { Request, Response } from 'express'
 import { HttpStatusCode } from 'axios'
 import multer from 'multer'
-import sharp from 'sharp'
 import { nanoid } from 'nanoid'
 
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
+import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
 import {
   EventCreateSchema,
   EventListQuerySchema,
@@ -31,12 +31,11 @@ import logger from '../../lib/logger.ts'
 export const router = Router()
 
 const EVENT_IMAGE_FOLDER = 'events'
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB — raw upload limit before compression
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024 // 2 MB — post-compression limit
 
 const imageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_UPLOAD_BYTES },
+  limits: { fileSize: IMAGE_UPLOAD_RAW_BYTES },
   fileFilter: (_req, file, cb) => {
     if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
       cb(null, true)
@@ -56,24 +55,11 @@ const buildEventImageUrl = (fileName: string): string => {
 }
 
 async function processEventImage(file: Express.Multer.File): Promise<Buffer> {
-  const buildImage = () =>
-    sharp(file.buffer)
-      .rotate()
-      .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
-
-  let buffer = await buildImage().jpeg({ quality: 85, mozjpeg: true }).toBuffer()
-  if (buffer.length > MAX_IMAGE_BYTES) {
-    buffer = await buildImage().jpeg({ quality: 70, mozjpeg: true }).toBuffer()
-  }
-
-  if (buffer.length > MAX_IMAGE_BYTES) {
-    return problem({
-      status: HttpStatusCode.BadRequest,
-      detail: 'Event image is too large after compression. Please upload a smaller image.',
-    })
-  }
-
-  return buffer
+  return compressImageForUpload(file.buffer, {
+    maxWidth: 1600,
+    maxHeight: 1600,
+    targetBytes: MAX_IMAGE_BYTES,
+  })
 }
 
 const parseEventFilters = (query: Request['query']) => {

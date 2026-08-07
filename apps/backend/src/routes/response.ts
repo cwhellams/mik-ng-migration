@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 import { getReasonPhrase } from 'http-status-codes'
+import { MulterError } from 'multer'
 import { z, ZodError } from 'zod'
 
 // https://www.rfc-editor.org/rfc/rfc9457.html
@@ -76,6 +77,25 @@ export const problemErrorHandler = (
       extensions: {
         errors: err.issues,
       },
+    })
+  }
+
+  // Multer throws directly from its upload middleware, before any route handler (or
+  // its own try/catch) ever runs — without this, an oversized upload fell through to
+  // the generic 500 below with no indication the actual problem was file size
+  // (issue #1075).
+  if (err instanceof MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return sendProblem({
+        status: 400,
+        title: 'File Too Large',
+        detail: 'This file is too large. Please upload a smaller file.',
+      })
+    }
+    return sendProblem({
+      status: 400,
+      title: 'Upload Error',
+      detail: err.message,
     })
   }
 

@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { MileageDetailSchema, CreateMileageDetailSchema } from './mileageModels.ts'
-export { MileageDetailSchema, CreateMileageDetailSchema } from './mileageModels.ts'
+import { MileageLegSchema, CreateMileageLegSchema } from './mileageModels.ts'
+export { MileageLegSchema, CreateMileageLegSchema } from './mileageModels.ts'
 
 export enum ExpenseClaimStatus {
   DRAFT = 'DRAFT',
@@ -81,6 +81,9 @@ export const ExpenseLineItemSchema = z.object({
   costCentreCode: z.string().max(50).nullable().optional(),
   fuelType: z.enum(FUEL_TYPES).optional(),
   airport: z.string().max(10).nullable().optional(),
+  // Fuel bought with the club's card rather than by the member (issue #955) — still
+  // counts toward the trip's balanced price-cap calculation, but is never reimbursed.
+  paidWithClubCard: z.boolean().default(false),
 })
 export type ExpenseLineItem = z.infer<typeof ExpenseLineItemSchema>
 
@@ -92,6 +95,23 @@ export const ExpenseClaimReceiptSchema = z.object({
   uploadedAt: z.string(),
 })
 export type ExpenseClaimReceipt = z.infer<typeof ExpenseClaimReceiptSchema>
+
+// ─── Multiple attachments (issue #955) ───────────────────────────────────────
+// Newer than the singular receipt_* columns above, which stay in place unchanged for
+// old claims. New claims use this instead — SimplBooks only accepts one attachment per
+// purchase, so at approval time every attachment is merged into a single PDF.
+
+export const ExpenseClaimAttachmentSchema = z.object({
+  id: z.number(),
+  claimId: z.string().guid(),
+  storageKey: z.string(),
+  fileName: z.string(),
+  fileSize: z.number(),
+  mimeType: z.string(),
+  sortOrder: z.number(),
+  uploadedAt: z.string(),
+})
+export type ExpenseClaimAttachment = z.infer<typeof ExpenseClaimAttachmentSchema>
 
 export const ExpenseClaimMessageSchema = z.object({
   id: z.number(),
@@ -120,12 +140,30 @@ export const CreateExpenseClaimSchema = z.object({
   lineItems: z.array(ExpenseLineItemSchema),
   iban: z.string().max(34).optional(),
   ibanAccountName: z.string().max(200).optional(),
-  mileageDetail: CreateMileageDetailSchema.optional(),
+  mileageLegs: z.array(CreateMileageLegSchema).min(1).optional(),
+  /** Finnish social security number, claim-level (one person per claim), masked on read. */
+  hetu: z.string().optional(),
 })
 export type CreateExpenseClaim = z.infer<typeof CreateExpenseClaimSchema>
 
 export const UpdateExpenseClaimSchema = CreateExpenseClaimSchema.partial()
 export type UpdateExpenseClaim = z.infer<typeof UpdateExpenseClaimSchema>
+
+// ─── Fuel reimbursement balanced cap (issue #955) ────────────────────────────
+
+export const FuelReimbursementSummarySchema = z.object({
+  totalLitres: z.number(),
+  totalCost: z.number(),
+  localPriceEurPerLitre: z.number().nullable(),
+  localPriceCost: z.number().nullable(),
+  cappedTotal: z.number().nullable(),
+  clubCardLitres: z.number(),
+  clubCardCost: z.number(),
+  memberReimbursement: z.number(),
+  memberOwesClub: z.number(),
+  capped: z.boolean(),
+})
+export type FuelReimbursementSummary = z.infer<typeof FuelReimbursementSummarySchema>
 
 export const ExpenseClaimSchema = z.object({
   id: z.string().guid(),
@@ -157,11 +195,17 @@ export const ExpenseClaimSchema = z.object({
   updatedAt: z.string(),
   lineItems: z.array(ExpenseLineItemSchema).optional(),
   receipt: ExpenseClaimReceiptSchema.optional(),
+  attachments: z.array(ExpenseClaimAttachmentSchema).optional(),
   messages: z.array(ExpenseClaimMessageSchema).optional(),
-  mileageDetail: MileageDetailSchema.optional(),
+  mileageLegs: z.array(MileageLegSchema).optional(),
+  /** Returned masked from the API; full value only goes in on write */
+  hetu: z.string().optional(),
   memberName: z.string().optional(),
   memberEmail: z.string().optional(),
   totalAmount: z.number().optional(),
+  // Computed live from line items + the local fuel price in effect on the trip's start
+  // date, only for fuel-category claims — never persisted (issue #955).
+  fuelReimbursementSummary: FuelReimbursementSummarySchema.optional(),
 })
 export type ExpenseClaim = z.infer<typeof ExpenseClaimSchema>
 
@@ -192,6 +236,50 @@ export const OverrideFuelPriceSchema = z.object({
   efnuPrice: z.number().positive(),
 })
 
+// ─── Treasurer edit (issue #1028) ────────────────────────────────────────────
+// A deliberately narrow schema — a treasurer can fix small mistakes on a
+// submitted/pending-info claim (wrong item code, wrong airport, etc.) without
+// touching status, memberId, or anything approval-related. Every field here is
+// optional/omittable so only the fields actually being corrected need to be sent;
+// each changed value is diffed and logged (accts.expense_claim_edit_audit).
+
+export const TreasurerEditLineItemSchema = z.object({
+  id: z.number().int(), // required — targets an existing line item row
+  itemId: z.number().int().positive().nullable().optional(),
+  description: z.string().min(1).max(500).optional(),
+  date: z.string().date().nullable().optional(),
+  quantity: z.number().positive().optional(),
+  unit: z.enum(['pcs', 'km', 'l', 'h']).optional(),
+  unitPrice: z.number().min(0).optional(),
+  // Sent alongside unitPrice by the treasurer's edit dialog, which (like the member's own
+  // form) lets the treasurer type the known total and back-derives unitPrice from it —
+  // persisting it keeps the exact figure instead of reconstructing it from the rounded
+  // unit price (issue #1024).
+  totalCost: z.number().min(0).nullable().optional(),
+  costCentreCode: z.string().max(50).nullable().optional(),
+  airport: z.string().max(10).nullable().optional(),
+  paidWithClubCard: z.boolean().optional(),
+})
+export type TreasurerEditLineItem = z.infer<typeof TreasurerEditLineItemSchema>
+
+export const TreasurerEditExpenseClaimSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  aircraftId: z.string().nullable().optional(),
+  expenseDate: z.string().date().optional(),
+  lineItems: z.array(TreasurerEditLineItemSchema).optional(),
+})
+export type TreasurerEditExpenseClaim = z.infer<typeof TreasurerEditExpenseClaimSchema>
+
+export const ExpenseClaimEditAuditEntrySchema = z.object({
+  fieldName: z.string(),
+  oldValue: z.string().nullable(),
+  newValue: z.string().nullable(),
+  lineItemId: z.number().nullable(),
+  editedBy: z.string(),
+  editedAt: z.string(),
+})
+export type ExpenseClaimEditAuditEntry = z.infer<typeof ExpenseClaimEditAuditEntrySchema>
+
 // ─── HETU reveal (issue #1022) ───────────────────────────────────────────────
 
 export const RevealHetuResponseSchema = z.object({
@@ -214,7 +302,11 @@ export const MileageReportRowSchema = z.object({
   memberId: z.string(),
   memberName: z.string(),
   journeyDate: z.string(),
-  route: z.string(),
+  // Structured fields for legs created after issue #1021; route is the legacy
+  // free-text fallback for older claims where start/end address are null.
+  route: z.string().nullable(),
+  startAddress: z.string().nullable(),
+  endAddress: z.string().nullable(),
   distanceKm: z.number(),
   ratePerKm: z.number(),
   totalAmount: z.number(),

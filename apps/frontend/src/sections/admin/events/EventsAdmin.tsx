@@ -95,7 +95,10 @@ const eventToForm = (event: ClubEvent): EventForm => ({
 })
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024
+// Matches the backend's raw upload ceiling (apps/backend/src/util/imageUpload.ts) —
+// the server compresses images down after upload, so this is a sanity ceiling on the
+// original file, not the effective size limit (issue #1075).
+const MAX_IMAGE_UPLOAD_BYTES = 40 * 1024 * 1024
 
 const EventsAdmin = () => {
   const { t } = useTranslation()
@@ -159,7 +162,7 @@ const EventsAdmin = () => {
       return
     }
     if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
-      setImageError(t('events.form.imageSizeError', { maxSize: '10 MB' }))
+      setImageError(t('events.form.imageSizeError', { maxSize: '40 MB' }))
       return
     }
     if (imageFile && imagePreviewUrl) {
@@ -645,6 +648,7 @@ const EventsAdmin = () => {
                     type='file'
                     hidden
                     accept={ALLOWED_IMAGE_TYPES.join(',')}
+                    capture='environment'
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (file) handleImageSelect(file)

@@ -1,18 +1,21 @@
-import { sql } from 'kysely'
+import { sql, type Kysely, type Transaction } from 'kysely'
 import { db } from './connection.ts'
+import type { DB } from './schema.js'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   MileageAllowance,
-  MileageDetail,
+  MileageLeg,
   UpsertMileageAllowance,
-  CreateMileageDetail,
+  CreateMileageLeg,
 } from '../routes/expenses/mileageModels.ts'
 import {
   ExpenseClaimStatus,
   type MileageReportFilters,
   type MileageReportRow,
 } from '../routes/expenses/models.ts'
-import { encryptField, decryptField } from '../lib/fieldEncryption.ts'
+import { decryptField } from '../lib/fieldEncryption.ts'
+
+type Executor = Kysely<DB> | Transaction<DB>
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -39,6 +42,11 @@ function mapAllowance(row: {
     updatedAt: new Date(String(row.updated_at)).toISOString(),
     updatedBy: row.updated_by,
   }
+}
+
+/** Fully mask a HETU so no part of it is ever returned in API responses without an audited reveal */
+export function maskHetu(plain: string): string {
+  return '*'.repeat(plain.length)
 }
 
 // ─── Mileage allowance CRUD ───────────────────────────────────────────────────
@@ -105,94 +113,108 @@ export async function upsertMileageAllowance(
   return mapAllowance(row)
 }
 
-// ─── Mileage detail (per claim) ───────────────────────────────────────────────
+// ─── Mileage legs (one row per one-way journey within a claim) ───────────────
 
-/** Fully mask a HETU so no part of it is ever returned in API responses without an audited reveal */
-function maskHetu(plain: string): string {
-  return '*'.repeat(plain.length)
-}
-
-export async function upsertMileageDetail(
-  claimId: string,
-  data: CreateMileageDetail,
-  ratePerKm: number,
-): Promise<MileageDetail> {
-  const now = new Date()
-  const hetuEncrypted = data.hetu ? encryptField(data.hetu) : null
-  const row = await db
-    .insertInto('accts.expense_mileage_detail')
-    .values({
-      claim_id: claimId,
-      route: data.route,
-      journey_date: data.journeyDate,
-      distance_km: data.distanceKm,
-      board_approved: data.boardApproved,
-      hetu_encrypted: hetuEncrypted,
-      rate_per_km: ratePerKm,
-      created_at: now,
-      updated_at: now,
-    })
-    .onConflict((oc) =>
-      oc.column('claim_id').doUpdateSet({
-        route: data.route,
-        journey_date: data.journeyDate,
-        distance_km: data.distanceKm,
-        board_approved: data.boardApproved,
-        rate_per_km: ratePerKm,
-        updated_at: now,
-        // Only overwrite the stored HETU when a new one was actually submitted —
-        // edit flows that don't re-collect it (it's never sent back to the client
-        // unmasked) must leave the existing encrypted value untouched instead of
-        // nulling it out.
-        ...(data.hetu ? { hetu_encrypted: hetuEncrypted } : {}),
-      }),
-    )
-    .returningAll()
-    .executeTakeFirstOrThrow()
-
+function mapMileageLegRow(row: {
+  id: number
+  claim_id: string
+  route: string | null
+  start_address: string | null
+  start_lat: unknown
+  start_lon: unknown
+  end_address: string | null
+  end_lat: unknown
+  end_lon: unknown
+  waypoints: unknown
+  journey_date: unknown
+  distance_km: unknown
+  direct_distance_km: unknown
+  justification_note: string | null
+  board_approved: boolean | null
+  rate_per_km: unknown
+}): MileageLeg {
   return {
     id: row.id,
     claimId: row.claim_id,
-    route: row.route,
+    route: row.route ?? undefined,
+    startAddress: row.start_address ?? '',
+    startLat: row.start_lat != null ? Number(row.start_lat) : undefined,
+    startLon: row.start_lon != null ? Number(row.start_lon) : undefined,
+    endAddress: row.end_address ?? '',
+    endLat: row.end_lat != null ? Number(row.end_lat) : undefined,
+    endLon: row.end_lon != null ? Number(row.end_lon) : undefined,
+    waypoints: (row.waypoints as MileageLeg['waypoints']) ?? [],
     journeyDate: String(row.journey_date).substring(0, 10),
     distanceKm: Number(row.distance_km),
+    directDistanceKm: row.direct_distance_km != null ? Number(row.direct_distance_km) : undefined,
+    justificationNote: row.justification_note ?? undefined,
     boardApproved: row.board_approved ?? false,
-    hetu: row.hetu_encrypted ? maskHetu(decryptField(row.hetu_encrypted)) : undefined,
     ratePerKm: Number(row.rate_per_km),
   }
 }
 
-export async function getMileageDetailByClaimId(
+/** Replaces all legs for a claim (delete + bulk insert), mirroring insertLineItems in expense-queries.ts */
+export async function replaceMileageLegs(
+  executor: Executor,
   claimId: string,
-): Promise<MileageDetail | undefined> {
-  const row = await db
+  legs: CreateMileageLeg[],
+  ratePerKm: number,
+): Promise<void> {
+  await executor
+    .deleteFrom('accts.expense_mileage_detail')
+    .where('claim_id', '=', claimId)
+    .execute()
+
+  if (!legs.length) return
+
+  const now = new Date()
+  await executor
+    .insertInto('accts.expense_mileage_detail')
+    .values(
+      legs.map((leg) => ({
+        claim_id: claimId,
+        start_address: leg.startAddress,
+        start_lat: leg.startLat ?? null,
+        start_lon: leg.startLon ?? null,
+        end_address: leg.endAddress,
+        end_lat: leg.endLat ?? null,
+        end_lon: leg.endLon ?? null,
+        waypoints: JSON.stringify(leg.waypoints),
+        journey_date: leg.journeyDate,
+        distance_km: leg.distanceKm,
+        direct_distance_km: leg.directDistanceKm ?? null,
+        justification_note: leg.justificationNote ?? null,
+        board_approved: leg.boardApproved,
+        rate_per_km: ratePerKm,
+        created_at: now,
+        updated_at: now,
+      })),
+    )
+    .execute()
+}
+
+export async function getMileageLegsByClaimId(claimId: string): Promise<MileageLeg[]> {
+  const rows = await db
     .selectFrom('accts.expense_mileage_detail')
     .selectAll()
     .where('claim_id', '=', claimId)
-    .executeTakeFirst()
-  if (!row) return undefined
-  return {
-    id: row.id,
-    claimId: row.claim_id,
-    route: row.route,
-    journeyDate: String(row.journey_date).substring(0, 10),
-    distanceKm: Number(row.distance_km),
-    boardApproved: row.board_approved ?? false,
-    hetu: row.hetu_encrypted ? maskHetu(decryptField(row.hetu_encrypted)) : undefined,
-    ratePerKm: Number(row.rate_per_km),
-  }
+    .orderBy('id')
+    .execute()
+  return rows.map(mapMileageLegRow)
 }
 
-// ─── HETU reveal + audit (issue #1022) ───────────────────────────────────────
-// Deliberately separate from getMileageDetailByClaimId above — every other read
-// path stays masked by default; this is the one intentional, audited exception.
+// ─── Claim-level HETU reveal + audit (issue #1022) ───────────────────────────
+// HETU is claim-level, not per-leg (issue #1021) — a member's SSN doesn't change
+// between legs of the same reimbursement request. Every other read path (leg
+// rows above, claim list/detail via expense-queries.ts) stays masked by
+// default; this is the one intentional, audited exception.
 
 /** Decrypted, unmasked HETU for a claim. Callers must be permission-gated and audit-log the access. */
-export async function getMileageDetailFullHetu(claimId: string): Promise<string | undefined> {
+export async function getClaimHetuFull(claimId: string): Promise<string | undefined> {
   const row = await db
-    .selectFrom('accts.expense_mileage_detail')
+    .selectFrom('accts.expense_claim')
     .select('hetu_encrypted')
-    .where('claim_id', '=', claimId)
+    .where('id', '=', claimId)
     .executeTakeFirst()
   return row?.hetu_encrypted ? decryptField(row.hetu_encrypted) : undefined
 }
@@ -238,6 +260,8 @@ export async function getMileageHetuAccessLog(
 
 // ─── Tulorekisteri mileage report (issue #1022) ──────────────────────────────
 // Never selects hetu_encrypted — the report must not expose HETU, per the issue.
+// Joins at leg grain (no aggregation), so a claim with multiple legs naturally
+// emits one row per leg.
 
 export async function getMileageReportRows(
   filters: MileageReportFilters,
@@ -256,6 +280,8 @@ export async function getMileageReportRows(
       'claim.member_id',
       'claim.approved_at',
       'detail.route',
+      'detail.start_address',
+      'detail.end_address',
       'detail.journey_date',
       'detail.distance_km',
       'detail.rate_per_km',
@@ -273,6 +299,8 @@ export async function getMileageReportRows(
     memberName: row.member_name,
     journeyDate: String(row.journey_date).substring(0, 10),
     route: row.route,
+    startAddress: row.start_address,
+    endAddress: row.end_address,
     distanceKm: Number(row.distance_km),
     ratePerKm: Number(row.rate_per_km),
     totalAmount: Number(row.total_amount),
@@ -283,20 +311,19 @@ export async function getMileageReportRows(
 // ─── HETU retention purge (issue #1022) ──────────────────────────────────────
 // Board decision: HETU is only needed to file with Tulorekisteri, which happens
 // within days of approval — so it's purged 1 week after approval (GDPR minimisation).
+// HETU now lives on expense_claim (issue #1021), not per-leg.
 
 export async function purgeExpiredHetu(): Promise<number> {
   // Bounded to a 7-37 day window (instead of an open-ended "older than 7 days"
   // scan) so this daily job's cost stays flat as expense_claim grows over the
-  // years, and joined to expense_mileage_detail/expense_category so it only
-  // ever considers mileage claims that still have a HETU to purge.
+  // years.
   const eligibleClaims = await db
     .selectFrom('accts.expense_claim as claim')
-    .innerJoin('accts.expense_mileage_detail as detail', 'detail.claim_id', 'claim.id')
     .innerJoin('accts.expense_category as category', 'category.id', 'claim.category_id')
     .select('claim.id')
     .where('category.code', '=', 'mileage')
     .where('claim.status', '=', ExpenseClaimStatus.APPROVED)
-    .where('detail.hetu_encrypted', 'is not', null)
+    .where('claim.hetu_encrypted', 'is not', null)
     .where('claim.approved_at', '<', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
     .where('claim.approved_at', '>=', new Date(Date.now() - 37 * 24 * 60 * 60 * 1000))
     .execute()
@@ -305,10 +332,10 @@ export async function purgeExpiredHetu(): Promise<number> {
   if (claimIds.length === 0) return 0
 
   const result = await db
-    .updateTable('accts.expense_mileage_detail')
+    .updateTable('accts.expense_claim')
     .set({ hetu_encrypted: null, updated_at: new Date() })
     .where('hetu_encrypted', 'is not', null)
-    .where('claim_id', 'in', claimIds)
+    .where('id', 'in', claimIds)
     .executeTakeFirst()
 
   return Number(result.numUpdatedRows)

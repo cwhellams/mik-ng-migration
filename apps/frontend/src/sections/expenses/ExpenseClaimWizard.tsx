@@ -35,7 +35,7 @@ import {
   type CreateExpenseClaim,
   type ExpenseCategory,
   type ExpenseClaim,
-  type ExpenseClaimReceipt,
+  type ExpenseClaimAttachment,
 } from '@backend/routes/expenses/models'
 import type { FlightLogListEntry, FlightLogListResponse } from '@backend/routes/flight-log/models'
 import useApi, { sharedApi } from '../../hooks/useApi'
@@ -43,10 +43,10 @@ import { useMe } from '../../hooks/useMe'
 import { Title } from '../../components/Title'
 import { getExpenseCategoryLabel } from './expenseUi'
 import {
+  AttachmentsUploadZone,
   BankDetailsFields,
   type EditableLineItem,
   LineItemsTable,
-  ReceiptUploadZone,
   defaultUnitForCategory,
   isAirportOutsideFinland,
   makeDefaultLineItem,
@@ -54,11 +54,18 @@ import {
   validateIban,
 } from './expenseShared'
 import {
-  MileageDetailFields,
-  type MileageDetailForm,
-  makeMileageDetailForm,
+  MILEAGE_MAX_KM,
+  MileageLegsEditor,
+  type MileageLegForm,
+  isMileageLegValid,
+  makeMileageLegForm,
 } from './MileageDetailFields'
-import { readWizardDraft, writeWizardDraft, clearWizardDraft } from '../../utils/wizardDraft'
+import {
+  readWizardDraft,
+  writeWizardDraft,
+  clearWizardDraft,
+  discardAllOrphanWizardDrafts,
+} from '../../utils/wizardDraft'
 import { useWizardDraftGate } from '../../hooks/useWizardDraftGate'
 import { WizardDraftChooserBanner } from '../../components/WizardDraftChooserBanner'
 
@@ -99,9 +106,10 @@ interface ExpenseWizardDraft {
   form: WizardForm
   fuelForFlight: boolean | null
   flightMode: 'dropdown' | 'manual'
-  receipt: ExpenseClaimReceipt | undefined
+  attachments: ExpenseClaimAttachment[]
   savedClaimId: string | null
-  mileageDetail: MileageDetailForm
+  mileageLegs: MileageLegForm[]
+  hetu: string
   claimFxRate: number | null
 }
 
@@ -188,14 +196,17 @@ function ExpenseClaimWizardInner() {
   const [flightMode, setFlightMode] = useState<'dropdown' | 'manual'>(
     persistedDraft?.flightMode ?? 'dropdown',
   )
-  const [receipt, setReceipt] = useState<ExpenseClaimReceipt | undefined>(persistedDraft?.receipt)
+  const [attachments, setAttachments] = useState<ExpenseClaimAttachment[]>(
+    persistedDraft?.attachments ?? [],
+  )
   const [savedClaimId, setSavedClaimId] = useState<string | null>(
     persistedDraft?.savedClaimId ?? null,
   )
   const [submitError, setSubmitError] = useState<string>()
-  const [mileageDetail, setMileageDetail] = useState<MileageDetailForm>(
-    persistedDraft?.mileageDetail ?? makeMileageDetailForm(),
+  const [mileageLegs, setMileageLegs] = useState<MileageLegForm[]>(
+    persistedDraft?.mileageLegs ?? [makeMileageLegForm()],
   )
+  const [hetu, setHetu] = useState(persistedDraft?.hetu ?? '')
   const [claimFxRate, setClaimFxRate] = useState<number | null>(persistedDraft?.claimFxRate ?? null)
   const [fxRateLoading, setFxRateLoading] = useState(false)
 
@@ -222,17 +233,28 @@ function ExpenseClaimWizardInner() {
         form,
         fuelForFlight,
         flightMode,
-        receipt,
+        attachments,
         savedClaimId,
-        mileageDetail,
+        mileageLegs,
+        hetu,
         claimFxRate,
       })
     }, 400)
     return () => clearTimeout(timer)
-  }, [step, form, fuelForFlight, flightMode, receipt, savedClaimId, mileageDetail, claimFxRate])
+  }, [
+    step,
+    form,
+    fuelForFlight,
+    flightMode,
+    attachments,
+    savedClaimId,
+    mileageLegs,
+    hetu,
+    claimFxRate,
+  ])
 
   const categoryApi = useApi<ExpenseCategory[]>({ url: 'v1/expenses/categories' })
-  const { data: mileageAllowance } = useApi<{ effectiveRatePerKm: number }>({
+  const { data: mileageAllowance } = useApi<{ effectiveRatePerKm: number; discountPct: number }>({
     url: 'v1/mileage-allowances/current',
   })
   const { data: costCentres } = useApi<{ code: string; description: string }[]>({
@@ -254,6 +276,13 @@ function ExpenseClaimWizardInner() {
   )
   const isFuel = selectedCategory?.code === 'fuel'
   const isMileage = selectedCategory?.code === 'mileage'
+  // Mileage claims have no receipt to attach — reimbursement is computed from the
+  // server-verified distance instead. Every other category (fuel, "other" line-item
+  // claims) needs at least one attachment before it can be submitted — enforced
+  // server-side too (POST /:id/submit), this just avoids the user finding out only
+  // after clicking submit.
+  const attachmentsRequired = !isMileage
+  const attachmentsMissing = attachmentsRequired && attachments.length === 0
   const expenseClaimItems = useMemo(
     () =>
       (invoiceItemsData?.items ?? [])
@@ -338,29 +367,31 @@ function ExpenseClaimWizardInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMileage])
 
-  // Auto-compute mileage line item when distance or effective rate changes
+  // Auto-compute one line item per mileage leg when a leg's distance/addresses or
+  // the effective rate changes
   useEffect(() => {
     if (!isMileage || !mileageAllowance?.effectiveRatePerKm) return
-    const km = Number(mileageDetail.distanceKm) || 0
     const rate = mileageAllowance.effectiveRatePerKm
     setForm((f) => ({
       ...f,
-      lineItems: [
-        {
-          ...f.lineItems[0],
-          description: mileageDetail.route.trim() || t('expenses.mileage.lineItemDescription'),
-          quantity: km,
-          unit: 'km',
-          unitPrice: rate,
-          totalCost: null,
-        },
-      ],
+      lineItems: mileageLegs.map((leg, idx) => ({
+        ...(f.lineItems[idx] ?? makeDefaultLineItem('km')),
+        description:
+          leg.startAddress && leg.endAddress
+            ? `${leg.startAddress.label} - ${leg.endAddress.label}`
+            : t('expenses.mileage.lineItemDescription'),
+        quantity: Number(leg.distanceKm) || 0,
+        unit: 'km',
+        unitPrice: rate,
+        totalCost: null,
+      })),
     }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isMileage,
-    mileageDetail.distanceKm,
-    mileageDetail.route,
+    JSON.stringify(
+      mileageLegs.map((l) => [l.distanceKm, l.startAddress?.label, l.endAddress?.label]),
+    ),
     mileageAllowance?.effectiveRatePerKm,
   ])
 
@@ -397,16 +428,7 @@ function ExpenseClaimWizardInner() {
       case STEP_FUEL_FLIGHT:
         return true
       case STEP_MILEAGE:
-        return (
-          isMileage &&
-          mileageDetail.route.trim().length > 0 &&
-          mileageDetail.journeyDate.length > 0 &&
-          Number(mileageDetail.distanceKm) > 0 &&
-          validateHetu(mileageDetail.hetu) &&
-          (Number(mileageDetail.distanceKm) <=
-            (Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100) ||
-            mileageDetail.boardApproved)
-        )
+        return isMileage && validateHetu(hetu) && mileageLegs.every(isMileageLegValid)
       case STEP_BANK:
         return validateIban(form.iban) && form.ibanAccountName.trim().length > 0
       case STEP_LINE_ITEMS:
@@ -425,8 +447,55 @@ function ExpenseClaimWizardInner() {
     }
   }
 
-  const next = () => setStep((s) => Math.min(s + 1, stepLabels.length - 1))
-  const back = () => setStep((s) => Math.max(s - 1, 0))
+  // Which required fields on the current step are still unfilled, so a blocked "Next"
+  // click can tell the user what to fix instead of just staying disabled with no
+  // explanation (issue: users who filled in a later field first had no idea why they
+  // couldn't proceed).
+  const getMissingFieldLabels = (): string[] => {
+    switch (stepLabels[step]) {
+      case STEP_DETAILS: {
+        const missing: string[] = []
+        if (!(form.categoryId > 0)) missing.push(t('expenses.fields.category'))
+        if (!form.title.trim()) missing.push(t('expenses.fields.title'))
+        if (!form.expenseDate || new Date(form.expenseDate) > new Date()) {
+          missing.push(t('expenses.fields.expenseDate'))
+        }
+        return missing
+      }
+      case STEP_MILEAGE: {
+        const missing: string[] = []
+        if (!validateHetu(hetu)) missing.push(t('expenses.mileage.hetu'))
+        if (!mileageLegs.every(isMileageLegValid))
+          missing.push(t('expenses.wizard.mileageLegDetails'))
+        return missing
+      }
+      case STEP_BANK: {
+        const missing: string[] = []
+        if (!validateIban(form.iban)) missing.push(t('expenses.fields.iban'))
+        if (!form.ibanAccountName.trim()) missing.push(t('expenses.fields.ibanAccountName'))
+        return missing
+      }
+      case STEP_LINE_ITEMS:
+        return canAdvance() ? [] : [t('expenses.wizard.lineItemDetails')]
+      default:
+        return []
+    }
+  }
+
+  const [showStepErrors, setShowStepErrors] = useState(false)
+
+  const next = () => {
+    if (!canAdvance()) {
+      setShowStepErrors(true)
+      return
+    }
+    setShowStepErrors(false)
+    setStep((s) => Math.min(s + 1, stepLabels.length - 1))
+  }
+  const back = () => {
+    setShowStepErrors(false)
+    setStep((s) => Math.max(s - 1, 0))
+  }
 
   // ── Persistence ──────────────────────────────────────────────────────────────
 
@@ -443,30 +512,40 @@ function ExpenseClaimWizardInner() {
       currency: form.currency as CreateExpenseClaim['currency'],
       fxRate: form.currency !== 'EUR' ? claimFxRate : null,
       lineItems: isMileage
-        ? [
-            {
-              ...form.lineItems[0],
-              description: mileageDetail.route.trim() || t('expenses.mileage.lineItemDescription'),
-              quantity: Number(mileageDetail.distanceKm) || 1,
-              unit: 'km',
-              unitPrice: mileageAllowance?.effectiveRatePerKm ?? 0,
-              sortOrder: 0,
-            },
-          ]
+        ? mileageLegs.map((leg, idx) => ({
+            ...(form.lineItems[idx] ?? makeDefaultLineItem('km')),
+            description:
+              leg.startAddress && leg.endAddress
+                ? `${leg.startAddress.label} - ${leg.endAddress.label}`
+                : t('expenses.mileage.lineItemDescription'),
+            quantity: Number(leg.distanceKm) || 1,
+            unit: 'km',
+            unitPrice: mileageAllowance?.effectiveRatePerKm ?? 0,
+            sortOrder: idx,
+          }))
         : form.lineItems.map((item, idx) => ({
             ...item,
             sortOrder: idx,
           })),
-      mileageDetail:
-        isMileage && mileageDetail.route && mileageDetail.distanceKm
-          ? {
-              route: mileageDetail.route,
-              journeyDate: mileageDetail.journeyDate,
-              distanceKm: Number(mileageDetail.distanceKm),
-              boardApproved: mileageDetail.boardApproved,
-              hetu: mileageDetail.hetu || undefined,
-            }
+      mileageLegs:
+        isMileage &&
+        mileageLegs.every((leg) => leg.startAddress && leg.endAddress && leg.distanceKm)
+          ? mileageLegs.map((leg) => ({
+              startAddress: leg.startAddress!.label,
+              startLat: leg.startAddress!.lat,
+              startLon: leg.startAddress!.lon,
+              endAddress: leg.endAddress!.label,
+              endLat: leg.endAddress!.lat,
+              endLon: leg.endAddress!.lon,
+              waypoints: leg.waypoints.filter((w) => w != null),
+              journeyDate: leg.journeyDate,
+              distanceKm: Number(leg.distanceKm),
+              directDistanceKm: leg.directDistanceKm ?? undefined,
+              justificationNote: leg.justificationNote.trim() || undefined,
+              boardApproved: leg.boardApproved,
+            }))
           : undefined,
+      hetu: isMileage ? hetu || undefined : undefined,
     }
 
     const res = savedClaimId
@@ -483,27 +562,40 @@ function ExpenseClaimWizardInner() {
     return id ?? null
   }
 
-  const handleReceiptUpload = async (file: File) => {
+  const handleAttachmentsUpload = async (files: File[]) => {
     const claimId = savedClaimId ?? (await saveDraft())
     if (!claimId) return
     const fd = new FormData()
-    fd.append('file', file)
-    const res = await mutation.trigger<FormData, ExpenseClaimReceipt>(
+    files.forEach((file) => fd.append('files', file))
+    const res = await mutation.trigger<FormData, ExpenseClaimAttachment[]>(
       'POST',
       fd,
-      `${claimId}/receipt`,
+      `${claimId}/attachments`,
     )
     if (res.error) {
       setSubmitError(res.error.detail ?? t('expenses.wizard.saveFailedGeneric'))
       return
     }
-    if (res.data) setReceipt(res.data as ExpenseClaimReceipt)
+    if (res.data) setAttachments((prev) => [...prev, ...res.data!])
   }
 
-  const handleReceiptDelete = async () => {
+  const handleAttachmentDelete = async (attachmentId: number) => {
     if (!savedClaimId) return
-    const res = await mutation.trigger('DELETE', undefined, `${savedClaimId}/receipt`)
-    if (!res.error) setReceipt(undefined)
+    const res = await mutation.trigger(
+      'DELETE',
+      undefined,
+      `${savedClaimId}/attachments/${attachmentId}`,
+    )
+    if (!res.error) setAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
+  }
+
+  const previewMergedAttachments = async () => {
+    if (!savedClaimId) return
+    const res = await sharedApi.get(`v1/expenses/${savedClaimId}/attachments/merged-preview`, {
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(res.data as Blob)
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   const handleSubmit = async () => {
@@ -516,28 +608,36 @@ function ExpenseClaimWizardInner() {
     }
     draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
+    discardAllOrphanWizardDrafts(EXPENSE_WIZARD_DRAFT_KEY)
     navigate(`/expenses/${claimId}`)
   }
 
   // Once a draft is saved server-side, the claim itself (at /expenses/:id) becomes
   // the source of truth — the local wizard draft would otherwise resurrect stale data
-  // the next time someone starts a brand new claim.
+  // the next time someone starts a brand new claim. Orphan siblings (left behind by
+  // other tabs, or by an earlier auto-adoption that intentionally didn't delete its
+  // source — see adoptWizardDraft) must be purged too, or the very next "start new
+  // claim" gate check re-adopts one and this draft comes right back (issue: discard
+  // "worked" but the old draft reappeared on the next new claim).
   const goToSavedClaim = (id: string | null) => {
     if (!id) return
     draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
+    discardAllOrphanWizardDrafts(EXPENSE_WIZARD_DRAFT_KEY)
     navigate(`/expenses/${id}`)
   }
 
   const discardDraft = () => {
     draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
+    discardAllOrphanWizardDrafts(EXPENSE_WIZARD_DRAFT_KEY)
     navigate('/expenses')
   }
 
   // ── Step content ─────────────────────────────────────────────────────────────
 
   const currentStep = stepLabels[step]
+  const missingFieldLabels = showStepErrors ? getMissingFieldLabels() : []
 
   const renderStep = () => {
     if (currentStep === STEP_WELCOME) {
@@ -548,7 +648,9 @@ function ExpenseClaimWizardInner() {
               {t('expenses.wizard.receiptPolicyTitle')}
             </Typography>
             <Typography variant='body2' sx={{ whiteSpace: 'pre-line' }}>
-              {t('expenses.wizard.receiptPolicyBody')}
+              {t('expenses.wizard.receiptPolicyBody', {
+                discountPct: mileageAllowance?.discountPct ?? 50,
+              })}
             </Typography>
           </Alert>
         </Stack>
@@ -560,6 +662,8 @@ function ExpenseClaimWizardInner() {
         <Stack spacing={2}>
           <TextField
             select
+            required
+            error={showStepErrors && !(form.categoryId > 0)}
             label={t('expenses.fields.category')}
             value={form.categoryId || ''}
             fullWidth
@@ -584,6 +688,7 @@ function ExpenseClaimWizardInner() {
             value={form.title}
             fullWidth
             required
+            error={showStepErrors && !form.title.trim()}
             onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))}
             slotProps={{
               htmlInput: { maxLength: 200 },
@@ -611,7 +716,13 @@ function ExpenseClaimWizardInner() {
                 void fetchClaimFxRate(form.currency, dateStr)
               }
             }}
-            slotProps={{ textField: { sx: { maxWidth: 200 } } }}
+            slotProps={{
+              textField: {
+                sx: { maxWidth: 200 },
+                required: true,
+                error: showStepErrors && !form.expenseDate,
+              },
+            }}
           />
           {!isMileage && (
             <TextField
@@ -760,12 +871,31 @@ function ExpenseClaimWizardInner() {
 
     if (currentStep === STEP_MILEAGE) {
       return (
-        <MileageDetailFields
-          value={mileageDetail}
-          onChange={setMileageDetail}
-          effectiveRatePerKm={mileageAllowance?.effectiveRatePerKm}
-          maxKm={Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100}
-        />
+        <Stack spacing={2}>
+          <MileageLegsEditor
+            legs={mileageLegs}
+            onChange={setMileageLegs}
+            effectiveRatePerKm={mileageAllowance?.effectiveRatePerKm}
+            maxKm={MILEAGE_MAX_KM}
+            showErrors={showStepErrors}
+          />
+          <TextField
+            label={t('expenses.mileage.hetu')}
+            value={hetu}
+            required
+            fullWidth
+            type='password'
+            autoComplete='off'
+            error={(hetu.trim().length > 0 || showStepErrors) && !validateHetu(hetu)}
+            helperText={
+              (hetu.trim().length > 0 || showStepErrors) && !validateHetu(hetu)
+                ? t('expenses.mileage.hetuInvalid')
+                : t('expenses.mileage.hetuHint')
+            }
+            onChange={(e) => setHetu(e.target.value.toUpperCase())}
+            slotProps={{ htmlInput: { maxLength: 11 } }}
+          />
+        </Stack>
       )
     }
 
@@ -775,6 +905,16 @@ function ExpenseClaimWizardInner() {
           iban={form.iban}
           ibanAccountName={form.ibanAccountName}
           ibanFromProfile={!!me?.iban}
+          ibanError={
+            showStepErrors && !validateIban(form.iban)
+              ? t('expenses.messages.ibanRequired')
+              : undefined
+          }
+          ibanAccountNameError={
+            showStepErrors && !form.ibanAccountName.trim()
+              ? t('expenses.messages.ibanAccountNameRequired')
+              : undefined
+          }
           onChange={(iban, ibanAccountName) => setForm((c) => ({ ...c, iban, ibanAccountName }))}
         />
       )
@@ -792,6 +932,7 @@ function ExpenseClaimWizardInner() {
             expenseClaimItems={expenseClaimItems}
             costCentres={costCentres ?? []}
             isFuel={isFuel}
+            showErrors={showStepErrors}
           />
           <Button
             startIcon={<Icon icon='mdi:plus' />}
@@ -810,11 +951,13 @@ function ExpenseClaimWizardInner() {
 
     if (currentStep === STEP_RECEIPT) {
       return (
-        <ReceiptUploadZone
-          receipt={receipt}
-          onUpload={handleReceiptUpload}
-          onDelete={handleReceiptDelete}
+        <AttachmentsUploadZone
+          attachments={attachments}
+          onUpload={handleAttachmentsUpload}
+          onDelete={handleAttachmentDelete}
+          onPreview={previewMergedAttachments}
           error={submitError}
+          required={attachmentsRequired}
         />
       )
     }
@@ -868,38 +1011,40 @@ function ExpenseClaimWizardInner() {
                     : t('common.no')}
                 </Typography>
               )}
-              {isMileage && mileageDetail.distanceKm && (
-                <>
-                  <Typography variant='body2'>
-                    <b>{t('expenses.mileage.route')}:</b> {mileageDetail.route}
-                  </Typography>
-                  <Typography variant='body2'>
-                    <b>{t('expenses.mileage.journeyDate')}:</b> {mileageDetail.journeyDate}
-                  </Typography>
-                  <Typography variant='body2'>
-                    <b>{t('expenses.mileage.distanceKm')}:</b> {mileageDetail.distanceKm} km
-                    {mileageAllowance && (
-                      <>
-                        {' '}
-                        &mdash; €
-                        {(
-                          Number(mileageDetail.distanceKm) * mileageAllowance.effectiveRatePerKm
-                        ).toFixed(2)}
-                      </>
-                    )}
-                  </Typography>
-                  {mileageDetail.boardApproved && (
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        color: 'warning.main',
-                      }}
-                    >
-                      ✓ {t('expenses.mileage.boardApprovedLabel')}
-                    </Typography>
-                  )}
-                </>
-              )}
+              {isMileage &&
+                mileageLegs.map(
+                  (leg, idx) =>
+                    leg.distanceKm && (
+                      <Box key={idx} sx={{ mt: idx > 0 ? 1 : 0 }}>
+                        <Typography variant='body2'>
+                          <b>
+                            {t('expenses.mileage.sectionTitle')} {idx + 1}:
+                          </b>{' '}
+                          {leg.startAddress?.label} → {leg.endAddress?.label}
+                        </Typography>
+                        <Typography variant='body2'>
+                          <b>{t('expenses.mileage.journeyDate')}:</b> {leg.journeyDate}
+                        </Typography>
+                        <Typography variant='body2'>
+                          <b>{t('expenses.mileage.distanceKm')}:</b> {leg.distanceKm} km
+                          {mileageAllowance && (
+                            <>
+                              {' '}
+                              &mdash; €
+                              {(
+                                Number(leg.distanceKm) * mileageAllowance.effectiveRatePerKm
+                              ).toFixed(2)}
+                            </>
+                          )}
+                        </Typography>
+                        {leg.boardApproved && (
+                          <Typography variant='body2' sx={{ color: 'warning.main' }}>
+                            ✓ {t('expenses.mileage.boardApprovedLabel')}
+                          </Typography>
+                        )}
+                      </Box>
+                    ),
+                )}
             </Stack>
           </Paper>
           {!isMileage && (
@@ -935,8 +1080,15 @@ function ExpenseClaimWizardInner() {
                 {t('expenses.fields.receipt')}
               </Typography>
               <Typography variant='body2'>
-                {receipt ? receipt.fileName : t('expenses.wizard.noReceipt')}
+                {attachments.length
+                  ? attachments.map((a) => a.fileName).join(', ')
+                  : t('expenses.wizard.noReceipt')}
               </Typography>
+              {attachmentsMissing && (
+                <Alert severity='error' sx={{ mt: 1 }}>
+                  {t('expenses.wizard.receiptRequiredWarning')}
+                </Alert>
+              )}
             </Paper>
           )}
           {!!submitError && <Alert severity='error'>{submitError}</Alert>}
@@ -1010,6 +1162,12 @@ function ExpenseClaimWizardInner() {
           </Alert>
         )}
 
+        {missingFieldLabels.length > 0 && (
+          <Alert severity='error' sx={{ mt: 2 }}>
+            {t('expenses.wizard.missingFieldsPrefix', { fields: missingFieldLabels.join(', ') })}
+          </Alert>
+        )}
+
         <Divider sx={{ mt: 3, mb: 2 }} />
 
         <Stack
@@ -1046,20 +1204,25 @@ function ExpenseClaimWizardInner() {
                 >
                   {t('expenses.actions.saveDraft')}
                 </Button>
-                <Button
-                  variant='contained'
-                  onClick={() => void handleSubmit()}
-                  disabled={mutation.isMutating}
-                  endIcon={<Icon icon='mdi:send' />}
+                <Tooltip
+                  title={attachmentsMissing ? t('expenses.wizard.receiptRequiredWarning') : ''}
                 >
-                  {t('expenses.actions.submit')}
-                </Button>
+                  <span>
+                    <Button
+                      variant='contained'
+                      onClick={() => void handleSubmit()}
+                      disabled={mutation.isMutating || attachmentsMissing}
+                      endIcon={<Icon icon='mdi:send' />}
+                    >
+                      {t('expenses.actions.submit')}
+                    </Button>
+                  </span>
+                </Tooltip>
               </>
             ) : (
               <Button
                 variant='contained'
                 onClick={next}
-                disabled={!canAdvance()}
                 endIcon={<Icon icon='mdi:chevron-right' />}
               >
                 {t('common.next')}

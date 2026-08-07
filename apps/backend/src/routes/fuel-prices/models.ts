@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { FUEL_TYPES } from '../expenses/models.ts'
 
 export const FuelPricesSchema = z.object({
   markdown: z.string().max(50000),
@@ -12,3 +13,22 @@ export const FuelPricesUpdateSchema = FuelPricesSchema.pick({
 })
 
 export type FuelPricesUpdate = z.infer<typeof FuelPricesUpdateSchema>
+
+// ─── Local (EFNU) fuel price cap, per fuel type (issue #955) ────────────────────
+
+export const LocalFuelPriceSchema = z.object({
+  id: z.number().int(),
+  fuelType: z.enum(FUEL_TYPES),
+  priceEurPerLitre: z.number().positive(),
+  validFrom: z.string().date(),
+  createdBy: z.string(),
+  createdAt: z.string(),
+})
+export type LocalFuelPrice = z.infer<typeof LocalFuelPriceSchema>
+
+export const UpsertLocalFuelPriceSchema = z.object({
+  fuelType: z.enum(FUEL_TYPES),
+  priceEurPerLitre: z.number().positive(),
+  validFrom: z.string().date(),
+})
+export type UpsertLocalFuelPrice = z.infer<typeof UpsertLocalFuelPriceSchema>

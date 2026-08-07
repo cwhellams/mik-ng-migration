@@ -2,8 +2,8 @@ import { HttpStatusCode } from 'axios'
 import dayjs from 'dayjs'
 import { Router, type Request, type Response } from 'express'
 import multer from 'multer'
-import sharp from 'sharp'
 import logger from '../../lib/logger.ts'
+import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import {
@@ -15,6 +15,7 @@ import {
   getAllExpenseClaims,
   getExpenseCategories,
   getExpenseClaimById,
+  getExpenseClaimEditAudit,
   getExpenseClaimsByMember,
   getPendingExpenseClaimsCount,
   markExpenseClaimPendingInfo,
@@ -23,11 +24,12 @@ import {
   retractExpenseClaim,
   setExpenseClaimToDraft,
   submitExpenseClaim,
+  treasurerEditExpenseClaim,
   updateExpenseClaim,
 } from '../../db/expense-queries.ts'
 import { insertOutboxItem } from '../../db/outbox-simplbooks-queries.ts'
 import {
-  getMileageDetailFullHetu,
+  getClaimHetuFull,
   getMileageHetuAccessLog,
   getMileageReportRows,
   recordMileageHetuAccess,
@@ -36,6 +38,14 @@ import { db } from '../../db/connection.ts'
 import { getMemberById, updateMember } from '../../db/member-queries.ts'
 import { storageService } from '../../services/storage.ts'
 import { SimplbooksEventType } from '../../services/simplbooks/models.ts'
+import { computeDirectDistanceKm } from '../../services/mileageRouting.ts'
+import { buildFuelPayoutLineItems } from '../../services/fuelReimbursement.ts'
+import {
+  addExpenseAttachment,
+  getExpenseAttachment,
+  deleteExpenseAttachment,
+} from '../../db/expense-attachment-queries.ts'
+import { mergeAttachmentsToPdf } from '../../util/mergeAttachmentsToPdf.ts'
 import { MIKPermissions } from '../members/models.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
@@ -48,12 +58,16 @@ import {
   OverrideFuelPriceSchema,
   RejectExpenseClaimSchema,
   RequestInfoSchema,
+  TreasurerEditExpenseClaimSchema,
   UpdateExpenseClaimSchema,
 } from './models.ts'
+import type { CreateMileageLeg, MileageLeg } from './mileageModels.ts'
+import { isValidHetu } from '../../util/hetu.ts'
 import { expenseApprovedEmailTemplate } from '../../templates/expenseApprovedEmailTemplate.ts'
 import { expenseRejectedEmailTemplate } from '../../templates/expenseRejectedEmailTemplate.ts'
 import { expenseRequestInfoEmailTemplate } from '../../templates/expenseRequestInfoEmailTemplate.ts'
 import { expenseSetToDraftEmailTemplate } from '../../templates/expenseSetToDraftEmailTemplate.ts'
+import { expenseTreasurerEditedEmailTemplate } from '../../templates/expenseTreasurerEditedEmailTemplate.ts'
 import { getEcbFxRate } from '../../services/ecbFxRate.ts'
 
 export const router = Router()
@@ -61,13 +75,12 @@ export const router = Router()
 const RECEIPT_BUCKET =
   process.env.EXPENSE_RECEIPT_BUCKET ??
   (process.env.NODE_ENV === 'production' ? 'mik-expense-receipts' : 'mik-expense-receipts-test')
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB — raw upload limit before compression
 const MAX_RECEIPT_BYTES = 1 * 1024 * 1024 // 1 MB — post-compression image limit
 const MAX_PDF_BYTES = 5 * 1024 * 1024 // 5 MB — PDF size limit
 
 const receiptUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_UPLOAD_BYTES },
+  limits: { fileSize: IMAGE_UPLOAD_RAW_BYTES },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
       cb(null, true)
@@ -107,22 +120,11 @@ async function processReceipt(
     return { buffer: file.buffer, fileName: safeName, mimeType: 'application/pdf' }
   }
 
-  const buildImage = () =>
-    sharp(file.buffer)
-      .rotate()
-      .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true })
-
-  let buffer = await buildImage().jpeg({ quality: 85, mozjpeg: true }).toBuffer()
-  if (buffer.length > MAX_RECEIPT_BYTES) {
-    buffer = await buildImage().jpeg({ quality: 70, mozjpeg: true }).toBuffer()
-  }
-
-  if (buffer.length > MAX_RECEIPT_BYTES) {
-    problem({
-      status: HttpStatusCode.BadRequest,
-      detail: 'Receipt image is too large after compression. Please upload a smaller image.',
-    })
-  }
+  const buffer = await compressImageForUpload(file.buffer, {
+    maxWidth: 2000,
+    maxHeight: 2000,
+    targetBytes: MAX_RECEIPT_BYTES,
+  })
 
   return {
     buffer,
@@ -215,6 +217,105 @@ async function validateCategoryRequirements(data: {
   return category
 }
 
+// Server-authoritative check for the >20% justification-note requirement (issue #1021).
+// A client-submitted leg.directDistanceKm is advisory only — trusting it would let a
+// client bypass the justification requirement outright by simply omitting the field
+// (the "no directDistanceKm means skip the check" case, used for OSRM-outage tolerance,
+// would otherwise apply unconditionally). This recomputes the direct distance itself via
+// OSRM and overwrites each leg's directDistanceKm with that value before it's persisted,
+// so both the stored figure and the justification check are based on a value the client
+// never controls.
+async function verifyMileageLegDistances(legs?: CreateMileageLeg[]): Promise<void> {
+  if (!legs?.length) return
+  // Each leg's OSRM lookup is independent — resolve them concurrently rather than
+  // paying one round trip per leg back-to-back, then validate sequentially so the
+  // first invalid leg's problem() response wins deterministically.
+  const results = await Promise.all(
+    legs.map(async (leg) => {
+      // No coordinates (address lookup was unavailable when the member filled this leg
+      // in, so they typed the address by hand) — nothing to verify against, same as an
+      // unreachable OSRM: the justification check is skipped for this leg rather than
+      // blocking submission on it.
+      if (
+        leg.startLat == null ||
+        leg.startLon == null ||
+        leg.endLat == null ||
+        leg.endLon == null
+      ) {
+        return { leg, serverDirectKm: null }
+      }
+      const serverDirectKm = await computeDirectDistanceKm(
+        { lat: leg.startLat, lon: leg.startLon },
+        { lat: leg.endLat, lon: leg.endLon },
+      )
+      return { leg, serverDirectKm }
+    }),
+  )
+  for (const { leg, serverDirectKm } of results) {
+    leg.directDistanceKm = serverDirectKm ?? undefined
+    // Nullish check, not falsy — serverDirectKm can legitimately be 0.
+    if (
+      serverDirectKm != null &&
+      leg.distanceKm > serverDirectKm * 1.2 &&
+      !leg.justificationNote?.trim()
+    ) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: `A justification note is required: the leg from "${leg.startAddress}" to "${leg.endAddress}" (${leg.distanceKm} km) is more than 20% longer than the direct route (${serverDirectKm} km).`,
+      })
+    }
+  }
+}
+
+// A mileage claim is only meaningful if it says who travelled where: the legs are the
+// journey being reimbursed and the HETU is what the payment is reported under to
+// Tulorekisteri. Neither can be required at create/save-draft time (a claim must be
+// saveable half-filled — the frontend deliberately omits mileageLegs entirely while any
+// leg is still incomplete), so this is enforced at submit, the point the claim becomes
+// payable. Without it a member can submit — and an admin approve — an empty mileage
+// claim that still carries the frontend's positive default km line item (issue #1021).
+async function validateMileageClaimForSubmit(claim: {
+  id: string
+  categoryCode?: string
+  mileageLegs?: MileageLeg[]
+}): Promise<void> {
+  if (claim.categoryCode !== 'mileage') return
+
+  if (!claim.mileageLegs?.length) {
+    return problem({
+      status: HttpStatusCode.BadRequest,
+      detail: 'A mileage claim needs at least one journey leg.',
+    })
+  }
+
+  const incompleteLeg = claim.mileageLegs.find(
+    (leg) =>
+      !leg.startAddress?.trim() ||
+      !leg.endAddress?.trim() ||
+      !leg.journeyDate ||
+      !(leg.distanceKm > 0),
+  )
+  if (incompleteLeg) {
+    return problem({
+      status: HttpStatusCode.BadRequest,
+      detail: 'Every journey leg needs a start address, an end address, a date and a distance.',
+    })
+  }
+
+  // Read the stored plaintext rather than the masked value on the claim — a claim can
+  // predate this check (its HETU moved over from the old per-leg column in V1790), so
+  // "a HETU is on file" is not the same as "the HETU is valid". Nothing is returned to
+  // the caller and no reveal is recorded: the value is only checksum-checked here.
+  const hetu = await getClaimHetuFull(claim.id)
+  if (!isValidHetu(hetu)) {
+    return problem({
+      status: HttpStatusCode.BadRequest,
+      detail:
+        'A valid Finnish personal identity code (henkilötunnus) is required for mileage claims.',
+    })
+  }
+}
+
 async function syncMemberIbanFromClaim(
   user: JWTUser,
   iban?: string | null,
@@ -302,6 +403,7 @@ router.post(
       flightLogId: data.flightLogId ?? null,
       lineItems: data.lineItems,
     })
+    await verifyMileageLegDistances(data.mileageLegs)
 
     // Auto-populate IBAN from member profile if not supplied in request
     const claimData = { ...data }
@@ -396,7 +498,7 @@ router.get(
       })
     }
 
-    const hetu = await getMileageDetailFullHetu(claim.id)
+    const hetu = await getClaimHetuFull(claim.id)
     if (!hetu) {
       return problem({ status: HttpStatusCode.NotFound, detail: 'No HETU on file for this claim' })
     }
@@ -441,9 +543,92 @@ router.put(
       flightLogId: patch.flightLogId ?? existing.flightLogId ?? undefined,
       lineItems: patch.lineItems ?? existing.lineItems,
     })
+    await verifyMileageLegDistances(patch.mileageLegs)
 
     const claim = await updateExpenseClaim(req.params.id, patch, req.user!)
     await syncMemberIbanFromClaim(req.user!, claim?.iban, claim?.ibanAccountName)
+
+    res.status(HttpStatusCode.Ok).json(claim)
+  },
+)
+
+// Treasurer-only surgical edit of a claim awaiting approval (issue #1028) — lets a
+// treasurer fix small mistakes (wrong item code, wrong airport, etc.) without sending
+// the claim back to the member. Deliberately narrower than PUT /:id above: only
+// EXPENSE_ADMIN may call it, it never resets status, and every changed field is logged
+// to accts.expense_claim_edit_audit (see treasurerEditExpenseClaim).
+router.patch(
+  '/:id/edit',
+  validateUser(MIKPermissions.EXPENSE_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const existing = await requireClaimForUser(req, req.params.id)
+    if (existing.memberId === req.user!.memberId) {
+      return problem({
+        status: HttpStatusCode.Forbidden,
+        detail: 'You cannot edit your own expense claim this way — use the normal edit flow.',
+      })
+    }
+    if (
+      ![ExpenseClaimStatus.SUBMITTED, ExpenseClaimStatus.PENDING_INFO].includes(existing.status)
+    ) {
+      return problem({
+        status: HttpStatusCode.Conflict,
+        detail: 'Only claims awaiting approval (submitted or pending info) can be edited this way.',
+      })
+    }
+
+    const patch = TreasurerEditExpenseClaimSchema.parse(req.body)
+    await validateCategoryRequirements({
+      categoryId: existing.categoryId,
+      flightLogId: existing.flightLogId ?? undefined,
+      // Merge each patched field onto the existing line item — a partial edit (e.g.
+      // just { id, airport }) must not replace the whole item wholesale, or the other
+      // required fields (quantity, unit, costCentreCode, ...) vanish from validation.
+      lineItems: patch.lineItems?.length
+        ? existing.lineItems?.map((li) => {
+            const edit = patch.lineItems!.find((edited) => edited.id === li.id)
+            return edit ? { ...li, ...edit } : li
+          })
+        : existing.lineItems,
+      enforceFuelLineItemDetails: true,
+      claimCreatedAt: existing.createdAt,
+    })
+
+    const { claim, changedFieldCount } = await treasurerEditExpenseClaim(
+      req.params.id,
+      patch,
+      req.user!,
+    )
+
+    if (changedFieldCount > 0) {
+      await addExpenseMessage(
+        claim.id,
+        req.user!.memberId,
+        ExpenseMessageType.SYSTEM,
+        `Treasurer corrected ${changedFieldCount} field${changedFieldCount === 1 ? '' : 's'} on this claim before approval.`,
+      )
+
+      const member = await getMemberById(claim.memberId)
+      if (member) {
+        const auditEntries = await getExpenseClaimEditAudit(claim.id)
+        const changesSummary = auditEntries
+          .slice(0, changedFieldCount)
+          .map(
+            (entry) =>
+              `- **${entry.fieldName}**: ${entry.oldValue ?? '—'} → ${entry.newValue ?? '—'}`,
+          )
+          .join('\n')
+        const template = expenseTreasurerEditedEmailTemplate(member.lang, {
+          memberName: `${member.firstName} ${member.lastName}`,
+          claimTitle: claim.title,
+          claimUrl: buildClaimUrl(claim.id),
+          changesSummary,
+        })
+        void sendEmail(member.email, template.subject, template.html).catch((error) => {
+          logger.error('Failed to send treasurer-edited expense claim email', error)
+        })
+      }
+    }
 
     res.status(HttpStatusCode.Ok).json(claim)
   },
@@ -522,6 +707,18 @@ router.post(
 
     if (!claim.expenseDate) {
       return problem({ status: HttpStatusCode.BadRequest, detail: 'Expense date is required.' })
+    }
+
+    await validateMileageClaimForSubmit(claim)
+
+    // Mileage claims have no receipt to attach — the reimbursement is computed from the
+    // server-verified distance instead. Every other category needs at least one
+    // (new-flow) attachment or a (legacy) single receipt on file before it can be paid.
+    if (claim.categoryCode !== 'mileage' && !claim.attachments?.length && !claim.receipt) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'At least one receipt attachment is required before submitting.',
+      })
     }
 
     const claimTotal = (claim.lineItems ?? []).reduce(
@@ -660,6 +857,141 @@ router.get(
   },
 )
 
+// ─── Multiple attachments (issue #955) ───────────────────────────────────────
+// New claims use this instead of the singular /:id/receipt above — SimplBooks only
+// accepts one attachment per purchase, so they're merged into a single PDF below.
+
+const MAX_ATTACHMENTS_PER_CLAIM = 10
+
+router.post(
+  '/:id/attachments',
+  validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
+  receiptUpload.array('files', MAX_ATTACHMENTS_PER_CLAIM),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const files = req.files as Express.Multer.File[] | undefined
+    if (!files?.length) {
+      return problem({ status: HttpStatusCode.BadRequest, detail: 'No files uploaded' })
+    }
+
+    const claim = await requireClaimForUser(req, req.params.id)
+    if (claim.memberId !== req.user!.memberId) {
+      return problem({ status: HttpStatusCode.Forbidden, detail: 'Protected Content' })
+    }
+    if (![ExpenseClaimStatus.DRAFT, ExpenseClaimStatus.PENDING_INFO].includes(claim.status)) {
+      return problem({
+        status: HttpStatusCode.Conflict,
+        detail: 'Attachments can only be modified while the claim is editable.',
+      })
+    }
+    const existingCount = claim.attachments?.length ?? 0
+    if (existingCount + files.length > MAX_ATTACHMENTS_PER_CLAIM) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: `A claim can have at most ${MAX_ATTACHMENTS_PER_CLAIM} attachments.`,
+      })
+    }
+
+    // Every file is processed and uploaded to object storage first; only then are the
+    // attachment rows written, all inside one transaction. A failure part-way through
+    // therefore rolls back every row as well as deleting every uploaded object below —
+    // otherwise the claim would be left pointing at attachments whose files are gone,
+    // which breaks its preview and approval and can't be cleared by the member.
+    const uploadedKeys: string[] = []
+    try {
+      const stored: { storageKey: string; fileName: string; fileSize: number; mimeType: string }[] =
+        []
+      for (const file of files) {
+        const { buffer, fileName, mimeType } = await processReceipt(file)
+        const upload = await storageService.uploadFile(
+          buffer,
+          `${Date.now()}_${fileName}`,
+          mimeType,
+          `expense-receipts/${req.params.id}`,
+          RECEIPT_BUCKET,
+        )
+        uploadedKeys.push(upload.key)
+        stored.push({
+          storageKey: upload.key,
+          fileName,
+          fileSize: buffer.length,
+          mimeType,
+        })
+      }
+
+      const uploaded = await db.transaction().execute(async (txn) => {
+        const rows = []
+        for (const attachment of stored) {
+          rows.push(await addExpenseAttachment(req.params.id, attachment, txn))
+        }
+        return rows
+      })
+
+      res.status(HttpStatusCode.Created).json(uploaded)
+    } catch (error) {
+      await Promise.all(
+        uploadedKeys.map((key) =>
+          storageService.deleteFile(key, RECEIPT_BUCKET).catch((deleteError) => {
+            logger.error('Failed to roll back uploaded attachment file', deleteError)
+          }),
+        ),
+      )
+      logger.error('Expense attachment upload failed', error)
+      throw error
+    }
+  },
+)
+
+router.delete(
+  '/:id/attachments/:attachmentId',
+  validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const claim = await requireClaimForUser(req, req.params.id)
+    if (claim.memberId !== req.user!.memberId) {
+      return problem({ status: HttpStatusCode.Forbidden, detail: 'Protected Content' })
+    }
+    if (![ExpenseClaimStatus.DRAFT, ExpenseClaimStatus.PENDING_INFO].includes(claim.status)) {
+      return problem({
+        status: HttpStatusCode.Conflict,
+        detail: 'Attachments can only be removed while the claim is editable.',
+      })
+    }
+    const attachment = await getExpenseAttachment(req.params.id, Number(req.params.attachmentId))
+    if (!attachment) {
+      return problem({ status: HttpStatusCode.NotFound, detail: 'Attachment not found' })
+    }
+
+    await deleteExpenseAttachment(req.params.id, attachment.id)
+    await storageService.deleteFile(attachment.storageKey, RECEIPT_BUCKET)
+
+    res.status(HttpStatusCode.NoContent).end()
+  },
+)
+
+// Combined PDF for both the member's pre-submit preview and the admin's approval-time
+// review — SimplBooks needs exactly one attachment, so this is also what gets sent
+// there at approval time (see createExpenseReimbursement in simplbooksOutboxHandler.ts).
+router.get(
+  '/:id/attachments/merged-preview',
+  validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const claim = await requireClaimForUser(req, req.params.id)
+    if (!claim.attachments?.length) {
+      return problem({ status: HttpStatusCode.NotFound, detail: 'No attachments to preview' })
+    }
+
+    const files = await Promise.all(
+      claim.attachments.map(async (attachment) => ({
+        buffer: await storageService.downloadFile(attachment.storageKey, RECEIPT_BUCKET),
+        mimeType: attachment.mimeType,
+      })),
+    )
+    const merged = await mergeAttachmentsToPdf(files)
+
+    res.setHeader('Content-Type', 'application/pdf')
+    res.status(HttpStatusCode.Ok).send(merged)
+  },
+)
+
 router.post(
   '/:id/approve',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
@@ -680,38 +1012,110 @@ router.post(
         detail: 'Expense category missing.',
       })
     }
+    // Re-checked here, not just at submit: a claim submitted before that check shipped
+    // must not be approvable (and so payable) without a journey or a tax identifier.
+    await validateMileageClaimForSubmit(claim)
+
+    // What actually gets paid for a fuel claim is the capped, club-card-adjusted figure
+    // the member and the treasurer were both shown — not the raw line items (issue #955).
+    // Every other category pays its line items as entered.
+    const fuelSummary = claim.fuelReimbursementSummary
+    const payoutLineItems = fuelSummary
+      ? buildFuelPayoutLineItems(claim.lineItems ?? [], fuelSummary)
+      : (claim.lineItems ?? [])
+    const capApplied =
+      !!fuelSummary &&
+      (fuelSummary.capped || fuelSummary.clubCardCost > 0 || !payoutLineItems.length)
 
     await db.transaction().execute(async (txn) => {
       await approveExpenseClaim(req.params.id, req.user!.memberId, txn)
-      await insertOutboxItem(
-        SimplbooksEventType.REIMBURSEMENT,
-        {
-          claimId: claim.id,
-          number: claim.id,
-          memberId: claim.memberId,
-          categoryCode: claim.categoryCode,
-          aircraftRegistration: claim.aircraftId ?? undefined,
-          currency: claim.currency ?? 'EUR',
-          fxRate: claim.fxRate ?? null,
-          transactionDate: (claim.expenseDate as string | null | undefined) ?? undefined,
-          due: claim.submittedAt
-            ? new Date(new Date(claim.submittedAt).getTime() + 14 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .slice(0, 10)
-            : undefined,
-          claimIban: claim.iban ?? undefined,
-          claimTitle: claim.title,
-          lineItems: (claim.lineItems ?? []).map((item) => ({
-            description: item.description,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalCost: item.totalCost ?? null,
-            articleId: item.itemId ?? null,
-            costCentreCode: item.costCentreCode ?? undefined,
-          })),
-        },
-        txn,
-      )
+
+      // Nothing left to reimburse (all fuel was on the club card, or the club-card spend
+      // already ate the whole cap) — no purchase is created at all, rather than one for
+      // 0 €. What the member owes back, if anything, is invoiced below instead.
+      if (payoutLineItems.length) {
+        await insertOutboxItem(
+          SimplbooksEventType.REIMBURSEMENT,
+          {
+            claimId: claim.id,
+            number: claim.id,
+            memberId: claim.memberId,
+            categoryCode: claim.categoryCode,
+            aircraftRegistration: claim.aircraftId ?? undefined,
+            currency: claim.currency ?? 'EUR',
+            fxRate: claim.fxRate ?? null,
+            transactionDate: (claim.expenseDate as string | null | undefined) ?? undefined,
+            submittedAt: claim.submittedAt ?? undefined,
+            due: claim.submittedAt
+              ? new Date(new Date(claim.submittedAt).getTime() + 14 * 24 * 60 * 60 * 1000)
+                  .toISOString()
+                  .slice(0, 10)
+              : undefined,
+            claimIban: claim.iban ?? undefined,
+            claimTitle: claim.title,
+            lineItems: payoutLineItems.map((item) => ({
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalCost: item.totalCost ?? null,
+              articleId: item.itemId ?? null,
+              costCentreCode: item.costCentreCode ?? undefined,
+            })),
+          },
+          txn,
+        )
+      }
+
+      // The mirror image of a reimbursement: club-card fuel above the local price cap is
+      // money the club spent on the member's behalf, so it goes back on an invoice to
+      // them instead of a purchase from them (issue #955).
+      if (fuelSummary && fuelSummary.memberOwesClub > 0) {
+        await insertOutboxItem(
+          SimplbooksEventType.CLUB_FUEL_RECOVERY,
+          {
+            claimId: claim.id,
+            memberId: claim.memberId,
+            amount: fuelSummary.memberOwesClub,
+            // Bill it against the same article and aircraft the claim's own fuel lines
+            // used, so it books to the same place the reimbursement would have.
+            articleId: (claim.lineItems ?? []).find((item) => item.itemId != null)?.itemId ?? null,
+            costCentreCode:
+              (claim.lineItems ?? []).find((item) => item.costCentreCode)?.costCentreCode ??
+              claim.aircraftId ??
+              null,
+            description: `Club card fuel above local price cap — ${claim.title} (claim ${claim.id})`,
+          },
+          txn,
+        )
+      }
+
+      // Why the paid amount differs from the amount claimed, on the claim itself, so
+      // neither the member nor the next treasurer has to reverse-engineer it.
+      if (capApplied && fuelSummary) {
+        const parts = [
+          `Fuel reimbursement: ${fuelSummary.memberReimbursement.toFixed(2)} € of ${fuelSummary.totalCost.toFixed(2)} € claimed`,
+        ]
+        if (fuelSummary.localPriceEurPerLitre != null) {
+          parts.push(
+            `local price cap ${fuelSummary.localPriceEurPerLitre.toFixed(3)} €/l × ${fuelSummary.totalLitres} l = ${fuelSummary.localPriceCost?.toFixed(2)} €`,
+          )
+        }
+        if (fuelSummary.clubCardCost > 0) {
+          parts.push(`club card paid ${fuelSummary.clubCardCost.toFixed(2)} €`)
+        }
+        if (fuelSummary.memberOwesClub > 0) {
+          parts.push(
+            `member owes the club ${fuelSummary.memberOwesClub.toFixed(2)} € — invoiced separately`,
+          )
+        }
+        await addExpenseMessage(
+          claim.id,
+          req.user!.memberId,
+          ExpenseMessageType.SYSTEM,
+          `${parts.join('; ')}.`,
+          txn,
+        )
+      }
     })
 
     const member = await getMemberById(claim.memberId)

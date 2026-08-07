@@ -9,17 +9,25 @@ import {
   type CreateExpenseClaim,
   type ExpenseCategory,
   type ExpenseClaim,
+  type ExpenseClaimEditAuditEntry,
   type ExpenseClaimFilters,
   type ExpenseClaimListResponse,
   type ExpenseClaimMessage,
   type ExpenseLineItem,
+  type FuelType,
+  type TreasurerEditExpenseClaim,
   type UpdateExpenseClaim,
 } from '../routes/expenses/models.ts'
 import {
   getCurrentMileageAllowance,
-  getMileageDetailByClaimId,
-  upsertMileageDetail,
+  getMileageLegsByClaimId,
+  replaceMileageLegs,
+  maskHetu,
 } from './mileage-queries.ts'
+import { encryptField, decryptField } from '../lib/fieldEncryption.ts'
+import { getEffectiveLocalFuelPrice } from './local-fuel-price-queries.ts'
+import { computeFuelReimbursement } from '../services/fuelReimbursement.ts'
+import { getExpenseAttachments } from './expense-attachment-queries.ts'
 
 const toIsoString = (value: unknown): string => {
   if (value instanceof Date) {
@@ -77,6 +85,7 @@ type ClaimRow = {
   rejected_by: string | null
   rejection_reason: string | null
   simplbooks_purchase_id: unknown
+  hetu_encrypted: string | null
   created_at: unknown
   updated_at: unknown
   member_name: string | null
@@ -129,6 +138,7 @@ const mapLineItem = (row: {
   fuel_type?: string | null
   fuel_date?: string | null
   airport?: string | null
+  paid_with_club_card?: boolean | null
 }): ExpenseLineItem => ({
   id: row.id,
   itemId: row.item_id,
@@ -143,6 +153,7 @@ const mapLineItem = (row: {
   costCentreCode: row.cost_centre_code ?? undefined,
   fuelType: (row.fuel_type as ExpenseLineItem['fuelType']) ?? undefined,
   airport: row.airport ?? undefined,
+  paidWithClubCard: row.paid_with_club_card ?? false,
 })
 
 const mapMessage = (row: {
@@ -163,7 +174,10 @@ const mapMessage = (row: {
 
 const mapClaim = (
   row: ClaimRow,
-  details?: Pick<ExpenseClaim, 'lineItems' | 'messages' | 'mileageDetail'>,
+  details?: Pick<
+    ExpenseClaim,
+    'lineItems' | 'messages' | 'mileageLegs' | 'fuelReimbursementSummary' | 'attachments'
+  >,
 ): ExpenseClaim => ({
   id: row.id,
   memberId: row.member_id,
@@ -193,6 +207,7 @@ const mapClaim = (
   updatedAt: toIsoString(row.updated_at),
   memberName: row.member_name ?? undefined,
   memberEmail: row.member_email ?? undefined,
+  hetu: row.hetu_encrypted ? maskHetu(decryptField(row.hetu_encrypted)) : undefined,
   totalAmount: toNullableNumber(row.total_amount) ?? 0,
   receipt: row.receipt_storage_key
     ? {
@@ -243,6 +258,7 @@ const claimSelect = (executor: Executor) =>
       'claim.rejected_by',
       'claim.rejection_reason',
       'claim.simplbooks_purchase_id',
+      'claim.hetu_encrypted',
       'claim.created_at',
       'claim.updated_at',
       'member.email as member_email',
@@ -281,6 +297,7 @@ async function insertLineItems(
         fuel_type: item.fuelType ?? null,
         fuel_date: item.date ?? null,
         airport: item.airport ?? null,
+        paid_with_club_card: item.paidWithClubCard ?? false,
       })),
     )
     .execute()
@@ -369,7 +386,7 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
     return undefined
   }
 
-  const [lineItems, messages, mileageDetail] = await Promise.all([
+  const [lineItems, messages, mileageLegs, attachments] = await Promise.all([
     db
       .selectFrom('accts.expense_claim_line_item as li')
       .leftJoin('accts.items as item', 'item.id', 'li.item_id')
@@ -387,6 +404,7 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
         'li.fuel_type',
         'li.fuel_date',
         'li.airport',
+        'li.paid_with_club_card',
       ])
       .where('li.claim_id', '=', id)
       .orderBy('li.sort_order')
@@ -398,20 +416,70 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
       .where('claim_id', '=', id)
       .orderBy('sent_at')
       .execute(),
-    getMileageDetailByClaimId(id),
+    getMileageLegsByClaimId(id),
+    getExpenseAttachments(id),
   ])
 
+  const mappedLineItems = lineItems.map(mapLineItem)
+  const fuelReimbursementSummary =
+    claimRow.category_code === 'fuel' && mappedLineItems.length
+      ? await computeFuelReimbursementSummary(mappedLineItems, claimRow as ClaimRow)
+      : undefined
+
   return mapClaim(claimRow as ClaimRow, {
-    lineItems: lineItems.map(mapLineItem),
+    lineItems: mappedLineItems,
     messages: messages.map(mapMessage),
-    mileageDetail,
+    mileageLegs,
+    fuelReimbursementSummary,
+    attachments,
   })
+}
+
+/**
+ * Trip-wide start date used to pick the effective local fuel price (issue #955,
+ * clarified: the price at the START of the trip applies to the whole claim, not each
+ * line item's own date) — the earliest line item date, falling back to the claim's own
+ * expense date for legacy line items that predate the per-line date field.
+ */
+async function computeFuelReimbursementSummary(
+  lineItems: ExpenseLineItem[],
+  claimRow: ClaimRow,
+): Promise<ExpenseClaim['fuelReimbursementSummary']> {
+  const tripStartDate =
+    lineItems
+      .map((item) => item.date)
+      .filter((date): date is string => !!date)
+      .sort()[0] ??
+    claimRow.expense_date ??
+    undefined
+  const fuelType = lineItems.find((item) => item.fuelType)?.fuelType as FuelType | undefined
+
+  const localPrice =
+    fuelType && tripStartDate
+      ? await getEffectiveLocalFuelPrice(fuelType, tripStartDate)
+      : undefined
+
+  return computeFuelReimbursement(
+    lineItems.map((item) => ({
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      totalCost: item.totalCost,
+      paidWithClubCard: item.paidWithClubCard ?? false,
+    })),
+    localPrice?.priceEurPerLitre ?? null,
+  )
 }
 
 export async function createExpenseClaim(
   data: CreateExpenseClaim,
   user: JWTUser,
 ): Promise<ExpenseClaim> {
+  // Read the current rate before opening the transaction — a plain read, no need to
+  // hold it open for the duration of the write.
+  const effectiveRate = data.mileageLegs?.length
+    ? ((await getCurrentMileageAllowance())?.effectiveRatePerKm ?? 0.275) // fallback: 50% of 0.55
+    : 0
+
   const result = await db.transaction().execute(async (txn) => {
     const inserted = await txn
       .insertInto('accts.expense_claim')
@@ -431,21 +499,18 @@ export async function createExpenseClaim(
         iban_account_name: data.ibanAccountName,
         ccy: data.currency ?? 'EUR',
         fx_rate: data.fxRate ?? null,
+        hetu_encrypted: data.hetu ? encryptField(data.hetu) : null,
         updated_at: new Date(),
       })
       .returning('id')
       .executeTakeFirstOrThrow()
 
     await insertLineItems(txn, inserted.id, data.lineItems)
+    if (data.mileageLegs) {
+      await replaceMileageLegs(txn, inserted.id, data.mileageLegs, effectiveRate)
+    }
     return inserted.id
   })
-
-  // Upsert mileage detail if present (uses a separate connection; mileage table is independent)
-  if (data.mileageDetail) {
-    const allowance = await getCurrentMileageAllowance()
-    const effectiveRate = allowance?.effectiveRatePerKm ?? 0.275 // fallback: 50% of 0.55
-    await upsertMileageDetail(result, data.mileageDetail, effectiveRate)
-  }
 
   const claim = await getExpenseClaimById(result)
   if (!claim) {
@@ -460,6 +525,10 @@ export async function updateExpenseClaim(
   data: UpdateExpenseClaim,
   user: JWTUser,
 ): Promise<ExpenseClaim | undefined> {
+  const effectiveRate = data.mileageLegs?.length
+    ? ((await getCurrentMileageAllowance())?.effectiveRatePerKm ?? 0.275)
+    : 0
+
   await db.transaction().execute(async (txn) => {
     const patch: Record<string, unknown> = {
       updated_at: new Date(),
@@ -480,6 +549,10 @@ export async function updateExpenseClaim(
     if (hasOwn(data, 'ibanAccountName')) patch.iban_account_name = data.ibanAccountName ?? null
     if (hasOwn(data, 'currency')) patch.ccy = data.currency ?? null
     if (hasOwn(data, 'fxRate')) patch.fx_rate = data.fxRate ?? null
+    // Only overwrite the stored HETU when a new one was actually submitted — edit flows
+    // that don't re-collect it (it's never sent back to the client unmasked) must leave
+    // the existing encrypted value untouched instead of nulling it out.
+    if (data.hetu) patch.hetu_encrypted = encryptField(data.hetu)
     if (data.lineItems) patch.refuel_outside_finland = computeRefuelOutsideFinland(data.lineItems)
 
     await txn.updateTable('accts.expense_claim').set(patch).where('id', '=', id).execute()
@@ -487,6 +560,10 @@ export async function updateExpenseClaim(
     if (data.lineItems) {
       await txn.deleteFrom('accts.expense_claim_line_item').where('claim_id', '=', id).execute()
       await insertLineItems(txn, id, data.lineItems)
+    }
+
+    if (data.mileageLegs) {
+      await replaceMileageLegs(txn, id, data.mileageLegs, effectiveRate)
     }
 
     await txn
@@ -499,12 +576,6 @@ export async function updateExpenseClaim(
       })
       .execute()
   })
-
-  if (data.mileageDetail) {
-    const allowance = await getCurrentMileageAllowance()
-    const effectiveRate = allowance?.effectiveRatePerKm ?? 0.275
-    await upsertMileageDetail(id, data.mileageDetail, effectiveRate)
-  }
 
   return getExpenseClaimById(id)
 }
@@ -745,4 +816,191 @@ export async function updateExpenseSimplbooksId(
     .executeTakeFirstOrThrow()
 
   return result.numUpdatedRows > BigInt(0)
+}
+
+// ─── Treasurer edit (issue #1028) ────────────────────────────────────────────
+// Deliberately not the same code path as updateExpenseClaim: this must never touch
+// status (the whole point is the claim stays exactly where it is in the approval
+// queue) and must log a field-level diff for every changed value, since this mutates
+// a claim the member no longer controls.
+
+const LINE_ITEM_FIELD_COLUMNS: Record<string, string> = {
+  itemId: 'item_id',
+  description: 'description',
+  date: 'fuel_date',
+  quantity: 'quantity',
+  unit: 'unit',
+  unitPrice: 'unit_price',
+  totalCost: 'total_cost',
+  costCentreCode: 'cost_centre_code',
+  airport: 'airport',
+  paidWithClubCard: 'paid_with_club_card',
+}
+
+type EditAuditRow = {
+  claim_id: string
+  line_item_id: number | null
+  field_name: string
+  old_value: string | null
+  new_value: string | null
+  edited_by: string
+}
+
+const toAuditString = (value: unknown): string | null =>
+  value === null || value === undefined ? null : String(value)
+
+export async function treasurerEditExpenseClaim(
+  claimId: string,
+  patch: TreasurerEditExpenseClaim,
+  treasurer: JWTUser,
+): Promise<{ claim: ExpenseClaim; changedFieldCount: number }> {
+  const existing = await getExpenseClaimById(claimId)
+  if (!existing) {
+    throw new Error('Expense claim not found')
+  }
+
+  const auditRows: EditAuditRow[] = []
+
+  await db.transaction().execute(async (txn) => {
+    const claimPatch: Record<string, unknown> = {}
+
+    const diffClaimField = (field: 'title' | 'aircraftId' | 'expenseDate', column: string) => {
+      if (!hasOwn(patch, field)) return
+      const newValue = patch[field] ?? null
+      const oldValue = (existing[field] ?? null) as unknown
+      if (newValue === oldValue) return
+      auditRows.push({
+        claim_id: claimId,
+        line_item_id: null,
+        field_name: field,
+        old_value: toAuditString(oldValue),
+        new_value: toAuditString(newValue),
+        edited_by: treasurer.memberId,
+      })
+      claimPatch[column] = newValue
+    }
+
+    diffClaimField('title', 'title')
+    diffClaimField('aircraftId', 'aircraft_id')
+    diffClaimField('expenseDate', 'expense_date')
+
+    if (Object.keys(claimPatch).length > 0) {
+      claimPatch.updated_at = new Date()
+      await txn
+        .updateTable('accts.expense_claim')
+        .set(claimPatch)
+        .where('id', '=', claimId)
+        .execute()
+    }
+
+    for (const lineItemPatch of patch.lineItems ?? []) {
+      const existingLineItem = existing.lineItems?.find((li) => li.id === lineItemPatch.id)
+      if (!existingLineItem) continue
+
+      const liPatch: Record<string, unknown> = {}
+      for (const [field, column] of Object.entries(LINE_ITEM_FIELD_COLUMNS)) {
+        if (!hasOwn(lineItemPatch, field)) continue
+        const newValue = (lineItemPatch as Record<string, unknown>)[field] ?? null
+        const oldValue = (existingLineItem as Record<string, unknown>)[field] ?? null
+        if (newValue === oldValue) continue
+        auditRows.push({
+          claim_id: claimId,
+          line_item_id: lineItemPatch.id,
+          field_name: field,
+          old_value: toAuditString(oldValue),
+          new_value: toAuditString(newValue),
+          edited_by: treasurer.memberId,
+        })
+        liPatch[column] = newValue
+      }
+
+      // Correcting quantity/unitPrice invalidates any previously-stored explicit
+      // total_cost (see applyTotalCost in expenseShared.tsx, which lets a member type a
+      // known total and back-derives unitPrice from it) — clear it so the claim total
+      // (coalesce(total_cost, quantity * unit_price)) recomputes from the corrected
+      // values instead of silently keeping the stale total. Skipped when the patch sends
+      // its own totalCost: the treasurer's edit form derives unitPrice from the total the
+      // treasurer typed, so that total is the authoritative figure, not a stale leftover
+      // (issue #1024 — reconstructing it from a rounded unit_price drifts).
+      if (
+        !hasOwn(lineItemPatch, 'totalCost') &&
+        (hasOwn(liPatch, 'quantity') || hasOwn(liPatch, 'unit_price')) &&
+        existingLineItem.totalCost != null
+      ) {
+        auditRows.push({
+          claim_id: claimId,
+          line_item_id: lineItemPatch.id,
+          field_name: 'totalCost',
+          old_value: toAuditString(existingLineItem.totalCost),
+          new_value: null,
+          edited_by: treasurer.memberId,
+        })
+        liPatch.total_cost = null
+      }
+
+      if (Object.keys(liPatch).length > 0) {
+        await txn
+          .updateTable('accts.expense_claim_line_item')
+          .set(liPatch)
+          .where('id', '=', lineItemPatch.id)
+          .where('claim_id', '=', claimId)
+          .execute()
+      }
+    }
+
+    // Recompute refuel_outside_finland from the merged (existing + patched) line items —
+    // a treasurer edit can change a fuel line item's airport, and the claim-level flag
+    // must stay in sync with it (mirrors updateExpenseClaim's own recompute above).
+    const mergedLineItems = (existing.lineItems ?? []).map((li) => {
+      const edit = patch.lineItems?.find((p) => p.id === li.id)
+      return edit && hasOwn(edit, 'airport') ? { ...li, airport: edit.airport ?? null } : li
+    })
+    const newRefuelOutsideFinland = computeRefuelOutsideFinland(mergedLineItems)
+    if (newRefuelOutsideFinland !== existing.refuelOutsideFinland) {
+      auditRows.push({
+        claim_id: claimId,
+        line_item_id: null,
+        field_name: 'refuelOutsideFinland',
+        old_value: toAuditString(existing.refuelOutsideFinland),
+        new_value: toAuditString(newRefuelOutsideFinland),
+        edited_by: treasurer.memberId,
+      })
+      await txn
+        .updateTable('accts.expense_claim')
+        .set({ refuel_outside_finland: newRefuelOutsideFinland, updated_at: new Date() })
+        .where('id', '=', claimId)
+        .execute()
+    }
+
+    if (auditRows.length > 0) {
+      await txn.insertInto('accts.expense_claim_edit_audit').values(auditRows).execute()
+    }
+  })
+
+  const claim = await getExpenseClaimById(claimId)
+  if (!claim) {
+    throw new Error('Failed to load edited expense claim')
+  }
+
+  return { claim, changedFieldCount: auditRows.length }
+}
+
+export async function getExpenseClaimEditAudit(
+  claimId: string,
+): Promise<ExpenseClaimEditAuditEntry[]> {
+  const rows = await db
+    .selectFrom('accts.expense_claim_edit_audit')
+    .selectAll()
+    .where('claim_id', '=', claimId)
+    .orderBy('edited_at', 'desc')
+    .execute()
+
+  return rows.map((row) => ({
+    fieldName: row.field_name,
+    oldValue: row.old_value,
+    newValue: row.new_value,
+    lineItemId: row.line_item_id,
+    editedBy: row.edited_by,
+    editedAt: toIsoString(row.edited_at),
+  }))
 }

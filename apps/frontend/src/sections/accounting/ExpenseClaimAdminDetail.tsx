@@ -20,6 +20,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import type { ItemListResponse } from '@backend/routes/invoicing/models'
 import { ExpenseClaimStatus, type ExpenseClaim } from '@backend/routes/expenses/models'
 import { MIKPermissions } from '@backend/routes/members/models'
 import useApi, { sharedApi } from '../../hooks/useApi'
@@ -34,6 +35,7 @@ import {
   formatExpenseUnitPrice,
   getExpenseCategoryLabel,
 } from '../expenses/expenseUi'
+import { LineItemsTable, type EditableLineItem } from '../expenses/expenseShared'
 
 const HETU_REVEAL_DURATION_MS = 30_000
 
@@ -48,6 +50,13 @@ export function ExpenseClaimAdminDetail() {
   const [infoOpen, setInfoOpen] = useState(false)
   const [setDraftOpen, setSetDraftOpen] = useState(false)
   const [overrideFuelPriceOpen, setOverrideFuelPriceOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editAircraftId, setEditAircraftId] = useState('')
+  const [editExpenseDate, setEditExpenseDate] = useState('')
+  const [editLineItems, setEditLineItems] = useState<EditableLineItem[]>([])
+  const [editError, setEditError] = useState<string>()
+  const [editSaving, setEditSaving] = useState(false)
   const [actionError, setActionError] = useState<string>()
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null)
   const [revealedHetu, setRevealedHetu] = useState<string | null>(null)
@@ -63,9 +72,89 @@ export function ExpenseClaimAdminDetail() {
     url: 'v1/expenses',
     skipFetch: true,
   })
+  const { data: costCentres } = useApi<{ code: string; description: string }[]>({
+    url: 'v1/cost-centres',
+  })
+  const { data: invoiceItemsData } = useApi<ItemListResponse>({ url: 'v1/invoices/items' })
 
   const claim = claimApi.data
   const selfApproval = me?.memberId === claim?.memberId
+  const isFuelClaim = claim?.categoryCode === 'fuel'
+  const isMileageClaim = claim?.categoryCode === 'mileage'
+  const expenseClaimItems = (invoiceItemsData?.items ?? [])
+    .filter((item) => {
+      if (!item.expense_claim_item) return false
+      if (isFuelClaim) return item.is_fuel_item
+      if (isMileageClaim) return item.is_km_item
+      return item.is_other_item
+    })
+    .map((item) => ({ id: item.id, code: item.code, name: item.name }))
+
+  const openEdit = () => {
+    if (!claim) return
+    setEditTitle(claim.title)
+    setEditAircraftId(claim.aircraftId ?? '')
+    setEditExpenseDate(claim.expenseDate ?? '')
+    setEditLineItems(
+      (claim.lineItems ?? []).map((item) => ({
+        id: item.id,
+        itemId: item.itemId ?? null,
+        description: item.description,
+        date: item.date ?? '',
+        quantity: item.quantity,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+        totalCost: item.totalCost,
+        sortOrder: item.sortOrder,
+        costCentreCode: item.costCentreCode ?? null,
+        fuelType: item.fuelType,
+        airport: item.airport ?? null,
+        paidWithClubCard: item.paidWithClubCard ?? false,
+      })),
+    )
+    setEditError(undefined)
+    setEditOpen(true)
+  }
+
+  const saveEdit = async () => {
+    if (!claim) return
+    setEditSaving(true)
+    setEditError(undefined)
+    const response = await mutation.trigger(
+      'PATCH',
+      {
+        title: editTitle,
+        aircraftId: editAircraftId || null,
+        expenseDate: editExpenseDate,
+        lineItems: editLineItems
+          .filter((item) => item.id != null)
+          .map((item) => ({
+            id: item.id,
+            itemId: item.itemId ?? null,
+            description: item.description,
+            date: item.date || null,
+            quantity: item.quantity,
+            unit: item.unit,
+            unitPrice: item.unitPrice,
+            // Sent explicitly: the dialog edits the total and derives unitPrice from it
+            // (fuel claims especially), so without this the exact total the treasurer
+            // typed would be dropped and rebuilt from the rounded unit price (#1024).
+            totalCost: item.totalCost ?? null,
+            costCentreCode: item.costCentreCode ?? null,
+            airport: item.airport ?? null,
+            paidWithClubCard: item.paidWithClubCard,
+          })),
+      },
+      `${claim.id}/edit`,
+    )
+    setEditSaving(false)
+    if (response.error) {
+      setEditError(response.error.detail)
+      return
+    }
+    setEditOpen(false)
+    await claimApi.mutate()
+  }
 
   useEffect(() => {
     setRevealedHetu(null)
@@ -88,6 +177,15 @@ export function ExpenseClaimAdminDetail() {
       .catch(() => setReceiptUrl(null))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [claim?.id, claim?.receipt?.storageKey])
+
+  const openMergedAttachments = async () => {
+    if (!claim) return
+    const res = await sharedApi.get(`v1/expenses/${claim.id}/attachments/merged-preview`, {
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(res.data as Blob)
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 
   const approve = async () => {
     if (!claim) {
@@ -297,38 +395,99 @@ export function ExpenseClaimAdminDetail() {
               </Table>
             </Paper>
 
-            {claim.categoryCode === 'mileage' && claim.mileageDetail && (
+            {claim.categoryCode === 'fuel' && claim.fuelReimbursementSummary && (
+              <Paper sx={{ p: 3 }}>
+                <Typography variant='h6' sx={{ mb: 2 }}>
+                  {t('expenses.fuel.summaryTitle')}
+                </Typography>
+                <Stack spacing={0.5}>
+                  <Typography variant='body2'>
+                    {t('expenses.fuel.totalLitres')}: {claim.fuelReimbursementSummary.totalLitres} l
+                  </Typography>
+                  <Typography variant='body2'>
+                    {t('expenses.fuel.totalCost')}:{' '}
+                    {formatExpenseAmount(claim.fuelReimbursementSummary.totalCost)}
+                  </Typography>
+                  {claim.fuelReimbursementSummary.localPriceEurPerLitre != null && (
+                    <Typography variant='body2'>
+                      {t('expenses.fuel.localPriceCost')}:{' '}
+                      {formatExpenseAmount(claim.fuelReimbursementSummary.localPriceCost ?? 0)} (
+                      {claim.fuelReimbursementSummary.localPriceEurPerLitre.toFixed(4)} €/l)
+                    </Typography>
+                  )}
+                  {claim.fuelReimbursementSummary.clubCardCost > 0 && (
+                    <Typography variant='body2'>
+                      {t('expenses.fuel.clubCardCost')}:{' '}
+                      {formatExpenseAmount(claim.fuelReimbursementSummary.clubCardCost)} (
+                      {claim.fuelReimbursementSummary.clubCardLitres} l)
+                    </Typography>
+                  )}
+                  <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
+                    {t('expenses.fuel.memberReimbursement')}:{' '}
+                    {formatExpenseAmount(claim.fuelReimbursementSummary.memberReimbursement)}
+                  </Typography>
+                  {claim.fuelReimbursementSummary.memberOwesClub > 0 && (
+                    <Alert severity='warning'>
+                      {t('expenses.fuel.memberOwesClub', {
+                        amount: formatExpenseAmount(claim.fuelReimbursementSummary.memberOwesClub),
+                      })}
+                    </Alert>
+                  )}
+                  {claim.fuelReimbursementSummary.capped && (
+                    <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                      {t('expenses.fuel.cappedNotice')}
+                    </Typography>
+                  )}
+                </Stack>
+              </Paper>
+            )}
+
+            {claim.categoryCode === 'mileage' && !!claim.mileageLegs?.length && (
               <Paper sx={{ p: 3 }}>
                 <Typography variant='h6' sx={{ mb: 2 }}>
                   {t('expenses.mileage.sectionTitle')}
                 </Typography>
-                <Stack spacing={1}>
-                  <Typography variant='body2'>
-                    {t('expenses.mileage.route')}: {claim.mileageDetail.route}
-                  </Typography>
-                  <Typography variant='body2'>
-                    {t('expenses.mileage.journeyDate')}: {claim.mileageDetail.journeyDate}
-                  </Typography>
-                  <Typography variant='body2'>
-                    {t('expenses.mileage.distanceKm')}: {claim.mileageDetail.distanceKm} km
-                  </Typography>
-                  {claim.mileageDetail.ratePerKm != null && (
-                    <Typography variant='body2'>
-                      {t('expenses.mileage.ratePerKm')}: {claim.mileageDetail.ratePerKm} €/km
-                    </Typography>
-                  )}
-                  <Typography variant='body2'>
-                    {t('expenses.mileage.boardApprovedLabel')}:{' '}
-                    {claim.mileageDetail.boardApproved ? t('common.yes') : t('common.no')}
-                  </Typography>
-                  {claim.mileageDetail.hetu && (
+                <Stack spacing={2}>
+                  {claim.mileageLegs.map((leg, idx) => (
+                    <Stack key={leg.id ?? idx} spacing={0.5}>
+                      <Typography variant='body2'>
+                        <b>
+                          {t('expenses.mileage.sectionTitle')} {idx + 1}:
+                        </b>{' '}
+                        {leg.route || `${leg.startAddress} → ${leg.endAddress}`}
+                      </Typography>
+                      <Typography variant='body2'>
+                        {t('expenses.mileage.journeyDate')}: {leg.journeyDate}
+                      </Typography>
+                      <Typography variant='body2'>
+                        {t('expenses.mileage.distanceKm')}: {leg.distanceKm} km
+                        {leg.directDistanceKm != null &&
+                          ` (${t('expenses.mileage.directDistance', { km: leg.directDistanceKm })})`}
+                      </Typography>
+                      {leg.justificationNote && (
+                        <Typography variant='body2'>
+                          {t('expenses.mileage.justificationNote')}: {leg.justificationNote}
+                        </Typography>
+                      )}
+                      {leg.ratePerKm != null && (
+                        <Typography variant='body2'>
+                          {t('expenses.mileage.ratePerKm')}: {leg.ratePerKm} €/km
+                        </Typography>
+                      )}
+                      <Typography variant='body2'>
+                        {t('expenses.mileage.boardApprovedLabel')}:{' '}
+                        {leg.boardApproved ? t('common.yes') : t('common.no')}
+                      </Typography>
+                    </Stack>
+                  ))}
+                  {claim.hetu && (
                     <Stack
                       direction='row'
                       spacing={1}
                       sx={{ alignItems: 'center', flexWrap: 'wrap' }}
                     >
                       <Typography variant='body2'>
-                        {t('expenses.mileage.hetu')}: {revealedHetu ?? claim.mileageDetail.hetu}
+                        {t('expenses.mileage.hetu')}: {revealedHetu ?? claim.hetu}
                       </Typography>
                       {canRevealHetu && !revealedHetu && (
                         <Button size='small' onClick={() => void revealHetu()}>
@@ -357,9 +516,28 @@ export function ExpenseClaimAdminDetail() {
               <Typography variant='h6' sx={{ mb: 2 }}>
                 {t('expenses.fields.receipt')}
               </Typography>
-              {!claim.receipt ? (
+              {!claim.receipt && !claim.attachments?.length && (
                 <Alert severity='info'>No receipt uploaded.</Alert>
-              ) : (
+              )}
+              {!claim.receipt && !!claim.attachments?.length && (
+                <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
+                  {claim.attachments.map((attachment) => (
+                    <Typography
+                      key={attachment.id}
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {attachment.fileName} · {Math.round(attachment.fileSize / 1024)} kB
+                    </Typography>
+                  ))}
+                  <Button size='small' onClick={() => void openMergedAttachments()}>
+                    {t('expenses.wizard.previewMergedPdf')}
+                  </Button>
+                </Stack>
+              )}
+              {!!claim.receipt && (
                 <Box>
                   <Stack
                     direction='row'
@@ -480,6 +658,13 @@ export function ExpenseClaimAdminDetail() {
                   <Button variant='outlined' onClick={() => setInfoOpen(true)}>
                     {t('expenses.actions.requestInfo')}
                   </Button>
+                  <Tooltip title={selfApproval ? t('expenses.messages.selfApproval') : ''}>
+                    <span>
+                      <Button variant='outlined' disabled={selfApproval} onClick={openEdit}>
+                        {t('expenses.actions.editClaim')}
+                      </Button>
+                    </span>
+                  </Tooltip>
                   <Button variant='outlined' color='warning' onClick={() => setSetDraftOpen(true)}>
                     {t('expenses.actions.setToDraft')}
                   </Button>
@@ -587,6 +772,61 @@ export function ExpenseClaimAdminDetail() {
             disabled={!efnuPrice || Number(efnuPrice) <= 0}
           >
             {t('expenses.actions.overrideFuelPrice')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth='md'>
+        <DialogTitle>{t('expenses.actions.editClaim')}</DialogTitle>
+        <DialogContent>
+          <Alert severity='info' sx={{ mb: 2 }}>
+            {t('expenses.messages.treasurerEditNotice')}
+          </Alert>
+          {!!editError && (
+            <Alert severity='error' sx={{ mb: 2 }}>
+              {editError}
+            </Alert>
+          )}
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              fullWidth
+              label={t('expenses.fields.title')}
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              slotProps={{ htmlInput: { maxLength: 200 } }}
+            />
+            <TextField
+              fullWidth
+              label={t('expenses.fields.aircraft')}
+              value={editAircraftId}
+              onChange={(e) => setEditAircraftId(e.target.value)}
+            />
+            <TextField
+              label={t('expenses.fields.expenseDate')}
+              type='date'
+              value={editExpenseDate}
+              onChange={(e) => setEditExpenseDate(e.target.value)}
+              sx={{ maxWidth: 200 }}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <Typography variant='subtitle2'>{t('expenses.fields.lineItems')}</Typography>
+            <LineItemsTable
+              items={editLineItems}
+              onChange={setEditLineItems}
+              claimCurrency={claim?.currency ?? 'EUR'}
+              claimFxRate={claim?.fxRate}
+              expenseClaimItems={expenseClaimItems}
+              costCentres={costCentres ?? []}
+              isFuel={isFuelClaim}
+              allowRowRemoval={false}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditOpen(false)} disabled={editSaving}>
+            {t('general.cancel')}
+          </Button>
+          <Button variant='contained' onClick={() => void saveEdit()} disabled={editSaving}>
+            {t('expenses.actions.save')}
           </Button>
         </DialogActions>
       </Dialog>
