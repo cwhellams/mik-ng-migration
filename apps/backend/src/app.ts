@@ -95,8 +95,8 @@ app.use(helmet()) // Secure headers
 // (httpOnly cookies) as required by the CORS spec.
 const rawOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0 && origin !== '*')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0 && origin !== '*')
   : []
 
 let corsOrigins: string[]
@@ -105,7 +105,7 @@ if (rawOrigins.length === 0) {
   if (process.env.NODE_ENV === 'production') {
     logger.error(
       'CORS_ALLOWED_ORIGINS is not configured — cross-origin requests will be rejected. ' +
-      'Set it to your frontend origin (e.g. https://intra.mik.fi).',
+        'Set it to your frontend origin (e.g. https://intra.mik.fi).',
     )
     corsOrigins = []
   } else {
