@@ -1,7 +1,7 @@
 import { delay, http, HttpResponse } from 'msw'
 import { Route, Routes, useLocation } from 'react-router'
 import { screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 
 import { apiUrl, problemResponse } from '../test/msw/handlers'
 import { server } from '../test/msw/server'
@@ -425,6 +425,8 @@ describe('useApi redirect to login', () => {
 describe('useApi retry policy', () => {
   const retrying = { shouldRetryOnError: true, errorRetryInterval: 5, errorRetryCount: 3 }
 
+  afterEach(() => vi.useRealTimers())
+
   it('does not retry a 4xx — the answer will not change', async () => {
     const state = { attempts: 0 }
     server.use(
@@ -434,12 +436,16 @@ describe('useApi retry policy', () => {
       }),
     )
 
-    const { result } = renderHookWithProviders(() =>
-      useApi<Payload>({ url: 'v1/thing', skipRedirectOnUnauthorized: true }, retrying),
+    const { result } = renderHookWithProviders(
+      () => useApi<Payload>({ url: 'v1/thing', skipRedirectOnUnauthorized: true }, retrying),
+      { serverClock: false },
     )
 
     await waitFor(() => expect(result.current.error).toBeDefined())
-    await new Promise((resolve) => setTimeout(resolve, 60))
+    // Switch to fake timers after the initial request settles so that we can
+    // advance virtual time well past the retry window without a real sleep.
+    vi.useFakeTimers()
+    await vi.advanceTimersByTimeAsync(retrying.errorRetryCount * retrying.errorRetryInterval * 10)
     expect(state.attempts).toBe(1)
   })
 
