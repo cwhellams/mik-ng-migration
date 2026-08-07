@@ -42,17 +42,14 @@ import useApi, { sharedApi } from '../../hooks/useApi'
 import { useMe } from '../../hooks/useMe'
 import { Title } from '../../components/Title'
 import { getExpenseCategoryLabel } from './expenseUi'
+import { AttachmentsUploadZone, BankDetailsFields, LineItemsTable } from './expenseShared'
 import {
-  AttachmentsUploadZone,
-  BankDetailsFields,
   type EditableLineItem,
-  LineItemsTable,
   defaultUnitForCategory,
   isAirportOutsideFinland,
   makeDefaultLineItem,
-  validateHetu,
-  validateIban,
-} from './expenseShared'
+} from './expenseHelpers'
+import { validateHetu, validateIban } from './validation'
 import {
   MILEAGE_MAX_KM,
   MileageLegsEditor,

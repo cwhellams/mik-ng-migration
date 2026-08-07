@@ -35,7 +35,8 @@ import {
   formatExpenseUnitPrice,
   getExpenseCategoryLabel,
 } from '../expenses/expenseUi'
-import { LineItemsTable, type EditableLineItem } from '../expenses/expenseShared'
+import { LineItemsTable } from '../expenses/expenseShared'
+import type { EditableLineItem } from '../expenses/expenseHelpers'
 
 const HETU_REVEAL_DURATION_MS = 30_000
 

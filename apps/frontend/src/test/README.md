@@ -26,6 +26,11 @@ UI language to English, stubs `@iconify/react` (so no icon is fetched over the n
 the browser APIs jsdom lacks — `matchMedia`, `ResizeObserver`, `IntersectionObserver`,
 `URL.createObjectURL`, `scrollIntoView`, and `localStorage`/`sessionStorage`.
 
+The timezone is pinned to **`Europe/Helsinki`** (in `vitest.config.ts`), so local time is UTC+2 in
+winter and UTC+3 in summer — the club's actual timezone. Under CI's default `TZ=UTC` every
+local-versus-UTC assertion would pass without proving anything. Anything reading the clock should
+freeze it with `vi.setSystemTime` rather than relying on the wall clock.
+
 ## Rendering a component
 
 ```tsx

@@ -2,6 +2,11 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 
+// The club is in Finland and much of the date/time code distinguishes local
+// from UTC, so pin the timezone rather than inheriting the machine's. Under
+// TZ=UTC (the CI default) every local-vs-UTC assertion would pass vacuously.
+process.env.TZ = 'Europe/Helsinki'
+
 export default defineConfig({
   plugins: [react()],
   resolve: {

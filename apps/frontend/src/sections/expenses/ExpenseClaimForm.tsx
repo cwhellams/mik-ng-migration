@@ -38,13 +38,15 @@ import { getExpenseCategoryLabel, isExpenseEditable } from './expenseUi'
 import {
   AttachmentsUploadZone,
   BankDetailsFields,
-  type EditableLineItem,
   LineItemsTable,
   ReceiptUploadZone,
+} from './expenseShared'
+import {
+  type EditableLineItem,
   defaultUnitForCategory,
   makeDefaultLineItem,
-  validateHetu,
-} from './expenseShared'
+} from './expenseHelpers'
+import { validateHetu } from './validation'
 import {
   MILEAGE_MAX_KM,
   MileageLegsEditor,
