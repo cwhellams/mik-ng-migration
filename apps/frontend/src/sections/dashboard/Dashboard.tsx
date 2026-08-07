@@ -33,6 +33,9 @@ const createComponentMap = (
   flyingUser: boolean,
   me: ReturnType<typeof useRoles>['me'],
   hasAccess: ReturnType<typeof useRoles>['hasAccess'],
+  isDtoInstructor: boolean,
+  isExpenseAdmin: boolean,
+  isAmeAdmin: boolean,
 ): Record<string, () => JSX.Element | null> => ({
   reservationsSuspended: () => (isMember ? <ReservationsSuspendedBanner /> : null),
   overdueInvoice: () => (isMember ? <OverdueInvoiceBanner /> : null),
@@ -49,16 +52,13 @@ const createComponentMap = (
   memberAdmin: () => (hasAccess(MIKPermissions.MEMBER_ADMIN) ? <MemberAdminDashboard /> : null),
   flightLogAdmin: () =>
     hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) ? <FlightLogAdminDashboard /> : null,
-  dtoInstructor: () =>
-    hasAccess(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN) ? (
-      <DtoInstructorWidget />
-    ) : null,
-  expenseAdmin: () => (hasAccess(MIKPermissions.EXPENSE_ADMIN) ? <ExpenseAdminWidget /> : null),
-  ameAdmin: () => (hasAccess(MIKPermissions.AME_ADMIN) ? <AmeAdminWidget /> : null),
+  dtoInstructor: () => (isDtoInstructor ? <DtoInstructorWidget /> : null),
+  expenseAdmin: () => (isExpenseAdmin ? <ExpenseAdminWidget /> : null),
+  ameAdmin: () => (isAmeAdmin ? <AmeAdminWidget /> : null),
 })
 
 const Dashboard = () => {
-  const { hasAccess, me } = useRoles()
+  const { hasAccess, me, isDtoInstructor, isExpenseAdmin, isAmeAdmin } = useRoles()
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
 
   const isMember = hasAccess(MIKPermissions.MEMBER)
@@ -86,7 +86,16 @@ const Dashboard = () => {
   }
 
   // Component mapping - returns null if component should not be shown based on permissions
-  const componentMap = createComponentMap(isMember, bookingUser, flyingUser, me, hasAccess)
+  const componentMap = createComponentMap(
+    isMember,
+    bookingUser,
+    flyingUser,
+    me,
+    hasAccess,
+    isDtoInstructor,
+    isExpenseAdmin,
+    isAmeAdmin,
+  )
   const alwaysVisibleComponentIds: readonly string[] = ALWAYS_VISIBLE_COMPONENTS
   const customizableComponentIds = useMemo(
     () => Object.keys(componentMap).filter((id) => !alwaysVisibleComponentIds.includes(id)),
