@@ -267,7 +267,7 @@ const Members = () => {
             },
           }}
           onChange={({ target }) => {
-            setFilters({ name: target.value })
+            setFilters((prev) => ({ ...prev, name: target.value }))
             mutate()
           }}
         />
@@ -316,12 +316,13 @@ const Members = () => {
                 const showExternal = target.value == 'showExternal'
                 const showRole =
                   !showUnapproved && !showRemoved && !showExternal && target.value !== ''
-                setFilters({
+                setFilters((prev) => ({
+                  ...prev,
                   showUnapproved,
                   showRemoved,
                   showExternal,
                   ...(showRole ? { role: target.value } : { role: undefined }),
-                })
+                }))
                 mutate()
               }}
             >
