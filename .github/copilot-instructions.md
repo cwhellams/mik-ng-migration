@@ -180,6 +180,7 @@ If a correction to existing data or logic is needed, create a new, higher-versio
 
 1. Add the schema name to the `flyway.schemas` list in `sql/migration.conf` (and `sql/migration_prod.conf` if needed).
 2. Use the schema directly in migration SQL (e.g. `CREATE TABLE dto.my_table ...`) without any preceding `CREATE SCHEMA` statement.
+3. **In the same migration, grant `USAGE` on the new schema to the app DB role**, e.g. `GRANT USAGE ON SCHEMA dto TO ${app_db_user};`. A newly created schema does not grant `USAGE` to `PUBLIC` by default, so table-level grants alone are not enough — the app's runtime DB role (`mik_app_prod`/`mik_app_test`) will get `permission denied for schema <name>` on every query against it otherwise. This is easy to miss locally because local dev connects as the `admin` superuser, which bypasses all grants; the failure only shows up against the restricted production/test role.
 
 ## Browser Login Flow
 
