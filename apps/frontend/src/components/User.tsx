@@ -2,6 +2,7 @@ import {
   Badge,
   Box,
   Button,
+  IconButton,
   Typography,
   Menu,
   MenuItem,
@@ -75,12 +76,9 @@ const User = () => {
     <Box>
       {me ? (
         <>
-          <UserAvatar
-            email={me.email}
-            firstName={me.firstName}
-            lastName={me.lastName}
-            onClick={handleClick}
-          />
+          <IconButton onClick={handleClick} aria-label={t('header.openAccountMenu')} sx={{ p: 0 }}>
+            <UserAvatar email={me.email} firstName={me.firstName} lastName={me.lastName} />
+          </IconButton>
 
           <Menu
             anchorEl={anchorEl}

@@ -1,0 +1,123 @@
+import '@testing-library/jest-dom/vitest'
+
+import { cleanup } from '@testing-library/react'
+import { afterAll, afterEach, beforeAll, vi } from 'vitest'
+
+import i18n from '../i18n'
+import { server } from './msw/server'
+
+// --- module stubs ----------------------------------------------------------
+
+// Iconify fetches icon data from api.iconify.design on first render, which
+// would mean a network round-trip (and a late state update) in all 117 files
+// that render an <Icon />. The stub keeps the icon name assertable via
+// `data-icon` without any of that. Both import specifiers used in the app are
+// covered.
+// (The factories are inlined because `vi.mock` calls are hoisted above any
+// local declaration they might otherwise reference.)
+vi.mock('@iconify/react', async () => await import('./mocks/iconify'))
+vi.mock('@iconify/react/dist/iconify.js', async () => await import('./mocks/iconify'))
+
+// --- jsdom gaps ------------------------------------------------------------
+
+// Node 26 defines its own `localStorage`/`sessionStorage` globals that stay
+// `undefined` unless the process is started with `--localstorage-file`, and
+// they shadow jsdom's implementations. `ThemeContext` and `wizardDraft` both
+// read storage on first render, so without this every component test throws.
+const createMemoryStorage = (): Storage => {
+  const items = new Map<string, string>()
+  return {
+    get length() {
+      return items.size
+    },
+    clear: () => items.clear(),
+    getItem: (key: string) => items.get(key) ?? null,
+    key: (index: number) => Array.from(items.keys())[index] ?? null,
+    removeItem: (key: string) => void items.delete(key),
+    setItem: (key: string, value: string) => void items.set(key, String(value)),
+  }
+}
+
+for (const name of ['localStorage', 'sessionStorage'] as const) {
+  if (!globalThis[name]) {
+    Object.defineProperty(globalThis, name, {
+      value: createMemoryStorage(),
+      writable: true,
+      configurable: true,
+    })
+  }
+}
+
+// MUI's useMediaQuery (29 files) and the responsive theme call matchMedia on
+// first render; jsdom has no implementation at all. Default to "no match", so
+// components render their desktop layout.
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (query: string): MediaQueryList => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+    // Deprecated, but still called by some MUI/Nivo code paths.
+    addListener: () => {},
+    removeListener: () => {},
+  }),
+})
+
+// Nivo charts and several MUI layout components observe their container.
+class ResizeObserverStub implements ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+window.ResizeObserver = ResizeObserverStub
+
+class IntersectionObserverStub {
+  readonly root = null
+  readonly rootMargin = ''
+  readonly scrollMargin = ''
+  readonly thresholds: readonly number[] = []
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return []
+  }
+}
+window.IntersectionObserver = IntersectionObserverStub
+
+// Every CSV/PDF/ICS export path calls createObjectURL; jsdom throws without it.
+URL.createObjectURL ??= () => 'blob:mik-test'
+URL.revokeObjectURL ??= () => {}
+
+// Not implemented by jsdom, and called by the logbook and HIL sections.
+Element.prototype.scrollIntoView ??= () => {}
+window.scrollTo = () => {}
+
+// --- lifecycle -------------------------------------------------------------
+
+beforeAll(async () => {
+  // `error` rather than `warn`: an unhandled request is a missing handler, and
+  // silently answering it with a network error is far harder to debug than a
+  // loud failure. Add the handler in the test, or in src/test/msw/handlers.ts
+  // if the whole suite needs it.
+  server.listen({ onUnhandledRequest: 'error' })
+
+  // Pin the language so tests assert on real English strings rather than on
+  // whatever the browser language detector happens to pick.
+  await i18n.changeLanguage('en')
+})
+
+afterEach(() => {
+  server.resetHandlers()
+  localStorage.clear()
+  sessionStorage.clear()
+  // Vitest runs without global test hooks, so Testing Library's automatic
+  // cleanup never engages — without this, mounted trees leak between tests and
+  // queries start matching the previous test's DOM.
+  cleanup()
+})
+
+afterAll(() => server.close())

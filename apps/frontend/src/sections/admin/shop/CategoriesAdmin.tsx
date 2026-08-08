@@ -170,12 +170,13 @@ export default function CategoriesAdmin() {
                     <TableCell>{n?.fi}</TableCell>
                     <TableCell>{n?.sv}</TableCell>
                     <TableCell align='right'>
-                      <IconButton size='small' onClick={() => openEdit(c)}>
+                      <IconButton size='small' aria-label='Edit' onClick={() => openEdit(c)}>
                         <Icon icon='mdi:pencil' />
                       </IconButton>
                       <IconButton
                         size='small'
                         color='error'
+                        aria-label='Delete'
                         onClick={() => handleDelete(c.categoryId)}
                       >
                         <Icon icon='mdi:delete' />
