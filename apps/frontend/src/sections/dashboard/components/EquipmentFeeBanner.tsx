@@ -31,23 +31,29 @@ export const EquipmentFeeBanner = () => {
   )
 
   const [requestSuccess, setRequestSuccess] = useState(false)
+  const [requestError, setRequestError] = useState<string | undefined>()
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
 
   const handleRequestInvoice = async () => {
     setConfirmDialogOpen(false)
-    try {
-      const response = await mutation.trigger(
-        'POST',
-        {},
-        '/v1/invoices/requestOwnEquipmentFeeInvoice',
-      )
+    // `trigger` resolves with `{ error }` rather than throwing. Checking only
+    // `data` meant a rejected request left the banner unchanged with nothing
+    // said, so the member had no idea their request had not gone through.
+    const { data: invoice, error: requestFailure } = await mutation.trigger(
+      'POST',
+      {},
+      '/v1/invoices/requestOwnEquipmentFeeInvoice',
+    )
 
-      if (response.data) {
-        setRequestSuccess(true)
-        mutate() // Refresh the equipment fee status
-      }
-    } catch (error) {
-      console.error('Failed to request equipment fee invoice:', error)
+    if (requestFailure) {
+      setRequestError(requestFailure.detail ?? t('general.savingError'))
+      return
+    }
+
+    if (invoice) {
+      setRequestError(undefined)
+      setRequestSuccess(true)
+      mutate() // Refresh the equipment fee status
     }
   }
 
@@ -62,6 +68,11 @@ export const EquipmentFeeBanner = () => {
 
   return (
     <RemoteContent isLoading={isLoading} error={error}>
+      {requestError && (
+        <Alert severity='error' sx={{ mb: 2 }} onClose={() => setRequestError(undefined)}>
+          {requestError}
+        </Alert>
+      )}
       {shouldShowBanner && (
         <>
           <Alert

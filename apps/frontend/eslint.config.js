@@ -5,7 +5,9 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  // dev-dist holds the generated PWA service worker; it carries eslint-disable
+  // comments for rules this config does not define, which ESLint reports as errors.
+  { ignores: ['dist', 'dev-dist'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -24,6 +26,10 @@ export default tseslint.config(
       'react-hooks/static-components': 'warn',
       'react-hooks/preserve-manual-memoization': 'warn',
       'react-hooks/immutability': 'warn',
+      // Same batch, missed when the others were downgraded because linting was
+      // broken at the time and nobody could see it. 30 existing violations, all
+      // in ExpenseClaimWizard and MileageDetailFields — see issue #1132.
+      'react-hooks/refs': 'warn',
       // New rules introduced in ESLint 10 / @eslint/js v10 — warn only for now
       'preserve-caught-error': 'warn',
       'no-useless-assignment': 'warn',

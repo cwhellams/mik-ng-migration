@@ -120,13 +120,20 @@ const UploadDocumentModal = ({ open, onClose, onSuccess }: UploadDocumentModalPr
         .filter((tag) => tag.length > 0)
       formData.append('tags', JSON.stringify(tagArray))
 
-      await mutation.trigger('POST', formData)
+      // `trigger` resolves with `{ error }` rather than throwing, so this has to
+      // be checked explicitly — without it a failed upload reported success and
+      // closed the dialog, leaving the member believing the document was stored.
+      const { error } = await mutation.trigger('POST', formData)
+      if (error) {
+        setUploadError(error.detail ?? 'Failed to upload document. Please try again.')
+        return
+      }
 
       onSuccess()
       handleClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Upload error:', error)
-      setUploadError(error.response?.data?.detail || 'Failed to upload document. Please try again.')
+      setUploadError('Failed to upload document. Please try again.')
     } finally {
       setIsUploading(false)
     }

@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import { Title } from '../../components/Title'
@@ -38,44 +38,54 @@ export default function NotificationBannerAdmin() {
   const [enabled, setEnabled] = useState<boolean>(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
+  // Seed the form once, when the banner first arrives. Re-seeding on every
+  // change of `data` fought the admin: `useSWRMutation` revalidates this key
+  // after any save, so a rejected one refetched the unchanged banner and
+  // overwrote whatever had just been typed.
+  const seeded = useRef(false)
   useEffect(() => {
-    if (data) {
-      setEnabled(data.enabled)
-      setMessage(data.message ?? '')
-      setSeverity(data.severity)
-    }
+    if (!data || seeded.current) return
+
+    seeded.current = true
+    setEnabled(data.enabled)
+    setMessage(data.message ?? '')
+    setSeverity(data.severity)
   }, [data])
+
+  // `trigger` resolves with `{ error }` rather than throwing, so the outcome has
+  // to be inspected. Previously a `catch` here was the only error handling, which
+  // meant a rejected save reported success and the refetch then wiped whatever
+  // the admin had typed.
+  const reportOutcome = (failed: boolean) => {
+    setSaveStatus(failed ? 'error' : 'saved')
+    setTimeout(() => setSaveStatus('idle'), failed ? 4000 : 3000)
+    return failed
+  }
 
   const handleSave = async () => {
     setSaveStatus('saving')
-    try {
-      await mutation.trigger('PUT', {
-        enabled,
-        message: message || null,
-        severity,
-      })
-      await mutate()
-      setSaveStatus('saved')
-      setTimeout(() => setSaveStatus('idle'), 3000)
-    } catch {
-      setSaveStatus('error')
-      setTimeout(() => setSaveStatus('idle'), 4000)
-    }
+    const { error } = await mutation.trigger('PUT', {
+      enabled,
+      message: message || null,
+      severity,
+    })
+    if (reportOutcome(!!error)) return
+
+    await mutate()
   }
 
   const handleClear = async () => {
     setSaveStatus('saving')
-    try {
-      await mutation.trigger('PUT', { enabled: false, message: null, severity })
-      setEnabled(false)
-      setMessage('')
-      await mutate()
-      setSaveStatus('saved')
-      setTimeout(() => setSaveStatus('idle'), 3000)
-    } catch {
-      setSaveStatus('error')
-      setTimeout(() => setSaveStatus('idle'), 4000)
-    }
+    const { error } = await mutation.trigger('PUT', {
+      enabled: false,
+      message: null,
+      severity,
+    })
+    if (reportOutcome(!!error)) return
+
+    setEnabled(false)
+    setMessage('')
+    await mutate()
   }
 
   if (isLoading) return null

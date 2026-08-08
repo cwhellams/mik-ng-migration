@@ -171,11 +171,7 @@ describe('NotificationBannerAdmin', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('reports a failed save as a success and discards the text', async () => {
-    // Recorded, not endorsed. `useApi`'s trigger resolves with `{ error }`
-    // rather than throwing, so the try/catch here never fires: the page shows
-    // "Banner updated successfully", then the refetch resets the field to the
-    // unchanged server value — losing what the admin typed.
+  it('reports a failed save, and keeps what was typed', async () => {
     banner()
     server.use(http.put(apiUrl('v1/notification-banner'), () => problemResponse(500, 'Down')))
 
@@ -184,11 +180,26 @@ describe('NotificationBannerAdmin', () => {
     await user.type(await screen.findByRole('textbox', { name: /Banner message/ }), 'Notice')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(await screen.findByText('Banner updated successfully.')).toBeInTheDocument()
-    await waitFor(() =>
-      expect(screen.getByRole('textbox', { name: /Banner message/ })).toHaveValue(''),
-    )
-    expect(screen.queryByText('Failed to save the banner. Please try again.')).toBeNull()
+    expect(
+      await screen.findByText('Failed to save the banner. Please try again.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Banner updated successfully.')).toBeNull()
+    // The refetch is skipped on failure, so the admin's text is still there.
+    expect(screen.getByRole('textbox', { name: /Banner message/ })).toHaveValue('Notice')
+  })
+
+  it('reports a failed clear rather than blanking the fields', async () => {
+    banner({ enabled: true, message: 'Hangar closed' })
+    server.use(http.put(apiUrl('v1/notification-banner'), () => problemResponse(500, 'Down')))
+
+    const { user } = renderWithProviders(<NotificationBannerAdmin />)
+
+    await user.click(await screen.findByRole('button', { name: 'Clear banner' }))
+
+    expect(
+      await screen.findByText('Failed to save the banner. Please try again.'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: /Banner message/ })).toHaveValue('Hangar closed')
   })
 })
 

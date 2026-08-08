@@ -40,18 +40,29 @@ jobs:
       - name: Run ESLint and check error count
         working-directory: apps/frontend
         run: |
-          # Run ESLint and save output to a file
-          npx eslint . --format json > eslint-results.json || true
+          # ESLint exits 1 when it finds problems and 2 when it fails to run at
+          # all. Only the former is tolerated here: a linter that cannot start
+          # must fail the build rather than be counted as zero errors, which is
+          # how linting silently stopped running across this repo (issue #1132).
+          npx eslint . --format json > eslint-results.json || ESLINT_EXIT=$?
+          if [ "${ESLINT_EXIT:-0}" -gt 1 ]; then
+            echo "::error::ESLint failed to run (exit ${ESLINT_EXIT})"
+            exit 1
+          fi
 
-          # Count the number of errors using jq
-          ERROR_COUNT=$(cat eslint-results.json | jq '[.[] | .errorCount] | add // 0')
+          if ! jq -e 'type == "array"' eslint-results.json > /dev/null 2>&1; then
+            echo "::error::ESLint produced no usable report — treating as a failure"
+            exit 1
+          fi
+
+          ERROR_COUNT=$(jq '[.[] | .errorCount] | add // 0' eslint-results.json)
           echo "Total ESLint errors: $ERROR_COUNT"
 
           # Define your threshold
           THRESHOLD=15
 
           # Check if error count exceeds threshold
-          if [ $ERROR_COUNT -gt $THRESHOLD ]; then
+          if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then
             echo "ESLint errors ($ERROR_COUNT) exceed threshold ($THRESHOLD)"
             exit 1
           else

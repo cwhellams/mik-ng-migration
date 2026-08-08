@@ -5,6 +5,24 @@ describe('isValidHetu', () => {
     expect(isValidHetu('010101-123N')).toBe(true)
     expect(isValidHetu('010101A123N')).toBe(true)
     expect(isValidHetu('131052-308T')).toBe(true)
+    expect(isValidHetu('131052+308T')).toBe(true)
+  })
+
+  // DVV began issuing further century markers in 2023, once the originals ran
+  // out for people sharing a birth date. Refusing them locked those members out
+  // of mileage claims entirely.
+  it('accepts the century markers added in 2023', () => {
+    for (const marker of ['Y', 'X', 'W', 'V', 'U']) {
+      expect(isValidHetu(`010594${marker}9021`)).toBe(true)
+    }
+    for (const marker of ['B', 'C', 'D', 'E', 'F']) {
+      expect(isValidHetu(`131002${marker}308W`)).toBe(true)
+    }
+  })
+
+  it('still rejects a separator that is not a century marker', () => {
+    expect(isValidHetu('010594Z9021')).toBe(false)
+    expect(isValidHetu('010594G9021')).toBe(false)
   })
 
   it('is case- and whitespace-insensitive', () => {

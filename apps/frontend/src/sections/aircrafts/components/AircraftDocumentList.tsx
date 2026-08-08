@@ -304,6 +304,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
   const { t } = useTranslation()
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [documentToDelete, setDocumentToDelete] = useState<number | null>(null)
+  const [actionError, setActionError] = useState<string | undefined>()
   const [showUploadArea, setShowUploadArea] = useState(false)
   const [showExpired, setShowExpired] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -350,16 +351,24 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
   const handleDeleteConfirm = useCallback(async () => {
     if (!documentToDelete) return
 
-    try {
-      await mutation.trigger('DELETE', {}, `/v1/aircraft-documents/${documentToDelete}`)
-
-      onDocumentUpdate?.()
-      setDeleteConfirmOpen(false)
-      setDocumentToDelete(null)
-    } catch (error) {
-      console.error('Error deleting document:', error)
+    // `trigger` resolves with `{ error }` rather than throwing, so a failure has
+    // to be inspected — it used to be swallowed, closing the dialog as though
+    // the document had been deleted.
+    const { error } = await mutation.trigger(
+      'DELETE',
+      {},
+      `/v1/aircraft-documents/${documentToDelete}`,
+    )
+    if (error) {
+      setActionError(error.detail ?? t('general.savingError'))
+      return
     }
-  }, [mutation, documentToDelete, onDocumentUpdate])
+
+    setActionError(undefined)
+    onDocumentUpdate?.()
+    setDeleteConfirmOpen(false)
+    setDocumentToDelete(null)
+  }, [mutation, documentToDelete, onDocumentUpdate, t])
 
   // Handle document download (open directly)
   const handleDownload = useCallback(
@@ -453,22 +462,22 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
   const handleEditSave = useCallback(async () => {
     if (!documentToEdit?.documentId) return
 
-    try {
-      await mutation.trigger(
-        'PATCH',
-        editFormData,
-        `/v1/aircraft-documents/${documentToEdit.documentId}`,
-      )
-
-      onDocumentUpdate?.()
-      setEditDialogOpen(false)
-      setDocumentToEdit(undefined)
-      setEditFormData({})
-    } catch (error) {
-      console.error('Error updating document:', error)
-      // TODO: Show error toast
+    const { error } = await mutation.trigger(
+      'PATCH',
+      editFormData,
+      `/v1/aircraft-documents/${documentToEdit.documentId}`,
+    )
+    if (error) {
+      setActionError(error.detail ?? t('general.savingError'))
+      return
     }
-  }, [mutation, documentToEdit, editFormData, onDocumentUpdate])
+
+    setActionError(undefined)
+    onDocumentUpdate?.()
+    setEditDialogOpen(false)
+    setDocumentToEdit(undefined)
+    setEditFormData({})
+  }, [mutation, documentToEdit, editFormData, onDocumentUpdate, t])
 
   const handleDeleteRequest = useCallback((documentId: number) => {
     setDocumentToDelete(documentId)
@@ -597,6 +606,11 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle>{t('aircraft.document.delete.confirm.title')}</DialogTitle>
         <DialogContent>
+          {actionError && (
+            <Alert severity='error' sx={{ mb: 2 }}>
+              {actionError}
+            </Alert>
+          )}
           <Alert severity='warning' sx={{ mb: 2 }}>
             {t('aircraft.document.delete.confirm.warning')}
           </Alert>
@@ -622,6 +636,11 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
       >
         <DialogTitle>{t('aircraft.document.upload.metadata.title')}</DialogTitle>
         <DialogContent>
+          {actionError && (
+            <Alert severity='error' sx={{ mb: 2 }}>
+              {actionError}
+            </Alert>
+          )}
           {documentToEdit && (
             <Stack spacing={2} sx={{ mt: 1 }}>
               <Typography
