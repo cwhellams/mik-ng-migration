@@ -603,7 +603,14 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           </Box>
         ))}
       {/* Delete confirmation dialog */}
-      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false)
+          setDocumentToDelete(undefined)
+          setActionError(undefined)
+        }}
+      >
         <DialogTitle>{t('aircraft.document.delete.confirm.title')}</DialogTitle>
         <DialogContent>
           {actionError && (
@@ -617,7 +624,15 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           <Typography>{t('aircraft.document.delete.confirm.message')}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)}>{t('general.cancel')}</Button>
+          <Button
+            onClick={() => {
+              setDeleteConfirmOpen(false)
+              setDocumentToDelete(undefined)
+              setActionError(undefined)
+            }}
+          >
+            {t('general.cancel')}
+          </Button>
           <Button onClick={handleDeleteConfirm} color='error' variant='contained'>
             {t('aircraft.document.delete.confirm.action')}
           </Button>
@@ -630,6 +645,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           setEditDialogOpen(false)
           setDocumentToEdit(undefined)
           setEditFormData({})
+          setActionError(undefined)
         }}
         maxWidth='md'
         fullWidth

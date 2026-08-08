@@ -3,7 +3,7 @@
 // Mileage reimbursements are reported to Tulorekisteri (the Finnish income register)
 // per person, so a mileage claim is worthless without a HETU that actually identifies
 // someone — a typo is only discovered at filing time, long after approval and payment.
-// The frontend validates the same way (validateHetu in expenseShared.tsx); this is the
+// The frontend validates the same way (validateHetu in apps/frontend/src/sections/expenses/validation.ts); this is the
 // enforcement, since the API is reachable without it.
 
 const CHECK_CHARACTERS = '0123456789ABCDEFHJKLMNPRSTUVWXY'
