@@ -176,6 +176,7 @@ export default function CategoriesAdmin() {
                       <IconButton
                         size='small'
                         color='error'
+                        aria-label='Delete'
                         onClick={() => handleDelete(c.categoryId)}
                       >
                         <Icon icon='mdi:delete' />

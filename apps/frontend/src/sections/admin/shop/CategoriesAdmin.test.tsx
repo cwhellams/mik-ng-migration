@@ -246,7 +246,7 @@ describe('CategoriesAdmin deleting', () => {
 
     const { user } = renderWithProviders(<CategoriesAdmin />)
     await screen.findByText('Clothing')
-    await user.click(screen.getAllByRole('button')[2])
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     expect(confirm).toHaveBeenCalledWith('Are you sure you want to delete this?')
     expect(state.writes).toHaveLength(0)
@@ -258,7 +258,7 @@ describe('CategoriesAdmin deleting', () => {
 
     const { user } = renderWithProviders(<CategoriesAdmin />)
     await screen.findByText('Clothing')
-    await user.click(screen.getAllByRole('button')[2])
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     await waitFor(() =>
       expect(state.writes).toEqual([{ method: 'DELETE', path: 'cat-1', body: null }]),
@@ -276,7 +276,7 @@ describe('CategoriesAdmin deleting', () => {
 
     const { user } = renderWithProviders(<CategoriesAdmin />)
     await screen.findByText('Clothing')
-    await user.click(screen.getAllByRole('button')[2])
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     expect(await screen.findByText('Error')).toBeInTheDocument()
     expect(screen.getByText('Clothing')).toBeInTheDocument()
