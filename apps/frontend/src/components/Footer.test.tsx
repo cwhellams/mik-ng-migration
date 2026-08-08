@@ -55,12 +55,11 @@ describe('Footer', () => {
 
   it('shows the current year', async () => {
     version('1.2.3')
+    const year = new Date().getFullYear()
 
     renderWithProviders(<Footer />)
 
-    await waitFor(() =>
-      expect(screen.getByText(new RegExp(String(new Date().getFullYear())))).toBeInTheDocument(),
-    )
+    expect(await screen.findByText(new RegExp(String(year)))).toBeInTheDocument()
   })
 
   it('renders for a signed-out visitor', async () => {

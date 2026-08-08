@@ -22,6 +22,16 @@ const AdminToggle = () => {
     MIKPermissions.DOCUMENT_ADMIN,
     MIKPermissions.SMS_PROCESSOR,
     MIKPermissions.SMS_MANAGER,
+    MIKPermissions.STORE_ADMIN,
+    MIKPermissions.EXAM_ADMIN,
+    MIKPermissions.DTO_ADMIN,
+    MIKPermissions.EVENTS_ADMIN,
+    MIKPermissions.EXPENSE_ADMIN,
+    MIKPermissions.EXPENSE_HETU_ADMIN,
+    MIKPermissions.INVENTORY_ADMIN,
+    MIKPermissions.AME_ADMIN,
+    MIKPermissions.MEETING_ADMIN,
+    MIKPermissions.OUTBOX_ADMIN,
   )
 
   if (!canUseAdminMode) {

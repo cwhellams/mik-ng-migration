@@ -31,15 +31,6 @@ describe('AdminToggle visibility', () => {
     MIKPermissions.DOCUMENT_ADMIN,
     MIKPermissions.SMS_PROCESSOR,
     MIKPermissions.SMS_MANAGER,
-  ])('appears for a member holding %s', async (permission) => {
-    signInWithPermissions(permission)
-
-    renderWithProviders(<AdminToggle />)
-
-    expect(await screen.findByRole('button', { name: TOGGLE })).toBeInTheDocument()
-  })
-
-  it.each([
     MIKPermissions.STORE_ADMIN,
     MIKPermissions.EXAM_ADMIN,
     MIKPermissions.DTO_ADMIN,
@@ -50,18 +41,12 @@ describe('AdminToggle visibility', () => {
     MIKPermissions.AME_ADMIN,
     MIKPermissions.MEETING_ADMIN,
     MIKPermissions.OUTBOX_ADMIN,
-  ])('stays hidden for %s, which the list omits', async (permission) => {
-    // The permission list here is hand-maintained and predates most of these.
-    // Every route those permissions unlock is `adminModeOnly` (see phase 3), so
-    // a member holding only one of them has no way to switch admin mode on and
-    // therefore cannot reach their own admin pages at all. In practice such
-    // members usually also hold one of the listed permissions, which is why
-    // this has gone unnoticed.
+  ])('appears for a member holding %s', async (permission) => {
     signInWithPermissions(permission)
 
     renderWithProviders(<AdminToggle />)
 
-    await waitFor(() => expect(screen.queryByRole('button', { name: TOGGLE })).toBeNull())
+    expect(await screen.findByRole('button', { name: TOGGLE })).toBeInTheDocument()
   })
 })
 

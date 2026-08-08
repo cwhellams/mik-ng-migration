@@ -24,19 +24,10 @@ const renderUser = (options: Parameters<typeof renderWithProviders>[1] = {}) =>
   )
 
 /**
- * The menu is opened by clicking the avatar, which MUI renders as a plain
- * `<div>` with no button role, no accessible name and no tab stop — so it has
- * to be reached through the DOM rather than by role. See the accessibility test
- * at the end of this file.
+ * Opens the account menu by clicking the accessible button trigger.
  */
 const openMenu = async (user: ReturnType<typeof renderUser>['user']) => {
-  const avatar = await waitFor(() => {
-    const found = document.querySelector('.MuiAvatar-root')
-    expect(found).not.toBeNull()
-    return found as HTMLElement
-  })
-
-  await user.click(avatar)
+  await user.click(await screen.findByRole('button', { name: /Open account menu/i }))
   return screen.findByRole('menu')
 }
 
@@ -174,22 +165,17 @@ describe('User logout', () => {
 })
 
 describe('User accessibility', () => {
-  it('cannot open its menu from the keyboard', async () => {
-    // Recorded, not endorsed: the avatar is a div with no role, no accessible
-    // name and no tabindex, so the account menu — including logout — is
-    // mouse-only. Worth fixing with an IconButton wrapper.
+  it('can open its menu from the keyboard', async () => {
     signInAs(aMember())
 
-    renderUser()
+    const { user } = renderUser()
 
-    const avatar = await waitFor(() => {
-      const found = document.querySelector('.MuiAvatar-root')
-      expect(found).not.toBeNull()
-      return found as HTMLElement
-    })
+    const trigger = await screen.findByRole('button', { name: /Open account menu/i })
+    expect(trigger.tagName).toBe('BUTTON')
 
-    expect(avatar.tagName).toBe('DIV')
-    expect(avatar).not.toHaveAttribute('tabindex')
-    expect(screen.queryByRole('button')).toBeNull()
+    await user.tab()
+    await user.keyboard('{Enter}')
+
+    expect(await screen.findByRole('menu')).toBeInTheDocument()
   })
 })
