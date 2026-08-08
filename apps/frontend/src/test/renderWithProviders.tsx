@@ -8,7 +8,7 @@ import {
   type RenderResult,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useEffect, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
 import { I18nextProvider } from 'react-i18next'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { SWRConfig } from 'swr'
@@ -55,13 +55,19 @@ export interface ProviderOptions {
  * to apply, so nothing ever renders in the wrong mode.
  */
 const SudoMode = ({ on, children }: { on: boolean; children: ReactNode }) => {
-  const { sudo, toggleSudo } = useThemeMode()
+  const { toggleSudo } = useThemeMode()
+  const applied = useRef(false)
 
+  // Applied exactly once: this seeds the starting mode rather than pinning it,
+  // so a component under test can still toggle admin mode back off.
   useEffect(() => {
-    if (on && !sudo) toggleSudo(true)
-  }, [on, sudo, toggleSudo])
+    if (on && !applied.current) {
+      applied.current = true
+      toggleSudo(true)
+    }
+  }, [on, toggleSudo])
 
-  if (on && !sudo) return null
+  if (on && !applied.current) return null
   return <>{children}</>
 }
 

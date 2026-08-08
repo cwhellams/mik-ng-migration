@@ -146,6 +146,20 @@ aircraft `OH-STL` — seeded by `sql/schema/testdata/`. Keeping the names identi
 means a developer reading a frontend test recognises the entities from the backend one. See
 `fixtures/cast.ts`.
 
+## Component tests
+
+Every component in `src/components/` has a colocated `*.test.tsx`. A few things that come up
+repeatedly there:
+
+- **MUI keeps dialogs and menus mounted through their exit transition**, so assert their
+  disappearance with `waitFor`, not synchronously.
+- **An Autocomplete's clear button only joins the accessibility tree once the field is focused** —
+  click the combobox before looking for it.
+- **`user-event` refuses to click a disabled control at all.** To prove a handler stays silent, drive
+  the event with `fireEvent` instead.
+- **`useMediaQuery` always reports no match** (the `matchMedia` stub returns `matches: false`), so
+  components render their desktop layout.
+
 ## Conventions
 
 - Test **decisions**, not markup. No snapshot tests.
