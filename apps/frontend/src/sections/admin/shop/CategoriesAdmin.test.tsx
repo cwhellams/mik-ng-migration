@@ -183,7 +183,7 @@ describe('CategoriesAdmin editing', () => {
 
     const { user } = renderWithProviders(<CategoriesAdmin />)
     await screen.findByText('Clothing')
-    await user.click(screen.getAllByRole('button')[1])
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     expect(await screen.findByRole('heading', { name: 'Edit Category' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /Name \(EN\)/ })).toHaveValue('Clothing')
@@ -196,7 +196,7 @@ describe('CategoriesAdmin editing', () => {
 
     const { user } = renderWithProviders(<CategoriesAdmin />)
     await screen.findByText('Clothing')
-    await user.click(screen.getAllByRole('button')[1])
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     const nameField = await screen.findByRole('textbox', { name: /Name \(EN\)/ })
     await user.clear(nameField)
@@ -216,7 +216,7 @@ describe('CategoriesAdmin editing', () => {
 
     const { user } = renderWithProviders(<CategoriesAdmin />)
     await screen.findByText('Clothing')
-    await user.click(screen.getAllByRole('button')[1])
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     expect(await screen.findByRole('textbox', { name: /Description \(EN\)/ })).toHaveValue('')
   })
@@ -227,7 +227,7 @@ describe('CategoriesAdmin editing', () => {
     const { user } = renderWithProviders(<CategoriesAdmin />)
     await screen.findByText('Clothing')
 
-    await user.click(screen.getAllByRole('button')[1])
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
     await screen.findByRole('dialog')
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

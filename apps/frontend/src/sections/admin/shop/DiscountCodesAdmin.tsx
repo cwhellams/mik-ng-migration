@@ -200,7 +200,7 @@ export default function DiscountCodesAdmin() {
                     />
                   </TableCell>
                   <TableCell align='right'>
-                    <IconButton size='small' onClick={() => openEdit(c)}>
+                    <IconButton size='small' aria-label='Edit' onClick={() => openEdit(c)}>
                       <Icon icon='mdi:pencil' />
                     </IconButton>
                   </TableCell>

@@ -7,6 +7,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { signInAs, signInWithPermissions } from '../../../test/auth'
 import { aBooking, aMember, anAircraftListResponse, MEMBER_ID } from '../../../test/fixtures'
+import { apiUrl } from '../../../test/msw/handlers'
+import { server } from '../../../test/msw/server'
+import { renderWithProviders } from '../../../test/renderWithProviders'
+import { BookingEditor } from './EditBookingModal'
 
 /**
  * The shared fixture's licence and medical expiries are fixed 2026 dates, which
@@ -14,10 +18,6 @@ import { aBooking, aMember, anAircraftListResponse, MEMBER_ID } from '../../../t
  * member is what these tests need, so both are pushed well into the future.
  */
 const aCurrentMember = () => aMember({ licenceExpiry: '2099-01-01', medicalExpiry: '2099-01-01' })
-import { apiUrl } from '../../../test/msw/handlers'
-import { server } from '../../../test/msw/server'
-import { renderWithProviders } from '../../../test/renderWithProviders'
-import { BookingEditor } from './EditBookingModal'
 
 /**
  * The booking editor: create, edit, cancel and transfer, with the readonly and

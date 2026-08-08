@@ -192,7 +192,7 @@ describe('DiscountCodesAdmin editing', () => {
 
     const { user } = renderWithProviders(<DiscountCodesAdmin />)
     await screen.findByText('SPRING25')
-    await user.click(screen.getAllByRole('button')[1])
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     expect(await screen.findByRole('heading', { name: 'Edit Code' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /Code/ })).toHaveValue('SPRING25')
@@ -205,7 +205,7 @@ describe('DiscountCodesAdmin editing', () => {
 
     const { user } = renderWithProviders(<DiscountCodesAdmin />)
     await screen.findByText('SPRING25')
-    await user.click(screen.getAllByRole('button')[1])
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     expect(await screen.findByRole('spinbutton', { name: /Min order amount/ })).toHaveValue(null)
   })
@@ -215,7 +215,7 @@ describe('DiscountCodesAdmin editing', () => {
 
     const { user } = renderWithProviders(<DiscountCodesAdmin />)
     await screen.findByText('SPRING25')
-    await user.click(screen.getAllByRole('button')[1])
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     const value = await screen.findByRole('spinbutton', { name: /Value/ })
     await user.clear(value)
