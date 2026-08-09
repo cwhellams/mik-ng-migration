@@ -81,11 +81,25 @@ describe('validateHetu', () => {
     expect(validateHetu(hetu)).toBe(false)
   })
 
-  it('rejects the century markers introduced by DVV in 2023', () => {
-    // Only '+', '-' and 'A' are recognised. Since 2023 the register also issues
-    // Y/X/W/V/U (1900s) and B/C/D/E/F (2000s), so a genuine modern HETU using one
-    // of those is refused here. '010594Y9021' is a checksum-valid 1994 code.
-    expect(validateHetu('010594Y9021')).toBe(false)
-    expect(validateHetu('010594-9021')).toBe(true)
+  it.each(['Y', 'X', 'W', 'V', 'U'])(
+    'accepts the 1900s marker %s added by DVV in 2023',
+    (marker) => {
+      // The original markers ran out for people sharing a birth date, so the
+      // register began issuing these. They carry the same century as '-', which
+      // is why the checksum is identical across all of them.
+      expect(validateHetu(`010594${marker}9021`)).toBe(true)
+    },
+  )
+
+  it.each(['B', 'C', 'D', 'E', 'F'])(
+    'accepts the 2000s marker %s added by DVV in 2023',
+    (marker) => {
+      expect(validateHetu(`131002${marker}308W`)).toBe(true)
+    },
+  )
+
+  it('still rejects a separator that is not a century marker', () => {
+    expect(validateHetu('010594Z9021')).toBe(false)
+    expect(validateHetu('010594G9021')).toBe(false)
   })
 })

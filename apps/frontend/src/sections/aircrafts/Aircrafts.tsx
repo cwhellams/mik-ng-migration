@@ -43,6 +43,8 @@ import { AircraftHilSection } from './components/hil/AircraftHilSection'
 import { AircraftGroundedAlert } from './components/hil/AircraftGroundedAlert'
 import { useRoles } from '../../hooks/useRoles'
 import { useEffect, useState } from 'react'
+import type { Problem } from '@backend/routes/response'
+import { SnackAlert } from '../../components/SnackAlert'
 import { useSearchParams } from 'react-router'
 import { AircraftEditMode, EditAircraftModal } from './components/EditAircraftModal'
 import { PricingEditMode, EditPricingModal } from './components/EditPricingModal'
@@ -62,6 +64,7 @@ const HIL_TAB = 5
 
 const Aircrafts = () => {
   const [showInactive, setShowInactive] = useState(false)
+  const [problem, setProblem] = useState<Problem | undefined>()
 
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
     url: 'v1/aircrafts',
@@ -146,19 +149,22 @@ const Aircrafts = () => {
   const handleDeletePricing = async () => {
     if (!pricingToDelete) return
 
-    try {
-      await pricingDelete.mutation.trigger(
-        'DELETE',
-        undefined,
-        `${pricingToDelete.registration}/${pricingToDelete.valid_from}`,
-      )
+    // `trigger` resolves with `{ error }` rather than throwing, so a failure has
+    // to be inspected — it used to be swallowed and the row simply stayed put
+    // with no explanation.
+    const { error } = await pricingDelete.mutation.trigger(
+      'DELETE',
+      undefined,
+      `${pricingToDelete.registration}/${pricingToDelete.valid_from}`,
+    )
 
+    if (error) {
+      setProblem(error)
+    } else {
       await mutate(
         (key: unknown) =>
           Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('aircraft-pricing'),
       )
-    } catch (error) {
-      console.error('Error deleting pricing:', error)
     }
 
     setDeleteConfirmOpen(false)
@@ -331,6 +337,7 @@ const Aircrafts = () => {
 
   return (
     <Box>
+      <SnackAlert problem={problem} />
       <Title label={t('header.aircrafts')}>
         {isAircraftAdmin && (
           <>

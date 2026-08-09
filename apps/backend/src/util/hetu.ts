@@ -3,16 +3,35 @@
 // Mileage reimbursements are reported to Tulorekisteri (the Finnish income register)
 // per person, so a mileage claim is worthless without a HETU that actually identifies
 // someone — a typo is only discovered at filing time, long after approval and payment.
-// The frontend validates the same way (validateHetu in expenseShared.tsx); this is the
+// The frontend validates the same way (validateHetu in apps/frontend/src/sections/expenses/validation.ts); this is the
 // enforcement, since the API is reachable without it.
 
 const CHECK_CHARACTERS = '0123456789ABCDEFHJKLMNPRSTUVWXY'
-const CENTURY_BASE_YEAR: Record<string, number> = { '+': 1800, '-': 1900, A: 2000 }
+
+// DVV added further century markers in 2023, once the original ones ran out for
+// people sharing a birth date. Rejecting them locks those members out of mileage
+// claims entirely, so all of them are accepted here.
+// https://dvv.fi/en/reform-of-personal-identity-code
+const CENTURY_BASE_YEAR: Record<string, number> = {
+  '+': 1800,
+  '-': 1900,
+  Y: 1900,
+  X: 1900,
+  W: 1900,
+  V: 1900,
+  U: 1900,
+  A: 2000,
+  B: 2000,
+  C: 2000,
+  D: 2000,
+  E: 2000,
+  F: 2000,
+}
 
 export function isValidHetu(raw: string | null | undefined): boolean {
   if (!raw) return false
   const hetu = raw.trim().toUpperCase()
-  const match = /^(\d{2})(\d{2})(\d{2})([+\-A])(\d{3})([0-9A-Z])$/.exec(hetu)
+  const match = /^(\d{2})(\d{2})(\d{2})([-+YXWVUABCDEF])(\d{3})([0-9A-Z])$/.exec(hetu)
   if (!match) return false
   const [, day, month, yearOfCentury, centurySign, individualNumber, checkChar] = match
 

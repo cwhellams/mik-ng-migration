@@ -77,11 +77,13 @@ const Dashboard = () => {
 
   // Save dashboard settings
   const handleSaveSettings = async (settings: DashboardComponent[]) => {
-    try {
-      await mutation.trigger('PUT', { components: settings })
-    } catch (error) {
+    // `trigger` resolves with `{ error }` rather than throwing, so a failure has
+    // to be turned into one explicitly — the settings modal keeps itself open on
+    // a thrown error, and previously closed as though the save had worked.
+    const { error } = await mutation.trigger('PUT', { components: settings })
+    if (error) {
       console.error('Failed to save dashboard settings:', error)
-      throw error
+      throw new Error(error.detail ?? 'Failed to save dashboard settings')
     }
   }
 

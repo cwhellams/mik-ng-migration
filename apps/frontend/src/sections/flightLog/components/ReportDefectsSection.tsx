@@ -37,7 +37,7 @@ export const ReportDefectsSection = ({
       {descriptions.map((description, index) => {
         const isBlank = description.length > 0 && description.trim().length === 0
         return (
-          // eslint-disable-next-line react/no-array-index-key
+          // The rows have no stable id until saved, so the index is the key.
           <Stack key={index} direction='row' spacing={1} sx={{ alignItems: 'flex-start' }}>
             <TextField
               value={description}

@@ -32,7 +32,11 @@ overrides:
   'js-yaml@3.14.1': '3.14.2'
   'cosmiconfig>js-yaml': '4.3.1'
   '@eslint/eslintrc>js-yaml': '4.3.1'
-  'brace-expansion@>=1.0.0 <=1.1.11': '>=1.1.12'
+  # Bounded to the 1.x line: an open '>=1.1.12' pulled brace-expansion 5 in for
+  # minimatch@3 (which asks for ^1.1.7), and v5 exports { expand } rather than a
+  # callable default — minimatch then threw "expand is not a function" and took
+  # ESLint down with it. 1.1.12 is the patched 1.x release, so the CVE fix stands.
+  'brace-expansion@>=1.0.0 <=1.1.11': '>=1.1.12 <2'
   'jws@=4.0.0': '>=4.0.1'
   '@smithy/config-resolver@<4.4.0': '>=4.4.0'
   'diff@<4.0.4': '>=4.0.4'

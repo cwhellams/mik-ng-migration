@@ -45,9 +45,11 @@ export default [
       // General ESLint rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
 
-      // Import rules
+      // Import rules — never adopted by the codebase (~900 violations), and
+      // linting was broken for long enough that nobody saw them. Warn until
+      // someone runs `eslint --fix` over it deliberately; see issue #1132.
       'import/order': [
-        'error',
+        'warn',
         {
           groups: ['builtin', 'external', 'internal', ['parent', 'sibling'], 'index'],
           'newlines-between': 'always',
@@ -55,19 +57,12 @@ export default [
         },
       ],
 
-      // Prettier integration
-      'prettier/prettier': [
-        'error',
-        {
-          semi: false,
-          trailingComma: 'all',
-          singleQuote: true,
-          printWidth: 100,
-          tabWidth: 2,
-          arrowParens: 'avoid',
-          endOfLine: 'auto',
-        },
-      ],
+      // Prettier integration. Deliberately no inline options: these used to
+      // duplicate the repo's .prettierrc and contradict it (arrowParens 'avoid'
+      // against the real 'always'), so every arrow function was reported as an
+      // error that could not be fixed without failing `prettier --check`.
+      // With no options the plugin resolves .prettierrc itself, and the two agree.
+      'prettier/prettier': 'error',
     },
   },
 
