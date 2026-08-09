@@ -19,6 +19,10 @@ export default defineConfig({
     // (slightly faster) node environment can opt out per file with a
     // `// @vitest-environment node` docblock.
     environment: 'jsdom',
+    // 5s is not enough for the form/wizard suites: driving a whole dialog
+    // through user-event is slow, and slower again under `--coverage`, where
+    // the default made a varying handful of tests time out on every run.
+    testTimeout: 20_000,
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['src/test/setup.ts'],
     // Undo spies/stubs between tests so one test's vi.spyOn can't leak.

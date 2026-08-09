@@ -294,8 +294,9 @@ export default function FlightPackagesAdmin() {
       </Typography>
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         <FormControl size='small' sx={{ minWidth: 150 }}>
-          <InputLabel>{t('shop.admin.aircraft')}</InputLabel>
+          <InputLabel id='package-filter-aircraft-label'>{t('shop.admin.aircraft')}</InputLabel>
           <Select
+            labelId='package-filter-aircraft-label'
             value={filterAircraft}
             label={t('shop.admin.aircraft')}
             onChange={(e) => setFilterAircraft(e.target.value)}
@@ -309,8 +310,9 @@ export default function FlightPackagesAdmin() {
           </Select>
         </FormControl>
         <FormControl size='small' sx={{ minWidth: 140 }}>
-          <InputLabel>{t('common.status')}</InputLabel>
+          <InputLabel id='package-filter-status-label'>{t('common.status')}</InputLabel>
           <Select
+            labelId='package-filter-status-label'
             value={filterActive}
             label={t('common.status')}
             onChange={(e) => setFilterActive(e.target.value)}
@@ -321,8 +323,9 @@ export default function FlightPackagesAdmin() {
           </Select>
         </FormControl>
         <FormControl size='small' sx={{ minWidth: 130 }}>
-          <InputLabel>{t('shop.admin.expiresAt')}</InputLabel>
+          <InputLabel id='package-filter-year-label'>{t('shop.admin.expiresAt')}</InputLabel>
           <Select
+            labelId='package-filter-year-label'
             value={filterYear}
             label={t('shop.admin.expiresAt')}
             onChange={(e) => setFilterYear(e.target.value)}
@@ -423,7 +426,11 @@ export default function FlightPackagesAdmin() {
                       />
                     </TableCell>
                     <TableCell align='right'>
-                      <IconButton size='small' onClick={() => openEdit(p)}>
+                      <IconButton
+                        size='small'
+                        aria-label={`${t('common.edit')} ${p.aircraftRegistration}`}
+                        onClick={() => openEdit(p)}
+                      >
                         <Icon icon='mdi:pencil' />
                       </IconButton>
                     </TableCell>
@@ -543,6 +550,13 @@ export default function FlightPackagesAdmin() {
                   <TextField
                     size='small'
                     fullWidth
+                    // Only the group has a visible label, so each per-language
+                    // box needs an accessible name of its own.
+                    slotProps={{
+                      htmlInput: {
+                        'aria-label': `${t('common.name')} (${lang.toUpperCase()})`,
+                      },
+                    }}
                     value={
                       form[
                         `name${lang.charAt(0).toUpperCase() + lang.slice(1)}` as
@@ -595,6 +609,11 @@ export default function FlightPackagesAdmin() {
                     fullWidth
                     multiline
                     minRows={2}
+                    slotProps={{
+                      htmlInput: {
+                        'aria-label': `${t('common.description')} (${lang.toUpperCase()})`,
+                      },
+                    }}
                     value={
                       form[
                         `description${lang.charAt(0).toUpperCase() + lang.slice(1)}` as
@@ -615,8 +634,9 @@ export default function FlightPackagesAdmin() {
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <FormControl size='small' fullWidth required>
-                <InputLabel>{t('shop.admin.aircraft')}</InputLabel>
+                <InputLabel id='package-aircraft-label'>{t('shop.admin.aircraft')}</InputLabel>
                 <Select
+                  labelId='package-aircraft-label'
                   value={form.aircraftRegistration}
                   label={`${t('shop.admin.aircraft')} *`}
                   onChange={(e) =>
@@ -722,8 +742,11 @@ export default function FlightPackagesAdmin() {
               />
 
               <FormControl size='small' fullWidth sx={{ gridColumn: '1 / -1' }}>
-                <InputLabel>{t('shop.admin.simplbooksId')}</InputLabel>
+                <InputLabel id='package-simplbooks-label'>
+                  {t('shop.admin.simplbooksId')}
+                </InputLabel>
                 <Select
+                  labelId='package-simplbooks-label'
                   value={form.simplbooksItemId}
                   label={t('shop.admin.simplbooksId')}
                   onChange={(e) =>
@@ -799,8 +822,9 @@ export default function FlightPackagesAdmin() {
         <DialogTitle>{t('shop.admin.extendExpiry')}</DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
           <FormControl size='small' fullWidth required sx={{ mb: 2 }}>
-            <InputLabel>{t('shop.admin.aircraft')}</InputLabel>
+            <InputLabel id='extend-aircraft-label'>{t('shop.admin.aircraft')}</InputLabel>
             <Select
+              labelId='extend-aircraft-label'
               value={extendAircraft}
               label={`${t('shop.admin.aircraft')} *`}
               onChange={(e) => setExtendAircraft(e.target.value)}

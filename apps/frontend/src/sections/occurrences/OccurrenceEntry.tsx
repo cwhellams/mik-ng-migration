@@ -257,13 +257,14 @@ const EventTypeForm = ({ control, errors, isEditable, watch, setValue }: EventTy
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
         <FormControl required fullWidth error={!!errors.categories}>
-          <InputLabel>{t('occurrences.categories')}</InputLabel>
+          <InputLabel id='occurrence-categories-label'>{t('occurrences.categories')}</InputLabel>
           <Controller
             name='categories'
             control={control}
             render={({ field }) => (
               <Select
                 {...field}
+                labelId='occurrence-categories-label'
                 label={`${t('occurrences.categories')}`}
                 multiple
                 disabled={!isEditable}
@@ -437,12 +438,16 @@ const DetailsForm = ({
           error={!!errors.aircraftRegistration}
           disabled={!isEditable || !hasAircraftList}
         >
-          <InputLabel>{t('occurrences.aircraft')}</InputLabel>
+          <InputLabel id='occurrence-aircraft-label'>{t('occurrences.aircraft')}</InputLabel>
           <Controller
             name='aircraftRegistration'
             control={control}
             render={({ field }) => (
-              <Select {...field} label={t('occurrences.aircraft')}>
+              <Select
+                {...field}
+                labelId='occurrence-aircraft-label'
+                label={t('occurrences.aircraft')}
+              >
                 <MenuItem key='empty' value={''}>
                   --
                 </MenuItem>
