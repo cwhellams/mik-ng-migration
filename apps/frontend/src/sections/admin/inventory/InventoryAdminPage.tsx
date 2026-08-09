@@ -201,11 +201,20 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
                       />
                     </TableCell>
                     <TableCell align='right'>
-                      <IconButton size='small' onClick={() => openEdit(entity)}>
+                      <IconButton
+                        size='small'
+                        aria-label={`${t('common.edit')} ${n?.en}`}
+                        onClick={() => openEdit(entity)}
+                      >
                         <Icon icon='mdi:pencil' />
                       </IconButton>
                       {allowDeactivate && entity.isActive && (
-                        <IconButton size='small' color='error' onClick={() => handleDeactivate(id)}>
+                        <IconButton
+                          size='small'
+                          color='error'
+                          aria-label={`${t('general.delete')} ${n?.en}`}
+                          onClick={() => handleDeactivate(id)}
+                        >
                           <Icon icon='mdi:delete' />
                         </IconButton>
                       )}
@@ -565,18 +574,24 @@ function ItemsTab() {
                         <IconButton
                           size='small'
                           title={t('inventory.admin.adjustQuantity')}
+                          aria-label={`${t('inventory.admin.adjustQuantity')} ${name}`}
                           onClick={() => setAdjustDialog({ itemId: item.itemId, name })}
                         >
                           <Icon icon='mdi:plus-minus' />
                         </IconButton>
                       )}
-                      <IconButton size='small' onClick={() => openEdit(item)}>
+                      <IconButton
+                        size='small'
+                        aria-label={`${t('common.edit')} ${name}`}
+                        onClick={() => openEdit(item)}
+                      >
                         <Icon icon='mdi:pencil' />
                       </IconButton>
                       {item.isActive && (
                         <IconButton
                           size='small'
                           color='error'
+                          aria-label={`${t('general.delete')} ${name}`}
                           onClick={() => handleDelete(item.itemId)}
                         >
                           <Icon icon='mdi:delete' />
@@ -608,8 +623,9 @@ function ItemsTab() {
           {field('descSv', `${t('common.description')} (SV)`)}
 
           <FormControl size='small' fullWidth error={categoryError} sx={{ mb: 2 }}>
-            <InputLabel>{t('inventory.category')} *</InputLabel>
+            <InputLabel id='inventory-item-category-label'>{t('inventory.category')} *</InputLabel>
             <Select
+              labelId='inventory-item-category-label'
               value={form.categoryId}
               label={`${t('inventory.category')} *`}
               onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
@@ -624,8 +640,9 @@ function ItemsTab() {
           </FormControl>
 
           <FormControl size='small' fullWidth sx={{ mb: 2 }}>
-            <InputLabel>{t('inventory.location')}</InputLabel>
+            <InputLabel id='inventory-item-location-label'>{t('inventory.location')}</InputLabel>
             <Select
+              labelId='inventory-item-location-label'
               value={form.locationId}
               label={t('inventory.location')}
               onChange={(e) => setForm((f) => ({ ...f, locationId: e.target.value }))}
@@ -640,8 +657,9 @@ function ItemsTab() {
           </FormControl>
 
           <FormControl size='small' fullWidth sx={{ mb: 2 }}>
-            <InputLabel>{t('inventory.itemType')}</InputLabel>
+            <InputLabel id='inventory-item-type-label'>{t('inventory.itemType')}</InputLabel>
             <Select
+              labelId='inventory-item-type-label'
               value={form.itemType}
               label={t('inventory.itemType')}
               onChange={(e) =>
@@ -666,8 +684,11 @@ function ItemsTab() {
           {form.itemType === 'ASSET' && (
             <>
               <FormControl size='small' fullWidth sx={{ mb: 2 }}>
-                <InputLabel>{t('inventory.condition.label')}</InputLabel>
+                <InputLabel id='inventory-item-condition-label'>
+                  {t('inventory.condition.label')}
+                </InputLabel>
                 <Select
+                  labelId='inventory-item-condition-label'
                   value={form.condition}
                   label={t('inventory.condition.label')}
                   onChange={(e) => setForm((f) => ({ ...f, condition: e.target.value }))}
