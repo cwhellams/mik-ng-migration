@@ -434,7 +434,11 @@ export default function DtoProgramsAdminPage() {
                 }}
               >
                 <Typography variant='h6'>{program.name}</Typography>
-                <IconButton size='small' onClick={() => handleEdit(program)}>
+                <IconButton
+                  size='small'
+                  aria-label={`Edit ${program.name}`}
+                  onClick={() => handleEdit(program)}
+                >
                   <Icon icon='mdi:pencil' />
                 </IconButton>
               </Box>

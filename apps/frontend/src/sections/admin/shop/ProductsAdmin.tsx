@@ -99,6 +99,9 @@ function LocalisedField({
           <TextField
             size='small'
             fullWidth
+            // The visible label sits above the group, so each per-language box
+            // would otherwise have no accessible name of its own.
+            slotProps={{ htmlInput: { 'aria-label': `${label} (${lang.toUpperCase()})` } }}
             value={values[lang]}
             onChange={(e) => onChange(lang, e.target.value)}
             multiline={multiline}
@@ -679,8 +682,9 @@ export default function ProductsAdmin() {
         {/* Filter bar */}
         <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
           <FormControl size='small' sx={{ minWidth: 160 }}>
-            <InputLabel>{t('shop.category')}</InputLabel>
+            <InputLabel id='product-filter-category-label'>{t('shop.category')}</InputLabel>
             <Select
+              labelId='product-filter-category-label'
               value={filterCategory}
               label={t('shop.category')}
               onChange={(e) => setFilterCategory(e.target.value)}
@@ -695,8 +699,9 @@ export default function ProductsAdmin() {
           </FormControl>
 
           <FormControl size='small' sx={{ minWidth: 140 }}>
-            <InputLabel>{t('common.active')}</InputLabel>
+            <InputLabel id='product-filter-active-label'>{t('common.active')}</InputLabel>
             <Select
+              labelId='product-filter-active-label'
               value={filterActive}
               label={t('common.active')}
               onChange={(e) => setFilterActive(e.target.value as '' | 'true' | 'false')}
@@ -708,8 +713,9 @@ export default function ProductsAdmin() {
           </FormControl>
 
           <FormControl size='small' sx={{ minWidth: 140 }}>
-            <InputLabel>{t('common.status')}</InputLabel>
+            <InputLabel id='product-filter-status-label'>{t('common.status')}</InputLabel>
             <Select
+              labelId='product-filter-status-label'
               value={filterPublished}
               label={t('common.status')}
               onChange={(e) => setFilterPublished(e.target.value as '' | 'true' | 'false')}
@@ -758,12 +764,17 @@ export default function ProductsAdmin() {
                       )}
                     </TableCell>
                     <TableCell align='right'>
-                      <IconButton size='small' onClick={() => openEdit(p)}>
+                      <IconButton
+                        size='small'
+                        aria-label={`${t('common.edit')} ${n?.en}`}
+                        onClick={() => openEdit(p)}
+                      >
                         <Icon icon='mdi:pencil' />
                       </IconButton>
                       <IconButton
                         size='small'
                         color='error'
+                        aria-label={`${t('general.delete')} ${n?.en}`}
                         onClick={() => handleDelete(p.productId)}
                         disabled={!!p.hasOrders}
                         title={p.hasOrders ? 'Cannot delete products that have orders' : undefined}
@@ -818,8 +829,9 @@ export default function ProductsAdmin() {
 
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <FormControl size='small' fullWidth>
-                  <InputLabel>{t('shop.category')} *</InputLabel>
+                  <InputLabel id='product-category-label'>{t('shop.category')} *</InputLabel>
                   <Select
+                    labelId='product-category-label'
                     value={form.categoryId}
                     label={`${t('shop.category')} *`}
                     onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
