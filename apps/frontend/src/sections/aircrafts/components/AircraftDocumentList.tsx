@@ -479,6 +479,14 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
     setEditFormData({})
   }, [mutation, documentToEdit, editFormData, onDocumentUpdate, t])
 
+  // `documentToDelete` is `number | null`, so it resets to null rather than
+  // undefined — unlike `documentToEdit`, which is optional.
+  const closeDeleteDialog = useCallback(() => {
+    setDeleteConfirmOpen(false)
+    setDocumentToDelete(null)
+    setActionError(undefined)
+  }, [])
+
   const handleDeleteRequest = useCallback((documentId: number) => {
     setDocumentToDelete(documentId)
     setDeleteConfirmOpen(true)
@@ -603,14 +611,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           </Box>
         ))}
       {/* Delete confirmation dialog */}
-      <Dialog
-        open={deleteConfirmOpen}
-        onClose={() => {
-          setDeleteConfirmOpen(false)
-          setDocumentToDelete(undefined)
-          setActionError(undefined)
-        }}
-      >
+      <Dialog open={deleteConfirmOpen} onClose={closeDeleteDialog}>
         <DialogTitle>{t('aircraft.document.delete.confirm.title')}</DialogTitle>
         <DialogContent>
           {actionError && (
@@ -624,15 +625,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           <Typography>{t('aircraft.document.delete.confirm.message')}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => {
-              setDeleteConfirmOpen(false)
-              setDocumentToDelete(undefined)
-              setActionError(undefined)
-            }}
-          >
-            {t('general.cancel')}
-          </Button>
+          <Button onClick={closeDeleteDialog}>{t('general.cancel')}</Button>
           <Button onClick={handleDeleteConfirm} color='error' variant='contained'>
             {t('aircraft.document.delete.confirm.action')}
           </Button>
