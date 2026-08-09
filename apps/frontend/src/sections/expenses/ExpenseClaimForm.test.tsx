@@ -21,7 +21,7 @@ const CATEGORIES: ExpenseCategory[] = [
   { id: 1, code: 'misc', nameEn: 'Other', nameFi: 'Muu', nameSv: 'Annat' },
   { id: 2, code: 'mileage', nameEn: 'Mileage', nameFi: 'Kilometrit', nameSv: 'Kilometer' },
   { id: 3, code: 'fuel', nameEn: 'Fuel', nameFi: 'Polttoaine', nameSv: 'Bränsle' },
-] as ExpenseCategory[]
+] as unknown as ExpenseCategory[]
 
 const aClaim = (overrides: Partial<ExpenseClaim> = {}) =>
   ({
@@ -117,10 +117,7 @@ const renderExisting = (id = 'claim-1') =>
     path: '/expenses/:id/edit',
   })
 
-const pickCategory = async (
-  user: ReturnType<typeof renderWithProviders>['user'],
-  name: string,
-) => {
+const pickCategory = async (user: ReturnType<typeof renderWithProviders>['user'], name: string) => {
   await user.click(await screen.findByRole('combobox', { name: /Category/ }))
   await user.click(await screen.findByRole('option', { name }))
 }
@@ -313,7 +310,9 @@ describe('ExpenseClaimForm submitting', () => {
 
     const dialog = await openSubmit(user)
 
-    expect(within(dialog).getByText(/Once submitted you cannot edit this claim/)).toBeInTheDocument()
+    expect(
+      within(dialog).getByText(/Once submitted you cannot edit this claim/),
+    ).toBeInTheDocument()
     expect(state.writes).toHaveLength(0)
   })
 

@@ -99,6 +99,11 @@ const fillRequired = async (
   await user.type(screen.getByRole('spinbutton', { name: 'Price' }), '42.50')
 }
 
+// These describes drive the whole dialog through user-event, which is slow
+// enough to exceed the 5s default once the full suite is competing for CPU —
+// same treatment as the Register suite.
+const SLOW = { timeout: 30_000 }
+
 describe('ProductsAdmin listing', () => {
   it('lists products with their English name, category and price', async () => {
     shopApi()
@@ -196,7 +201,9 @@ describe('ProductsAdmin filtering', () => {
     await user.click(screen.getByRole('combobox', { name: 'Status' }))
     await user.click(await screen.findByRole('option', { name: 'Draft' }))
 
-    await waitFor(() => expect(state.listRequests.at(-1)!.searchParams.get('published')).toBe('false'))
+    await waitFor(() =>
+      expect(state.listRequests.at(-1)!.searchParams.get('published')).toBe('false'),
+    )
   })
 
   it('drops the filter again when the admin picks All', async () => {
@@ -216,7 +223,7 @@ describe('ProductsAdmin filtering', () => {
   })
 })
 
-describe('ProductsAdmin creating', () => {
+describe('ProductsAdmin creating', SLOW, () => {
   it('opens an empty dialog', async () => {
     shopApi()
 
@@ -361,7 +368,7 @@ describe('ProductsAdmin creating', () => {
   })
 })
 
-describe('ProductsAdmin editing', () => {
+describe('ProductsAdmin editing', SLOW, () => {
   it('pre-fills every language of the product', async () => {
     shopApi()
 

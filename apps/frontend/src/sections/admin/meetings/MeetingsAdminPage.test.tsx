@@ -349,7 +349,7 @@ describe('MeetingsAdminPage lifecycle', () => {
 
   it('leaves an ended meeting with nothing but a link to its notes', async () => {
     meetingsApi({
-      meetings: [aMeeting({ status: 'ENDED', meetingNotesDocumentId: 'doc-1' })],
+      meetings: [aMeeting({ status: 'ENDED', meetingNotesDocumentId: 1 })],
     })
 
     renderAsMeetingAdmin()

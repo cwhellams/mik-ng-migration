@@ -30,7 +30,10 @@ const aSyllabus = (overrides: Partial<Syllabus> = {}) =>
     ...overrides,
   }) as Syllabus
 
-const dtoApi = (programs: TrainingProgram[] = [aProgram()], syllabi: Syllabus[] = [aSyllabus()]) => {
+const dtoApi = (
+  programs: TrainingProgram[] = [aProgram()],
+  syllabi: Syllabus[] = [aSyllabus()],
+) => {
   const state = { writes: [] as { method: string; path: string; body: unknown }[] }
 
   server.use(

@@ -251,7 +251,9 @@ describe('EventsAdmin creating', () => {
     )
     await user.click(within(dialog).getByRole('button', { name: 'Save' }))
 
-    expect(await screen.findByText('Failed to save the event. Please try again.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Failed to save the event. Please try again.'),
+    ).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
@@ -390,7 +392,9 @@ describe('EventsAdmin translations', () => {
 
     await waitFor(() => expect(state.writes).toHaveLength(1))
     // Omitting the key would leave the old Finnish title live on mik.fi.
-    expect((state.writes[0].body as { translations: Record<string, unknown> }).translations.fi).toBeNull()
+    expect(
+      (state.writes[0].body as { translations: Record<string, unknown> }).translations.fi,
+    ).toBeNull()
   })
 
   it('omits translations entirely when the event never had any', async () => {
@@ -422,9 +426,7 @@ describe('EventsAdmin images', () => {
     const input = dialog.querySelector('input[type="file"]') as HTMLInputElement
     await lenient.upload(input, new File(['x'], 'notes.pdf', { type: 'application/pdf' }))
 
-    expect(
-      within(dialog).getByText('Please choose a JPEG, PNG or WebP image.'),
-    ).toBeInTheDocument()
+    expect(within(dialog).getByText('Please choose a JPEG, PNG or WebP image.')).toBeInTheDocument()
   })
 
   it('uploads the picked image against the event once it has been created', async () => {

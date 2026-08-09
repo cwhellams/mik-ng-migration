@@ -39,7 +39,7 @@ const aPackage = (overrides: Partial<PrepaidPackage> = {}) =>
 
 const aMemberPackage = (overrides: Partial<MemberPackage> = {}) =>
   ({
-    memberPackageId: 'mp-1',
+    memberPackageId: 1,
     memberId: 'mem-1',
     member: {
       firstName: 'Chris',
@@ -127,6 +127,11 @@ const fillRequired = async (
   await user.type(q.getByRole('spinbutton', { name: /Total Qty/ }), '5')
 }
 
+// These describes drive the whole dialog through user-event, which is slow
+// enough to exceed the 5s default once the full suite is competing for CPU —
+// same treatment as the Register suite.
+const SLOW = { timeout: 30_000 }
+
 describe('FlightPackagesAdmin listing', () => {
   it('lists each package with its aircraft, rate and sold count', async () => {
     packagesApi()
@@ -141,7 +146,7 @@ describe('FlightPackagesAdmin listing', () => {
   })
 
   it('prefers the Finnish name, falling back to English', async () => {
-    packagesApi([aPackage({ nameFi: null })])
+    packagesApi([aPackage({ nameFi: undefined })])
 
     renderWithProviders(<FlightPackagesAdmin />)
 
@@ -176,7 +181,9 @@ describe('FlightPackagesAdmin listing', () => {
   it('still shows the packages when only the member-package load fails', async () => {
     packagesApi()
     server.use(
-      http.get(apiUrl('v1/prepaid-hours/member-packages'), () => problemResponse(500, 'No members')),
+      http.get(apiUrl('v1/prepaid-hours/member-packages'), () =>
+        problemResponse(500, 'No members'),
+      ),
     )
 
     renderWithProviders(<FlightPackagesAdmin />)
@@ -219,9 +226,9 @@ describe('FlightPackagesAdmin member packages', () => {
     packagesApi(
       [aPackage()],
       [
-        aMemberPackage({ memberPackageId: 'mp-1', remainingMinutes: 300, totalMinutes: 600 }),
-        aMemberPackage({ memberPackageId: 'mp-2', remainingMinutes: 100, totalMinutes: 600 }),
-        aMemberPackage({ memberPackageId: 'mp-3', isExpired: true, remainingMinutes: 60 }),
+        aMemberPackage({ memberPackageId: 1, remainingMinutes: 300, totalMinutes: 600 }),
+        aMemberPackage({ memberPackageId: 2, remainingMinutes: 100, totalMinutes: 600 }),
+        aMemberPackage({ memberPackageId: 3, isExpired: true, remainingMinutes: 60 }),
       ],
     )
 
@@ -315,7 +322,7 @@ describe('FlightPackagesAdmin filtering', () => {
   })
 })
 
-describe('FlightPackagesAdmin creating', () => {
+describe('FlightPackagesAdmin creating', SLOW, () => {
   it('will not save until every required field is filled', async () => {
     packagesApi()
 
@@ -428,7 +435,7 @@ describe('FlightPackagesAdmin creating', () => {
   })
 })
 
-describe('FlightPackagesAdmin editing', () => {
+describe('FlightPackagesAdmin editing', SLOW, () => {
   it('pre-fills the dialog from the package, dates included', async () => {
     packagesApi()
 
@@ -477,7 +484,7 @@ describe('FlightPackagesAdmin editing', () => {
   })
 })
 
-describe('FlightPackagesAdmin extending expiry', () => {
+describe('FlightPackagesAdmin extending expiry', SLOW, () => {
   const openExtend = async (user: ReturnType<typeof renderWithProviders>['user']) => {
     await user.click(await screen.findByRole('button', { name: 'Extend Expiry' }))
     return screen.findByRole('dialog')

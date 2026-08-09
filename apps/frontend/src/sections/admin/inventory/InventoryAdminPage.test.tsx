@@ -217,8 +217,9 @@ describe('InventoryAdminPage item form', () => {
 
     // Editing it here would bypass the audit log, so the field is withheld and
     // the adjust dialog is the only route.
-    expect(within(await screen.findByRole('dialog')).queryByRole('spinbutton', { name: 'Qty' }))
-      .toBeNull()
+    expect(
+      within(await screen.findByRole('dialog')).queryByRole('spinbutton', { name: 'Qty' }),
+    ).toBeNull()
   })
 
   it('only complains about a missing name once save has been attempted', async () => {
