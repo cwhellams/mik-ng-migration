@@ -127,11 +127,6 @@ const fillRequired = async (
   await user.type(q.getByRole('spinbutton', { name: /Total Qty/ }), '5')
 }
 
-// These describes drive the whole dialog through user-event, which is slow
-// enough to exceed the 5s default once the full suite is competing for CPU —
-// same treatment as the Register suite.
-const SLOW = { timeout: 30_000 }
-
 describe('FlightPackagesAdmin listing', () => {
   it('lists each package with its aircraft, rate and sold count', async () => {
     packagesApi()
@@ -322,7 +317,7 @@ describe('FlightPackagesAdmin filtering', () => {
   })
 })
 
-describe('FlightPackagesAdmin creating', SLOW, () => {
+describe('FlightPackagesAdmin creating', () => {
   it('will not save until every required field is filled', async () => {
     packagesApi()
 
@@ -435,7 +430,7 @@ describe('FlightPackagesAdmin creating', SLOW, () => {
   })
 })
 
-describe('FlightPackagesAdmin editing', SLOW, () => {
+describe('FlightPackagesAdmin editing', () => {
   it('pre-fills the dialog from the package, dates included', async () => {
     packagesApi()
 
@@ -484,7 +479,7 @@ describe('FlightPackagesAdmin editing', SLOW, () => {
   })
 })
 
-describe('FlightPackagesAdmin extending expiry', SLOW, () => {
+describe('FlightPackagesAdmin extending expiry', () => {
   const openExtend = async (user: ReturnType<typeof renderWithProviders>['user']) => {
     await user.click(await screen.findByRole('button', { name: 'Extend Expiry' }))
     return screen.findByRole('dialog')

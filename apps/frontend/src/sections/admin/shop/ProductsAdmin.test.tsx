@@ -99,11 +99,6 @@ const fillRequired = async (
   await user.type(screen.getByRole('spinbutton', { name: 'Price' }), '42.50')
 }
 
-// These describes drive the whole dialog through user-event, which is slow
-// enough to exceed the 5s default once the full suite is competing for CPU —
-// same treatment as the Register suite.
-const SLOW = { timeout: 30_000 }
-
 describe('ProductsAdmin listing', () => {
   it('lists products with their English name, category and price', async () => {
     shopApi()
@@ -223,7 +218,7 @@ describe('ProductsAdmin filtering', () => {
   })
 })
 
-describe('ProductsAdmin creating', SLOW, () => {
+describe('ProductsAdmin creating', () => {
   it('opens an empty dialog', async () => {
     shopApi()
 
@@ -368,7 +363,7 @@ describe('ProductsAdmin creating', SLOW, () => {
   })
 })
 
-describe('ProductsAdmin editing', SLOW, () => {
+describe('ProductsAdmin editing', () => {
   it('pre-fills every language of the product', async () => {
     shopApi()
 
