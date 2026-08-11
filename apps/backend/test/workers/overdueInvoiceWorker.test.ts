@@ -136,6 +136,79 @@ describe('Overdue Invoice Worker', () => {
     })
   })
 
+  // The reminder sweep and the suspension sweep are independent jobs that only
+  // share a schedule: the suspension sweep cancels bookings and sends
+  // time-sensitive suspension mail, so it has to run even when the reminder
+  // sweep — a SimplBooks call per invoice — dies.
+  describe('Sweep isolation', () => {
+    const reminderSweep =
+      jest.fn<
+        (
+          sendEmailFn: typeof sendEmail,
+          createClientNoteFn?: typeof createClientNote,
+        ) => Promise<void>
+      >()
+    const suspensionSweep = jest.fn<(sendEmailFn: typeof sendEmail) => Promise<void>>()
+
+    const startWorker = async () => {
+      const { startOverdueInvoiceWorker } =
+        await import('../../src/workers/overdueInvoiceWorker.ts')
+
+      return startOverdueInvoiceWorker({
+        sendEmailFn: mockSendEmail,
+        cronSchedule: mockCronSchedule,
+        processOverdueInvoicesFn: reminderSweep,
+        processSuspendedMembersFn: suspensionSweep,
+      })
+    }
+
+    beforeEach(() => {
+      reminderSweep.mockReset().mockResolvedValue(undefined)
+      suspensionSweep.mockReset().mockResolvedValue(undefined)
+    })
+
+    afterEach(() => {
+      process.env.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP = 'false'
+    })
+
+    it('runs the suspension sweep even when the reminder sweep throws', async () => {
+      reminderSweep.mockRejectedValue(new Error('SimplBooks unreachable'))
+
+      const worker = await startWorker()
+      await (mockCronSchedule.mock.calls[0][1] as () => Promise<void>)()
+
+      expect(reminderSweep).toHaveBeenCalledTimes(1)
+      expect(suspensionSweep).toHaveBeenCalledTimes(1)
+
+      worker.stop()
+    })
+
+    it('runs both sweeps on the startup path', async () => {
+      process.env.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP = 'true'
+
+      const worker = await startWorker()
+      // The startup run is deliberately not awaited by the worker factory.
+      await new Promise((resolve) => setImmediate(resolve))
+
+      expect(reminderSweep).toHaveBeenCalledTimes(1)
+      expect(suspensionSweep).toHaveBeenCalledTimes(1)
+
+      worker.stop()
+    })
+
+    it('runs the suspension sweep on startup even when the reminder sweep throws', async () => {
+      process.env.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP = 'true'
+      reminderSweep.mockRejectedValue(new Error('SimplBooks unreachable'))
+
+      const worker = await startWorker()
+      await new Promise((resolve) => setImmediate(resolve))
+
+      expect(suspensionSweep).toHaveBeenCalledTimes(1)
+
+      worker.stop()
+    })
+  })
+
   describe('Database Queries', () => {
     it('should find overdue invoices without reminder sent', async () => {
       const overdueInvoices = await getOverdueInvoicesWithoutReminder()

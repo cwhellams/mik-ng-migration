@@ -157,6 +157,51 @@ Always check these locations when working on the codebase:
 - `simplbooks/wrangler.toml` - Cloudflare Worker configuration (must set real `database_id` before first deploy)
 - Package files: `package.json`, `apps/*/package.json`
 
+## Background Workers
+
+Every scheduled worker is declared with the `defineWorker()` factory in `apps/backend/src/workers/defineWorker.ts` — do not hand-roll the enabled-check / schedule / stop scaffold again:
+
+```ts
+export const startMyWorker = defineWorker<MyWorkerDeps>({
+  name: 'My Worker', // used verbatim in every log line
+  envPrefix: 'MY_WORKER', // reads MY_WORKER_ENABLED, MY_WORKER_RUN_ON_STARTUP
+  schedule: '0 3 * * *',
+  scheduleDescription: 'daily at 03:00',
+  runOnStartup: true, // omit unless the job is safe to run at boot
+  run: ({ sendEmailFn = sendEmail }) => processMyThing(sendEmailFn),
+})
+```
+
+Rules:
+
+- `<PREFIX>_ENABLED=true` is what starts a worker. A disabled worker still returns a handle whose `stop()` is a no-op, so startup and shutdown stay a plain loop.
+- **Only set `runOnStartup` when running the job at boot is harmless.** The email fan-out workers deliberately leave it off so a redeploy can't blast members with duplicate mail.
+- Register the worker in `apps/backend/src/workers/registry.ts`. `app.ts` starts and stops everything in that array — it should never import an individual worker.
+- Long-running loop/interval workers (`simplbooksOutboxWorker`, `brevoSyncWorker`, `simplbooksMemberSyncWorker`) are not cron-based and are not built with the factory, but they still go in the registry since they return the same `{ stop }` handle.
+- Keep the job function exported separately from the worker declaration so tests can call it directly.
+
+## Email Templates
+
+Emails are data, not code. Every markdown-backed email is one entry in `apps/backend/src/templates/registry.ts`, rendered through `renderEmail(key, lang, vars)` from `renderEmail.ts`:
+
+```ts
+const { subject, html } = renderEmail('booking-confirmed', member.lang, vars)
+await sendEmail(member.email, subject, html)
+```
+
+Rules:
+
+- To add an email: drop `<key>-en.md`, `<key>-fi.md` and `<key>-sv.md` into `apps/backend/src/templates/`, add one registry entry with the three subjects, add the vars the markdown needs to `EmailTemplateVars` in the same file, and call `renderEmail`. **Do not create a new `*EmailTemplate.ts` wrapper.**
+- The registry key _is_ the markdown filename prefix. A test asserts every declared key/language pair has a file on disk.
+- `renderEmail` is typed per key against `EmailTemplateVars`, so a missing or misspelled var is a compile error rather than an empty `{{firstName}}` in someone's inbox. A new key with no entry there does not compile.
+- Subjects are Handlebars strings rendered against the same vars as the body (`'Expense claim approved: {{claimTitle}}'`) and are not HTML-escaped.
+- Anything that is not `fi` or `sv` — including `undefined` — renders in English. Never build a template filename from a raw `lang` value.
+- Use `footer` for the small-print disclaimer line, `defaults` for constants the markdown needs but callers shouldn't pass (a function, so env vars are read at send time), and `languages` for templates that exist only in English.
+- Subject, footer and body always come out in one language: a template restricted by `languages` renders its English subject and footer too, rather than pairing a Finnish subject with an English body.
+- `defaults` win over caller-supplied vars, so a payload spread from a domain object can never redirect a constant like `BILLING_EMAIL`.
+- Anything the registry can't express as data (building vars from a domain object, non-email text) belongs in a helper next to it — see `bookingEmailHelpers.ts`, `occurrenceEmailHelpers.ts` and `qualificationExpiryEmailTemplate.ts`. One helper per domain object, shared by every email that renders it.
+- `test/templates/email.test.ts` snapshots the rendered HTML of every template in all three languages. If a change to shared rendering updates those snapshots, that is a real change to what members receive — review it, don't just `-u`.
+
 ## Database Schema Management
 
 ### Branch discipline for SQL files

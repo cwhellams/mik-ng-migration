@@ -27,30 +27,8 @@ import {
 import dayjs from 'dayjs'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { getMemberById, getMemberRolesByMemberId } from '../../db/member-queries.ts'
-import {
-  bookingCancelledEmailBodyHtml,
-  bookingCancelledEmailSubject,
-} from '../../templates/bookingCancelledEmailTemplate.ts'
-import {
-  bookingConfirmedEmailBodyHtml,
-  bookingConfirmedEmailSubject,
-  bookingUpdatedEmailBodyHtml,
-  bookingUpdatedEmailSubject,
-} from '../../templates/bookingConfirmedEmailTemplate.ts'
-import {
-  bookingTransferredFromEmailBodyHtml,
-  bookingTransferredFromEmailSubject,
-  bookingTransferredToEmailBodyHtml,
-  bookingTransferredToEmailSubject,
-} from '../../templates/bookingTransferredEmailTemplate.ts'
-import {
-  bookingInstructorCancelledEmailBodyHtml,
-  bookingInstructorCancelledEmailSubject,
-  bookingInstructorConfirmedEmailBodyHtml,
-  bookingInstructorConfirmedEmailSubject,
-  bookingInstructorUpdatedEmailBodyHtml,
-  bookingInstructorUpdatedEmailSubject,
-} from '../../templates/bookingInstructorEmailTemplate.ts'
+import { renderEmail } from '../../templates/renderEmail.ts'
+import { bookingEmailVars } from '../../templates/bookingEmailHelpers.ts'
 import { generateIcsContent, generateCancelIcsContent } from '../../lib/calendarEvent.ts'
 
 // all scheduling routes are protected by booking permissions
@@ -89,18 +67,18 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response) => 
 
   const member = await getMemberById(booking.memberId)
   if (member?.email) {
-    sendEmail(
-      member.email,
-      bookingConfirmedEmailSubject(member.lang),
-      bookingConfirmedEmailBodyHtml(member.lang, member.firstName, booking),
-      [
-        {
-          filename: 'booking.ics',
-          content: generateIcsContent(booking, member.email),
-          contentType: 'text/calendar',
-        },
-      ],
+    const { subject, html } = renderEmail(
+      'booking-confirmed',
+      member.lang,
+      bookingEmailVars(booking, { firstName: member.firstName }),
     )
+    sendEmail(member.email, subject, html, [
+      {
+        filename: 'booking.ics',
+        content: generateIcsContent(booking, member.email),
+        contentType: 'text/calendar',
+      },
+    ])
   }
   notifyInstructor(booking.instructorMemberId, booking, memberFullName(member), 'confirmed')
 
@@ -215,46 +193,28 @@ const sendInstructorNotification = async (
   if (!instructor?.email) return
 
   if (kind === 'cancelled') {
-    await sendEmail(
-      instructor.email,
-      bookingInstructorCancelledEmailSubject(instructor.lang),
-      bookingInstructorCancelledEmailBodyHtml(
-        instructor.lang,
-        instructor.firstName,
-        booking,
-        studentName,
-      ),
-      [
-        {
-          filename: 'booking.ics',
-          content: generateCancelIcsContent(booking),
-          contentType: 'text/calendar',
-        },
-      ],
+    const { subject, html } = renderEmail(
+      'booking-instructor-cancelled',
+      instructor.lang,
+      bookingEmailVars(booking, { firstName: instructor.firstName, studentName }),
     )
+    await sendEmail(instructor.email, subject, html, [
+      {
+        filename: 'booking.ics',
+        content: generateCancelIcsContent(booking),
+        contentType: 'text/calendar',
+      },
+    ])
     return
   }
 
-  const subject =
-    kind === 'confirmed'
-      ? bookingInstructorConfirmedEmailSubject(instructor.lang)
-      : bookingInstructorUpdatedEmailSubject(instructor.lang)
-  const body =
-    kind === 'confirmed'
-      ? bookingInstructorConfirmedEmailBodyHtml(
-          instructor.lang,
-          instructor.firstName,
-          booking,
-          studentName,
-        )
-      : bookingInstructorUpdatedEmailBodyHtml(
-          instructor.lang,
-          instructor.firstName,
-          booking,
-          studentName,
-        )
+  const { subject, html } = renderEmail(
+    kind === 'confirmed' ? 'booking-instructor-confirmed' : 'booking-instructor-updated',
+    instructor.lang,
+    bookingEmailVars(booking, { firstName: instructor.firstName, studentName }),
+  )
 
-  await sendEmail(instructor.email, subject, body, [
+  await sendEmail(instructor.email, subject, html, [
     {
       filename: 'booking.ics',
       content: generateIcsContent(booking, instructor.email),
@@ -313,18 +273,18 @@ const clearOverlappingBookings = async (
 
     const member = await getMemberById(cancelledOverlap.memberId)
     if (member?.email) {
-      sendEmail(
-        member.email,
-        bookingCancelledEmailSubject(member.lang),
-        bookingCancelledEmailBodyHtml(member.lang, member.firstName, cancelledOverlap),
-        [
-          {
-            filename: 'booking.ics',
-            content: generateCancelIcsContent(cancelledOverlap),
-            contentType: 'text/calendar',
-          },
-        ],
+      const { subject, html } = renderEmail(
+        'booking-cancelled',
+        member.lang,
+        bookingEmailVars(cancelledOverlap, { firstName: member.firstName }),
       )
+      sendEmail(member.email, subject, html, [
+        {
+          filename: 'booking.ics',
+          content: generateCancelIcsContent(cancelledOverlap),
+          contentType: 'text/calendar',
+        },
+      ])
     }
     notifyInstructor(
       cancelledOverlap.instructorMemberId,
@@ -383,18 +343,18 @@ router.patch('/:id', async (req: Request<Record<string, string>>, res: Response)
 
   const member = await getMemberById(updated.memberId)
   if (member?.email) {
-    sendEmail(
-      member.email,
-      bookingUpdatedEmailSubject(member.lang),
-      bookingUpdatedEmailBodyHtml(member.lang, member.firstName, updated),
-      [
-        {
-          filename: 'booking.ics',
-          content: generateIcsContent(updated, member.email),
-          contentType: 'text/calendar',
-        },
-      ],
+    const { subject, html } = renderEmail(
+      'booking-updated',
+      member.lang,
+      bookingEmailVars(updated, { firstName: member.firstName }),
     )
+    sendEmail(member.email, subject, html, [
+      {
+        filename: 'booking.ics',
+        content: generateIcsContent(updated, member.email),
+        contentType: 'text/calendar',
+      },
+    ])
   }
 
   // A generic PATCH can also cancel the booking (status is a patchable field), which
@@ -457,18 +417,18 @@ router.delete('/:id', async (req: Request<Record<string, string>>, res: Response
 
   const member = await getMemberById(cancelled.memberId)
   if (member?.email) {
-    sendEmail(
-      member.email,
-      bookingCancelledEmailSubject(member.lang),
-      bookingCancelledEmailBodyHtml(member.lang, member.firstName, cancelled),
-      [
-        {
-          filename: 'booking.ics',
-          content: generateCancelIcsContent(cancelled),
-          contentType: 'text/calendar',
-        },
-      ],
+    const { subject, html } = renderEmail(
+      'booking-cancelled',
+      member.lang,
+      bookingEmailVars(cancelled, { firstName: member.firstName }),
     )
+    sendEmail(member.email, subject, html, [
+      {
+        filename: 'booking.ics',
+        content: generateCancelIcsContent(cancelled),
+        contentType: 'text/calendar',
+      },
+    ])
   }
   notifyInstructor(
     cancelled.instructorMemberId,
@@ -509,18 +469,18 @@ router.post('/:id/cancel', async (req: Request<Record<string, string>>, res: Res
 
   const member = await getMemberById(cancelled.memberId)
   if (member?.email) {
-    sendEmail(
-      member.email,
-      bookingCancelledEmailSubject(member.lang),
-      bookingCancelledEmailBodyHtml(member.lang, member.firstName, cancelled),
-      [
-        {
-          filename: 'booking.ics',
-          content: generateCancelIcsContent(cancelled),
-          contentType: 'text/calendar',
-        },
-      ],
+    const { subject, html } = renderEmail(
+      'booking-cancelled',
+      member.lang,
+      bookingEmailVars(cancelled, { firstName: member.firstName }),
     )
+    sendEmail(member.email, subject, html, [
+      {
+        filename: 'booking.ics',
+        content: generateCancelIcsContent(cancelled),
+        contentType: 'text/calendar',
+      },
+    ])
   }
   notifyInstructor(
     cancelled.instructorMemberId,
@@ -581,36 +541,34 @@ router.post('/:id/transfer', async (req: Request<Record<string, string>>, res: R
   }
 
   if (previousMember?.email) {
-    sendEmail(
-      previousMember.email,
-      bookingTransferredFromEmailSubject(previousMember.lang),
-      bookingTransferredFromEmailBodyHtml(
-        previousMember.lang,
-        previousMember.firstName,
-        booking,
-        `${newMember.firstName} ${newMember.lastName}`,
-      ),
+    const { subject, html } = renderEmail(
+      'booking-transferred-from',
+      previousMember.lang,
+      bookingEmailVars(booking, {
+        firstName: previousMember.firstName,
+        newMemberName: `${newMember.firstName} ${newMember.lastName}`,
+      }),
     )
+    sendEmail(previousMember.email, subject, html)
   }
 
   if (newMember.email) {
-    sendEmail(
-      newMember.email,
-      bookingTransferredToEmailSubject(newMember.lang),
-      bookingTransferredToEmailBodyHtml(
-        newMember.lang,
-        newMember.firstName,
-        updated,
-        `${previousMember?.firstName ?? ''} ${previousMember?.lastName ?? ''}`.trim(),
-      ),
-      [
-        {
-          filename: 'booking.ics',
-          content: generateIcsContent(updated, newMember.email),
-          contentType: 'text/calendar',
-        },
-      ],
+    const { subject, html } = renderEmail(
+      'booking-transferred-to',
+      newMember.lang,
+      bookingEmailVars(updated, {
+        firstName: newMember.firstName,
+        previousMemberName:
+          `${previousMember?.firstName ?? ''} ${previousMember?.lastName ?? ''}`.trim(),
+      }),
     )
+    sendEmail(newMember.email, subject, html, [
+      {
+        filename: 'booking.ics',
+        content: generateIcsContent(updated, newMember.email),
+        contentType: 'text/calendar',
+      },
+    ])
   }
 
   notifyInstructor(updated.instructorMemberId, updated, memberFullName(updated.member), 'updated')

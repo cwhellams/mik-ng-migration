@@ -115,7 +115,9 @@ jobs:
           # step reported zero errors for months while 96 accumulated (issue
           # #1132). This holds the line at today's real count — it may only ever
           # be lowered. Most of the remainder is @typescript-eslint/no-floating-promises.
-          THRESHOLD=96
+          # 96 -> 83: the worker factory (#1115 phase 1) collapsed thirteen
+          # copies of an unawaited scheduledTask.stop() into one.
+          THRESHOLD=83
 
           # Check if error count exceeds threshold
           if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then

@@ -1,62 +1,33 @@
 import 'dotenv/config'
 
-import cron, { type ScheduledTask } from 'node-cron'
 import { claimUpcomingBookingsForReminder } from '../db/booking-queries.ts'
 import { getMemberById } from '../db/member-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
 import logger from '../lib/logger.ts'
-import {
-  bookingReminderEmailSubject,
-  bookingReminderEmailBodyHtml,
-} from '../templates/bookingReminderEmailTemplate.ts'
+import { renderEmail } from '../templates/renderEmail.ts'
+import { bookingEmailVars } from '../templates/bookingEmailHelpers.ts'
+import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 
-let scheduledTask: ScheduledTask | null = null
-
-export interface BookingReminderWorkerDeps {
+export interface BookingReminderWorkerDeps extends CronWorkerDeps {
   sendEmailFn?: typeof sendEmail
-  cronSchedule?: typeof cron.schedule
 }
 
 /**
  * Start the booking reminder worker
  * Runs hourly to check for bookings starting in ~24 hours and sends reminder emails
  */
-export function startBookingReminderWorker(deps: BookingReminderWorkerDeps = {}) {
-  const { sendEmailFn = sendEmail, cronSchedule = cron.schedule } = deps
-  const shouldRun = process.env.BOOKING_REMINDER_WORKER_ENABLED === 'true'
-
-  if (!shouldRun) {
-    logger.warn('Booking Reminder Worker is disabled')
-    return {
-      stop: () => {
-        logger.info('Booking Reminder Worker is not running')
-      },
-    }
-  }
-
-  const hoursBeforeBooking = parseInt(process.env.BOOKING_REMINDER_HOURS_BEFORE || '24', 10)
-  logger.info(
-    `Starting Booking Reminder Worker - scheduled hourly, sending reminders ${hoursBeforeBooking}h before booking`,
-  )
-
-  // Schedule task to run every hour
-  // Cron format: minute hour day month weekday
+export const startBookingReminderWorker = defineWorker<BookingReminderWorkerDeps>({
+  name: 'Booking Reminder Worker',
+  envPrefix: 'BOOKING_REMINDER_WORKER',
   // '0 * * * *' = At minute 0 of every hour
-  scheduledTask = cronSchedule('0 * * * *', async () => {
-    logger.info('Booking Reminder Worker: Starting scheduled run')
-    await sendBookingReminders(sendEmailFn, hoursBeforeBooking)
-  })
-
-  return {
-    stop: () => {
-      logger.info('Stopping Booking Reminder Worker')
-      if (scheduledTask) {
-        scheduledTask.stop()
-        scheduledTask = null
-      }
-    },
-  }
-}
+  schedule: '0 * * * *',
+  scheduleDescription: 'hourly',
+  run: ({ sendEmailFn = sendEmail }) =>
+    sendBookingReminders(
+      sendEmailFn,
+      parseInt(process.env.BOOKING_REMINDER_HOURS_BEFORE || '24', 10),
+    ),
+})
 
 /**
  * Send booking reminder emails for all upcoming bookings needing a reminder.
@@ -97,11 +68,12 @@ export async function sendBookingReminders(
           `Sending booking reminder email for booking ${booking.bookingId} to ${member.email} (${member.lang})`,
         )
 
-        await sendEmailFn(
-          member.email,
-          bookingReminderEmailSubject(member.lang),
-          bookingReminderEmailBodyHtml(member.lang, member.firstName, booking),
+        const { subject, html } = renderEmail(
+          'booking-reminder',
+          member.lang,
+          bookingEmailVars(booking, { firstName: member.firstName }),
         )
+        await sendEmailFn(member.email, subject, html)
 
         sentCount++
         logger.info(

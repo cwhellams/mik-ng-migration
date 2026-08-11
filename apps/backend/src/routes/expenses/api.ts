@@ -63,11 +63,7 @@ import {
 } from './models.ts'
 import type { CreateMileageLeg, MileageLeg } from './mileageModels.ts'
 import { isValidHetu } from '../../util/hetu.ts'
-import { expenseApprovedEmailTemplate } from '../../templates/expenseApprovedEmailTemplate.ts'
-import { expenseRejectedEmailTemplate } from '../../templates/expenseRejectedEmailTemplate.ts'
-import { expenseRequestInfoEmailTemplate } from '../../templates/expenseRequestInfoEmailTemplate.ts'
-import { expenseSetToDraftEmailTemplate } from '../../templates/expenseSetToDraftEmailTemplate.ts'
-import { expenseTreasurerEditedEmailTemplate } from '../../templates/expenseTreasurerEditedEmailTemplate.ts'
+import { renderEmail } from '../../templates/renderEmail.ts'
 import { getEcbFxRate } from '../../services/ecbFxRate.ts'
 
 export const router = Router()
@@ -618,7 +614,7 @@ router.patch(
               `- **${entry.fieldName}**: ${entry.oldValue ?? '—'} → ${entry.newValue ?? '—'}`,
           )
           .join('\n')
-        const template = expenseTreasurerEditedEmailTemplate(member.lang, {
+        const template = renderEmail('expense-treasurer-edited', member.lang, {
           memberName: `${member.firstName} ${member.lastName}`,
           claimTitle: claim.title,
           claimUrl: buildClaimUrl(claim.id),
@@ -1120,7 +1116,7 @@ router.post(
 
     const member = await getMemberById(claim.memberId)
     if (member) {
-      const template = expenseApprovedEmailTemplate(member.lang, {
+      const template = renderEmail('expense-approved', member.lang, {
         memberName: `${member.firstName} ${member.lastName}`,
         claimTitle: claim.title,
         claimUrl: buildClaimUrl(claim.id),
@@ -1148,7 +1144,7 @@ router.post(
 
     const member = await getMemberById(claim.memberId)
     if (member) {
-      const template = expenseRejectedEmailTemplate(member.lang, {
+      const template = renderEmail('expense-rejected', member.lang, {
         memberName: `${member.firstName} ${member.lastName}`,
         claimTitle: claim.title,
         rejectionReason: reason,
@@ -1214,7 +1210,7 @@ router.post(
 
     const member = await getMemberById(claim.memberId)
     if (member) {
-      const template = expenseRequestInfoEmailTemplate(member.lang, {
+      const template = renderEmail('expense-request-info', member.lang, {
         memberName: `${member.firstName} ${member.lastName}`,
         claimTitle: claim.title,
         adminMessage: message,
@@ -1251,7 +1247,7 @@ router.post(
 
     const member = await getMemberById(claim.memberId)
     if (member) {
-      const template = expenseSetToDraftEmailTemplate(member.lang, {
+      const template = renderEmail('expense-set-to-draft', member.lang, {
         memberName: `${member.firstName} ${member.lastName}`,
         claimTitle: claim.title,
         claimUrl: buildClaimUrl(claim.id),

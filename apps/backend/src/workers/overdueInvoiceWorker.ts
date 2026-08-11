@@ -1,6 +1,5 @@
 import 'dotenv/config'
 
-import cron, { type ScheduledTask } from 'node-cron'
 import {
   getOverdueInvoicesWithoutReminder,
   markOverdueEmailSent,
@@ -18,20 +17,16 @@ import { sendEmail } from '../lib/sendGmail.ts'
 import { createClientNote } from '../services/simplbooks/simplbooksApiClient.ts'
 import logger from '../lib/logger.ts'
 import type { Invoice } from '../routes/invoicing/models.ts'
-import {
-  overdueInvoiceEmailSubject,
-  overdueInvoiceEmailBodyHtml,
-} from '../templates/overdueInvoiceEmailTemplate.ts'
-import {
-  reservationSuspendedEmailSubject,
-  reservationSuspendedEmailBodyHtml,
-} from '../templates/reservationSuspendedEmailTemplate.ts'
+import { renderEmail } from '../templates/renderEmail.ts'
+import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 
-let scheduledTask: ScheduledTask | null = null
+const WORKER_NAME = 'Overdue Invoice Worker'
 
-export interface OverdueInvoiceWorkerDeps {
+export interface OverdueInvoiceWorkerDeps extends CronWorkerDeps {
   sendEmailFn?: typeof sendEmail
-  cronSchedule?: typeof cron.schedule
+  /** Injectable so the isolation between the two sweeps can be tested. */
+  processOverdueInvoicesFn?: typeof processOverdueInvoices
+  processSuspendedMembersFn?: typeof processSuspendedMembers
 }
 
 /**
@@ -59,16 +54,13 @@ async function sendReservationSuspendedEmail(
       `Sending suspension notification email to ${member.email} (${member.lang}) - ${cancelledBookingsCount} booking(s) cancelled`,
     )
 
-    sendEmailFn(
-      member.email,
-      reservationSuspendedEmailSubject(member.lang),
-      reservationSuspendedEmailBodyHtml(member.lang, {
-        firstName: member.firstName,
-        invoiceCount: overdueInvoices.length,
-        totalAmount,
-        cancelledBookingsCount,
-      }),
-    )
+    const { subject, html } = renderEmail('reservation-suspended', member.lang, {
+      firstName: member.firstName,
+      invoiceCount: overdueInvoices.length,
+      totalAmount,
+      cancelledBookingsCount,
+    })
+    sendEmailFn(member.email, subject, html)
   } catch (error) {
     logger.error(`Error sending suspension email for member ${memberId}:`, error)
     throw error
@@ -79,49 +71,35 @@ async function sendReservationSuspendedEmail(
  * Start the overdue invoice reminder worker
  * Runs daily at 6am to check for overdue unpaid invoices and send reminder emails
  */
-export function startOverdueInvoiceWorker(deps: OverdueInvoiceWorkerDeps = {}) {
-  const { sendEmailFn = sendEmail, cronSchedule = cron.schedule } = deps
-  const shouldRun = process.env.OVERDUE_INVOICE_WORKER_ENABLED === 'true'
-
-  if (!shouldRun) {
-    logger.warn('Overdue Invoice Worker is disabled')
-    return {
-      stop: () => {
-        logger.info('Overdue Invoice Worker is not running')
-      },
-    }
-  }
-
-  logger.info('Starting Overdue Invoice Worker - scheduled for 6am daily')
-
-  // Schedule task to run daily at 6:00 AM
-  // Cron format: minute hour day month weekday
+export const startOverdueInvoiceWorker = defineWorker<OverdueInvoiceWorkerDeps>({
+  name: WORKER_NAME,
+  envPrefix: 'OVERDUE_INVOICE_WORKER',
   // '0 6 * * *' = At 6:00 AM every day
-  scheduledTask = cronSchedule('0 6 * * *', async () => {
-    logger.info('Overdue Invoice Worker: Starting scheduled run')
-    await processOverdueInvoices(sendEmailFn, createClientNote)
-    await processSuspendedMembers(sendEmailFn)
-  })
+  schedule: '0 6 * * *',
+  scheduleDescription: 'daily at 06:00',
+  runOnStartup: true,
+  run: async ({
+    sendEmailFn = sendEmail,
+    processOverdueInvoicesFn = processOverdueInvoices,
+    processSuspendedMembersFn = processSuspendedMembers,
+  }) => {
+    // Two independent sweeps that only share a schedule. The suspension pass
+    // cancels bookings and sends time-sensitive suspension mail, so it has to
+    // run even when the reminder pass — which makes a SimplBooks call per
+    // invoice — fails. Each is therefore isolated rather than left to abort
+    // the run as a whole.
+    await runSweep('overdue invoice reminders', () =>
+      processOverdueInvoicesFn(sendEmailFn, createClientNote),
+    )
+    await runSweep('reservation suspensions', () => processSuspendedMembersFn(sendEmailFn))
+  },
+})
 
-  // Run immediately on startup for testing (optional - remove if not needed)
-  if (process.env.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP === 'true') {
-    logger.info('Running overdue invoice check immediately on startup')
-    processOverdueInvoices(sendEmailFn, createClientNote).catch((error) => {
-      logger.error('Error during startup overdue invoice check:', error)
-    })
-    processSuspendedMembers(sendEmailFn).catch((error) => {
-      logger.error('Error during startup suspension check:', error)
-    })
-  }
-
-  return {
-    stop: () => {
-      logger.info('Stopping Overdue Invoice Worker')
-      if (scheduledTask) {
-        scheduledTask.stop()
-        scheduledTask = null
-      }
-    },
+const runSweep = async (description: string, sweep: () => Promise<void>): Promise<void> => {
+  try {
+    await sweep()
+  } catch (error) {
+    logger.error(`${WORKER_NAME}: ${description} failed:`, error)
   }
 }
 
@@ -205,16 +183,13 @@ async function sendOverdueInvoiceReminder(
       `Sending overdue reminder email for invoice ${invoice.id} to ${member.email} (${member.lang})`,
     )
 
-    sendEmailFn(
-      member.email,
-      overdueInvoiceEmailSubject(member.lang),
-      overdueInvoiceEmailBodyHtml(member.lang, {
-        firstName: member.firstName,
-        invoiceId: invoice.id,
-        amount: Number(invoice.total_sum ?? 0),
-        dueDate: invoice.due_at,
-      }),
-    )
+    const { subject, html } = renderEmail('overdue-invoice', member.lang, {
+      firstName: member.firstName,
+      invoiceId: invoice.id,
+      amount: Number(invoice.total_sum ?? 0),
+      dueDate: invoice.due_at,
+    })
+    sendEmailFn(member.email, subject, html)
   } catch (error) {
     logger.error(`Error sending overdue reminder for invoice ${invoice.id}:`, error)
     throw error
@@ -224,7 +199,7 @@ async function sendOverdueInvoiceReminder(
 /**
  * Process members with overdue flight invoices and manage reservation suspensions
  */
-async function processSuspendedMembers(sendEmailFn: typeof sendEmail): Promise<void> {
+export async function processSuspendedMembers(sendEmailFn: typeof sendEmail): Promise<void> {
   const suspensionDays = Number.parseInt(process.env.OVERDUE_INVOICE_SUSPENSION_DAYS || '30', 10)
 
   try {

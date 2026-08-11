@@ -1,6 +1,5 @@
 import 'dotenv/config'
 
-import cron, { type ScheduledTask } from 'node-cron'
 import dayjs from 'dayjs'
 import {
   getQualificationsByExpiryDate,
@@ -12,21 +11,16 @@ import { sendEmail } from '../lib/sendGmail.ts'
 import { createMailboxMessage } from '../db/mailbox-queries.ts'
 import logger from '../lib/logger.ts'
 import {
-  qualificationExpiryReminderSubject,
-  qualificationExpiryReminderBodyHtml,
   qualificationExpiryReminderMailboxBody,
-  qualificationExpiredSubject,
-  qualificationExpiredBodyHtml,
   qualificationExpiredMailboxBody,
   buildQualificationEmailVars,
-  TRAINING_EMAIL,
 } from '../templates/qualificationExpiryEmailTemplate.ts'
+import { TRAINING_EMAIL } from '../templates/registry.ts'
+import { renderEmail } from '../templates/renderEmail.ts'
+import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 
-let scheduledTask: ScheduledTask | null = null
-
-export interface QualificationExpiryWorkerDeps {
+export interface QualificationExpiryWorkerDeps extends CronWorkerDeps {
   sendEmailFn?: typeof sendEmail
-  cronSchedule?: typeof cron.schedule
 }
 
 /**
@@ -35,46 +29,15 @@ export interface QualificationExpiryWorkerDeps {
  *   - Send reminder emails N days before expiry (QUALIFICATION_EXPIRY_REMINDER_DAYS, default 15)
  *   - Send expiry notifications on the day a qualification expires, CC koulutus@mik.fi
  */
-export function startQualificationExpiryWorker(deps: QualificationExpiryWorkerDeps = {}) {
-  const { sendEmailFn = sendEmail, cronSchedule = cron.schedule } = deps
-  const shouldRun = process.env.QUALIFICATION_EXPIRY_WORKER_ENABLED === 'true'
-
-  if (!shouldRun) {
-    logger.warn(
-      'Qualification Expiry Worker is disabled (set QUALIFICATION_EXPIRY_WORKER_ENABLED=true to enable)',
-    )
-    return {
-      stop: () => {
-        logger.info('Qualification Expiry Worker is not running')
-      },
-    }
-  }
-
-  logger.info('Starting Qualification Expiry Worker — scheduled for 07:00 daily')
-
+export const startQualificationExpiryWorker = defineWorker<QualificationExpiryWorkerDeps>({
+  name: 'Qualification Expiry Worker',
+  envPrefix: 'QUALIFICATION_EXPIRY_WORKER',
   // '0 7 * * *' = At 7:00 AM every day
-  scheduledTask = cronSchedule('0 7 * * *', async () => {
-    logger.info('Qualification Expiry Worker: Starting scheduled run')
-    await processQualificationExpiry(sendEmailFn)
-  })
-
-  if (process.env.QUALIFICATION_EXPIRY_WORKER_RUN_ON_STARTUP === 'true') {
-    logger.info('Running qualification expiry check immediately on startup')
-    processQualificationExpiry(sendEmailFn).catch((error) => {
-      logger.error('Error during startup qualification expiry check:', error)
-    })
-  }
-
-  return {
-    stop: () => {
-      logger.info('Stopping Qualification Expiry Worker')
-      if (scheduledTask) {
-        scheduledTask.stop()
-        scheduledTask = null
-      }
-    },
-  }
-}
+  schedule: '0 7 * * *',
+  scheduleDescription: 'daily at 07:00',
+  runOnStartup: true,
+  run: ({ sendEmailFn = sendEmail }) => processQualificationExpiry(sendEmailFn),
+})
 
 async function processQualificationExpiry(sendEmailFn: typeof sendEmail): Promise<void> {
   const reminderDays = parseInt(process.env.QUALIFICATION_EXPIRY_REMINDER_DAYS ?? '15', 10)
@@ -134,17 +97,15 @@ async function sendReminderNotifications(
         daysUntilExpiry,
       )
 
-      sendEmailFn(
-        q.email,
-        qualificationExpiryReminderSubject(q.lang),
-        qualificationExpiryReminderBodyHtml(q.lang, vars),
-      )
+      const { subject, html } = renderEmail('qualification-expiry-reminder', q.lang, vars)
+
+      sendEmailFn(q.email, subject, html)
 
       await createMailboxMessage({
         recipientId: q.memberId,
         type: 'QUALIFICATION_EXPIRY_REMINDER',
         severity: 'warning',
-        title: qualificationExpiryReminderSubject(q.lang),
+        title: subject,
         body: qualificationExpiryReminderMailboxBody(q.lang, vars),
         dedupKey: `qualification-expiry:${q.field}:REMINDER:${q.expiryDate}`,
       })
@@ -201,8 +162,7 @@ async function sendExpiredNotifications(
         q.lang,
       )
 
-      const subject = qualificationExpiredSubject(q.lang)
-      const body = qualificationExpiredBodyHtml(q.lang, vars)
+      const { subject, html: body } = renderEmail('qualification-expired', q.lang, vars)
 
       // Send to the instructor
       sendEmailFn(q.email, subject, body)

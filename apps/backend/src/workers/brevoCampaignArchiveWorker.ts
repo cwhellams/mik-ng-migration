@@ -1,6 +1,5 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
 import * as brevoClient from '../services/brevo/brevoClient.ts'
 import { renderHtmlToPdf } from '../services/htmlToPdf.ts'
 import { storageService } from '../services/storage.ts'
@@ -15,9 +14,7 @@ import { DocumentCategory } from '../routes/documents/models.ts'
 import type { BrevoCampaign } from '../services/brevo/models.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import logger from '../lib/logger.ts'
-
-type ScheduledTask = ReturnType<typeof cron.schedule>
-let scheduledTask: ScheduledTask | null = null
+import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 
 // Technical member used elsewhere in the codebase to attribute
 // system-generated data (see V70__AddRootUserData.sql).
@@ -30,9 +27,7 @@ const SYSTEM_JWT_USER: JWTUser = {
   canMakeReservations: false,
 }
 
-export interface BrevoCampaignArchiveWorkerDeps {
-  cronSchedule?: typeof cron.schedule
-}
+export type BrevoCampaignArchiveWorkerDeps = CronWorkerDeps
 
 /**
  * Start the Brevo newsletter campaign archive worker.
@@ -44,45 +39,15 @@ export interface BrevoCampaignArchiveWorkerDeps {
  * campaigns sent before the feature was enabled are not backfilled, since
  * those had already been archived manually.
  */
-export function startBrevoCampaignArchiveWorker(deps: BrevoCampaignArchiveWorkerDeps = {}) {
-  const { cronSchedule = cron.schedule } = deps
-  const shouldRun = process.env.BREVO_CAMPAIGN_ARCHIVE_ENABLED === 'true'
-
-  if (!shouldRun) {
-    logger.warn(
-      'Brevo campaign archive worker is disabled (set BREVO_CAMPAIGN_ARCHIVE_ENABLED=true to enable)',
-    )
-    return {
-      stop: () => {
-        logger.info('Brevo campaign archive worker is not running')
-      },
-    }
-  }
-
-  logger.info('Starting Brevo campaign archive worker — scheduled for 06:00 daily')
-
-  scheduledTask = cronSchedule('0 6 * * *', async () => {
-    logger.info('Brevo campaign archive worker: starting scheduled run')
-    await archiveNewCampaigns()
-  })
-
-  if (process.env.BREVO_CAMPAIGN_ARCHIVE_RUN_ON_STARTUP === 'true') {
-    logger.info('Running Brevo campaign archive on startup')
-    archiveNewCampaigns().catch((error) => {
-      logger.error('Error during startup Brevo campaign archive run:', error)
-    })
-  }
-
-  return {
-    stop: () => {
-      logger.info('Stopping Brevo campaign archive worker')
-      if (scheduledTask) {
-        scheduledTask.stop()
-        scheduledTask = null
-      }
-    },
-  }
-}
+export const startBrevoCampaignArchiveWorker = defineWorker<BrevoCampaignArchiveWorkerDeps>({
+  name: 'Brevo Campaign Archive Worker',
+  envPrefix: 'BREVO_CAMPAIGN_ARCHIVE',
+  // '0 6 * * *' = At 06:00 every day
+  schedule: '0 6 * * *',
+  scheduleDescription: 'daily at 06:00',
+  runOnStartup: true,
+  run: () => archiveNewCampaigns(),
+})
 
 export async function archiveNewCampaigns(): Promise<void> {
   const lastState = await getLastBrevoCampaignArchiveState()

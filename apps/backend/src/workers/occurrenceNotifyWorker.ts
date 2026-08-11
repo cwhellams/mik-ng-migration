@@ -1,6 +1,5 @@
 import 'dotenv/config'
 
-import cron, { type ScheduledTask } from 'node-cron'
 import logger from '../lib/logger.ts'
 import { getOccurrences } from '../db/occurrence-queries.ts'
 import { OccurrenceStatus } from '../routes/occurrences/models.ts'
@@ -8,51 +7,24 @@ import { sendOccurrenceNotification } from '../templates/occurrenceNotification.
 import { sendEmail } from '../lib/sendGmail.ts'
 import { MIKPermissions } from '../routes/members/models.ts'
 import { getMemberRolesByPermission } from '../db/member-queries.ts'
+import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 
-let scheduledTask: ScheduledTask | null = null
-
-export interface NotificationWorkerDeps {
+export interface NotificationWorkerDeps extends CronWorkerDeps {
   sendEmailFn?: typeof sendEmail
-  cronSchedule?: typeof cron.schedule
 }
 
 /**
  * Start the email notification worker
- * Runs daily at 9am to send any pending notifications.
+ * Runs daily at 7am UTC to send any pending notifications.
  */
-export function startOccurrenceNotificationWorker(deps: NotificationWorkerDeps = {}) {
-  const { sendEmailFn = sendEmail, cronSchedule = cron.schedule } = deps
-  const shouldRun = process.env.OCCURRENCE_NOTIFICATION_WORKER_ENABLED === 'true'
-
-  if (!shouldRun) {
-    logger.warn('Occurrence Email Notification is disabled')
-    return {
-      stop: () => {
-        logger.info('Occurrence Email Notification Worker is not running')
-      },
-    }
-  }
-
-  logger.info('Starting Occurrence Email Notification Worker - scheduled for 7am UTC daily')
-
-  // Schedule task to run daily at 7:00 AM UTC
-  // Cron format: minute hour day month weekday
+export const startOccurrenceNotificationWorker = defineWorker<NotificationWorkerDeps>({
+  name: 'Occurrence Email Notification Worker',
+  envPrefix: 'OCCURRENCE_NOTIFICATION_WORKER',
   // '0 7 * * *' = At 7:00 AM every day
-  scheduledTask = cronSchedule('0 7 * * *', async () => {
-    logger.info('Occurrence Email Notification Worker: Starting scheduled run')
-    await sendOccurrenceNotifications(sendEmailFn)
-  })
-
-  return {
-    stop: () => {
-      logger.info('Stopping Occurrence Email Notification Worker')
-      if (scheduledTask) {
-        scheduledTask.stop()
-        scheduledTask = null
-      }
-    },
-  }
-}
+  schedule: '0 7 * * *',
+  scheduleDescription: 'daily at 07:00 UTC',
+  run: ({ sendEmailFn = sendEmail }) => sendOccurrenceNotifications(sendEmailFn),
+})
 
 /**
  * Send occurrence notifications for all pending occurrences

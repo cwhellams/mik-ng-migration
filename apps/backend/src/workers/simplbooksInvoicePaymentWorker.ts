@@ -1,12 +1,12 @@
 import 'dotenv/config'
 
-import cron, { type ScheduledTask } from 'node-cron'
 import Bottleneck from 'bottleneck'
 import { getUnpaidInvoicesWithSimplbooksRef, markInvoiceAsPaid } from '../db/invoicing-queries.ts'
 import { getInvoice } from '../services/simplbooks/simplbooksApiClient.ts'
 import logger from '../lib/logger.ts'
 import type { Invoice } from '../routes/invoicing/models.ts'
 import type { InvoiceResponse } from '../services/simplbooks/models.ts'
+import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 
 // Rate limiter to ensure max 1 request per second to Simplbooks API
 const limiter = new Bottleneck({
@@ -14,58 +14,25 @@ const limiter = new Bottleneck({
   maxConcurrent: 1, // Only 1 concurrent request at a time
 })
 
-let scheduledTask: ScheduledTask | null = null
-
-export interface SimplbooksInvoicePaymentWorkerDeps {
+export interface SimplbooksInvoicePaymentWorkerDeps extends CronWorkerDeps {
   getInvoice?: (id: number) => Promise<InvoiceResponse>
-  cronSchedule?: typeof cron.schedule
 }
 
 /**
  * Start the Simplbooks invoice payment sync worker
  * Runs daily at 4am to check unpaid invoices and sync their payment status
  */
-export function startSimplbooksInvoicePaymentWorker(deps: SimplbooksInvoicePaymentWorkerDeps = {}) {
-  const { getInvoice: getInvoiceFn = getInvoice, cronSchedule = cron.schedule } = deps
-  const shouldRun = process.env.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED === 'true'
-
-  if (!shouldRun) {
-    logger.warn('Simplbooks Invoice Payment Worker is disabled')
-    return {
-      stop: () => {
-        logger.info('Simplbooks Invoice Payment Worker is not running')
-      },
-    }
-  }
-
-  logger.info('Starting Simplbooks Invoice Payment Worker - scheduled for 4am daily')
-
-  // Schedule task to run daily at 4:00 AM
-  // Cron format: minute hour day month weekday
-  // '0 4 * * *' = At 4:00 AM every day
-  scheduledTask = cronSchedule('0 4 * * *', async () => {
-    logger.info('Simplbooks Invoice Payment Worker: Starting scheduled run')
-    await syncInvoicePayments(getInvoiceFn)
-  })
-
-  // Run immediately on startup for testing (optional - remove if not needed)
-  if (process.env.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP === 'true') {
-    logger.info('Running invoice payment sync immediately on startup')
-    syncInvoicePayments(getInvoiceFn).catch((error) => {
-      logger.error('Error during startup invoice payment sync:', error)
-    })
-  }
-
-  return {
-    stop: () => {
-      logger.info('Stopping Simplbooks Invoice Payment Worker')
-      if (scheduledTask) {
-        scheduledTask.stop()
-        scheduledTask = null
-      }
-    },
-  }
-}
+export const startSimplbooksInvoicePaymentWorker = defineWorker<SimplbooksInvoicePaymentWorkerDeps>(
+  {
+    name: 'Simplbooks Invoice Payment Worker',
+    envPrefix: 'SIMPLBOOKS_INVOICE_PAYMENT_WORKER',
+    // '0 4 * * *' = At 4:00 AM every day
+    schedule: '0 4 * * *',
+    scheduleDescription: 'daily at 04:00',
+    runOnStartup: true,
+    run: ({ getInvoice: getInvoiceFn = getInvoice }) => syncInvoicePayments(getInvoiceFn),
+  },
+)
 
 /**
  * Sync payment status for all unpaid invoices with Simplbooks

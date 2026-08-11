@@ -58,14 +58,10 @@ jest.unstable_mockModule('../../../src/routes/auth/registration-verification.ts'
   })),
 }))
 
-jest.unstable_mockModule('../../../src/templates/loginEmailTemplate.ts', () => ({
-  loginEmailTitle: jest.fn(),
-  loginEmailBodyHtml: jest.fn(),
-}))
-
-jest.unstable_mockModule('../../../src/templates/registrationEmailTemplate.ts', () => ({
-  registerEmailBodyHtml: jest.fn(),
-  registerEmailTitle: jest.fn(),
+// Both the login and registration emails now render through one module, so
+// stubbing it keeps this suite from touching the markdown templates at all.
+jest.unstable_mockModule('../../../src/templates/renderEmail.ts', () => ({
+  renderEmail: jest.fn(() => ({ subject: 'stub subject', html: '<html>stub</html>' })),
 }))
 
 // --- Required env vars -------------------------------------------------------

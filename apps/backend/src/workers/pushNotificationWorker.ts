@@ -1,6 +1,5 @@
 import 'dotenv/config'
 
-import cron, { type ScheduledTask } from 'node-cron'
 import {
   claimUpcomingBookingsForPushReminder,
   getPushSubscriptionsByMemberId,
@@ -13,12 +12,10 @@ import {
   bookingPushReminderTitle,
   bookingPushReminderBody,
 } from '../templates/pushNotificationTemplate.ts'
+import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 
-let scheduledTask: ScheduledTask | null = null
-
-export interface PushNotificationWorkerDeps {
+export interface PushNotificationWorkerDeps extends CronWorkerDeps {
   sendWebPushFn?: typeof sendWebPush
-  cronSchedule?: typeof cron.schedule
 }
 
 /**
@@ -27,41 +24,18 @@ export interface PushNotificationWorkerDeps {
  * push reminders to the pilot (member_id), complementing the existing 24h
  * email reminder rather than replacing it.
  */
-export function startPushNotificationWorker(deps: PushNotificationWorkerDeps = {}) {
-  const { sendWebPushFn = sendWebPush, cronSchedule = cron.schedule } = deps
-  const shouldRun = process.env.PUSH_NOTIFICATION_WORKER_ENABLED === 'true'
-
-  if (!shouldRun) {
-    logger.warn('Push Notification Worker is disabled')
-    return {
-      stop: () => {
-        logger.info('Push Notification Worker is not running')
-      },
-    }
-  }
-
-  const hoursBeforeBooking = parseInt(process.env.PUSH_NOTIFICATION_HOURS_BEFORE || '1', 10)
-  logger.info(
-    `Starting Push Notification Worker - scheduled hourly, sending reminders ${hoursBeforeBooking}h before booking`,
-  )
-
-  // Cron format: minute hour day month weekday
+export const startPushNotificationWorker = defineWorker<PushNotificationWorkerDeps>({
+  name: 'Push Notification Worker',
+  envPrefix: 'PUSH_NOTIFICATION_WORKER',
   // '0 * * * *' = At minute 0 of every hour
-  scheduledTask = cronSchedule('0 * * * *', async () => {
-    logger.info('Push Notification Worker: Starting scheduled run')
-    await sendPushReminders(sendWebPushFn, hoursBeforeBooking)
-  })
-
-  return {
-    stop: () => {
-      logger.info('Stopping Push Notification Worker')
-      if (scheduledTask) {
-        scheduledTask.stop()
-        scheduledTask = null
-      }
-    },
-  }
-}
+  schedule: '0 * * * *',
+  scheduleDescription: 'hourly',
+  run: ({ sendWebPushFn = sendWebPush }) =>
+    sendPushReminders(
+      sendWebPushFn,
+      parseInt(process.env.PUSH_NOTIFICATION_HOURS_BEFORE || '1', 10),
+    ),
+})
 
 /**
  * Send booking push reminders for all upcoming bookings needing one.

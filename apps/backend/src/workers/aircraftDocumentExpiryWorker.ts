@@ -1,6 +1,5 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
 import dayjs from 'dayjs'
 import {
   getAircraftDocumentsExpiringOn,
@@ -9,19 +8,11 @@ import {
 } from '../db/aircraft-document-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
 import logger from '../lib/logger.ts'
-import {
-  aircraftDocumentExpiryReminderSubject,
-  aircraftDocumentExpiryReminderBodyHtml,
-  aircraftDocumentExpiredSubject,
-  aircraftDocumentExpiredBodyHtml,
-} from '../templates/aircraftDocumentExpiryEmailTemplate.ts'
+import { renderEmail } from '../templates/renderEmail.ts'
+import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 
-type ScheduledTask = ReturnType<typeof cron.schedule>
-let scheduledTask: ScheduledTask | null = null
-
-export interface AircraftDocumentExpiryWorkerDeps {
+export interface AircraftDocumentExpiryWorkerDeps extends CronWorkerDeps {
   sendEmailFn?: typeof sendEmail
-  cronSchedule?: typeof cron.schedule
 }
 
 /**
@@ -35,45 +26,15 @@ export interface AircraftDocumentExpiryWorkerDeps {
  * aircraft already exists (valid_from > expiring doc's valid_to).
  * Duplicate emails are prevented via flight.aircraft_document_expiry_notifications.
  */
-export function startAircraftDocumentExpiryWorker(deps: AircraftDocumentExpiryWorkerDeps = {}) {
-  const { sendEmailFn = sendEmail, cronSchedule = cron.schedule } = deps
-  const shouldRun = process.env.AIRCRAFT_DOCUMENT_EXPIRY_WORKER_ENABLED === 'true'
-
-  if (!shouldRun) {
-    logger.warn(
-      'Aircraft Document Expiry Worker is disabled (set AIRCRAFT_DOCUMENT_EXPIRY_WORKER_ENABLED=true to enable)',
-    )
-    return {
-      stop: () => {
-        logger.info('Aircraft Document Expiry Worker is not running')
-      },
-    }
-  }
-
-  logger.info('Starting Aircraft Document Expiry Worker — scheduled for 07:00 daily')
-
-  scheduledTask = cronSchedule('0 7 * * *', async () => {
-    logger.info('Aircraft Document Expiry Worker: Starting scheduled run')
-    await processAircraftDocumentExpiry(sendEmailFn)
-  })
-
-  if (process.env.AIRCRAFT_DOCUMENT_EXPIRY_WORKER_RUN_ON_STARTUP === 'true') {
-    logger.info('Running aircraft document expiry check immediately on startup')
-    processAircraftDocumentExpiry(sendEmailFn).catch((error) => {
-      logger.error('Error during startup aircraft document expiry check:', error)
-    })
-  }
-
-  return {
-    stop: () => {
-      logger.info('Stopping Aircraft Document Expiry Worker')
-      if (scheduledTask) {
-        scheduledTask.stop()
-        scheduledTask = null
-      }
-    },
-  }
-}
+export const startAircraftDocumentExpiryWorker = defineWorker<AircraftDocumentExpiryWorkerDeps>({
+  name: 'Aircraft Document Expiry Worker',
+  envPrefix: 'AIRCRAFT_DOCUMENT_EXPIRY_WORKER',
+  // '0 7 * * *' = At 07:00 every day
+  schedule: '0 7 * * *',
+  scheduleDescription: 'daily at 07:00',
+  runOnStartup: true,
+  run: ({ sendEmailFn = sendEmail }) => processAircraftDocumentExpiry(sendEmailFn),
+})
 
 async function processAircraftDocumentExpiry(sendEmailFn: typeof sendEmail): Promise<void> {
   const recipientEmail = process.env.KALUSTO_EMAIL
@@ -144,11 +105,8 @@ async function sendReminderNotifications(
         daysUntilExpiry,
       }
 
-      await sendEmailFn(
-        recipientEmail,
-        aircraftDocumentExpiryReminderSubject(doc.aircraftRegistration, doc.documentType),
-        aircraftDocumentExpiryReminderBodyHtml(vars),
-      )
+      const { subject, html } = renderEmail('aircraft-document-expiry-reminder', 'en', vars)
+      await sendEmailFn(recipientEmail, subject, html)
 
       await recordAircraftDocumentNotificationSent(doc.documentId, 'REMINDER', daysUntilExpiry)
 
@@ -197,11 +155,8 @@ async function sendExpiredNotifications(
         expiryDate: expiryDateFormatted,
       }
 
-      await sendEmailFn(
-        recipientEmail,
-        aircraftDocumentExpiredSubject(doc.aircraftRegistration, doc.documentType),
-        aircraftDocumentExpiredBodyHtml(vars),
-      )
+      const { subject, html } = renderEmail('aircraft-document-expired', 'en', vars)
+      await sendEmailFn(recipientEmail, subject, html)
 
       await recordAircraftDocumentNotificationSent(doc.documentId, 'EXPIRED', 0)
 

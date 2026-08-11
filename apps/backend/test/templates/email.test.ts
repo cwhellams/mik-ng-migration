@@ -1,66 +1,48 @@
 import { BookingStatus, BookingType, type Booking } from '../../src/routes/bookings/models.ts'
 import { MIKLang } from '../../src/routes/members/models.ts'
 import { OccurrenceStatus, type Occurrence } from '../../src/routes/occurrences/models.ts'
-import { bookingCancelledEmailBodyHtml } from '../../src/templates/bookingCancelledEmailTemplate.ts'
-import {
-  bookingConfirmedEmailBodyHtml,
-  bookingUpdatedEmailBodyHtml,
-} from '../../src/templates/bookingConfirmedEmailTemplate.ts'
-import { bookingReminderEmailBodyHtml } from '../../src/templates/bookingReminderEmailTemplate.ts'
-import { loginEmailBodyHtml, type LoginVars } from '../../src/templates/loginEmailTemplate.ts'
-import { occurrenceNotificationEmailBodyHtml } from '../../src/templates/occurrenceNotification.ts'
-import { overdueInvoiceEmailBodyHtml } from '../../src/templates/overdueInvoiceEmailTemplate.ts'
-import {
-  membershipApprovedEmailBodyHtml,
-  registerEmailBodyHtml,
-  type RegisterVars,
-  type WelcomeVars,
-} from '../../src/templates/registrationEmailTemplate.ts'
-import { reservationSuspendedEmailBodyHtml } from '../../src/templates/reservationSuspendedEmailTemplate.ts'
-import { newMemberEmailBodyHtml } from '../../src/templates/newMemberEmailTemplate.ts'
-import {
-  emailChangeVerifyBodyHtml,
-  emailChangeVerifySubject,
-  type EmailChangeVerifyVars,
-} from '../../src/templates/emailChangeVerifyTemplate.ts'
-import { expenseApprovedEmailTemplate } from '../../src/templates/expenseApprovedEmailTemplate.ts'
-import { expenseRejectedEmailTemplate } from '../../src/templates/expenseRejectedEmailTemplate.ts'
-import { expenseRequestInfoEmailTemplate } from '../../src/templates/expenseRequestInfoEmailTemplate.ts'
-import { expenseSetToDraftEmailTemplate } from '../../src/templates/expenseSetToDraftEmailTemplate.ts'
+import { renderEmail } from '../../src/templates/renderEmail.ts'
+import { bookingEmailVars } from '../../src/templates/bookingEmailHelpers.ts'
+import { occurrenceEmailVars } from '../../src/templates/occurrenceEmailHelpers.ts'
+
+// These suites snapshot the rendered HTML of every markdown-backed email. The
+// test names are deliberately unchanged from when each template had its own
+// `*EmailTemplate.ts` wrapper: the existing snapshots are what proves the move
+// to the registry (#1115 §5) did not alter a single byte of any email.
 
 describe('Login Email template tests', () => {
-  const loginVars: LoginVars = {
+  const loginVars = {
     code: 12345,
     href: 'https://example.com',
     firstName: 'Tester1',
   }
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('loginEmailBodyHtml for lang: %s', (lang) => {
-    const result = loginEmailBodyHtml(lang, loginVars)
+    const result = renderEmail('login', lang, loginVars).html
     expect(result).toMatchSnapshot()
   })
 })
 
 describe('Register Email template tests', () => {
-  const registerVars: RegisterVars = {
+  const registerVars = {
     code: 12345,
     href: 'https://example.com',
     firstName: 'Tester1',
   }
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('registerEmailBodyHtml', (lang) => {
-    const result = registerEmailBodyHtml(lang, registerVars)
+    const result = renderEmail('registration-submit', lang, registerVars).html
     expect(result).toMatchSnapshot()
   })
 })
 
 describe('Register approved template tests', () => {
-  const welcomeVars: WelcomeVars = {
+  const welcomeVars = {
     firstName: 'Tester1',
   }
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('membershipApprovedEmailBodyHtml', (lang) => {
-    const result = membershipApprovedEmailBodyHtml(lang, welcomeVars)
+    const result = renderEmail('registration-approved', lang, welcomeVars).html
     expect(result).toMatchSnapshot()
   })
 })
@@ -86,7 +68,11 @@ describe('Booking cancellation template tests', () => {
   }
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingCancellationEmailBodyHtml', (lang) => {
-    const result = bookingCancelledEmailBodyHtml(lang, 'Tester', cancelledBooking)
+    const result = renderEmail(
+      'booking-cancelled',
+      lang,
+      bookingEmailVars(cancelledBooking, { firstName: 'Tester' }),
+    ).html
     expect(result).toMatchSnapshot()
   })
 })
@@ -111,12 +97,20 @@ describe('Booking confirmation template tests', () => {
   }
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingConfirmedEmailBodyHtml', (lang) => {
-    const result = bookingConfirmedEmailBodyHtml(lang, 'Tester', confirmedBooking)
+    const result = renderEmail(
+      'booking-confirmed',
+      lang,
+      bookingEmailVars(confirmedBooking, { firstName: 'Tester' }),
+    ).html
     expect(result).toMatchSnapshot()
   })
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingUpdatedEmailBodyHtml', (lang) => {
-    const result = bookingUpdatedEmailBodyHtml(lang, 'Tester', confirmedBooking)
+    const result = renderEmail(
+      'booking-updated',
+      lang,
+      bookingEmailVars(confirmedBooking, { firstName: 'Tester' }),
+    ).html
     expect(result).toMatchSnapshot()
   })
 })
@@ -141,30 +135,34 @@ describe('Booking reminder template tests', () => {
   }
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingReminderEmailBodyHtml', (lang) => {
-    const result = bookingReminderEmailBodyHtml(lang, 'Tester', upcomingBooking)
+    const result = renderEmail(
+      'booking-reminder',
+      lang,
+      bookingEmailVars(upcomingBooking, { firstName: 'Tester' }),
+    ).html
     expect(result).toMatchSnapshot()
   })
 })
 describe('Overdue invoice template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('overdueInvoiceEmailBodyHtml', (lang) => {
-    const result = overdueInvoiceEmailBodyHtml(lang, {
+    const result = renderEmail('overdue-invoice', lang, {
       firstName: 'Tester1',
       invoiceId: 'INV-12345',
       amount: 100.0,
       dueDate: '2024-06-30',
-    })
+    }).html
     expect(result).toMatchSnapshot()
   })
 })
 
 describe('Reservation suspended template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('reservationSuspendedEmailBodyHtml', (lang) => {
-    const result = reservationSuspendedEmailBodyHtml(lang, {
+    const result = renderEmail('reservation-suspended', lang, {
       firstName: 'Tester1',
       invoiceCount: 2,
       totalAmount: 150.0,
       cancelledBookingsCount: 3,
-    })
+    }).html
     expect(result).toMatchSnapshot()
   })
 })
@@ -194,7 +192,11 @@ describe('Occurrence Email template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'occurrenceNotificationEmailBodyHtml for lang: %s',
     (lang) => {
-      const result = occurrenceNotificationEmailBodyHtml(lang, occurrence)
+      const result = renderEmail(
+        'occurrence-notification',
+        lang,
+        occurrenceEmailVars(occurrence),
+      ).html
       expect(result).toMatchSnapshot()
     },
   )
@@ -202,10 +204,11 @@ describe('Occurrence Email template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'occurrenceNotificationEmailBodyHtml with deadline for lang: %s',
     (lang) => {
-      const result = occurrenceNotificationEmailBodyHtml(lang, {
-        ...occurrence,
-        deadLine: '2025-12-04T10:31:00.000Z',
-      })
+      const result = renderEmail(
+        'occurrence-notification',
+        lang,
+        occurrenceEmailVars({ ...occurrence, deadLine: '2025-12-04T10:31:00.000Z' }),
+      ).html
       expect(result).toMatchSnapshot()
     },
   )
@@ -213,11 +216,15 @@ describe('Occurrence Email template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'occurrenceNotificationEmailBodyHtml anonymized for lang: %s',
     (lang) => {
-      const result = occurrenceNotificationEmailBodyHtml(lang, {
-        ...occurrence,
-        status: OccurrenceStatus.ANONYMIZED,
-        deadLine: '2025-12-04T10:31:00.000Z',
-      })
+      const result = renderEmail(
+        'occurrence-notification',
+        lang,
+        occurrenceEmailVars({
+          ...occurrence,
+          status: OccurrenceStatus.ANONYMIZED,
+          deadLine: '2025-12-04T10:31:00.000Z',
+        }),
+      ).html
       expect(result).toMatchSnapshot()
     },
   )
@@ -225,16 +232,16 @@ describe('Occurrence Email template tests', () => {
 
 describe('New member notification template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('newMemberEmailBodyHtml for lang: %s', (lang) => {
-    const result = newMemberEmailBodyHtml(lang, {
+    const result = renderEmail('new-member', lang, {
       firstName: 'Tester1',
       href: 'http://localhost:5173/club/members',
-    })
+    }).html
     expect(result).toMatchSnapshot()
   })
 })
 
 describe('Email change verify template tests', () => {
-  const emailChangeVars: EmailChangeVerifyVars = {
+  const emailChangeVars = {
     firstName: 'Tester1',
     newEmail: 'new@example.com',
     href: 'https://example.com/profile/email-change/verify?token=abc123',
@@ -243,13 +250,13 @@ describe('Email change verify template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'emailChangeVerifyBodyHtml for lang: %s',
     (lang) => {
-      const result = emailChangeVerifyBodyHtml(lang, emailChangeVars)
+      const result = renderEmail('email-change-verify', lang, emailChangeVars).html
       expect(result).toMatchSnapshot()
     },
   )
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('emailChangeVerifySubject for lang: %s', (lang) => {
-    const result = emailChangeVerifySubject(lang)
+    const result = renderEmail('email-change-verify', lang, emailChangeVars).subject
     expect(result).toMatchSnapshot()
   })
 })
@@ -264,7 +271,7 @@ describe('Expense claim email template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'expenseApprovedEmailTemplate for lang: %s',
     (lang) => {
-      const result = expenseApprovedEmailTemplate(lang, expenseVars)
+      const result = renderEmail('expense-approved', lang, expenseVars)
       expect(result).toMatchSnapshot()
     },
   )
@@ -272,7 +279,7 @@ describe('Expense claim email template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'expenseRejectedEmailTemplate for lang: %s',
     (lang) => {
-      const result = expenseRejectedEmailTemplate(lang, {
+      const result = renderEmail('expense-rejected', lang, {
         ...expenseVars,
         rejectionReason: 'Missing receipt',
       })
@@ -283,7 +290,7 @@ describe('Expense claim email template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'expenseRequestInfoEmailTemplate for lang: %s',
     (lang) => {
-      const result = expenseRequestInfoEmailTemplate(lang, {
+      const result = renderEmail('expense-request-info', lang, {
         ...expenseVars,
         adminMessage: 'Please attach the original receipt',
       })
@@ -294,7 +301,7 @@ describe('Expense claim email template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'expenseSetToDraftEmailTemplate for lang: %s',
     (lang) => {
-      const result = expenseSetToDraftEmailTemplate(lang, expenseVars)
+      const result = renderEmail('expense-set-to-draft', lang, expenseVars)
       expect(result).toMatchSnapshot()
     },
   )
@@ -303,7 +310,7 @@ describe('Expense claim email template tests', () => {
 describe('Responsive email wrapper', () => {
   // Explicit (non-snapshot) assertions so a future refactor can't silently
   // drop the mobile viewport fix without a snapshot update masking it.
-  const html = expenseApprovedEmailTemplate(MIKLang.EN, {
+  const html = renderEmail('expense-approved', MIKLang.EN, {
     memberName: 'Tester1',
     claimTitle: 'Fuel receipt',
     claimUrl: 'https://example.com/expenses/123',

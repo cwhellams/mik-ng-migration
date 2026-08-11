@@ -57,24 +57,10 @@ import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import aircraftHilRoutes from './routes/aircraft-hil/api.ts'
 import defectRoutes from './routes/defects/api.ts'
 import meetingRoutes from './routes/meetings/api.ts'
-import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
-import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
-import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
+import { startAllWorkers, stopAllWorkers } from './workers/registry.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
-import { startOccurrenceNotificationWorker } from './workers/occurrenceNotifyWorker.ts'
-import { startBrevoSyncWorker } from './workers/brevoSyncWorker.ts'
-import { startBrevoCampaignArchiveWorker } from './workers/brevoCampaignArchiveWorker.ts'
 import { testConnection, closeDb } from './db/connection.ts'
 import { closeEventStore } from './lib/eventStore.ts'
-import { startSimplbooksSyncWorker } from './workers/simplbooksMemberSyncWorker.ts'
-import { startBookingReminderWorker } from './workers/bookingReminderWorker.ts'
-import { startJuniorMemberPromotionWorker } from './workers/juniorMemberPromotionWorker.ts'
-import { startQualificationExpiryWorker } from './workers/qualificationExpiryWorker.ts'
-import { startTinyUrlCleanupWorker } from './workers/tinyUrlCleanupWorker.ts'
-import { startAircraftDocumentExpiryWorker } from './workers/aircraftDocumentExpiryWorker.ts'
-import { startPushNotificationWorker } from './workers/pushNotificationWorker.ts'
-import { startMileageHetuPurgeWorker } from './workers/mileageHetuPurgeWorker.ts'
-import { startMailboxCleanupWorker } from './workers/mailboxCleanupWorker.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -206,21 +192,7 @@ app.use('/api/v1/meetings', meetingRoutes)
 // Test database connection before starting workers
 await testConnection()
 
-const poller = startSimpleBooksOutboxProcessor()
-const invoicePaymentWorker = startSimplbooksInvoicePaymentWorker()
-const overdueInvoiceWorker = startOverdueInvoiceWorker()
-const occurrenceNotificationWorker = startOccurrenceNotificationWorker()
-const brevoSyncWorker = startBrevoSyncWorker()
-const brevoCampaignArchiveWorker = startBrevoCampaignArchiveWorker()
-const simplbooksMemberSyncWorker = startSimplbooksSyncWorker()
-const bookingReminderWorker = startBookingReminderWorker()
-const juniorMemberPromotionWorker = startJuniorMemberPromotionWorker()
-const qualificationExpiryWorker = startQualificationExpiryWorker()
-const tinyUrlCleanupWorker = startTinyUrlCleanupWorker()
-const aircraftDocumentExpiryWorker = startAircraftDocumentExpiryWorker()
-const pushNotificationWorker = startPushNotificationWorker()
-const mileageHetuPurgeWorker = startMileageHetuPurgeWorker()
-const mailboxCleanupWorker = startMailboxCleanupWorker()
+const runningWorkers = startAllWorkers()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -237,21 +209,7 @@ const shutdown = async (): Promise<void> => {
   console.warn('\nShutting down server...')
   await closeDb() // Close DB connections
   await closeEventStore() // Close Emmett event store connections
-  poller?.stop()
-  invoicePaymentWorker?.stop()
-  overdueInvoiceWorker?.stop()
-  occurrenceNotificationWorker?.stop()
-  brevoSyncWorker?.stop()
-  brevoCampaignArchiveWorker?.stop()
-  simplbooksMemberSyncWorker?.stop()
-  bookingReminderWorker?.stop()
-  juniorMemberPromotionWorker?.stop()
-  qualificationExpiryWorker?.stop()
-  tinyUrlCleanupWorker?.stop()
-  aircraftDocumentExpiryWorker?.stop()
-  pushNotificationWorker?.stop()
-  mileageHetuPurgeWorker?.stop()
-  mailboxCleanupWorker?.stop()
+  stopAllWorkers(runningWorkers)
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

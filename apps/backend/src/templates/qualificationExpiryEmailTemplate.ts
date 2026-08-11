@@ -1,7 +1,4 @@
 import { MIKLang } from '../routes/members/models.ts'
-import { markdownEmailTemplate } from './emailTemplate.ts'
-
-const TRAINING_EMAIL = 'koulutus@mik.fi'
 
 const QUALIFICATION_LABELS: Record<string, Record<string, string>> = {
   fiExpiry: { en: 'Flight Instructor (FI)', fi: 'Lentokouluttaja (FI)', sv: 'Flyginstruktör (FI)' },
@@ -48,49 +45,10 @@ export type QualificationExpiryEmailVars = {
   daysUntilExpiry?: number
 }
 
-export function qualificationExpiryReminderSubject(lang: string | undefined): string {
-  switch (lang) {
-    case MIKLang.FI:
-      return 'MIK - Pätevyyden vanhentumismuistutus'
-    case MIKLang.SV:
-      return 'MIK - Påminnelse om kvalifikationsutgång'
-    default:
-      return 'MIK - Qualification Expiry Reminder'
-  }
-}
-
-export function qualificationExpiryReminderBodyHtml(
-  lang: string | undefined,
-  vars: QualificationExpiryEmailVars,
-): string {
-  const locale = lang === MIKLang.FI ? 'fi' : lang === MIKLang.SV ? 'sv' : 'en'
-  return markdownEmailTemplate(`qualification-expiry-reminder-${locale}.md`, {
-    ...vars,
-    TRAINING_EMAIL,
-  })
-}
-
-export function qualificationExpiredSubject(lang: string | undefined): string {
-  switch (lang) {
-    case MIKLang.FI:
-      return 'MIK - Pätevyys vanhentunut'
-    case MIKLang.SV:
-      return 'MIK - Kvalifikation har upphört'
-    default:
-      return 'MIK - Qualification Expired'
-  }
-}
-
-export function qualificationExpiredBodyHtml(
-  lang: string | undefined,
-  vars: QualificationExpiryEmailVars,
-): string {
-  const locale = lang === MIKLang.FI ? 'fi' : lang === MIKLang.SV ? 'sv' : 'en'
-  return markdownEmailTemplate(`qualification-expired-${locale}.md`, {
-    ...vars,
-    TRAINING_EMAIL,
-  })
-}
+// The email subjects and bodies live in the template registry
+// (`qualification-expiry-reminder` / `qualification-expired`). What stays here
+// is what the registry can't express: the qualification label table, and the
+// one-line mailbox variants, which are plain text rather than markdown emails.
 
 export function qualificationExpiryReminderMailboxBody(
   lang: string | undefined,
@@ -134,5 +92,3 @@ export function buildQualificationEmailVars(
     daysUntilExpiry,
   }
 }
-
-export { TRAINING_EMAIL }

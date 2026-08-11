@@ -79,24 +79,7 @@ import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import { HttpStatusCode } from 'axios'
 import { sendEmail } from '../../lib/sendGmail.ts'
-import {
-  membershipApprovedEmailBodyHtml,
-  membershipApprovedEmailSubject,
-} from '../../templates/registrationEmailTemplate.ts'
-import {
-  memberRemovedEmailSubject,
-  memberRemovedEmailBodyHtml,
-  dtoStudentRemovedEmailSubject,
-  dtoStudentRemovedEmailBodyHtml,
-} from '../../templates/memberRemovedEmailTemplate.ts'
-import {
-  nonRenewalReminderEmailSubject,
-  nonRenewalReminderEmailBodyHtml,
-} from '../../templates/nonRenewalReminderEmailTemplate.ts'
-import {
-  newMemberEmailSubject,
-  newMemberEmailBodyHtml,
-} from '../../templates/newMemberEmailTemplate.ts'
+import { renderEmail } from '../../templates/renderEmail.ts'
 import { SimplbooksEventType } from '../../services/simplbooks/models.ts'
 import { createHash, randomUUID } from 'node:crypto'
 import { z } from 'zod'
@@ -115,10 +98,6 @@ import {
   createPendingEmailChange,
   claimPendingEmailChangeByTokenHash,
 } from '../../db/email-change-queries.ts'
-import {
-  emailChangeVerifySubject,
-  emailChangeVerifyBodyHtml,
-} from '../../templates/emailChangeVerifyTemplate.ts'
 import dayjs from 'dayjs'
 
 export const router = Router()
@@ -285,11 +264,10 @@ router.post(
 
     const approval = await setMembershipApproval(memberId, req.user!.memberId, createSimplbooks)
     if (createSimplbooks) {
-      sendEmail(
-        approval.email,
-        membershipApprovedEmailSubject(approval.lang),
-        membershipApprovedEmailBodyHtml(approval.lang, { firstName: approval.firstName }),
-      )
+      const { subject, html } = renderEmail('registration-approved', approval.lang, {
+        firstName: approval.firstName,
+      })
+      sendEmail(approval.email, subject, html)
     } else {
       console.log(`Skipping sending approval email to ${approval.email} due to migration flag`)
     }
@@ -418,15 +396,12 @@ router.post(
 
     const href = `${process.env.PUBLIC_URL}/profile/email-change/verify?token=${token}`
 
-    sendEmail(
-      normalizedEmail,
-      emailChangeVerifySubject(member.lang),
-      emailChangeVerifyBodyHtml(member.lang, {
-        firstName: member.firstName,
-        newEmail: normalizedEmail,
-        href,
-      }),
-    )
+    const { subject, html } = renderEmail('email-change-verify', member.lang, {
+      firstName: member.firstName,
+      newEmail: normalizedEmail,
+      href,
+    })
+    sendEmail(normalizedEmail, subject, html)
 
     logger.info(
       'Email change verification sent to %s for member %s',
@@ -579,14 +554,11 @@ router.post(
         const secretaries = await getMembers(true, ['SECRETARY'], {})
         const href = `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/club/members`
         for (const secretary of secretaries) {
-          await sendEmail(
-            secretary.email,
-            newMemberEmailSubject(secretary.lang),
-            newMemberEmailBodyHtml(secretary.lang, {
-              firstName: secretary.first,
-              href,
-            }),
-          )
+          const { subject, html } = renderEmail('new-member', secretary.lang, {
+            firstName: secretary.first,
+            href,
+          })
+          await sendEmail(secretary.email, subject, html)
         }
       } catch (error) {
         logger.error('Failed to send new member notification emails', { error, memberId })
@@ -636,11 +608,11 @@ router.post(
       return problem({ status: 404, detail: 'Member not found' })
     }
 
-    sendEmail(
-      member.email,
-      nonRenewalReminderEmailSubject(member.lang),
-      nonRenewalReminderEmailBodyHtml(member.lang, { firstName: member.firstName, year }),
-    )
+    const { subject, html } = renderEmail('member-nonrenewal-reminder', member.lang, {
+      firstName: member.firstName,
+      year,
+    })
+    sendEmail(member.email, subject, html)
 
     await insertNonRenewalAction(
       memberId,
@@ -992,24 +964,20 @@ const cancelMembershipHandler = async (
   )
 
   // Send notification
-  sendEmail(
-    member.email,
-    memberRemovedEmailSubject(member.lang),
-    memberRemovedEmailBodyHtml(member.lang, { firstName: member.firstName }),
-  )
+  const removedEmail = renderEmail('member-removed', member.lang, {
+    firstName: member.firstName,
+  })
+  sendEmail(member.email, removedEmail.subject, removedEmail.html)
 
   // If DTO student, notify koulutus@mik.fi
   if (member.isTrainingProgramPilot) {
     const dtoEmail = process.env.DTO_NOTIFICATION_EMAIL ?? 'koulutus@mik.fi'
-    sendEmail(
-      dtoEmail,
-      dtoStudentRemovedEmailSubject(MIKLang.FI),
-      dtoStudentRemovedEmailBodyHtml(MIKLang.FI, {
-        firstName: member.firstName,
-        lastName: member.lastName,
-        memberId: member.memberId,
-      }),
-    )
+    const dtoNotification = renderEmail('dto-student-removed', MIKLang.FI, {
+      firstName: member.firstName,
+      lastName: member.lastName,
+      memberId: member.memberId,
+    })
+    sendEmail(dtoEmail, dtoNotification.subject, dtoNotification.html)
   }
 
   const unpaidFees = await getUnpaidMembershipFeesForYear(memberId, currentYear)

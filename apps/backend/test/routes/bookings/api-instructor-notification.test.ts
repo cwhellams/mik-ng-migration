@@ -33,11 +33,19 @@ const { problemErrorHandler } = await import('../../../src/routes/response.ts')
 const { MIKPermissions } = await import('../../../src/routes/members/models.ts')
 const { BookingStatus, BookingType } = await import('../../../src/routes/bookings/models.ts')
 const { getMemberById } = await import('../../../src/db/member-queries.ts')
-const {
-  bookingInstructorConfirmedEmailSubject,
-  bookingInstructorUpdatedEmailSubject,
-  bookingInstructorCancelledEmailSubject,
-} = await import('../../../src/templates/bookingInstructorEmailTemplate.ts')
+const { emailTemplates } = await import('../../../src/templates/registry.ts')
+const { normaliseEmailLang } = await import('../../../src/templates/renderEmail.ts')
+
+// The subjects now live in the template registry; look them up the same way
+// renderEmail() does so the assertions stay tied to the real strings.
+const subjectFor = (key: 'confirmed' | 'updated' | 'cancelled', lang: string | undefined) =>
+  emailTemplates[`booking-instructor-${key}`].subject[normaliseEmailLang(lang)]
+const bookingInstructorConfirmedEmailSubject = (lang: string | undefined) =>
+  subjectFor('confirmed', lang)
+const bookingInstructorUpdatedEmailSubject = (lang: string | undefined) =>
+  subjectFor('updated', lang)
+const bookingInstructorCancelledEmailSubject = (lang: string | undefined) =>
+  subjectFor('cancelled', lang)
 import type { BookingUpsertRequest } from '../../../src/routes/bookings/models.ts'
 import dayjs from 'dayjs'
 

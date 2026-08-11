@@ -41,13 +41,9 @@ import {
 import { resolveArticlePrice } from '../../services/accounting/articlePricing.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
-import { loginEmailTitle, loginEmailBodyHtml } from '../../templates/loginEmailTemplate.ts'
+import { renderEmail } from '../../templates/renderEmail.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 import { problem } from '../response.ts'
-import {
-  registerEmailBodyHtml,
-  registerEmailTitle,
-} from '../../templates/registrationEmailTemplate.ts'
 import { verifyTurnstileToken } from '../../services/turnstile.ts'
 
 const registrationVerification = new MIKRegistrationVerificationStrategy()
@@ -105,11 +101,12 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
   const expiresAt = dayjs().add(15, 'minutes').toDate()
   await createLoginAttempt(member.email, codeHash, linkTokenHash, expiresAt, req.ip)
 
-  sendEmail(
-    member.email,
-    loginEmailTitle(member.lang),
-    loginEmailBodyHtml(member.lang, { href, code, firstName: member.firstName }),
-  )
+  const loginMail = renderEmail('login', member.lang, {
+    href,
+    code,
+    firstName: member.firstName,
+  })
+  sendEmail(member.email, loginMail.subject, loginMail.html)
   logger.info('magic login link sent for %s', member.email)
   if (process.env.NODE_ENV !== 'production') {
     logger.info('DEV magic link for %s: %s | code: %s', member.email, href, code)
@@ -206,11 +203,11 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   const link = registrationVerification.generateVerificationLink(member.email)
   logger.info('registration verification link generated %j', link)
 
-  sendEmail(
-    member.email,
-    registerEmailTitle(member.lang),
-    registerEmailBodyHtml(member.lang, { ...member, ...link }),
-  )
+  const registrationMail = renderEmail('registration-submit', member.lang, {
+    ...member,
+    ...link,
+  })
+  sendEmail(member.email, registrationMail.subject, registrationMail.html)
   logger.info('registration verification email sent %j', link)
 
   return res.json({ code: link.code })
