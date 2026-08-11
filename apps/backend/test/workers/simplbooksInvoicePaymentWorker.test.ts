@@ -19,6 +19,10 @@ import {
   markInvoiceAsPaid,
 } from '../../src/db/invoicing-queries.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../../src/services/simplbooks/simplbooksOutboxHandler.ts'
+import {
+  checkAndUpdateInvoicePayment,
+  runImmediately,
+} from '../../src/workers/simplbooksInvoicePaymentWorker.ts'
 import type { ScheduledTask, TaskFn, TaskOptions } from 'node-cron'
 
 describe('Simplbooks Invoice Payment Worker', () => {
@@ -61,7 +65,10 @@ describe('Simplbooks Invoice Payment Worker', () => {
         member_id: testMemberId,
         invoice_type: 'FLIGHT',
         description: 'Test flight invoice',
-        pmt_ref: '12345', // Simplbooks invoice ID
+        // The bank payment reference printed on the invoice — deliberately not
+        // the SimplBooks invoice id, which is `accts.invoice.id` above. The
+        // worker looks SimplBooks up by that id; see test/workers/README.md.
+        pmt_ref: '12345',
         paid_at: null, // is_paid will be false (generated column)
         due_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
         sent_at: new Date().toISOString(),
@@ -279,21 +286,25 @@ describe('Simplbooks Invoice Payment Worker', () => {
 
       expect(invoiceBefore?.is_paid).toBe(false)
 
-      // Manually trigger the sync logic (simulate worker execution)
+      // Drive the worker's own logic. This block used to re-implement the
+      // paid-date check and call markInvoiceAsPaid itself, so it passed
+      // regardless of what the worker actually did.
+      //
+      // Deliberately the single-invoice function rather than the full
+      // syncInvoicePayments sweep: this database is shared with the other
+      // worker suites, so sweeping every unpaid row would both mutate their
+      // fixtures and make runtime depend on how many they left behind (the
+      // SimplBooks limiter allows one request per second). The sweep itself is
+      // covered in simplbooksInvoicePaymentWorker.syncLoop.test.ts.
       const unpaidInvoices = await getUnpaidInvoicesWithSimplbooksRef()
       const testInvoice = unpaidInvoices.find((inv) => inv.id.toString() === testInvoiceId)
+      expect(testInvoice).toBeDefined()
 
-      if (testInvoice) {
-        const simplbooksInvoice = await mockGetInvoice(parseInt(testInvoice.pmt_ref, 10))
+      await checkAndUpdateInvoicePayment(testInvoice!, mockGetInvoice, runImmediately)
 
-        if (
-          simplbooksInvoice.data.Invoice.paid &&
-          simplbooksInvoice.data.Invoice.paid !== '' &&
-          simplbooksInvoice.data.Invoice.paid !== '0000-00-00'
-        ) {
-          await markInvoiceAsPaid(testInvoice.id.toString(), simplbooksInvoice.data.Invoice.paid)
-        }
-      }
+      // The worker looks SimplBooks up by the invoice's own id, not by pmt_ref
+      // (which is the bank payment reference printed on the invoice).
+      expect(mockGetInvoice).toHaveBeenCalledWith(parseInt(testInvoiceId, 10))
 
       // Verify invoice is now paid
       const invoiceAfter = await db
@@ -342,21 +353,11 @@ describe('Simplbooks Invoice Payment Worker', () => {
 
       expect(invoiceBefore?.is_paid).toBe(false)
 
-      // Manually trigger the sync logic
       const unpaidInvoices = await getUnpaidInvoicesWithSimplbooksRef()
       const testInvoice = unpaidInvoices.find((inv) => inv.id.toString() === testInvoiceId)
+      expect(testInvoice).toBeDefined()
 
-      if (testInvoice) {
-        const simplbooksInvoice = await mockGetInvoice(parseInt(testInvoice.pmt_ref, 10))
-
-        if (
-          simplbooksInvoice.data.Invoice.paid &&
-          simplbooksInvoice.data.Invoice.paid !== '' &&
-          simplbooksInvoice.data.Invoice.paid !== '0000-00-00'
-        ) {
-          await markInvoiceAsPaid(testInvoice.id.toString(), simplbooksInvoice.data.Invoice.paid)
-        }
-      }
+      await checkAndUpdateInvoicePayment(testInvoice!, mockGetInvoice, runImmediately)
 
       // Verify invoice is still unpaid
       const invoiceAfter = await db

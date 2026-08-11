@@ -2548,7 +2548,7 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: sv 1`] = `
         </div>
 
         <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-          <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+          <p style="font-size: 0.9em; color: #666666;">Om du inte begärde detta e-postmeddelande kan du lugnt ignorera det.</p>
           <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
       </div>
       </div>

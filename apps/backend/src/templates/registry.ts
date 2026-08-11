@@ -59,15 +59,12 @@ export const emailTemplates = {
   login: {
     subject: {
       fi: 'Kirjaudu MIK sivustolle',
-      // Swedish has a translated body but has always been sent with the
-      // English subject; kept as-is rather than silently changing what
-      // members see.
-      sv: 'Confirm your login to MIK Intranet',
+      sv: 'Bekräfta din inloggning till MIK Intranet',
       en: 'Confirm your login to MIK Intranet',
     },
     footer: {
       fi: 'Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.',
-      sv: 'If you didn’t request this email, you can safely ignore it.',
+      sv: 'Om du inte begärde detta e-postmeddelande kan du lugnt ignorera det.',
       en: 'If you didn’t request this email, you can safely ignore it.',
     },
   },

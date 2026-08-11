@@ -5,6 +5,8 @@ import { sendEmail, type EmailAttachment } from '../../lib/sendGmail.ts'
 import { getInvoice, getInvoicePdf } from './simplbooksApiClient.ts'
 import { escapeHtml } from '../../util/sanitizers.ts'
 import { markdownEmailTemplate } from '../../templates/emailTemplate.ts'
+import type { EmailLang } from '../../templates/registry.ts'
+import { normaliseEmailLang } from '../../templates/renderEmail.ts'
 import {
   generateFinnishBankingBarcode,
   generateBankBarcodeImage,
@@ -121,10 +123,7 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
 
   // Note: Email subject doesn't need HTML escaping as it's plain text in email headers,
   // but we sanitize it for consistency and safety
-  const subject =
-    member.lang === 'fi'
-      ? `Malmin Ilmailukerhon lasku - ${escapeHtml(emailVars.invoiceId)}`
-      : `MIK New Invoice - ${escapeHtml(emailVars.invoiceId)}`
+  const subject = invoiceEmailSubject(member.lang, escapeHtml(emailVars.invoiceId))
 
   const attachments: EmailAttachment[] = [
     {
@@ -154,7 +153,7 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
   await sendEmail(
     member.email,
     subject,
-    markdownEmailTemplate(`invoice-created-${member.lang}.md`, emailVars),
+    markdownEmailTemplate(`invoice-created-${normaliseEmailLang(member.lang)}.md`, emailVars),
     attachments,
   )
   logger.info(`Sent invoice ${invoiceId} email to member ${memberId}`)
@@ -171,15 +170,49 @@ type TaskRow = {
   discount?: number | null
 }
 
+/**
+ * Subject line per language, mirroring the heading of each language's
+ * `invoice-created-*.md`. The invoice id is appended by
+ * `invoiceEmailSubject()`.
+ *
+ * Typed `Record<EmailLang, string>` — the same shape `templates/registry.ts`
+ * uses — rather than a `switch` with a `default`, so adding a fourth language
+ * to `EmailLang` is a compile error here instead of a silent fall-through to
+ * English. That fall-through is exactly how Swedish members ended up with an
+ * English subject over a Swedish body.
+ */
+const INVOICE_SUBJECTS: Record<EmailLang, string> = {
+  fi: 'Malmin Ilmailukerhon lasku',
+  sv: 'MIK Ny faktura',
+  en: 'MIK New Invoice',
+}
+
+/**
+ * Subject line for the invoice email.
+ *
+ * This email deliberately sits outside the template registry (it carries PDF
+ * and barcode attachments, and has a dry-run variant), so the subject/body
+ * language pairing has to be kept in step by hand here — hence the shared
+ * `EmailLang` keying above and in {@link ITEMS_TABLE_HEADERS}.
+ */
+export function invoiceEmailSubject(lang: string | undefined, invoiceId: string): string {
+  return `${INVOICE_SUBJECTS[normaliseEmailLang(lang)]} - ${invoiceId}`
+}
+
+/** Line-item table column headings, keyed like {@link INVOICE_SUBJECTS}. */
+const ITEMS_TABLE_HEADERS: Record<
+  EmailLang,
+  { description: string; qty: string; unitPrice: string; total: string }
+> = {
+  fi: { description: 'Kuvaus', qty: 'Määrä', unitPrice: 'À-hinta', total: 'Yhteensä' },
+  sv: { description: 'Beskrivning', qty: 'Antal', unitPrice: 'À-pris', total: 'Totalt' },
+  en: { description: 'Description', qty: 'Qty', unitPrice: 'Unit price', total: 'Total' },
+}
+
 function buildItemsTableHtml(rows: TaskRow[], lang: string): string | undefined {
   if (rows.length === 0) return undefined
 
-  const headers =
-    lang === 'fi'
-      ? { description: 'Kuvaus', qty: 'Määrä', unitPrice: 'À-hinta', total: 'Yhteensä' }
-      : lang === 'sv'
-        ? { description: 'Beskrivning', qty: 'Antal', unitPrice: 'À-pris', total: 'Totalt' }
-        : { description: 'Description', qty: 'Qty', unitPrice: 'Unit price', total: 'Total' }
+  const headers = ITEMS_TABLE_HEADERS[normaliseEmailLang(lang)]
 
   const items = rows.map((row) => {
     const name = escapeHtml(row.name ?? '')
@@ -249,6 +282,9 @@ function buildItemsTableHtml(rows: TaskRow[], lang: string): string | undefined 
 
 // ─── Dry-run invoice email ─────────────────────────────────────────────────────
 
+/** Marks dry-run mail in the subject line. Exported so tests can assert on it. */
+export const DRY_RUN_SUBJECT_TAG = '[DEV DRY RUN]'
+
 /**
  * Sends an invoice email in dry-run mode.
  *
@@ -302,15 +338,18 @@ export async function sendDryRunInvoiceEmail(
     itemsTableHtml,
   }
 
-  const subject =
-    member.lang === 'fi'
-      ? `[DEV] Malmin Ilmailukerhon lasku (kuiva ajo) - ${invoiceId}`
-      : `[DEV DRY RUN] MIK Invoice - ${invoiceId}`
+  // One uniform, untranslated tag on purpose. This mail only ever reaches
+  // developers running with SIMPLBOOKS_DRY_RUN=true, and `[DEV DRY RUN]` is
+  // what the warning banner above, `sendDryRunInvoiceEmail`'s doc comment and
+  // copilot-instructions.md all name — so a single greppable, filterable token
+  // is worth more here than matching the body's language. (It replaced a
+  // Finnish-only `[DEV] … (kuiva ajo)` variant; see the dry-run subject tests.)
+  const subject = `${DRY_RUN_SUBJECT_TAG} ${invoiceEmailSubject(member.lang, String(invoiceId))}`
 
   await sendEmail(
     member.email,
     subject,
-    markdownEmailTemplate(`invoice-created-${member.lang}.md`, emailVars),
+    markdownEmailTemplate(`invoice-created-${normaliseEmailLang(member.lang)}.md`, emailVars),
     [],
   )
 

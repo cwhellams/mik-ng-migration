@@ -9,14 +9,20 @@ Always reference these instructions first and fallback to search or bash command
 Install required tools:
 
 ```bash
-# Install Node.js v24 (required for experimental transform types)
-wget https://nodejs.org/dist/v24.15.0/node-v24.15.0-linux-x64.tar.xz
-sudo tar -xf node-v24.15.0-linux-x64.tar.xz -C /opt/
-sudo ln -sf /opt/node-v24.15.0-linux-x64/bin/node /usr/local/bin/node
-sudo ln -sf /opt/node-v24.15.0-linux-x64/bin/npm /usr/local/bin/npm
+# Install Node.js v26 — matches the CI workflows and the production
+# Dockerfile (`node:26-alpine`). Anything older warns on every pnpm command.
+# NOTE: engines.node in package.json is intentionally set to 24.x (not 26.x)
+# because the Digital Ocean App Platform managed buildpack for the frontend
+# static site reads that field and does not support Node 26. Do NOT change
+# engines.node to 26.x — it would break the DO frontend build. The Dockerfile
+# and GitHub Actions CI install Node 26 explicitly and are unaffected by it.
+wget https://nodejs.org/dist/v26.7.0/node-v26.7.0-linux-x64.tar.xz
+sudo tar -xf node-v26.7.0-linux-x64.tar.xz -C /opt/
+sudo ln -sf /opt/node-v26.7.0-linux-x64/bin/node /usr/local/bin/node
+sudo ln -sf /opt/node-v26.7.0-linux-x64/bin/npm /usr/local/bin/npm
 
 # Install pnpm
-npm install -g pnpm@10.11.0
+npm install -g pnpm@11.10.0
 
 # Install Flyway CLI
 wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.21.0/flyway-commandline-10.21.0-linux-x64.tar.gz | tar -xzf -
@@ -67,7 +73,7 @@ pnpm dev
 # Backend: http://localhost:3000 | Frontend: http://localhost:5173/
 
 # Or run individually:
-# Backend development - requires Node.js v24 for --experimental-transform-types flag
+# Backend development - runs TypeScript directly via tsx
 cd apps/backend && pnpm dev
 
 # Frontend development - works reliably, takes ~1 second to start
@@ -126,7 +132,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 
 ## Known Issues and Workarounds
 
-1. **Node.js Version Requirement**: Backend dev mode requires Node.js v24 for `--experimental-transform-types` flag. V20 will not work.
+1. **Node.js Version Requirement**: Use Node.js v26 — it is what the CI workflows and the production Dockerfile specify. The backend's own `dev`/`start` scripts run through `tsx` and are not version-sensitive, but `apps/migration`, `simplbooks/` and `.vscode/launch.json` still use `node --experimental-transform-types` to run `.ts` directly. **Do NOT change `engines.node` in `package.json` to `26.x`** — it is intentionally `24.x` because the Digital Ocean App Platform managed buildpack reads that field for the frontend static site build and does not support Node 26. The Dockerfile and GitHub Actions both install Node 26 explicitly and are not controlled by `engines.node`.
 2. **ESLint Configuration**: May fail due to missing `@eslint/js` dependency in backend
 3. **Test Environment Variables**: Tests require SimplBooks API configuration to pass fully
 4. **PostgreSQL Credentials**: Local development uses admin/password (never use in production)

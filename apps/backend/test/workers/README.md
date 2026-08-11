@@ -8,6 +8,19 @@ This test suite validates the functionality of the Simplbooks Invoice Payment Wo
 
 The tests use **dependency injection** instead of Jest module mocking to ensure reliable, isolated tests that don't make real HTTP requests. The worker accepts optional dependencies (`getInvoice` and `cronSchedule`) that default to the real implementations in production but can be replaced with mocks in tests.
 
+### The rate limiter is injectable too
+
+`syncInvoicePayments` and `checkAndUpdateInvoicePayment` take a third parameter, `schedule: ScheduleFn`, which defaults to the module's `Bottleneck` (one SimplBooks request per second). Pass the exported `runImmediately` in tests: the limiter is a production traffic budget, and paying it for a stubbed `getInvoiceFn` only buys a second of wall clock per invoice.
+
+```typescript
+import {
+  syncInvoicePayments,
+  runImmediately,
+} from '../../src/workers/simplbooksInvoicePaymentWorker.ts'
+
+await syncInvoicePayments(mockGetInvoice, runImmediately)
+```
+
 ### Why Dependency Injection?
 
 Jest's ESM module mocking has limitations with static imports - the module graph is resolved before mocks can intercept calls. By using dependency injection:
@@ -89,7 +102,7 @@ pnpm test --coverage
 Each test creates a temporary invoice record with:
 
 - `member_id`: 'Matti1' (test user)
-- `pmt_ref`: '12345' (Simplbooks invoice ID)
+- `pmt_ref`: '12345' (bank payment reference printed on the invoice — **not** the Simplbooks invoice ID, which is `accts.invoice.id`; the worker looks Simplbooks up by that)
 - `is_paid`: false
 - `paid_at`: null
 

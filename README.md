@@ -13,7 +13,7 @@
 
 Welcome to the MIK ng "next gen" project
 
-> Node : We are currently using Node v24.x.x
+> Node : We are currently using Node v26.x.x in CI and production (Dockerfile). `engines.node` in `package.json` is intentionally set to `24.x` for Digital Ocean App Platform compatibility — do not change it to `26.x`.
 
 # Toolstack
 

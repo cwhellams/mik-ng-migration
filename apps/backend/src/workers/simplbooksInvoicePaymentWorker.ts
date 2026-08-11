@@ -14,6 +14,18 @@ const limiter = new Bottleneck({
   maxConcurrent: 1, // Only 1 concurrent request at a time
 })
 
+/**
+ * How a single SimplBooks lookup is queued. In production this is the
+ * `Bottleneck` above; tests pass `runImmediately` so a suite that stubs
+ * `getInvoiceFn` doesn't also pay a second of real wall clock per invoice.
+ */
+export type ScheduleFn = <T>(task: () => Promise<T>) => Promise<T>
+
+const rateLimited: ScheduleFn = (task) => limiter.schedule(task)
+
+/** A `ScheduleFn` that bypasses the rate limiter. For tests only. */
+export const runImmediately: ScheduleFn = (task) => task()
+
 export interface SimplbooksInvoicePaymentWorkerDeps extends CronWorkerDeps {
   getInvoice?: (id: number) => Promise<InvoiceResponse>
 }
@@ -35,10 +47,15 @@ export const startSimplbooksInvoicePaymentWorker = defineWorker<SimplbooksInvoic
 )
 
 /**
- * Sync payment status for all unpaid invoices with Simplbooks
+ * Sync payment status for all unpaid invoices with Simplbooks.
+ *
+ * Exported so tests can drive the real loop rather than re-implementing it —
+ * `getInvoiceFn` and `schedule` are parameters precisely so a test can pass a
+ * stub and skip the rate limiter.
  */
-async function syncInvoicePayments(
+export async function syncInvoicePayments(
   getInvoiceFn: (id: number) => Promise<InvoiceResponse>,
+  schedule: ScheduleFn = rateLimited,
 ): Promise<void> {
   try {
     logger.info('Fetching unpaid invoices from database')
@@ -58,7 +75,7 @@ async function syncInvoicePayments(
     // Process each invoice with rate limiting
     for (const invoice of unpaidInvoices) {
       try {
-        const wasPaid = await checkAndUpdateInvoicePayment(invoice, getInvoiceFn)
+        const wasPaid = await checkAndUpdateInvoicePayment(invoice, getInvoiceFn, schedule)
         checkedCount++
         if (wasPaid) {
           paidCount++
@@ -82,19 +99,27 @@ async function syncInvoicePayments(
 
 /**
  * Check a single invoice's payment status and update if paid
+ *
+ * Exported alongside `syncInvoicePayments` so a DB-backed test can exercise the
+ * real paid-date logic against one invoice, without sweeping every unpaid row
+ * in a database shared with other suites.
+ *
  * @returns true if invoice was marked as paid, false otherwise
  */
-async function checkAndUpdateInvoicePayment(
+export async function checkAndUpdateInvoicePayment(
   invoice: Invoice,
   getInvoiceFn: (id: number) => Promise<InvoiceResponse>,
+  schedule: ScheduleFn = rateLimited,
 ): Promise<boolean> {
-  // Use rate limiter to ensure we don't exceed 1 request per second
-  return limiter.schedule(async (): Promise<boolean> => {
+  // Defaults to the rate limiter, so we don't exceed 1 request per second
+  return schedule(async (): Promise<boolean> => {
     try {
       const simplbooksInvoiceId = Number.parseInt(invoice.id, 10)
 
       if (Number.isNaN(simplbooksInvoiceId)) {
-        logger.warn(`Invalid Simplbooks invoice ID for invoice ${invoice.id}: ${invoice.pmt_ref}`)
+        // `id` is the SimplBooks invoice id; `pmt_ref` is the bank payment
+        // reference printed on the invoice, which is a different number.
+        logger.warn(`Invalid Simplbooks invoice ID for invoice ${invoice.id}`)
         return false
       }
 

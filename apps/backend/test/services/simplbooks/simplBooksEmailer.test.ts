@@ -26,7 +26,7 @@ jest.unstable_mockModule('../../../src/services/simplbooks/simplbooksApiClient.t
   markInvoiceAsSent,
 }))
 
-const { sendSimplbooksInvoiceEmail } =
+const { sendSimplbooksInvoiceEmail, invoiceEmailSubject, DRY_RUN_SUBJECT_TAG } =
   await import('../../../src/services/simplbooks/simplBooksEmailer.ts')
 
 describe('SimplBooks Emailer Tests', () => {
@@ -351,5 +351,36 @@ describe('SimplBooks Emailer Tests', () => {
       expect(emailHtml).toContain('Flight fee')
       expect(emailHtml).toContain('€180.00')
     })
+  })
+
+  describe('invoiceEmailSubject', () => {
+    it.each([
+      [MIKLang.FI, 'Malmin Ilmailukerhon lasku - 12345'],
+      [MIKLang.SV, 'MIK Ny faktura - 12345'],
+      [MIKLang.EN, 'MIK New Invoice - 12345'],
+    ])('renders the %s subject', (lang, expected) => {
+      expect(invoiceEmailSubject(lang, '12345')).toBe(expected)
+    })
+
+    it.each([['de'], [undefined]])(
+      'falls back to English for %s, matching the body renderEmail would pick',
+      (lang) => {
+        expect(invoiceEmailSubject(lang, '12345')).toBe('MIK New Invoice - 12345')
+      },
+    )
+
+    // The dry-run tag is deliberately one untranslated token in every language:
+    // it exists so a developer can filter this mail, and it is the same string
+    // as the body banner and copilot-instructions.md. It replaced a Finnish-only
+    // `[DEV] … (kuiva ajo)` variant — assert here so that stays a choice rather
+    // than drifting back by accident.
+    it.each([[MIKLang.FI], [MIKLang.SV], [MIKLang.EN]])(
+      'tags the dry-run subject identically for %s',
+      (lang) => {
+        const subject = `${DRY_RUN_SUBJECT_TAG} ${invoiceEmailSubject(lang, '12345')}`
+        expect(subject.startsWith('[DEV DRY RUN] ')).toBe(true)
+        expect(subject).toContain(invoiceEmailSubject(lang, '12345'))
+      },
+    )
   })
 })
