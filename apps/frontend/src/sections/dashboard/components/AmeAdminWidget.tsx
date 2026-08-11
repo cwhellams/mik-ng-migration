@@ -2,16 +2,18 @@ import { Alert, Badge, Box, Button, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router'
 import useApi from '../../../hooks/useApi'
+import type { AmePendingCounts } from '@backend/routes/ame/models'
 
 export function AmeAdminWidget() {
-  const { data, isLoading, error } = useApi<{ count: number }>({
+  const { data, isLoading, error } = useApi<AmePendingCounts>({
     url: 'v1/ame/admin/pending/count',
   })
 
   if (isLoading) return null
   if (error) return null
 
-  const count = data?.count ?? 0
+  const count =
+    (data?.submissions ?? 0) + (data?.editSuggestions ?? 0) + (data?.removalRequests ?? 0)
 
   return (
     <Box
@@ -37,8 +39,12 @@ export function AmeAdminWidget() {
       {count > 0 ? (
         <>
           <Alert severity='warning' sx={{ mb: 1 }}>
-            There {count !== 1 ? 'are' : 'is'} <strong>{count}</strong> AME submission
-            {count !== 1 ? 's' : ''} awaiting review.
+            There {count !== 1 ? 'are' : 'is'} <strong>{count}</strong> AME item
+            {count !== 1 ? 's' : ''} awaiting review
+            {data
+              ? ` (${data.submissions} new, ${data.editSuggestions} edits, ${data.removalRequests} removals)`
+              : ''}
+            .
           </Alert>
           <Button
             component={Link}

@@ -4,6 +4,13 @@ export enum AmeStatus {
   SUBMITTED = 'SUBMITTED',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
+  REMOVED = 'REMOVED',
+}
+
+export enum AmeReviewStatus {
+  SUBMITTED = 'SUBMITTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }
 
 export const AME_MEDICAL_TYPES = ['EASA_CLASS_1', 'EASA_CLASS_2', 'LAPL', 'FAA'] as const
@@ -24,6 +31,27 @@ export const RejectAmeEntrySchema = z.object({
   reason: z.string().min(1).max(1000),
 })
 
+export const RateAmeEntrySchema = z.object({
+  stars: z.number().int().min(1).max(5),
+})
+export type RateAmeEntry = z.infer<typeof RateAmeEntrySchema>
+
+export const SuggestAmeEditSchema = z.object({
+  name: z.string().min(1).max(200),
+  medicalCentre: z.string().min(1).max(200),
+  location: z.string().min(1).max(200),
+  price: z.number().positive().nullable().optional(),
+  medicalTypes: z.array(z.enum(AME_MEDICAL_TYPES)).min(1),
+  notes: z.string().max(2000).nullable().optional(),
+  reportDate: z.string().date(),
+})
+export type SuggestAmeEdit = z.infer<typeof SuggestAmeEditSchema>
+
+export const RequestAmeRemovalSchema = z.object({
+  reason: z.string().min(1).max(1000),
+})
+export type RequestAmeRemoval = z.infer<typeof RequestAmeRemovalSchema>
+
 export const AmeEntrySchema = z.object({
   id: z.string().uuid(),
   submittedBy: z.string(),
@@ -43,8 +71,56 @@ export const AmeEntrySchema = z.object({
   rejectionReason: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  averageRating: z.number().nullable().optional(),
+  ratingCount: z.number(),
+  myRating: z.number().nullable().optional(),
 })
 export type AmeEntry = z.infer<typeof AmeEntrySchema>
+
+export const AmeEditSuggestionSchema = z.object({
+  id: z.string().uuid(),
+  ameId: z.string().uuid(),
+  submittedBy: z.string(),
+  submittedByName: z.string().nullable().optional(),
+  name: z.string(),
+  medicalCentre: z.string(),
+  location: z.string(),
+  price: z.number().nullable().optional(),
+  medicalTypes: z.array(z.string()),
+  notes: z.string().nullable().optional(),
+  reportDate: z.string(),
+  status: z.nativeEnum(AmeReviewStatus),
+  reviewedAt: z.string().nullable().optional(),
+  reviewedBy: z.string().nullable().optional(),
+  rejectionReason: z.string().nullable().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  // current ame_list values for the same fields, so admins can diff proposed vs live
+  currentName: z.string().optional(),
+  currentMedicalCentre: z.string().optional(),
+  currentLocation: z.string().optional(),
+  currentPrice: z.number().nullable().optional(),
+  currentMedicalTypes: z.array(z.string()).optional(),
+  currentNotes: z.string().nullable().optional(),
+  currentReportDate: z.string().optional(),
+})
+export type AmeEditSuggestion = z.infer<typeof AmeEditSuggestionSchema>
+
+export const AmeRemovalRequestSchema = z.object({
+  id: z.string().uuid(),
+  ameId: z.string().uuid(),
+  ameName: z.string().optional(),
+  submittedBy: z.string(),
+  submittedByName: z.string().nullable().optional(),
+  reason: z.string(),
+  status: z.nativeEnum(AmeReviewStatus),
+  reviewedAt: z.string().nullable().optional(),
+  reviewedBy: z.string().nullable().optional(),
+  rejectionReason: z.string().nullable().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+export type AmeRemovalRequest = z.infer<typeof AmeRemovalRequestSchema>
 
 export const AmeListFiltersSchema = z.object({
   medicalType: z.enum(AME_MEDICAL_TYPES).optional(),
@@ -62,3 +138,33 @@ export const AmeListResponseSchema = z.object({
   pageSize: z.number(),
 })
 export type AmeListResponse = z.infer<typeof AmeListResponseSchema>
+
+export const AmeReviewFiltersSchema = z.object({
+  status: z.nativeEnum(AmeReviewStatus).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(50),
+})
+export type AmeReviewFilters = z.infer<typeof AmeReviewFiltersSchema>
+
+export const AmeEditSuggestionListResponseSchema = z.object({
+  entries: z.array(AmeEditSuggestionSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+})
+export type AmeEditSuggestionListResponse = z.infer<typeof AmeEditSuggestionListResponseSchema>
+
+export const AmeRemovalRequestListResponseSchema = z.object({
+  entries: z.array(AmeRemovalRequestSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+})
+export type AmeRemovalRequestListResponse = z.infer<typeof AmeRemovalRequestListResponseSchema>
+
+export const AmePendingCountsSchema = z.object({
+  submissions: z.number(),
+  editSuggestions: z.number(),
+  removalRequests: z.number(),
+})
+export type AmePendingCounts = z.infer<typeof AmePendingCountsSchema>

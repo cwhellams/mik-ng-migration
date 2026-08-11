@@ -50,10 +50,10 @@ describe('route table', () => {
     // Recorded deliberately: only 36 of the 92 routes carry a route-level gate
     // of their own, so the matrix is not on its own a complete authorisation
     // audit — most of the app is guarded further in, at the page or the API.
-    expect(ROUTES).toHaveLength(92)
+    expect(ROUTES).toHaveLength(93)
     expect(OWN_GATES).toHaveLength(36)
     expect(GATED_ROUTES).toHaveLength(37)
-    expect(UNGATED_ROUTES).toHaveLength(55)
+    expect(UNGATED_ROUTES).toHaveLength(56)
   })
 
   it('demands an admin permission on every gated route', () => {

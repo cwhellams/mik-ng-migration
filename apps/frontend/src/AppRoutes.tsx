@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router'
 
 import Aircrafts from './sections/aircrafts/Aircrafts'
 import AmeAdminList from './sections/admin/ame/AmeAdminList'
+import AmeEditSuggestionForm from './sections/ame/AmeEditSuggestionForm'
 import AmeList from './sections/ame/AmeList'
 import AmeSubmitForm from './sections/ame/AmeSubmitForm'
 import AttemptsAdminPage from './sections/admin/exams/AttemptsAdminPage'
@@ -156,6 +157,7 @@ export default function AppRoutes() {
           <Route path='events' element={<EventsList />} />
           <Route path='ame-list' element={<AmeList />} />
           <Route path='ame-list/new' element={<AmeSubmitForm />} />
+          <Route path='ame-list/:id/edit' element={<AmeEditSuggestionForm />} />
           <Route path='meetings' element={<MeetingPage />} />
         </Route>
         <Route path='/profile/email-change/verify' element={<EmailChangeVerify />} />

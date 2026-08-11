@@ -3,17 +3,21 @@ import {
   Button,
   Chip,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
+  Rating,
   Select,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
+import dayjs from 'dayjs'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -21,8 +25,9 @@ import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
-import type { AmeListResponse } from '@backend/routes/ame/models'
+import type { AmeEntry, AmeListResponse } from '@backend/routes/ame/models'
 import { AME_MEDICAL_TYPES } from '@backend/routes/ame/models'
+import { AmeRemovalRequestDialog } from './AmeRemovalRequestDialog'
 
 const MEDICAL_TYPE_LABELS: Record<string, string> = {
   EASA_CLASS_1: 'EASA Class 1',
@@ -38,14 +43,22 @@ export default function AmeList() {
 
   const [medicalType, setMedicalType] = useState('')
   const [sort, setSort] = useState<'report_date_desc' | 'price_asc'>('report_date_desc')
+  const [removalDialogEntry, setRemovalDialogEntry] = useState<AmeEntry | null>(null)
 
-  const { data, isLoading, error } = useApi<AmeListResponse>({
+  const { data, isLoading, error, mutate } = useApi<AmeListResponse>({
     url: 'v1/ame',
     params: {
       medicalType: medicalType || undefined,
       sort,
     },
   })
+
+  const { mutation } = useApi({ url: 'v1/ame', skipFetch: true })
+
+  const handleRate = async (entry: AmeEntry, stars: number) => {
+    await mutation.trigger('POST', { stars }, `${entry.id}/rating`)
+    mutate()
+  }
 
   return (
     <Box>
@@ -106,6 +119,10 @@ export default function AmeList() {
                 <TableCell>Medical Types</TableCell>
                 <TableCell>Price (€)</TableCell>
                 <TableCell>Report Date</TableCell>
+                <TableCell>Rating</TableCell>
+                <TableCell>Added</TableCell>
+                <TableCell>Updated</TableCell>
+                {isAmeUser && <TableCell>Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -135,12 +152,66 @@ export default function AmeList() {
                   </TableCell>
                   <TableCell>{entry.price != null ? `€${entry.price.toFixed(0)}` : '—'}</TableCell>
                   <TableCell>{entry.reportDate}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Rating
+                          value={entry.averageRating ?? 0}
+                          precision={0.5}
+                          readOnly
+                          size='small'
+                        />
+                        <Typography variant='caption' color='text.secondary'>
+                          ({entry.ratingCount})
+                        </Typography>
+                      </Box>
+                      {isAmeUser && (
+                        <Rating
+                          value={entry.myRating ?? 0}
+                          size='small'
+                          onChange={(_e, value) => {
+                            if (value) void handleRate(entry, value)
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell>{dayjs(entry.createdAt).format('DD.MM.YYYY')}</TableCell>
+                  <TableCell>{dayjs(entry.updatedAt).format('DD.MM.YYYY')}</TableCell>
+                  {isAmeUser && (
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Tooltip title='Suggest edit'>
+                          <IconButton
+                            size='small'
+                            onClick={() => navigate(`/club/ame-list/${entry.id}/edit`)}
+                          >
+                            <Icon icon='mdi:pencil' />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title='Request removal'>
+                          <IconButton size='small' onClick={() => setRemovalDialogEntry(entry)}>
+                            <Icon icon='mdi:delete-outline' />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
       </RemoteContent>
+
+      <AmeRemovalRequestDialog
+        entry={removalDialogEntry}
+        onClose={() => setRemovalDialogEntry(null)}
+        onSubmitted={() => {
+          setRemovalDialogEntry(null)
+          mutate()
+        }}
+      />
     </Box>
   )
 }

@@ -392,6 +392,25 @@ export interface AcctsRecurringFeesProcessing {
   year: number
 }
 
+export interface ClubAmeEditSuggestion {
+  ame_id: string
+  created_at: Generated<Timestamp>
+  id: Generated<string>
+  location: string
+  medical_centre: string
+  medical_types: Generated<string[]>
+  name: string
+  notes: string | null
+  price: Numeric | null
+  rejection_reason: string | null
+  report_date: string
+  reviewed_at: Timestamp | null
+  reviewed_by: string | null
+  status: Generated<string>
+  submitted_by: string
+  updated_at: Generated<Timestamp>
+}
+
 export interface ClubAmeList {
   approved_at: Timestamp | null
   approved_by: string | null
@@ -407,6 +426,28 @@ export interface ClubAmeList {
   rejected_by: string | null
   rejection_reason: string | null
   report_date: string
+  status: Generated<string>
+  submitted_by: string
+  updated_at: Generated<Timestamp>
+}
+
+export interface ClubAmeRating {
+  ame_id: string
+  created_at: Generated<Timestamp>
+  id: Generated<string>
+  member_id: string
+  stars: number
+  updated_at: Generated<Timestamp>
+}
+
+export interface ClubAmeRemovalRequest {
+  ame_id: string
+  created_at: Generated<Timestamp>
+  id: Generated<string>
+  reason: string
+  rejection_reason: string | null
+  reviewed_at: Timestamp | null
+  reviewed_by: string | null
   status: Generated<string>
   submitted_by: string
   updated_at: Generated<Timestamp>
@@ -2148,7 +2189,10 @@ export interface DB {
   'accts.mileage_hetu_access_audit': AcctsMileageHetuAccessAudit
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
+  'club.ame_edit_suggestion': ClubAmeEditSuggestion
   'club.ame_list': ClubAmeList
+  'club.ame_rating': ClubAmeRating
+  'club.ame_removal_request': ClubAmeRemovalRequest
   'dto.flight_item_outcomes': DtoFlightItemOutcomes
   'dto.hil_queue': DtoHilQueue
   'dto.member_syllabus': DtoMemberSyllabus

@@ -66,6 +66,10 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/club/events', url: '/club/events' },
   { path: '/club/ame-list', url: '/club/ame-list' },
   { path: '/club/ame-list/new', url: '/club/ame-list/new' },
+  {
+    path: '/club/ame-list/:id/edit',
+    url: '/club/ame-list/6119a525-cbc7-4cb2-9259-e07c78def12b/edit',
+  },
   { path: '/club/meetings', url: '/club/meetings' },
   { path: '/profile/email-change/verify', url: '/profile/email-change/verify' },
   { path: '/mailbox', url: '/mailbox' },
