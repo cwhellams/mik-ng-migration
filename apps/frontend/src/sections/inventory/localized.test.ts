@@ -40,7 +40,7 @@ describe('localName', () => {
   })
 
   it('returns an empty string when neither the language nor English is present', () => {
-    expect(localName({ de: 'Schraubendreher' }, 'fi')).toBe('')
+    expect(localName({ sv: 'Skruvmejsel' }, 'fi')).toBe('')
   })
 
   it('returns an empty string for a missing object', () => {

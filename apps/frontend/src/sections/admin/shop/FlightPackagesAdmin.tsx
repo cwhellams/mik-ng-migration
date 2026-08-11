@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -14,7 +13,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Snackbar,
   Switch,
   Table,
   TableBody,
@@ -31,6 +29,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
+import { useSnackbar } from '../../../hooks/useSnackbar'
+import { LocalisedTextField } from '../../../components/LocalisedTextField'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type { PrepaidPackage, MemberPackage } from '@backend/routes/prepaid-hours/models'
 import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -130,6 +130,7 @@ function formToPayload(f: PackageForm) {
 
 export default function FlightPackagesAdmin() {
   const { t } = useTranslation()
+  const { showSnackbar } = useSnackbar()
 
   const {
     data: packages,
@@ -166,11 +167,6 @@ export default function FlightPackagesAdmin() {
   const [extendDialogOpen, setExtendDialogOpen] = useState(false)
   const [extendAircraft, setExtendAircraft] = useState('')
   const [extendDays, setExtendDays] = useState('30')
-
-  const [snack, setSnack] = useState<{
-    msg: string
-    sev: 'success' | 'error'
-  } | null>(null)
 
   const [filterAircraft, setFilterAircraft] = useState('')
   const [filterActive, setFilterActive] = useState('all')
@@ -238,10 +234,10 @@ export default function FlightPackagesAdmin() {
       ? await packagesMutation.trigger('PUT', formToPayload(form), editingPkg.productId)
       : await packagesMutation.trigger('POST', formToPayload(form))
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutatePackages()
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.saved'), { severity: 'success' })
       closePkg()
     }
   }
@@ -252,15 +248,15 @@ export default function FlightPackagesAdmin() {
       daysToAdd: Number.parseInt(extendDays),
     })
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await Promise.all([mutatePackages(), mutateMemberPackages()])
-      setSnack({
-        msg: t('shop.admin.expiryExtended', {
+      showSnackbar(
+        t('shop.admin.expiryExtended', {
           count: result.data?.updated ?? 0,
         }),
-        sev: 'success',
-      })
+        { severity: 'success' },
+      )
       setExtendDialogOpen(false)
     }
   }
@@ -518,119 +514,38 @@ export default function FlightPackagesAdmin() {
         <DialogContent sx={{ pt: '8px !important' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Product name (multilingual) */}
-            <Box
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-                p: 1.5,
-              }}
-            >
-              <Typography
-                variant='caption'
-                sx={{
-                  color: 'text.secondary',
-                  display: 'block',
-                  mb: 1,
-                }}
-              >
-                {t('common.name')} *
-              </Typography>
-              {(['en', 'fi', 'sv'] as const).map((lang, i) => (
-                <Box
-                  key={lang}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    mt: i > 0 ? 1 : 0,
-                  }}
-                >
-                  <Chip label={lang.toUpperCase()} size='small' sx={{ width: 38, flexShrink: 0 }} />
-                  <TextField
-                    size='small'
-                    fullWidth
-                    // Only the group has a visible label, so each per-language
-                    // box needs an accessible name of its own.
-                    slotProps={{
-                      htmlInput: {
-                        'aria-label': `${t('common.name')} (${lang.toUpperCase()})`,
-                      },
-                    }}
-                    value={
-                      form[
-                        `name${lang.charAt(0).toUpperCase() + lang.slice(1)}` as
-                          'nameEn' | 'nameFi' | 'nameSv'
-                      ]
-                    }
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        [`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`]: e.target.value,
-                      }))
-                    }
-                  />
-                </Box>
-              ))}
-            </Box>
+            <LocalisedTextField
+              label={t('common.name')}
+              required
+              values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
+              onChange={(lang, val) =>
+                setForm((f) => ({
+                  ...f,
+                  nameEn: lang === 'en' ? val : f.nameEn,
+                  nameFi: lang === 'fi' ? val : f.nameFi,
+                  nameSv: lang === 'sv' ? val : f.nameSv,
+                }))
+              }
+            />
 
             {/* Product description (multilingual) */}
-            <Box
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-                p: 1.5,
+            <LocalisedTextField
+              label={t('common.description')}
+              multiline
+              values={{
+                en: form.descriptionEn,
+                fi: form.descriptionFi,
+                sv: form.descriptionSv,
               }}
-            >
-              <Typography
-                variant='caption'
-                sx={{
-                  color: 'text.secondary',
-                  display: 'block',
-                  mb: 1,
-                }}
-              >
-                {t('common.description')}
-              </Typography>
-              {(['en', 'fi', 'sv'] as const).map((lang, i) => (
-                <Box
-                  key={lang}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    mt: i > 0 ? 1 : 0,
-                  }}
-                >
-                  <Chip label={lang.toUpperCase()} size='small' sx={{ width: 38, flexShrink: 0 }} />
-                  <TextField
-                    size='small'
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    slotProps={{
-                      htmlInput: {
-                        'aria-label': `${t('common.description')} (${lang.toUpperCase()})`,
-                      },
-                    }}
-                    value={
-                      form[
-                        `description${lang.charAt(0).toUpperCase() + lang.slice(1)}` as
-                          'descriptionEn' | 'descriptionFi' | 'descriptionSv'
-                      ]
-                    }
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        [`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`]:
-                          e.target.value,
-                      }))
-                    }
-                  />
-                </Box>
-              ))}
-            </Box>
+              onChange={(lang, val) =>
+                setForm((f) => ({
+                  ...f,
+                  descriptionEn: lang === 'en' ? val : f.descriptionEn,
+                  descriptionFi: lang === 'fi' ? val : f.descriptionFi,
+                  descriptionSv: lang === 'sv' ? val : f.descriptionSv,
+                }))
+              }
+            />
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <FormControl size='small' fullWidth required>
@@ -859,16 +774,6 @@ export default function FlightPackagesAdmin() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

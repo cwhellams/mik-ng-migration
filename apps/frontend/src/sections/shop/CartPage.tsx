@@ -1,12 +1,10 @@
 import {
-  Alert,
   Box,
   Button,
   Chip,
   Divider,
   IconButton,
   Paper,
-  Snackbar,
   Stack,
   Table,
   TableBody,
@@ -22,23 +20,20 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
+import { useSnackbar } from '../../hooks/useSnackbar'
+import { useLocalisedText } from '../../utils/localisedText'
 import { RemoteContent } from '../../components/RemoteContent'
 import type { Cart, Order } from '@backend/routes/shop/models'
 import { Link, useNavigate } from 'react-router'
 
 export default function CartPage() {
-  const { t, i18n } = useTranslation()
-  let lang: 'en' | 'fi' | 'sv' = 'en'
-  if (i18n.language.startsWith('fi')) lang = 'fi'
-  else if (i18n.language.startsWith('sv')) lang = 'sv'
+  const { t } = useTranslation()
+  const { localise } = useLocalisedText()
   const navigate = useNavigate()
+  const { showSnackbar } = useSnackbar()
 
   const [couponInput, setCouponInput] = useState('')
   const [notes, setNotes] = useState('')
-  const [snack, setSnack] = useState<{
-    msg: string
-    sev: 'success' | 'error'
-  } | null>(null)
 
   const {
     data: cart,
@@ -51,8 +46,6 @@ export default function CartPage() {
     url: 'v1/shop/orders',
     skipFetch: true,
   })
-
-  const localName = (obj: Record<string, string>) => obj?.[lang] ?? obj?.['en'] ?? ''
 
   const handleQtyChange = async (itemId: number, qty: number) => {
     await cartMutation.trigger('PUT', { quantity: qty }, `items/${itemId}`)
@@ -72,10 +65,10 @@ export default function CartPage() {
   const handleApplyDiscount = async () => {
     const result = await cartMutation.trigger('POST', { code: couponInput || null }, 'discount')
     if (result.error) {
-      setSnack({ msg: t('shop.discountInvalid'), sev: 'error' })
+      showSnackbar(t('shop.discountInvalid'), { severity: 'error', autoHideDuration: 4000 })
     } else {
       await mutate()
-      setSnack({ msg: t('shop.discountApplied'), sev: 'success' })
+      showSnackbar(t('shop.discountApplied'), { severity: 'success', autoHideDuration: 4000 })
     }
   }
 
@@ -84,9 +77,12 @@ export default function CartPage() {
       notes: notes || undefined,
     })
     if (result.error || !result.data) {
-      setSnack({ msg: result.error?.detail ?? t('common.error'), sev: 'error' })
+      showSnackbar(result.error?.detail ?? t('common.error'), {
+        severity: 'error',
+        autoHideDuration: 4000,
+      })
     } else {
-      setSnack({ msg: t('shop.orderPlaced'), sev: 'success' })
+      showSnackbar(t('shop.orderPlaced'), { severity: 'success', autoHideDuration: 4000 })
       mutate(undefined, true)
       navigate(`/shop/orders/${result.data.orderId}`)
     }
@@ -140,9 +136,7 @@ export default function CartPage() {
                               fontWeight: 600,
                             }}
                           >
-                            {item.product
-                              ? localName(item.product.name as Record<string, string>)
-                              : item.productId}
+                            {item.product ? localise(item.product.name) : item.productId}
                           </Typography>
                           {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
                             <Box>
@@ -319,16 +313,6 @@ export default function CartPage() {
           </Stack>
         )}
       </RemoteContent>
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={4000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

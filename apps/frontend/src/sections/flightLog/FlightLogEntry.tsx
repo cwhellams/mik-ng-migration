@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Snackbar,
-  Alert as MuiAlert,
   Paper,
   Typography,
   Button,
@@ -46,6 +44,7 @@ import {
   FlightType,
 } from '@backend/routes/flight-log/models'
 import useApi, { api } from '../../hooks/useApi'
+import { useSnackbar } from '../../hooks/useSnackbar'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import { FUEL_TYPES } from '@backend/routes/expenses/models'
 import { MemberListResponse } from '@backend/routes/members/models'
@@ -111,6 +110,7 @@ const FlightLogEntry = () => {
 
 const ClassicFlightLogEntry = () => {
   const { t } = useTranslation()
+  const { showSnackbar } = useSnackbar()
   const theme = useTheme()
   const isSmUp = useMediaQuery(theme.breakpoints.up('sm'))
 
@@ -365,13 +365,6 @@ const ClassicFlightLogEntry = () => {
   // Local-only state for fuel type — not stored in the flight log, used only for expense prefill
   const [fuelUpliftType, setFuelUpliftType] = useState<(typeof FUEL_TYPES)[number] | ''>('')
   const [fuelClaimCreating, setFuelClaimCreating] = useState(false)
-  const [fuelClaimSnack, setFuelClaimSnack] = useState<{
-    open: boolean
-    claimId?: string
-    error?: string
-  }>({
-    open: false,
-  })
 
   const createFuelDraft = async () => {
     setFuelClaimCreating(true)
@@ -406,9 +399,26 @@ const ClassicFlightLogEntry = () => {
       }
 
       const res = await api.post<{ id: string }>('v1/expenses', payload)
-      setFuelClaimSnack({ open: true, claimId: res.data.id })
+      showSnackbar(t('flightLog.fuelClaimCreated'), {
+        severity: 'success',
+        autoHideDuration: 6000,
+        anchorOrigin: { vertical: 'bottom', horizontal: 'center' },
+        action: (
+          <Button
+            color='inherit'
+            size='small'
+            onClick={() => navigate(`/expenses/${res.data.id}/edit`)}
+          >
+            {t('flightLog.openExpenseClaim')}
+          </Button>
+        ),
+      })
     } catch {
-      setFuelClaimSnack({ open: true, error: t('flightLog.fuelClaimCreateError') })
+      showSnackbar(t('flightLog.fuelClaimCreateError'), {
+        severity: 'error',
+        autoHideDuration: 6000,
+        anchorOrigin: { vertical: 'bottom', horizontal: 'center' },
+      })
     } finally {
       setFuelClaimCreating(false)
     }
@@ -534,30 +544,6 @@ const ClassicFlightLogEntry = () => {
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <SnackAlert problem={problem} />
-      {/* Fuel draft creation snackbar */}
-      <Snackbar
-        open={fuelClaimSnack.open}
-        autoHideDuration={6000}
-        onClose={() => setFuelClaimSnack((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <MuiAlert
-          severity={fuelClaimSnack.error ? 'error' : 'success'}
-          action={
-            !fuelClaimSnack.error && fuelClaimSnack.claimId ? (
-              <Button
-                color='inherit'
-                size='small'
-                onClick={() => navigate(`/expenses/${fuelClaimSnack.claimId}/edit`)}
-              >
-                {t('flightLog.openExpenseClaim')}
-              </Button>
-            ) : undefined
-          }
-        >
-          {fuelClaimSnack.error ?? t('flightLog.fuelClaimCreated')}
-        </MuiAlert>
-      </Snackbar>
       {/* Breadcrumb navigation */}
       <Breadcrumbs sx={{ my: 2 }}>
         <Link to={backLink}>{source}</Link>

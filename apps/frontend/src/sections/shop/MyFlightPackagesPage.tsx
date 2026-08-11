@@ -19,20 +19,15 @@ import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
+import { useLocalisedText } from '../../utils/localisedText'
 
 function formatMinutes(minutes: number): string {
   return `${minutes} min`
 }
 
-function resolveLanguage(language: string): 'fi' | 'sv' | 'en' {
-  if (language.startsWith('fi')) return 'fi'
-  if (language.startsWith('sv')) return 'sv'
-  return 'en'
-}
-
 export default function MyFlightPackagesPage() {
-  const { t, i18n } = useTranslation()
-  const lang = resolveLanguage(i18n.language)
+  const { t } = useTranslation()
+  const { localise } = useLocalisedText()
 
   const {
     data: memberPackages,
@@ -53,9 +48,7 @@ export default function MyFlightPackagesPage() {
 
   const localPackageName = (pkg: MemberPackage['package']): string => {
     if (!pkg) return '-'
-    if (lang === 'fi') return pkg.nameFi ?? pkg.nameEn ?? '-'
-    if (lang === 'sv') return pkg.nameSv ?? pkg.nameEn ?? '-'
-    return pkg.nameEn ?? '-'
+    return localise({ en: pkg.nameEn, fi: pkg.nameFi, sv: pkg.nameSv }) || '-'
   }
 
   const renderTable = (rows: MemberPackage[]) => (
