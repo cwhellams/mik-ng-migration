@@ -1,31 +1,15 @@
-# Use Node.js 26 as the base image for building
-FROM node:26-alpine AS builder
-
-# Install pnpm
-RUN npm install -g pnpm@11.3.0
-
-# Set working directory in the container
-WORKDIR /usr/src/app
-
-# Copy root pnpm files (for workspaces/monorepo)
-COPY pnpm-lock.yaml package.json pnpm-workspace.yaml* ./
-
-# Copy the backend package.json
-COPY apps/backend/package.json ./apps/backend/
-
-# Install all dependencies from the root using pnpm
-RUN pnpm install --frozen-lockfile
-
 # Create minimal production image
 FROM node:26-alpine AS production
 
-# Install pnpm 
-RUN npm install -g pnpm@11.3.0
+# Install pnpm
+RUN npm install -g pnpm@11.10.0
 
 # Install Chromium for Puppeteer-based HTML-to-PDF rendering (Brevo newsletter
 # archiving). Puppeteer's bundled Chromium download doesn't run on Alpine's
 # musl libc, so we use puppeteer-core against this system install instead.
-RUN apk add --no-cache chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont
+# freetype-dev (headers) is intentionally omitted: nothing in this image
+# compiles against freetype at runtime.
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Create app directory and non-root user
@@ -35,15 +19,12 @@ RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
 WORKDIR /home/node/app
 
 # Copy only necessary pnpm files for production
-COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
-COPY --from=builder /usr/src/app/package.json ./
-COPY --from=builder /usr/src/app/pnpm-workspace.yaml* ./
-COPY --from=builder /usr/src/app/apps/backend/package.json ./apps/backend/
+COPY pnpm-lock.yaml package.json pnpm-workspace.yaml* ./
+COPY apps/backend/package.json ./apps/backend/
 
 # Install only production dependencies with aggressive optimization
 RUN pnpm install --frozen-lockfile --prod --shamefully-hoist \
     && pnpm store prune \
-    && rm -rf ~/.pnpm-store \
     && rm -rf /root/.local/share/pnpm \
     && rm -rf /tmp/*
 
