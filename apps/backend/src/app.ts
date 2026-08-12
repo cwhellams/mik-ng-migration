@@ -57,6 +57,7 @@ import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import aircraftHilRoutes from './routes/aircraft-hil/api.ts'
 import defectRoutes from './routes/defects/api.ts'
 import meetingRoutes from './routes/meetings/api.ts'
+import { router as pricesRoutes } from './routes/prices/api.ts'
 import { startAllWorkers, stopAllWorkers } from './workers/registry.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 import { testConnection, closeDb } from './db/connection.ts'
@@ -178,6 +179,7 @@ app.use('/api/v1/push', pushRoutes)
 app.use('/api/v1/mailbox', mailboxRoutes)
 app.use('/api/v1/dto', dtoRoutes)
 app.use('/api/v1/events', eventRoutes)
+app.use('/api/v1/prices', pricesRoutes)
 app.use('/api/v1/expenses', expenseRoutes)
 app.use('/api/v1/cost-centres', costCentreRoutes)
 app.use('/api/v1/useful-phone-numbers', usefulPhoneNumberRoutes)
