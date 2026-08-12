@@ -3,6 +3,27 @@ import type { UiLanguage } from '../utils/localisedText'
 
 const DEFAULT_LANGUAGES: UiLanguage[] = ['en', 'fi', 'sv']
 
+/**
+ * Applies a `LocalisedTextField` change to a form that stores each language
+ * under `${prefix}En` / `${prefix}Fi` / `${prefix}Sv` (rather than a nested
+ * `{en, fi, sv}` object) — the shared version of the 3-branch
+ * `lang === 'en' ? val : f.xxxEn` dispatch every such form was re-implementing.
+ */
+export function withLocalisedField<
+  Prefix extends string,
+  T extends Record<`${Prefix}En` | `${Prefix}Fi` | `${Prefix}Sv`, string>,
+>(form: T, prefix: Prefix, lang: UiLanguage, value: string): T {
+  const enKey = `${prefix}En` as keyof T
+  const fiKey = `${prefix}Fi` as keyof T
+  const svKey = `${prefix}Sv` as keyof T
+  return {
+    ...form,
+    [enKey]: lang === 'en' ? value : form[enKey],
+    [fiKey]: lang === 'fi' ? value : form[fiKey],
+    [svKey]: lang === 'sv' ? value : form[svKey],
+  }
+}
+
 export interface LocalisedTextFieldProps {
   label: string
   values: Partial<Record<UiLanguage, string>>

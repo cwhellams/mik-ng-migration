@@ -34,7 +34,7 @@ import { Icon } from '@iconify/react'
 import dayjs from 'dayjs'
 import { DocumentUploadArea } from './AircraftDocumentUploadArea'
 import useApi from '../../../hooks/useApi'
-import { useSnackbar } from '../../../hooks/useSnackbar'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../../hooks/useSnackbar'
 import {
   AircraftDocument,
   AircraftDocumentAuditable,
@@ -440,7 +440,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         showSnackbar(t('aircraft.document.tinyUrlCopied', 'Tiny URL copied to clipboard!'), {
           severity: 'success',
           autoHideDuration: 4000,
-          anchorOrigin: { vertical: 'bottom', horizontal: 'center' },
+          anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
         })
       } catch (error) {
         console.error('Failed to copy tiny URL:', error)

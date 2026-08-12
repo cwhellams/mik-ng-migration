@@ -21,7 +21,7 @@ import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
-import { LocalisedTextField } from '../../../components/LocalisedTextField'
+import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
 import type { Category } from '@backend/routes/shop/models'
 
 interface CategoryFormState {
@@ -185,26 +185,12 @@ export default function CategoriesAdmin() {
             label={t('common.name')}
             required
             values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
-            onChange={(lang, val) =>
-              setForm((f) => ({
-                ...f,
-                nameEn: lang === 'en' ? val : f.nameEn,
-                nameFi: lang === 'fi' ? val : f.nameFi,
-                nameSv: lang === 'sv' ? val : f.nameSv,
-              }))
-            }
+            onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'name', lang, val))}
           />
           <LocalisedTextField
             label={t('common.description')}
             values={{ en: form.descEn, fi: form.descFi, sv: form.descSv }}
-            onChange={(lang, val) =>
-              setForm((f) => ({
-                ...f,
-                descEn: lang === 'en' ? val : f.descEn,
-                descFi: lang === 'fi' ? val : f.descFi,
-                descSv: lang === 'sv' ? val : f.descSv,
-              }))
-            }
+            onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'desc', lang, val))}
           />
         </DialogContent>
         <DialogActions>

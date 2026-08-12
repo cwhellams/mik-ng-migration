@@ -21,7 +21,7 @@ import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
-import { useSnackbar } from '../../hooks/useSnackbar'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
 import { RemoteContent } from '../../components/RemoteContent'
 import { EditButton } from '../../components/EditButton'
 import { useRoles } from '../../hooks/useRoles'
@@ -199,7 +199,7 @@ const Documents = () => {
       showSnackbar(t('documents.filterLinkCopied', 'Filter link copied to clipboard!'), {
         severity: 'success',
         autoHideDuration: 4000,
-        anchorOrigin: { vertical: 'bottom', horizontal: 'center' },
+        anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
       })
     } catch (error) {
       console.error('Failed to copy filter link:', error)
@@ -213,7 +213,7 @@ const Documents = () => {
         showSnackbar(t('documents.tinyUrlCopied', 'Tiny URL copied to clipboard!'), {
           severity: 'success',
           autoHideDuration: 4000,
-          anchorOrigin: { vertical: 'bottom', horizontal: 'center' },
+          anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
         })
       } catch (error) {
         console.error('Failed to copy tiny URL:', error)

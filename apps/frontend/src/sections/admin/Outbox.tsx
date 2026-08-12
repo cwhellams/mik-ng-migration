@@ -24,15 +24,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs, { type Dayjs } from 'dayjs'
 import useApi from '../../hooks/useApi'
-import { useSnackbar } from '../../hooks/useSnackbar'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
 import type { OutboxListResponse, OutboxItem, OutboxStatus } from '@backend/routes/outbox/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import { useTimezone } from '../../hooks/useTimezone'
 
 const STATUS_OPTIONS: OutboxStatus[] = ['PENDING', 'PROCESSING', 'SYNCED', 'FAILED', 'SKIPPED']
-
-const OUTBOX_SNACKBAR_ANCHOR = { vertical: 'bottom', horizontal: 'center' } as const
 
 const EVENT_TYPE_OPTIONS = [
   'addMember',
@@ -110,13 +108,13 @@ export default function Outbox() {
       showSnackbar(t('outbox.retryError'), {
         severity: 'error',
         autoHideDuration: 4000,
-        anchorOrigin: OUTBOX_SNACKBAR_ANCHOR,
+        anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
       })
     } else {
       showSnackbar(t('outbox.retrySuccess'), {
         severity: 'success',
         autoHideDuration: 4000,
-        anchorOrigin: OUTBOX_SNACKBAR_ANCHOR,
+        anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
       })
       mutate()
     }

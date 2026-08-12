@@ -14,6 +14,16 @@ const Trigger = ({ message, options }: { message: string; options?: ShowSnackbar
   return <button onClick={() => showSnackbar(message, options)}>trigger</button>
 }
 
+const TwoTriggers = () => {
+  const { showSnackbar } = useSnackbar()
+  return (
+    <>
+      <button onClick={() => showSnackbar('First')}>first</button>
+      <button onClick={() => showSnackbar('Second')}>second</button>
+    </>
+  )
+}
+
 describe('useSnackbar without a provider', () => {
   it('throws rather than silently no-op', () => {
     expect(() => renderHook(() => useSnackbar())).toThrow(
@@ -74,5 +84,20 @@ describe('SnackbarProvider', () => {
     await user.click(screen.getByRole('button', { name: /close/i }))
 
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+  })
+
+  it('queues a second message instead of discarding the still-visible first one', async () => {
+    const user = userEvent.setup()
+    render(<TwoTriggers />, { wrapper })
+
+    await user.click(screen.getByRole('button', { name: 'first' }))
+    await user.click(screen.getByRole('button', { name: 'second' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('First')
+
+    await user.click(screen.getByRole('button', { name: /close/i }))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Second'))
   })
 })

@@ -44,7 +44,7 @@ import {
   FlightType,
 } from '@backend/routes/flight-log/models'
 import useApi, { api } from '../../hooks/useApi'
-import { useSnackbar } from '../../hooks/useSnackbar'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import { FUEL_TYPES } from '@backend/routes/expenses/models'
 import { MemberListResponse } from '@backend/routes/members/models'
@@ -402,7 +402,7 @@ const ClassicFlightLogEntry = () => {
       showSnackbar(t('flightLog.fuelClaimCreated'), {
         severity: 'success',
         autoHideDuration: 6000,
-        anchorOrigin: { vertical: 'bottom', horizontal: 'center' },
+        anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
         action: (
           <Button
             color='inherit'
@@ -417,7 +417,7 @@ const ClassicFlightLogEntry = () => {
       showSnackbar(t('flightLog.fuelClaimCreateError'), {
         severity: 'error',
         autoHideDuration: 6000,
-        anchorOrigin: { vertical: 'bottom', horizontal: 'center' },
+        anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
       })
     } finally {
       setFuelClaimCreating(false)

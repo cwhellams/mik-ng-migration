@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { useSnackbar } from '../../../hooks/useSnackbar'
-import { LocalisedTextField } from '../../../components/LocalisedTextField'
+import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type { PrepaidPackage, MemberPackage } from '@backend/routes/prepaid-hours/models'
 import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -518,14 +518,7 @@ export default function FlightPackagesAdmin() {
               label={t('common.name')}
               required
               values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
-              onChange={(lang, val) =>
-                setForm((f) => ({
-                  ...f,
-                  nameEn: lang === 'en' ? val : f.nameEn,
-                  nameFi: lang === 'fi' ? val : f.nameFi,
-                  nameSv: lang === 'sv' ? val : f.nameSv,
-                }))
-              }
+              onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'name', lang, val))}
             />
 
             {/* Product description (multilingual) */}
@@ -538,12 +531,7 @@ export default function FlightPackagesAdmin() {
                 sv: form.descriptionSv,
               }}
               onChange={(lang, val) =>
-                setForm((f) => ({
-                  ...f,
-                  descriptionEn: lang === 'en' ? val : f.descriptionEn,
-                  descriptionFi: lang === 'fi' ? val : f.descriptionFi,
-                  descriptionSv: lang === 'sv' ? val : f.descriptionSv,
-                }))
+                setForm((f) => withLocalisedField(f, 'description', lang, val))
               }
             />
 

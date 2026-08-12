@@ -33,7 +33,7 @@ import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
-import { LocalisedTextField } from '../../../components/LocalisedTextField'
+import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
 import type {
   InventoryItem,
   InventoryCategory,
@@ -151,7 +151,7 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
       showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      showSnackbar(t('common.saved'), { severity: 'success' })
+      showSnackbar(t('common.deleted'), { severity: 'success' })
     }
   }
 
@@ -224,26 +224,12 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
             label={t('common.name')}
             required
             values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
-            onChange={(lang, val) =>
-              setForm((f) => ({
-                ...f,
-                nameEn: lang === 'en' ? val : f.nameEn,
-                nameFi: lang === 'fi' ? val : f.nameFi,
-                nameSv: lang === 'sv' ? val : f.nameSv,
-              }))
-            }
+            onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'name', lang, val))}
           />
           <LocalisedTextField
             label={t('common.description')}
             values={{ en: form.descEn, fi: form.descFi, sv: form.descSv }}
-            onChange={(lang, val) =>
-              setForm((f) => ({
-                ...f,
-                descEn: lang === 'en' ? val : f.descEn,
-                descFi: lang === 'fi' ? val : f.descFi,
-                descSv: lang === 'sv' ? val : f.descSv,
-              }))
-            }
+            onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'desc', lang, val))}
           />
         </DialogContent>
         <DialogActions>
@@ -609,35 +595,21 @@ function ItemsTab() {
           {editing ? t('inventory.admin.editItem') : t('inventory.admin.addItem')}
         </DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
-          <LocalisedTextField
-            label={t('common.name')}
-            required
-            error={nameError}
-            helperText={t('inventory.admin.fieldRequired')}
-            values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
-            onChange={(lang, val) =>
-              setForm((f) => ({
-                ...f,
-                nameEn: lang === 'en' ? val : f.nameEn,
-                nameFi: lang === 'fi' ? val : f.nameFi,
-                nameSv: lang === 'sv' ? val : f.nameSv,
-              }))
-            }
-          />
-          <Box sx={{ mb: 2 }} />
-          <LocalisedTextField
-            label={t('common.description')}
-            values={{ en: form.descEn, fi: form.descFi, sv: form.descSv }}
-            onChange={(lang, val) =>
-              setForm((f) => ({
-                ...f,
-                descEn: lang === 'en' ? val : f.descEn,
-                descFi: lang === 'fi' ? val : f.descFi,
-                descSv: lang === 'sv' ? val : f.descSv,
-              }))
-            }
-          />
-          <Box sx={{ mb: 2 }} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+            <LocalisedTextField
+              label={t('common.name')}
+              required
+              error={nameError}
+              helperText={t('inventory.admin.fieldRequired')}
+              values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
+              onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'name', lang, val))}
+            />
+            <LocalisedTextField
+              label={t('common.description')}
+              values={{ en: form.descEn, fi: form.descFi, sv: form.descSv }}
+              onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'desc', lang, val))}
+            />
+          </Box>
 
           <FormControl size='small' fullWidth error={categoryError} sx={{ mb: 2 }}>
             <InputLabel id='inventory-item-category-label'>{t('inventory.category')} *</InputLabel>
