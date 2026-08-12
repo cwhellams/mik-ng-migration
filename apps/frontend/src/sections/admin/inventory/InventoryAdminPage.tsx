@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Checkbox,
@@ -16,7 +15,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Snackbar,
   Tab,
   Table,
   TableBody,
@@ -33,7 +31,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
+import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
+import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
 import type {
   InventoryItem,
   InventoryCategory,
@@ -106,6 +106,7 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
   allowDeactivate = false,
 }: LocalizedCrudTabProps<T>) {
   const { t } = useTranslation()
+  const { showSnackbar } = useSnackbar()
   const {
     data: rows,
     mutate,
@@ -116,7 +117,6 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<T | null>(null)
   const [form, setForm] = useState<LocalizedFormState>(emptyLocalizedForm)
-  const [snack, setSnack] = useState<{ msg: string; sev: 'success' | 'error' } | null>(null)
 
   const openCreate = () => {
     setEditing(null)
@@ -136,10 +136,10 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
       ? await mutation.trigger('PUT', payload, getId(editing))
       : await mutation.trigger('POST', payload)
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.saved'), { severity: 'success' })
       close()
     }
   }
@@ -148,24 +148,12 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
     if (!globalThis.confirm(t('common.confirmDelete'))) return
     const result = await mutation.trigger('DELETE', {}, id)
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.deleted'), { severity: 'success' })
     }
   }
-
-  const field = (key: keyof LocalizedFormState, label: string) => (
-    <TextField
-      key={key}
-      label={label}
-      size='small'
-      fullWidth
-      value={form[key]}
-      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-      sx={{ mb: 2 }}
-    />
-  )
 
   return (
     <Box>
@@ -229,13 +217,20 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
 
       <Dialog open={dialogOpen} onClose={close} maxWidth='sm' fullWidth>
         <DialogTitle>{editing ? t(editLabel) : t(addLabel)}</DialogTitle>
-        <DialogContent sx={{ pt: '8px !important' }}>
-          {field('nameEn', `${t('common.name')} (EN) *`)}
-          {field('nameFi', `${t('common.name')} (FI)`)}
-          {field('nameSv', `${t('common.name')} (SV)`)}
-          {field('descEn', `${t('common.description')} (EN)`)}
-          {field('descFi', `${t('common.description')} (FI)`)}
-          {field('descSv', `${t('common.description')} (SV)`)}
+        <DialogContent
+          sx={{ pt: '8px !important', display: 'flex', flexDirection: 'column', gap: 2 }}
+        >
+          <LocalisedTextField
+            label={t('common.name')}
+            required
+            values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
+            onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'name', lang, val))}
+          />
+          <LocalisedTextField
+            label={t('common.description')}
+            values={{ en: form.descEn, fi: form.descFi, sv: form.descSv }}
+            onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'desc', lang, val))}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={close}>{t('common.cancel')}</Button>
@@ -248,17 +243,6 @@ function LocalizedCrudTab<T extends LocalizedEntity>({
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }
@@ -378,6 +362,7 @@ function formToItemPayload(f: ItemFormState) {
 
 function ItemsTab() {
   const { t, i18n } = useTranslation()
+  const { showSnackbar } = useSnackbar()
   const lang = resolveLanguage(i18n.language)
 
   const {
@@ -403,7 +388,6 @@ function ItemsTab() {
   const [editing, setEditing] = useState<InventoryItem | null>(null)
   const [form, setForm] = useState<ItemFormState>(emptyItemForm)
   const [attemptedSubmit, setAttemptedSubmit] = useState(false)
-  const [snack, setSnack] = useState<{ msg: string; sev: 'success' | 'error' } | null>(null)
 
   // quantity adjustment dialog
   const [adjustDialog, setAdjustDialog] = useState<{ itemId: string; name: string } | null>(null)
@@ -440,13 +424,12 @@ function ItemsTab() {
       ? await mutation.trigger('PUT', payload, editing.itemId)
       : await mutation.trigger('POST', payload)
     if (result.error) {
-      setSnack({
-        msg: result.error.detail ?? result.error.title ?? t('common.error'),
-        sev: 'error',
+      showSnackbar(result.error.detail ?? result.error.title ?? t('common.error'), {
+        severity: 'error',
       })
     } else {
       await mutate()
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.saved'), { severity: 'success' })
       close()
     }
   }
@@ -455,10 +438,10 @@ function ItemsTab() {
     if (!globalThis.confirm(t('common.confirmDelete'))) return
     const result = await mutation.trigger('DELETE', {}, id)
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.deleted'), sev: 'success' })
+      showSnackbar(t('common.deleted'), { severity: 'success' })
     }
   }
 
@@ -472,10 +455,10 @@ function ItemsTab() {
       `v1/inventory/items/${adjustDialog.itemId}/adjust-quantity`,
     )
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.saved'), { severity: 'success' })
       setAdjustDialog(null)
       setAdjustDelta('')
       setAdjustNotes('')
@@ -612,15 +595,21 @@ function ItemsTab() {
           {editing ? t('inventory.admin.editItem') : t('inventory.admin.addItem')}
         </DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
-          {field('nameEn', `${t('common.name')} (EN) *`, 'text', {
-            error: nameError,
-            helperText: t('inventory.admin.fieldRequired'),
-          })}
-          {field('nameFi', `${t('common.name')} (FI)`)}
-          {field('nameSv', `${t('common.name')} (SV)`)}
-          {field('descEn', `${t('common.description')} (EN)`)}
-          {field('descFi', `${t('common.description')} (FI)`)}
-          {field('descSv', `${t('common.description')} (SV)`)}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+            <LocalisedTextField
+              label={t('common.name')}
+              required
+              error={nameError}
+              helperText={t('inventory.admin.fieldRequired')}
+              values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
+              onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'name', lang, val))}
+            />
+            <LocalisedTextField
+              label={t('common.description')}
+              values={{ en: form.descEn, fi: form.descFi, sv: form.descSv }}
+              onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'desc', lang, val))}
+            />
+          </Box>
 
           <FormControl size='small' fullWidth error={categoryError} sx={{ mb: 2 }}>
             <InputLabel id='inventory-item-category-label'>{t('inventory.category')} *</InputLabel>
@@ -769,17 +758,6 @@ function ItemsTab() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

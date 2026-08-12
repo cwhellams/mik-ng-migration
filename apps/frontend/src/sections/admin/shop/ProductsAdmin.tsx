@@ -16,7 +16,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Snackbar,
   Switch,
   Tab,
   Table,
@@ -35,7 +34,10 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
+import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
+import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
+import { useLocalisedText } from '../../../utils/localisedText'
 import type {
   Product,
   Category,
@@ -51,67 +53,6 @@ interface LocalisedValues {
   sv: string
 }
 type Lang = 'en' | 'fi' | 'sv'
-
-function LocalisedField({
-  label,
-  values,
-  required,
-  multiline,
-  onChange,
-}: Readonly<{
-  label: string
-  values: LocalisedValues
-  required?: boolean
-  multiline?: boolean
-  onChange: (lang: Lang, value: string) => void
-}>) {
-  return (
-    <Box
-      sx={{
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 1,
-        p: 1.5,
-      }}
-    >
-      <Typography
-        variant='caption'
-        sx={{
-          color: 'text.secondary',
-          display: 'block',
-          mb: 1,
-        }}
-      >
-        {label}
-        {required && ' *'}
-      </Typography>
-      {(['en', 'fi', 'sv'] as Lang[]).map((lang, i) => (
-        <Box
-          key={lang}
-          sx={{
-            display: 'flex',
-            alignItems: multiline ? 'flex-start' : 'center',
-            gap: 1,
-            mt: i > 0 ? 1 : 0,
-          }}
-        >
-          <Chip label={lang.toUpperCase()} size='small' sx={{ width: 38, flexShrink: 0 }} />
-          <TextField
-            size='small'
-            fullWidth
-            // The visible label sits above the group, so each per-language box
-            // would otherwise have no accessible name of its own.
-            slotProps={{ htmlInput: { 'aria-label': `${label} (${lang.toUpperCase()})` } }}
-            value={values[lang]}
-            onChange={(e) => onChange(lang, e.target.value)}
-            multiline={multiline}
-            rows={multiline ? 2 : undefined}
-          />
-        </Box>
-      ))}
-    </Box>
-  )
-}
 
 // ── Variants tab ──────────────────────────────────────────────────────────────
 
@@ -147,11 +88,8 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
   } = useApi<ProductProperty[]>({
     url: `v1/shop/products/${productId}/properties`,
   })
+  const { showSnackbar } = useSnackbar()
   const [propForm, setPropForm] = useState<PropertyUpsert | null>(null)
-  const [snack, setSnack] = useState<{
-    msg: string
-    sev: 'success' | 'error'
-  } | null>(null)
 
   const addOption = () =>
     setPropForm((f) =>
@@ -219,11 +157,11 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
     if (!propForm) return
     const result = await mutation.trigger('PUT', propForm)
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
       setPropForm(null)
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.saved'), { severity: 'success' })
     }
   }
 
@@ -231,10 +169,10 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
     if (!globalThis.confirm(t('common.confirmDelete'))) return
     const result = await mutation.trigger('DELETE', {}, `${propertyId}`)
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.deleted'), sev: 'success' })
+      showSnackbar(t('common.deleted'), { severity: 'success' })
     }
   }
 
@@ -332,7 +270,7 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
               {t('shop.addVariant')}
             </Typography>
 
-            <LocalisedField
+            <LocalisedTextField
               label={t('shop.variantName')}
               values={propForm.name as LocalisedValues}
               required
@@ -467,16 +405,6 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
           </Box>
         )}
       </RemoteContent>
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }
@@ -571,6 +499,8 @@ function formToPayload(f: ProductForm) {
 
 export default function ProductsAdmin() {
   const { t } = useTranslation()
+  const { showSnackbar } = useSnackbar()
+  const { localise } = useLocalisedText()
 
   type FilterState = '' | 'true' | 'false'
 
@@ -605,10 +535,6 @@ export default function ProductsAdmin() {
   const [editing, setEditing] = useState<Product | null>(null)
   const [tabIndex, setTabIndex] = useState(0)
   const [form, setForm] = useState<ProductForm>(emptyForm)
-  const [snack, setSnack] = useState<{
-    msg: string
-    sev: 'success' | 'error'
-  } | null>(null)
 
   const openCreate = () => {
     setEditing(null)
@@ -637,10 +563,10 @@ export default function ProductsAdmin() {
       : await mutation.trigger('POST', payload)
 
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.saved'), { severity: 'success' })
       close()
     }
   }
@@ -649,10 +575,10 @@ export default function ProductsAdmin() {
     if (!globalThis.confirm(t('common.confirmDelete'))) return
     const result = await mutation.trigger('DELETE', {}, id)
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.deleted'), sev: 'success' })
+      showSnackbar(t('common.deleted'), { severity: 'success' })
     }
   }
 
@@ -692,7 +618,7 @@ export default function ProductsAdmin() {
               <MenuItem value=''>{t('common.all')}</MenuItem>
               {categories?.map((c) => (
                 <MenuItem key={c.categoryId} value={c.categoryId}>
-                  {(c.name as Record<string, string>)?.en}
+                  {localise(c.name)}
                 </MenuItem>
               ))}
             </Select>
@@ -741,9 +667,9 @@ export default function ProductsAdmin() {
             </TableHead>
             <TableBody>
               {products?.map((p) => {
-                const n = p.name as Record<string, string>
+                const productName = localise(p.name)
                 const cat = categories?.find((c) => c.categoryId === p.categoryId)
-                const catName = (cat?.name as Record<string, string>)?.en ?? p.categoryId
+                const catName = localise(cat?.name) || p.categoryId
                 let stockChip = <Chip size='small' label={`${p.stockQuantity}`} color='success' />
                 if (p.stockQuantity === 0) {
                   stockChip = <Chip size='small' label={t('shop.outOfStock')} color='error' />
@@ -752,7 +678,7 @@ export default function ProductsAdmin() {
                 }
                 return (
                   <TableRow key={p.productId} hover>
-                    <TableCell>{n?.en}</TableCell>
+                    <TableCell>{productName}</TableCell>
                     <TableCell>{catName}</TableCell>
                     <TableCell>€{p.price.toFixed(2)}</TableCell>
                     <TableCell>{stockChip}</TableCell>
@@ -766,7 +692,7 @@ export default function ProductsAdmin() {
                     <TableCell align='right'>
                       <IconButton
                         size='small'
-                        aria-label={`${t('common.edit')} ${n?.en}`}
+                        aria-label={`${t('common.edit')} ${productName}`}
                         onClick={() => openEdit(p)}
                       >
                         <Icon icon='mdi:pencil' />
@@ -774,7 +700,7 @@ export default function ProductsAdmin() {
                       <IconButton
                         size='small'
                         color='error'
-                        aria-label={`${t('general.delete')} ${n?.en}`}
+                        aria-label={`${t('general.delete')} ${productName}`}
                         onClick={() => handleDelete(p.productId)}
                         disabled={!!p.hasOrders}
                         title={p.hasOrders ? 'Cannot delete products that have orders' : undefined}
@@ -813,18 +739,11 @@ export default function ProductsAdmin() {
 
           {showDetailsTab && !isFlightPackageEdit && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <LocalisedField
+              <LocalisedTextField
                 label={t('common.name')}
                 required
                 values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
-                onChange={(lang, val) =>
-                  setForm((f) => ({
-                    ...f,
-                    nameEn: lang === 'en' ? val : f.nameEn,
-                    nameFi: lang === 'fi' ? val : f.nameFi,
-                    nameSv: lang === 'sv' ? val : f.nameSv,
-                  }))
-                }
+                onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'name', lang, val))}
               />
 
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
@@ -838,7 +757,7 @@ export default function ProductsAdmin() {
                   >
                     {categories?.map((c) => (
                       <MenuItem key={c.categoryId} value={c.categoryId}>
-                        {(c.name as Record<string, string>)?.en}
+                        {localise(c.name)}
                       </MenuItem>
                     ))}
                   </Select>
@@ -909,18 +828,11 @@ export default function ProductsAdmin() {
                 />
               </Box>
 
-              <LocalisedField
+              <LocalisedTextField
                 label={t('common.description')}
                 multiline
                 values={{ en: form.descEn, fi: form.descFi, sv: form.descSv }}
-                onChange={(lang, val) =>
-                  setForm((f) => ({
-                    ...f,
-                    descEn: lang === 'en' ? val : f.descEn,
-                    descFi: lang === 'fi' ? val : f.descFi,
-                    descSv: lang === 'sv' ? val : f.descSv,
-                  }))
-                }
+                onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'desc', lang, val))}
               />
 
               <Box sx={{ display: 'flex', gap: 2 }}>
@@ -981,17 +893,6 @@ export default function ProductsAdmin() {
           )}
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

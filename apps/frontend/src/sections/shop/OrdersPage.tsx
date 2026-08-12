@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
 import type { Category, Order, OrderListResponse } from '@backend/routes/shop/models'
@@ -25,14 +25,9 @@ import { Link } from 'react-router'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { ORDER_STATUS_COLOR } from './orderStatusColor'
+import { useLocalisedText } from '../../utils/localisedText'
 
 type DateRange = '7d' | '1m' | '3m' | '6m' | '1y'
-
-function resolveLanguage(language: string): 'fi' | 'sv' | 'en' {
-  if (language.startsWith('fi')) return 'fi'
-  if (language.startsWith('sv')) return 'sv'
-  return 'en'
-}
 
 function parseDateRange(value: string): DateRange {
   if (value === '1m' || value === '3m' || value === '6m' || value === '1y') return value
@@ -46,7 +41,8 @@ function mergeUniqueOrders(previousOrders: Order[], nextOrders: Order[]): Order[
 }
 
 export default function OrdersPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const { localise } = useLocalisedText()
 
   const [categoryId, setCategoryId] = useState('')
   const [dateRange, setDateRange] = useState<DateRange>('7d')
@@ -54,7 +50,6 @@ export default function OrdersPage() {
   const [visibleOrders, setVisibleOrders] = useState<Order[]>([])
 
   const pageSize = 5
-  const lang = resolveLanguage(i18n.language)
 
   const { data: categories } = useApi<Category[]>({ url: 'v1/shop/categories' })
 
@@ -82,10 +77,7 @@ export default function OrdersPage() {
 
   const hasMore = response?.hasMore ?? false
 
-  const categoryLabel = useMemo(
-    () => (c: Category) => c.name?.[lang] ?? c.name?.en ?? c.categoryId,
-    [lang],
-  )
+  const categoryLabel = (c: Category) => localise(c.name) || c.categoryId
 
   const handleCategoryChange = (value: string) => {
     setCategoryId(value)

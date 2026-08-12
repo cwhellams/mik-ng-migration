@@ -12,15 +12,13 @@ import {
 } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
 import useApi from '../../../hooks/useApi'
-import { useThemeMode } from '../../../theme/ThemeContext'
+import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type { OccurrencesPerHundredHrsByAcYr } from '@backend/routes/stats/models'
 
 const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
 
 export const SafetyStatistics = () => {
-  const { mode } = useThemeMode()
-
   const currentYear = new Date().getFullYear()
   const yrFrom = currentYear - (STATS_YEAR_RANGE - 1)
 
@@ -48,29 +46,7 @@ export const SafetyStatistics = () => {
     [yrFrom, currentYear],
   )
 
-  const nivoTheme = useMemo(
-    () => ({
-      axis: {
-        ticks: {
-          text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-          line: { stroke: mode === 'dark' ? '#888888' : '#777777' },
-        },
-        legend: { text: { fill: mode === 'dark' ? '#cccccc' : '#333333' } },
-        domain: { line: { stroke: mode === 'dark' ? '#555555' : '#777777' } },
-      },
-      legends: { text: { fill: mode === 'dark' ? '#cccccc' : '#333333' } },
-      tooltip: {
-        container: {
-          background: mode === 'dark' ? '#2a2a2a' : '#ffffff',
-          color: mode === 'dark' ? '#ffffff' : '#333333',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
-        },
-      },
-      grid: { line: { stroke: mode === 'dark' ? '#444444' : '#dddddd' } },
-      labels: { text: { fill: mode === 'dark' ? '#cccccc' : '#333333' } },
-    }),
-    [mode],
-  )
+  const nivoTheme = useNivoTheme()
 
   // One bar-chart row per year, one key per aircraft — occurrences per 100 flight hours.
   const barData = useMemo(() => {

@@ -21,11 +21,12 @@ import { useParams, Link } from 'react-router'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { ORDER_STATUS_COLOR } from './orderStatusColor'
+import { useLocalisedText, type UiLanguage } from '../../utils/localisedText'
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()
-  const { t, i18n } = useTranslation()
-  const lang = i18n.language.startsWith('fi') ? 'fi' : i18n.language.startsWith('sv') ? 'sv' : 'en'
+  const { t } = useTranslation()
+  const { localise } = useLocalisedText()
 
   const {
     data: order,
@@ -35,8 +36,6 @@ export default function OrderDetailPage() {
     url: `v1/shop/orders/${orderId ?? ''}`,
     skipFetch: !orderId,
   })
-
-  const localName = (obj?: Record<string, string> | null) => obj?.[lang] ?? obj?.['en'] ?? ''
 
   const itemsTotal =
     order?.items?.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) ?? 0
@@ -128,11 +127,9 @@ export default function OrderDetailPage() {
                   {order.items?.map((item) => (
                     <TableRow key={item.orderItemId}>
                       <TableCell>
-                        {localName(
-                          (item.productSnapshot as Record<string, unknown>)?.name as Record<
-                            string,
-                            string
-                          >,
+                        {localise(
+                          (item.productSnapshot as Record<string, unknown>)?.name as
+                            Partial<Record<UiLanguage, string>> | undefined,
                         ) || `Product #${item.productId}`}
                       </TableCell>
                       <TableCell align='right'>€{item.unitPrice.toFixed(2)}</TableCell>

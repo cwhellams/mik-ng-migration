@@ -15,13 +15,13 @@ import {
   DialogActions,
   Button,
   Grid,
-  Snackbar,
 } from '@mui/material'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
 import { RemoteContent } from '../../components/RemoteContent'
 import { EditButton } from '../../components/EditButton'
 import { useRoles } from '../../hooks/useRoles'
@@ -48,6 +48,7 @@ const bufferToDataUrl = (buf: any): string | null => {
 
 const Documents = () => {
   const { t } = useTranslation()
+  const { showSnackbar } = useSnackbar()
   const { isDocumentAdmin } = useRoles()
   const { formatDate } = useTimezone()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -76,8 +77,6 @@ const Documents = () => {
   }
 
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
   const [downloadData, setDownloadData] = useState<{
     tinyUrl: string | null
@@ -197,8 +196,11 @@ const Documents = () => {
   const handleCopyFilterLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href)
-      setSnackbarMessage(t('documents.filterLinkCopied', 'Filter link copied to clipboard!'))
-      setSnackbarOpen(true)
+      showSnackbar(t('documents.filterLinkCopied', 'Filter link copied to clipboard!'), {
+        severity: 'success',
+        autoHideDuration: 4000,
+        anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
+      })
     } catch (error) {
       console.error('Failed to copy filter link:', error)
     }
@@ -208,8 +210,11 @@ const Documents = () => {
     if (downloadData?.tinyUrl) {
       try {
         await navigator.clipboard.writeText(downloadData.tinyUrl)
-        setSnackbarMessage(t('documents.tinyUrlCopied', 'Tiny URL copied to clipboard!'))
-        setSnackbarOpen(true)
+        showSnackbar(t('documents.tinyUrlCopied', 'Tiny URL copied to clipboard!'), {
+          severity: 'success',
+          autoHideDuration: 4000,
+          anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
+        })
       } catch (error) {
         console.error('Failed to copy tiny URL:', error)
       }
@@ -655,14 +660,6 @@ const Documents = () => {
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onSuccess={() => mutate()}
-      />
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
       {/* Edit Modal */}
       {editingDocument && (

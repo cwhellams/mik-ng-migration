@@ -14,6 +14,7 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { SWRConfig } from 'swr'
 
 import { ServerClockProvider } from '../hooks/useServerClock'
+import { SnackbarProvider } from '../hooks/useSnackbar'
 import i18n from '../i18n'
 import { ThemeProvider, useThemeMode } from '../theme/ThemeContext'
 
@@ -85,7 +86,8 @@ const Providers = ({ children, options }: { children: ReactNode; options: Provid
     children
   )
 
-  const clocked = serverClock ? <ServerClockProvider>{routed}</ServerClockProvider> : routed
+  const snackable = <SnackbarProvider>{routed}</SnackbarProvider>
+  const clocked = serverClock ? <ServerClockProvider>{snackable}</ServerClockProvider> : snackable
 
   return (
     <I18nextProvider i18n={i18n}>

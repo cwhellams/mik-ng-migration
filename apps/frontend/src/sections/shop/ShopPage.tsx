@@ -13,7 +13,6 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Snackbar,
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
@@ -23,27 +22,20 @@ import { Title } from '../../components/Title'
 import type { Product, Category, Cart } from '@backend/routes/shop/models'
 import { Link } from 'react-router'
 import useApi from '../../hooks/useApi'
+import { useSnackbar } from '../../hooks/useSnackbar'
+import { useLocalisedText } from '../../utils/localisedText'
 import { RemoteContent } from '../../components/RemoteContent'
 
 function formatPrice(price: number, vatPercent: number) {
   return `€${(price * (1 + vatPercent / 100)).toFixed(2)}`
 }
 
-function resolveLanguage(language: string): 'fi' | 'sv' | 'en' {
-  if (language.startsWith('fi')) return 'fi'
-  if (language.startsWith('sv')) return 'sv'
-  return 'en'
-}
-
 export default function ShopPage() {
-  const { t, i18n } = useTranslation()
-  const lang = resolveLanguage(i18n.language)
+  const { t } = useTranslation()
+  const { localise } = useLocalisedText()
 
+  const { showSnackbar } = useSnackbar()
   const [categoryId, setCategoryId] = useState('')
-  const [snack, setSnack] = useState<{
-    msg: string
-    sev: 'success' | 'error'
-  } | null>(null)
 
   const { data: categories } = useApi<Category[]>({ url: 'v1/shop/categories' })
   const {
@@ -61,9 +53,9 @@ export default function ShopPage() {
   const handleAddToCart = async (productId: string) => {
     const result = await cartMutation.trigger('POST', { productId, quantity: 1 }, 'items')
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
-      setSnack({ msg: t('shop.addedToCart'), sev: 'success' })
+      showSnackbar(t('shop.addedToCart'), { severity: 'success' })
     }
   }
 
@@ -74,8 +66,6 @@ export default function ShopPage() {
     const inCart = cart?.items.find((i) => i.productId === product.productId)?.quantity ?? 0
     return inCart >= product.maxOrderQuantity
   }
-
-  const localName = (obj: Record<string, string>) => obj?.[lang] ?? obj?.['en'] ?? ''
 
   return (
     <Box>
@@ -101,7 +91,7 @@ export default function ShopPage() {
             <MenuItem value=''>{t('common.all')}</MenuItem>
             {categories?.map((c) => (
               <MenuItem key={c.categoryId} value={c.categoryId}>
-                {localName(c.name as Record<string, string>)}
+                {localise(c.name)}
               </MenuItem>
             ))}
           </Select>
@@ -151,7 +141,7 @@ export default function ShopPage() {
                         component='img'
                         height='180'
                         image={product.imageUrl}
-                        alt={localName(product.name as Record<string, string>)}
+                        alt={localise(product.name)}
                       />
                     ) : (
                       <Box
@@ -208,16 +198,11 @@ export default function ShopPage() {
                         color: 'text.secondary',
                       }}
                     >
-                      {categories?.find((c) => c.categoryId === product.categoryId)
-                        ? localName(
-                            categories.find((c) => c.categoryId === product.categoryId)!
-                              .name as Record<string, string>,
-                          )
-                        : ''}
+                      {localise(categories?.find((c) => c.categoryId === product.categoryId)?.name)}
                     </Typography>
 
                     <Typography variant='h6' gutterBottom>
-                      {localName(product.name as Record<string, string>)}
+                      {localise(product.name)}
                     </Typography>
 
                     {product.description && (
@@ -228,7 +213,7 @@ export default function ShopPage() {
                           mb: 1,
                         }}
                       >
-                        {localName(product.description as Record<string, string>)}
+                        {localise(product.description)}
                       </Typography>
                     )}
 
@@ -310,16 +295,6 @@ export default function ShopPage() {
           </Grid>
         )}
       </RemoteContent>
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

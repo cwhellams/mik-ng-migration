@@ -8,6 +8,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { useTranslation } from 'react-i18next'
 import 'dayjs/locale/en-gb'
 import { ServerClockProvider } from './hooks/useServerClock'
+import { SnackbarProvider } from './hooks/useSnackbar'
 import { BrowserRouter } from 'react-router'
 import AppRoutes from './AppRoutes'
 
@@ -60,28 +61,30 @@ function App() {
       adapterLocale={i18n.language === 'en' ? 'en-gb' : i18n.language}
     >
       <ServerClockProvider>
-        <SplashScreen loading={loading} />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-        {/* Service Worker Update Notification */}
-        <Snackbar
-          open={isUpdateAvailable}
-          autoHideDuration={null}
-          onClose={dismissUpdate}
-          message={t('common.updateAvailable')}
-          action={
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button color='primary' size='small' onClick={refreshApp}>
-                {t('common.refresh')}
-              </Button>
-              <Button color='inherit' size='small' onClick={dismissUpdate}>
-                {t('common.dismiss')}
-              </Button>
-            </Box>
-          }
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        />
+        <SnackbarProvider>
+          <SplashScreen loading={loading} />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+          {/* Service Worker Update Notification */}
+          <Snackbar
+            open={isUpdateAvailable}
+            autoHideDuration={null}
+            onClose={dismissUpdate}
+            message={t('common.updateAvailable')}
+            action={
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button color='primary' size='small' onClick={refreshApp}>
+                  {t('common.refresh')}
+                </Button>
+                <Button color='inherit' size='small' onClick={dismissUpdate}>
+                  {t('common.dismiss')}
+                </Button>
+              </Box>
+            }
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          />
+        </SnackbarProvider>
       </ServerClockProvider>
     </LocalizationProvider>
   )

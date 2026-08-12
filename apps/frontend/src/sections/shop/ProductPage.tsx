@@ -12,7 +12,6 @@ import {
   Radio,
   RadioGroup,
   Select,
-  Snackbar,
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
@@ -22,26 +21,18 @@ import type { Product, Cart, Category } from '@backend/routes/shop/models'
 import type { MemberPackage, PrepaidPackage } from '@backend/routes/prepaid-hours/models'
 import { useParams, Link } from 'react-router'
 import useApi from '../../hooks/useApi'
+import { useSnackbar } from '../../hooks/useSnackbar'
+import { useLocalisedText } from '../../utils/localisedText'
 import { RemoteContent } from '../../components/RemoteContent'
-
-function resolveLanguage(language: string): 'fi' | 'sv' | 'en' {
-  if (language.startsWith('fi')) return 'fi'
-  if (language.startsWith('sv')) return 'sv'
-  return 'en'
-}
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>()
-  const { t, i18n } = useTranslation()
-  const lang = resolveLanguage(i18n.language)
+  const { t } = useTranslation()
+  const { localise } = useLocalisedText()
 
+  const { showSnackbar } = useSnackbar()
   const [quantity, setQuantity] = useState(1)
   const [selectedOptions, setSelectedOptions] = useState<Record<string, number>>({})
-  const [snack, setSnack] = useState<{
-    msg: string
-    sev: 'success' | 'error'
-    showCartLink?: boolean
-  } | null>(null)
 
   const {
     data: product,
@@ -81,8 +72,6 @@ export default function ProductPage() {
       ? null
       : Math.max(0, product.maxOrderQuantity - alreadyOwned - inCart)
 
-  const localName = (obj?: Record<string, string> | null) => obj?.[lang] ?? obj?.['en'] ?? ''
-
   const selectedOptionStockCaps = (product?.properties ?? [])
     .flatMap((property) =>
       Object.entries(selectedOptions)
@@ -106,9 +95,17 @@ export default function ProductPage() {
       'items',
     )
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error', autoHideDuration: 5000 })
     } else {
-      setSnack({ msg: t('shop.addedToCart'), sev: 'success', showCartLink: true })
+      showSnackbar(t('shop.addedToCart'), {
+        severity: 'success',
+        autoHideDuration: 5000,
+        action: (
+          <Button color='inherit' size='small' component={Link} to='/shop/cart'>
+            {t('shop.viewCart')}
+          </Button>
+        ),
+      })
     }
   }
 
@@ -147,7 +144,7 @@ export default function ProductPage() {
                 {product.imageUrl ? (
                   <img
                     src={product.imageUrl}
-                    alt={localName(product.name as Record<string, string>)}
+                    alt={localise(product.name)}
                     style={{ width: '100%', borderRadius: 8 }}
                   />
                 ) : (
@@ -208,12 +205,12 @@ export default function ProductPage() {
                     color: 'text.secondary',
                   }}
                 >
-                  {localName(category.name as Record<string, string>)}
+                  {localise(category.name)}
                 </Typography>
               )}
 
               <Typography variant='h4' gutterBottom>
-                {localName(product.name as Record<string, string>)}
+                {localise(product.name)}
               </Typography>
 
               <Typography variant='h5' color='primary' sx={{ mb: 2 }}>
@@ -222,7 +219,7 @@ export default function ProductPage() {
 
               {product.description && (
                 <Typography variant='body1' sx={{ mb: 2 }}>
-                  {localName(product.description as Record<string, string>)}
+                  {localise(product.description)}
                 </Typography>
               )}
 
@@ -277,7 +274,7 @@ export default function ProductPage() {
               {product.properties?.map((prop) => (
                 <Box key={prop.propertyId} sx={{ mb: 2 }}>
                   <Typography variant='subtitle2' sx={{ mb: 0.5 }}>
-                    {localName(prop.name as Record<string, string>)}
+                    {localise(prop.name)}
                     {prop.isRequired && <span style={{ color: 'red' }}> *</span>}
                   </Typography>
                   <RadioGroup
@@ -299,8 +296,8 @@ export default function ProductPage() {
                           control={<Radio size='small' />}
                           label={
                             opt.stockQuantity == null
-                              ? localName(opt.value as Record<string, string>)
-                              : `${localName(opt.value as Record<string, string>)} (${opt.stockQuantity})`
+                              ? localise(opt.value)
+                              : `${localise(opt.value)} (${opt.stockQuantity})`
                           }
                           disabled={opt.stockQuantity != null && opt.stockQuantity <= 0}
                         />
@@ -390,26 +387,6 @@ export default function ProductPage() {
           </Box>
         )}
       </RemoteContent>
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={5000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert
-          severity={snack?.sev ?? 'info'}
-          onClose={() => setSnack(null)}
-          action={
-            snack?.showCartLink ? (
-              <Button color='inherit' size='small' component={Link} to='/shop/cart'>
-                {t('shop.viewCart')}
-              </Button>
-            ) : undefined
-          }
-        >
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

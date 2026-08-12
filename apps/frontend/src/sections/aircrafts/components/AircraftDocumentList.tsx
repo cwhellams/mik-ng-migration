@@ -27,7 +27,6 @@ import {
   InputLabel,
   Select,
   InputAdornment,
-  Snackbar,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { useTranslation } from 'react-i18next'
@@ -35,6 +34,7 @@ import { Icon } from '@iconify/react'
 import dayjs from 'dayjs'
 import { DocumentUploadArea } from './AircraftDocumentUploadArea'
 import useApi from '../../../hooks/useApi'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../../hooks/useSnackbar'
 import {
   AircraftDocument,
   AircraftDocumentAuditable,
@@ -302,14 +302,13 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
   showUpload = false,
 }) => {
   const { t } = useTranslation()
+  const { showSnackbar } = useSnackbar()
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [documentToDelete, setDocumentToDelete] = useState<number | null>(null)
   const [actionError, setActionError] = useState<string | undefined>()
   const [showUploadArea, setShowUploadArea] = useState(false)
   const [showExpired, setShowExpired] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
   const [downloadData, setDownloadData] = useState<{
     tinyUrl: string | null
@@ -438,8 +437,11 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
     if (downloadData?.tinyUrl) {
       try {
         await navigator.clipboard.writeText(downloadData.tinyUrl)
-        setSnackbarMessage(t('aircraft.document.tinyUrlCopied', 'Tiny URL copied to clipboard!'))
-        setSnackbarOpen(true)
+        showSnackbar(t('aircraft.document.tinyUrlCopied', 'Tiny URL copied to clipboard!'), {
+          severity: 'success',
+          autoHideDuration: 4000,
+          anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
+        })
       } catch (error) {
         console.error('Failed to copy tiny URL:', error)
       }
@@ -831,14 +833,6 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-      {/* Tiny URL copied notification */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      />
     </Box>
   )
 }

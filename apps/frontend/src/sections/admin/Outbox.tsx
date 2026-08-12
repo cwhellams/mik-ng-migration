@@ -18,14 +18,13 @@ import {
   Typography,
   Paper,
   Tooltip,
-  Alert,
-  Snackbar,
 } from '@mui/material'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs, { type Dayjs } from 'dayjs'
 import useApi from '../../hooks/useApi'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
 import type { OutboxListResponse, OutboxItem, OutboxStatus } from '@backend/routes/outbox/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
@@ -71,6 +70,7 @@ const DATE_PRESETS = [
 
 export default function Outbox() {
   const { t } = useTranslation()
+  const { showSnackbar } = useSnackbar()
   const { formatDateTime, timezoneName } = useTimezone()
 
   const [filters, setFilters] = useState<Filters>({
@@ -80,16 +80,6 @@ export default function Outbox() {
     created_to: null,
     processed_from: null,
     processed_to: null,
-  })
-
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'error'
-  }>({
-    open: false,
-    message: '',
-    severity: 'success',
   })
 
   // Build query params for the API call, omitting empty values
@@ -115,16 +105,16 @@ export default function Outbox() {
   const handleRetry = async (item: OutboxItem) => {
     const result = await retryMutation.trigger('PATCH', {}, `${item.id}/retry`)
     if (result.error) {
-      setSnackbar({
-        open: true,
-        message: t('outbox.retryError'),
+      showSnackbar(t('outbox.retryError'), {
         severity: 'error',
+        autoHideDuration: 4000,
+        anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
       })
     } else {
-      setSnackbar({
-        open: true,
-        message: t('outbox.retrySuccess'),
+      showSnackbar(t('outbox.retrySuccess'), {
         severity: 'success',
+        autoHideDuration: 4000,
+        anchorOrigin: SNACKBAR_ANCHOR_BOTTOM_CENTER,
       })
       mutate()
     }
@@ -396,19 +386,6 @@ export default function Outbox() {
           </Table>
         </TableContainer>
       </RemoteContent>
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          severity={snackbar.severity}
-          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

@@ -9,7 +9,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -25,6 +24,8 @@ import { Title } from '../../../components/Title'
 import type { Order, OrderStatus } from '@backend/routes/shop/models'
 import { useParams, Link } from 'react-router'
 import useApi from '../../../hooks/useApi'
+import { useSnackbar } from '../../../hooks/useSnackbar'
+import { useLocalisedText, type UiLanguage } from '../../../utils/localisedText'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { ORDER_STATUS_COLOR } from '../../shop/orderStatusColor'
 
@@ -39,10 +40,10 @@ const ALL_STATUSES: OrderStatus[] = [
 
 export default function OrderDetailAdmin() {
   const { orderId } = useParams<{ orderId: string }>()
-  const { t, i18n } = useTranslation()
-  const lang = i18n.language.startsWith('fi') ? 'fi' : i18n.language.startsWith('sv') ? 'sv' : 'en'
+  const { t } = useTranslation()
+  const { localise } = useLocalisedText()
 
-  const [snack, setSnack] = useState<{ msg: string; sev: 'success' | 'error' } | null>(null)
+  const { showSnackbar } = useSnackbar()
   const [pendingStatus, setPendingStatus] = useState<OrderStatus | ''>('')
 
   const {
@@ -56,15 +57,13 @@ export default function OrderDetailAdmin() {
     skipFetch: !orderId,
   })
 
-  const localName = (obj?: Record<string, string> | null) => obj?.[lang] ?? obj?.['en'] ?? ''
-
   const handleStatusSave = async () => {
     if (!pendingStatus || !orderId) return
     const result = await statusMutation.trigger('PUT', { status: pendingStatus }, 'status')
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error', autoHideDuration: 4000 })
     } else {
-      setSnack({ msg: t('shop.admin.statusUpdated'), sev: 'success' })
+      showSnackbar(t('shop.admin.statusUpdated'), { severity: 'success', autoHideDuration: 4000 })
       setPendingStatus('')
       await mutate()
     }
@@ -206,11 +205,9 @@ export default function OrderDetailAdmin() {
                   {order.items?.map((item) => (
                     <TableRow key={item.orderItemId}>
                       <TableCell>
-                        {localName(
-                          (item.productSnapshot as Record<string, unknown>)?.name as Record<
-                            string,
-                            string
-                          >,
+                        {localise(
+                          (item.productSnapshot as Record<string, unknown>)?.name as
+                            Partial<Record<UiLanguage, string>> | undefined,
                         ) || `Product #${item.productId}`}
                       </TableCell>
                       <TableCell align='right'>€{item.unitPrice.toFixed(2)}</TableCell>
@@ -249,17 +246,6 @@ export default function OrderDetailAdmin() {
           </Box>
         )}
       </RemoteContent>
-
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={4000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

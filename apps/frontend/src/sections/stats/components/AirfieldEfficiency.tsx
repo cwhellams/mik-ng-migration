@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
 import useApi from '../../../hooks/useApi'
-import { useThemeMode } from '../../../theme/ThemeContext'
+import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type {
   AirfieldEfficiencyByYr,
@@ -56,7 +56,6 @@ const formatHours = (mins: number | null) => {
 }
 
 export const AirfieldEfficiency = () => {
-  const { mode } = useThemeMode()
   const [groupBy, setGroupBy] = useState<GroupBy>('overall')
   const [period, setPeriod] = useState<Period>('year')
 
@@ -65,39 +64,7 @@ export const AirfieldEfficiency = () => {
     [period],
   )
 
-  const nivoTheme = useMemo(
-    () => ({
-      axis: {
-        ticks: {
-          text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-          line: { stroke: mode === 'dark' ? '#888888' : '#777777' },
-        },
-        legend: {
-          text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-        },
-        domain: {
-          line: { stroke: mode === 'dark' ? '#555555' : '#777777' },
-        },
-      },
-      legends: {
-        text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-      },
-      tooltip: {
-        container: {
-          background: mode === 'dark' ? '#2a2a2a' : '#ffffff',
-          color: mode === 'dark' ? '#ffffff' : '#333333',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
-        },
-      },
-      grid: {
-        line: { stroke: mode === 'dark' ? '#444444' : '#dddddd' },
-      },
-      labels: {
-        text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-      },
-    }),
-    [mode],
-  )
+  const nivoTheme = useNivoTheme()
 
   // Overall by year
   const {

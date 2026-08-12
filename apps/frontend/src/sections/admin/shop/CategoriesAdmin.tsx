@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Dialog,
@@ -8,21 +7,21 @@ import {
   DialogTitle,
   IconButton,
   Paper,
-  Snackbar,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
+import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
+import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
 import type { Category } from '@backend/routes/shop/models'
 
 interface CategoryFormState {
@@ -76,13 +75,10 @@ export default function CategoriesAdmin() {
     url: 'v1/shop/categories',
   })
 
+  const { showSnackbar } = useSnackbar()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Category | null>(null)
   const [form, setForm] = useState<CategoryFormState>(emptyForm)
-  const [snack, setSnack] = useState<{
-    msg: string
-    sev: 'success' | 'error'
-  } | null>(null)
 
   const openCreate = () => {
     setEditing(null)
@@ -103,10 +99,10 @@ export default function CategoriesAdmin() {
       : await mutation.trigger('POST', payload)
 
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.saved'), { severity: 'success' })
       close()
     }
   }
@@ -115,24 +111,12 @@ export default function CategoriesAdmin() {
     if (!globalThis.confirm(t('common.confirmDelete'))) return
     const result = await mutation.trigger('DELETE', {}, id)
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.deleted'), sev: 'success' })
+      showSnackbar(t('common.deleted'), { severity: 'success' })
     }
   }
-
-  const field = (key: keyof CategoryFormState, label: string) => (
-    <TextField
-      key={key}
-      label={label}
-      size='small'
-      fullWidth
-      value={form[key]}
-      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-      sx={{ mb: 2 }}
-    />
-  )
 
   return (
     <Box>
@@ -194,13 +178,20 @@ export default function CategoriesAdmin() {
         <DialogTitle>
           {editing ? t('shop.admin.editCategory') : t('shop.admin.addCategory')}
         </DialogTitle>
-        <DialogContent sx={{ pt: '8px !important' }}>
-          {field('nameEn', `${t('common.name')} (EN) *`)}
-          {field('nameFi', `${t('common.name')} (FI)`)}
-          {field('nameSv', `${t('common.name')} (SV)`)}
-          {field('descEn', `${t('common.description')} (EN)`)}
-          {field('descFi', `${t('common.description')} (FI)`)}
-          {field('descSv', `${t('common.description')} (SV)`)}
+        <DialogContent
+          sx={{ pt: '8px !important', display: 'flex', flexDirection: 'column', gap: 2 }}
+        >
+          <LocalisedTextField
+            label={t('common.name')}
+            required
+            values={{ en: form.nameEn, fi: form.nameFi, sv: form.nameSv }}
+            onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'name', lang, val))}
+          />
+          <LocalisedTextField
+            label={t('common.description')}
+            values={{ en: form.descEn, fi: form.descFi, sv: form.descSv }}
+            onChange={(lang, val) => setForm((f) => withLocalisedField(f, 'desc', lang, val))}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={close}>{t('common.cancel')}</Button>
@@ -213,17 +204,6 @@ export default function CategoriesAdmin() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -14,7 +13,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Snackbar,
   Switch,
   Table,
   TableBody,
@@ -29,7 +27,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
+import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
+import { useLocalisedText } from '../../../utils/localisedText'
 import type { Category, DiscountCode } from '@backend/routes/shop/models'
 
 interface CodeForm {
@@ -88,14 +88,8 @@ function formToPayload(f: CodeForm) {
   }
 }
 
-function resolveLanguage(language: string): 'fi' | 'sv' | 'en' {
-  if (language.startsWith('fi')) return 'fi'
-  if (language.startsWith('sv')) return 'sv'
-  return 'en'
-}
-
 export default function DiscountCodesAdmin() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   const {
     data: codes,
@@ -107,15 +101,12 @@ export default function DiscountCodesAdmin() {
 
   const { data: categories } = useApi<Category[]>({ url: 'v1/shop/categories' })
 
-  const language = resolveLanguage(i18n.language)
+  const { localise } = useLocalisedText()
 
+  const { showSnackbar } = useSnackbar()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<DiscountCode | null>(null)
   const [form, setForm] = useState<CodeForm>(emptyForm)
-  const [snack, setSnack] = useState<{
-    msg: string
-    sev: 'success' | 'error'
-  } | null>(null)
 
   const openCreate = () => {
     setEditing(null)
@@ -139,10 +130,10 @@ export default function DiscountCodesAdmin() {
       : await mutation.trigger('POST', payload)
 
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      showSnackbar(t('common.error'), { severity: 'error' })
     } else {
       await mutate()
-      setSnack({ msg: t('common.saved'), sev: 'success' })
+      showSnackbar(t('common.saved'), { severity: 'success' })
       close()
     }
   }
@@ -277,7 +268,7 @@ export default function DiscountCodesAdmin() {
               >
                 {(categories ?? []).map((category) => (
                   <MenuItem key={category.categoryId} value={category.categoryId}>
-                    {category.name?.[language] ?? category.name?.en ?? category.categoryId}
+                    {localise(category.name) || category.categoryId}
                   </MenuItem>
                 ))}
               </Select>
@@ -338,17 +329,6 @@ export default function DiscountCodesAdmin() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
-          {snack?.msg}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }
