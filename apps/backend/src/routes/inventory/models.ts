@@ -1,15 +1,11 @@
 import { z } from 'zod'
-import { AuditableSchema } from '../../types/schema.ts'
+import { AuditableSchema, LocalisedSchema, UpsertSchema } from '../../types/schema.ts'
 
 // Upper bound for stock quantities / thresholds / deltas. Keeps values well
 // inside PostgreSQL's 32-bit INTEGER range so an oversized input is rejected as
 // a 400 at validation time rather than blowing up as a DB range error (500).
 const MAX_QUANTITY = 1_000_000
 const MAX_SORT_ORDER = 100_000
-
-// ── Localised text ────────────────────────────────────────────────────────────
-export const LocalisedSchema = z.object({ en: z.string(), fi: z.string(), sv: z.string() })
-export type Localised = z.infer<typeof LocalisedSchema>
 
 // ── Location ──────────────────────────────────────────────────────────────────
 export const InventoryLocationSchema = AuditableSchema.extend({
@@ -21,12 +17,7 @@ export const InventoryLocationSchema = AuditableSchema.extend({
 })
 export type InventoryLocation = z.infer<typeof InventoryLocationSchema>
 
-export const InventoryLocationUpsertSchema = InventoryLocationSchema.omit({
-  createdAt: true,
-  createdBy: true,
-  updatedAt: true,
-  updatedBy: true,
-}).extend({
+export const InventoryLocationUpsertSchema = UpsertSchema(InventoryLocationSchema).extend({
   locationId: z.string().max(9).optional(),
 })
 export type InventoryLocationUpsert = z.infer<typeof InventoryLocationUpsertSchema>
@@ -41,12 +32,7 @@ export const InventoryCategorySchema = AuditableSchema.extend({
 })
 export type InventoryCategory = z.infer<typeof InventoryCategorySchema>
 
-export const InventoryCategoryUpsertSchema = InventoryCategorySchema.omit({
-  createdAt: true,
-  createdBy: true,
-  updatedAt: true,
-  updatedBy: true,
-}).extend({
+export const InventoryCategoryUpsertSchema = UpsertSchema(InventoryCategorySchema).extend({
   categoryId: z.string().max(9).optional(),
 })
 export type InventoryCategoryUpsert = z.infer<typeof InventoryCategoryUpsertSchema>

@@ -36,6 +36,7 @@ import {
 import { getInvoicePdf, getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
 import { HttpStatusCode } from 'axios'
 import { problem } from '../response.ts'
+import { validate } from '../validate.ts'
 import logger from '../../lib/logger.ts'
 import {
   InvoicableFlightFiltersSchema,
@@ -69,25 +70,9 @@ router.use(
 
 router.get(
   '/',
+  validate(InvoiceItemQuerySchema, 'query'),
   async (req: Request<Record<string, string>>, res: Response<InvoiceListResponse>) => {
-    const parsed = InvoiceItemQuerySchema.safeParse(req.query)
-
-    if (!parsed.success) {
-      const errors = parsed.error.issues.map((issue) => ({
-        path: issue.path.join('.'),
-        message: issue.message,
-        code: issue.code,
-      }))
-      return problem({
-        status: HttpStatusCode.BadRequest,
-        detail: 'Unable to parse query filter, search criteria are invalid.',
-        extensions: {
-          errors,
-        },
-      })
-    }
-
-    const filters: InvoiceItemQueryParams = parsed.data
+    const filters = req.validated?.query as InvoiceItemQueryParams
     const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
     const rawItems = await getInvoices(req.user?.memberId!, isAdmin, filters)
 

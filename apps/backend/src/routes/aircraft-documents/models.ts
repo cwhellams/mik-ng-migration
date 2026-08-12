@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AuditableSchema } from '../../types/schema.ts'
+import { AuditableSchema, LimitOffsetSchema } from '../../types/schema.ts'
 
 // Aircraft document type enum
 export const AircraftDocumentType = z.enum([
@@ -45,16 +45,16 @@ export const AircraftDocumentAuditableSchema = AuditableSchema.extend(AircraftDo
 export type AircraftDocumentAuditable = z.infer<typeof AircraftDocumentAuditableSchema>
 
 // Filters for aircraft documents
-export const AircraftDocumentFiltersSchema = z.object({
-  documentId: z.number().optional(),
-  aircraftRegistration: z.string().optional(),
-  documentType: AircraftDocumentType.optional(),
-  validOnly: z.boolean().optional(), // Show only valid documents (within date range)
-  limit: z.coerce.number().min(1).max(1000).default(100),
-  offset: z.coerce.number().min(0).default(0),
-  validFrom: z.date().nullable().optional(),
-  validTo: z.date().nullable().optional(),
-})
+export const AircraftDocumentFiltersSchema = z
+  .object({
+    documentId: z.coerce.number().optional(),
+    aircraftRegistration: z.string().optional(),
+    documentType: AircraftDocumentType.optional(),
+    validOnly: z.coerce.boolean().optional(), // Show only valid documents (within date range)
+    validFrom: z.date().nullable().optional(),
+    validTo: z.date().nullable().optional(),
+  })
+  .merge(LimitOffsetSchema(100))
 
 export type AircraftDocumentFilters = z.infer<typeof AircraftDocumentFiltersSchema>
 

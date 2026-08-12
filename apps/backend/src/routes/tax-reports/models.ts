@@ -1,9 +1,7 @@
-import { z } from 'zod'
+import type { z } from 'zod'
+import { DateRangeSchema, withDateRangeCheck } from '../../types/schema.ts'
 
-export const TaxReportFiltersSchema = z.object({
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-})
+export const TaxReportFiltersSchema = withDateRangeCheck(DateRangeSchema)
 
 export type TaxReportFilters = z.infer<typeof TaxReportFiltersSchema>
 

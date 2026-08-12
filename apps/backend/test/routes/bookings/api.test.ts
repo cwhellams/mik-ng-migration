@@ -116,6 +116,7 @@ describe('GET /bookings', () => {
       title: 'Bad Request',
       instance: '/bookings',
       timestamp: expect.any(String),
+      detail: 'Invalid ISO datetime',
       errors: expect.arrayContaining([
         expect.objectContaining({
           code: 'invalid_format',

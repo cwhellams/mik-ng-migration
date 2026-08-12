@@ -474,6 +474,7 @@ describe('PATCH /members/me', () => {
       title: 'Bad Request',
       instance: '/members/me',
       timestamp: expect.any(String),
+      detail: 'Unrecognized keys: "canMakeReservations", "isTrainingProgramPilot"',
       errors: expect.arrayContaining([
         expect.objectContaining({
           code: 'unrecognized_keys',

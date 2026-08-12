@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { AuditableSchema, BooleanSchema } from '../../types/schema.ts'
+import { AuditableSchema, BooleanSchema, OptionalLimitOffsetSchema } from '../../types/schema.ts'
 import { problem } from '../response.ts'
 
 export const DocumentSchema = AuditableSchema.extend({
@@ -22,23 +22,23 @@ export const DocumentSchema = AuditableSchema.extend({
 
 export type Document = z.infer<typeof DocumentSchema>
 
-export const DocumentFiltersSchema = z.object({
-  category: z
-    .string()
-    .transform((val) => (val === '' ? undefined : val))
-    .optional(),
-  search: z
-    .string()
-    .transform((val) => (val === '' ? undefined : val))
-    .optional(),
-  tags: z
-    .string()
-    .transform((val) => (val === '' ? undefined : val))
-    .optional(),
-  showArchived: BooleanSchema.optional().default(false),
-  limit: z.coerce.number().int().positive().optional(),
-  offset: z.coerce.number().int().min(0).optional(),
-})
+export const DocumentFiltersSchema = z
+  .object({
+    category: z
+      .string()
+      .transform((val) => (val === '' ? undefined : val))
+      .optional(),
+    search: z
+      .string()
+      .transform((val) => (val === '' ? undefined : val))
+      .optional(),
+    tags: z
+      .string()
+      .transform((val) => (val === '' ? undefined : val))
+      .optional(),
+    showArchived: BooleanSchema.optional().default(false),
+  })
+  .merge(OptionalLimitOffsetSchema())
 
 export type DocumentFilters = z.infer<typeof DocumentFiltersSchema>
 

@@ -843,8 +843,7 @@ function rowToAttempt(r: {
 }
 
 export async function getAttempts(filters: AttemptFilters): Promise<AttemptListResponse> {
-  const page = filters.page ?? 1
-  const pageSize = filters.pageSize ?? 20
+  const { page, pageSize } = filters
 
   let q = db
     .selectFrom('exam.attempts as attempts')

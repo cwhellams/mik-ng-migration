@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AuditableSchema, UpsertSchema } from '../../types/schema.ts'
+import { AuditableSchema } from '../../types/schema.ts'
 
 export enum OccurrenceStatus {
   // only the independent SMS processor can see the reports with
@@ -195,7 +195,15 @@ export const OccurrenceSchema = AuditableSchema.extend({
 
 export type Occurrence = z.infer<typeof OccurrenceSchema>
 
-export const OccurrenceUpsertSchema = UpsertSchema(OccurrenceSchema).omit({
+// A plain .omit() on the original schema, not UpsertSchema(OccurrenceSchema)
+// chained with a further .omit() — see the caveat documented on UpsertSchema
+// itself (types/schema.ts): a second .omit() beyond the audit fields would
+// produce a type that still (falsely) requires them.
+export const OccurrenceUpsertSchema = OccurrenceSchema.omit({
+  createdAt: true,
+  createdBy: true,
+  updatedAt: true,
+  updatedBy: true,
   id: true,
   reportDate: true,
   deadLine: true,

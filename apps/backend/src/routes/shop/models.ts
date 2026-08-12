@@ -1,9 +1,5 @@
 import { z } from 'zod'
-import { AuditableSchema } from '../../types/schema.ts'
-
-// ── Localised text ────────────────────────────────────────────────────────────
-export const LocalisedSchema = z.object({ en: z.string(), fi: z.string(), sv: z.string() })
-export type Localised = z.infer<typeof LocalisedSchema>
+import { AuditableSchema, LocalisedSchema, UpsertSchema } from '../../types/schema.ts'
 
 // ── Category ──────────────────────────────────────────────────────────────────
 export const CategorySchema = AuditableSchema.extend({
@@ -15,12 +11,7 @@ export const CategorySchema = AuditableSchema.extend({
 })
 export type Category = z.infer<typeof CategorySchema>
 
-export const CategoryUpsertSchema = CategorySchema.omit({
-  createdAt: true,
-  createdBy: true,
-  updatedAt: true,
-  updatedBy: true,
-}).extend({
+export const CategoryUpsertSchema = UpsertSchema(CategorySchema).extend({
   categoryId: z.string().max(9).optional(),
 })
 export type CategoryUpsert = z.infer<typeof CategoryUpsertSchema>

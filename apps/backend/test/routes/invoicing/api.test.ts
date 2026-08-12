@@ -54,7 +54,8 @@ describe('GET /', () => {
       .set('Cookie', `accessToken=${adminToken}`)
 
     expect(res.status).toBe(400)
-    expect(res.body.detail).toContain('search criteria are invalid')
+    expect(Array.isArray(res.body.errors)).toBe(true)
+    expect(res.body.errors.length).toBeGreaterThan(0)
   })
 
   it('should return 1 for member', async () => {

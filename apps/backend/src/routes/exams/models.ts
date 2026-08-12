@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AuditableSchema } from '../../types/schema.ts'
+import { AuditableSchema, PaginationSchema, UpsertSchema } from '../../types/schema.ts'
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 export const ExamTypeEnum = z.enum(['AFM', 'SELF_STUDY', 'DTO', 'OTHER'])
@@ -19,12 +19,7 @@ export const ExamSchema = AuditableSchema.extend({
 })
 export type Exam = z.infer<typeof ExamSchema>
 
-export const ExamUpsertSchema = ExamSchema.omit({
-  createdAt: true,
-  createdBy: true,
-  updatedAt: true,
-  updatedBy: true,
-}).extend({
+export const ExamUpsertSchema = UpsertSchema(ExamSchema).extend({
   examId: z.string().max(9).optional(),
 })
 export type ExamUpsert = z.infer<typeof ExamUpsertSchema>
@@ -232,13 +227,13 @@ export const ExamImportResultSchema = z.object({
 export type ExamImportResult = z.infer<typeof ExamImportResultSchema>
 
 // ── Filter schemas ────────────────────────────────────────────────────────────
-export const AttemptFiltersSchema = z.object({
-  examId: z.string().max(9).optional(),
-  memberId: z.string().max(9).optional(),
-  status: AttemptStatusEnum.optional(),
-  page: z.coerce.number().int().min(1).optional(),
-  pageSize: z.coerce.number().int().min(1).max(100).optional(),
-})
+export const AttemptFiltersSchema = z
+  .object({
+    examId: z.string().max(9).optional(),
+    memberId: z.string().max(9).optional(),
+    status: AttemptStatusEnum.optional(),
+  })
+  .merge(PaginationSchema(20))
 export type AttemptFilters = z.infer<typeof AttemptFiltersSchema>
 
 export const AttemptListResponseSchema = z.object({

@@ -13,7 +13,6 @@ import {
   type OccurrenceUpsert,
 } from '../../../src/routes/occurrences/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
-import type { Upsert } from '../../../src/types/schema.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { db } from '../../../src/db/connection.ts'
 
@@ -237,7 +236,7 @@ describe('GET /occurrences/id', () => {
 describe('PATCH /occurrences/id', () => {
   const patch = async (
     id: string,
-    payload: Partial<Upsert<OccurrenceUpsert>>,
+    payload: Partial<OccurrenceUpsert>,
     token: string,
     sudo = true,
   ) =>

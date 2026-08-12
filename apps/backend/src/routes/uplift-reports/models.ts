@@ -1,10 +1,11 @@
 import { z } from 'zod'
+import { DateRangeSchema, withDateRangeCheck } from '../../types/schema.ts'
 
-export const UpliftReportFiltersSchema = z.object({
-  aircraftRegistration: z.string().min(1),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-})
+export const UpliftReportFiltersSchema = withDateRangeCheck(
+  DateRangeSchema.extend({
+    aircraftRegistration: z.string().min(1),
+  }),
+)
 
 export type UpliftReportFilters = z.infer<typeof UpliftReportFiltersSchema>
 

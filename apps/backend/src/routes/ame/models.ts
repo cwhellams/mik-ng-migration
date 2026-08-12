@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PaginationSchema } from '../../types/schema.ts'
 
 export enum AmeStatus {
   SUBMITTED = 'SUBMITTED',
@@ -122,13 +123,13 @@ export const AmeRemovalRequestSchema = z.object({
 })
 export type AmeRemovalRequest = z.infer<typeof AmeRemovalRequestSchema>
 
-export const AmeListFiltersSchema = z.object({
-  medicalType: z.enum(AME_MEDICAL_TYPES).optional(),
-  sort: z.enum(['price_asc', 'report_date_desc']).optional().default('report_date_desc'),
-  status: z.nativeEnum(AmeStatus).optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(50),
-})
+export const AmeListFiltersSchema = z
+  .object({
+    medicalType: z.enum(AME_MEDICAL_TYPES).optional(),
+    sort: z.enum(['price_asc', 'report_date_desc']).optional().default('report_date_desc'),
+    status: z.nativeEnum(AmeStatus).optional(),
+  })
+  .merge(PaginationSchema(50))
 export type AmeListFilters = z.infer<typeof AmeListFiltersSchema>
 
 export const AmeListResponseSchema = z.object({
@@ -139,11 +140,11 @@ export const AmeListResponseSchema = z.object({
 })
 export type AmeListResponse = z.infer<typeof AmeListResponseSchema>
 
-export const AmeReviewFiltersSchema = z.object({
-  status: z.nativeEnum(AmeReviewStatus).optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(50),
-})
+export const AmeReviewFiltersSchema = z
+  .object({
+    status: z.nativeEnum(AmeReviewStatus).optional(),
+  })
+  .merge(PaginationSchema(50))
 export type AmeReviewFilters = z.infer<typeof AmeReviewFiltersSchema>
 
 export const AmeEditSuggestionListResponseSchema = z.object({

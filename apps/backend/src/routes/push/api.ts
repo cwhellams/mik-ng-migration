@@ -4,12 +4,17 @@ import { HttpStatusCode } from 'axios'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
+import { validate } from '../validate.ts'
 import {
   deletePushSubscriptionByEndpoint,
   getPushSubscriptionsByMemberId,
   upsertPushSubscription,
 } from '../../db/push-queries.ts'
-import { PushSubscriptionRequestSchema, PushUnsubscribeRequestSchema } from './models.ts'
+import {
+  PushSubscriptionRequestSchema,
+  PushUnsubscribeRequestSchema,
+  type PushSubscriptionRequest,
+} from './models.ts'
 
 export const router = Router()
 
@@ -41,32 +46,24 @@ router.get('/subscriptions', async (req: Request, res: Response) => {
   })
 })
 
-router.post('/subscribe', async (req: Request, res: Response) => {
-  const memberId = req.user!.memberId
-  const parsed = PushSubscriptionRequestSchema.safeParse(req.body)
-  if (!parsed.success) {
-    const errors = parsed.error.issues.map((issue) => ({
-      path: issue.path.join('.'),
-      message: issue.message,
-      code: issue.code,
-    }))
-    return problem({
-      status: HttpStatusCode.BadRequest,
-      detail: 'Invalid push subscription payload.',
-      extensions: { errors },
+router.post(
+  '/subscribe',
+  validate(PushSubscriptionRequestSchema, 'body'),
+  async (req: Request, res: Response) => {
+    const memberId = req.user!.memberId
+    const data = req.validated?.body as PushSubscriptionRequest
+
+    const id = await upsertPushSubscription({
+      memberId,
+      endpoint: data.endpoint,
+      keysAuth: data.keys.auth,
+      keysP256dh: data.keys.p256dh,
+      userAgent: req.headers['user-agent'] ?? null,
     })
-  }
 
-  const id = await upsertPushSubscription({
-    memberId,
-    endpoint: parsed.data.endpoint,
-    keysAuth: parsed.data.keys.auth,
-    keysP256dh: parsed.data.keys.p256dh,
-    userAgent: req.headers['user-agent'] ?? null,
-  })
-
-  res.status(HttpStatusCode.Ok).json({ ok: true, id })
-})
+    res.status(HttpStatusCode.Ok).json({ ok: true, id })
+  },
+)
 
 router.delete('/subscribe', async (req: Request, res: Response) => {
   const memberId = req.user!.memberId

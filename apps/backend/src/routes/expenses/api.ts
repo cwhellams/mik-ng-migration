@@ -1,5 +1,4 @@
 import { HttpStatusCode } from 'axios'
-import dayjs from 'dayjs'
 import { Router, type Request, type Response } from 'express'
 import multer from 'multer'
 import logger from '../../lib/logger.ts'
@@ -49,6 +48,7 @@ import { mergeAttachmentsToPdf } from '../../util/mergeAttachmentsToPdf.ts'
 import { MIKPermissions } from '../members/models.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
+import { validate } from '../validate.ts'
 import {
   CreateExpenseClaimSchema,
   ExpenseClaimFiltersSchema,
@@ -60,6 +60,7 @@ import {
   RequestInfoSchema,
   TreasurerEditExpenseClaimSchema,
   UpdateExpenseClaimSchema,
+  type MileageReportFilters,
 } from './models.ts'
 import type { CreateMileageLeg, MileageLeg } from './mileageModels.ts'
 import { isValidHetu } from '../../util/hetu.ts'
@@ -440,29 +441,9 @@ router.get(
 router.get(
   '/admin/mileage-report',
   validateUser(MIKPermissions.EXPENSE_HETU_ADMIN),
+  validate(MileageReportFiltersSchema, 'query'),
   async (req: Request<Record<string, string>>, res: Response) => {
-    const parsed = MileageReportFiltersSchema.safeParse(req.query)
-    if (!parsed.success) {
-      return problem({
-        status: HttpStatusCode.BadRequest,
-        detail: 'startDate and endDate are required in YYYY-MM-DD format.',
-        extensions: { errors: parsed.error.issues },
-      })
-    }
-    const filters = parsed.data
-
-    if (dayjs(filters.endDate).isAfter(dayjs(), 'day')) {
-      return problem({
-        status: HttpStatusCode.BadRequest,
-        detail: 'End date cannot be in the future.',
-      })
-    }
-    if (dayjs(filters.startDate).isAfter(dayjs(filters.endDate), 'day')) {
-      return problem({
-        status: HttpStatusCode.BadRequest,
-        detail: 'Start date cannot be after end date.',
-      })
-    }
+    const filters = req.validated?.query as MileageReportFilters
 
     res.status(HttpStatusCode.Ok).json({ data: await getMileageReportRows(filters), filters })
   },

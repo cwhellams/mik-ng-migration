@@ -134,6 +134,7 @@ describe('GET /flight-log', () => {
       title: 'Bad Request',
       instance: '/flight-log',
       timestamp: expect.any(String),
+      detail: 'Unrecognized key: "billable_member_id2"',
       errors: expect.arrayContaining([
         expect.objectContaining({
           code: 'unrecognized_keys',
@@ -427,6 +428,7 @@ describe('POST /flight-log', () => {
       title: 'Bad Request',
       instance: '/flight-log',
       timestamp: expect.any(String),
+      detail: '3600',
       errors: expect.arrayContaining([
         expect.objectContaining({
           code: 'too_big',

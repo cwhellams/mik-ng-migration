@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals'
+import { z, ZodError } from 'zod'
 import { problem, problemErrorHandler } from '../../src/routes/response.ts'
 
 describe('throwProblem', () => {
@@ -57,5 +58,19 @@ describe('problemErrorHandler', () => {
     } finally {
       process.env.NODE_ENV = originalEnv
     }
+  })
+
+  test('surfaces the first Zod issue message as detail, alongside the full list', () => {
+    const result = z.object({ startDate: z.string() }).safeParse({})
+    const zodError = result.error as ZodError
+    const { res, json } = makeRes()
+
+    problemErrorHandler(zodError, req, res, next)
+
+    expect(json).toHaveBeenCalledTimes(1)
+    const body = json.mock.calls[0][0] as Record<string, unknown>
+    expect(body.status).toBe(400)
+    expect(body.detail).toBe(zodError.issues[0].message)
+    expect(body.errors).toEqual(zodError.issues)
   })
 })

@@ -89,7 +89,8 @@ describe('GET /tax-reports', () => {
         .query({ endDate: '2025-01-31' })
 
       expect(res.status).toBe(400)
-      expect(res.body.detail).toContain('Invalid query parameters')
+      expect(Array.isArray(res.body.errors)).toBe(true)
+      expect(res.body.errors.length).toBeGreaterThan(0)
     })
 
     it('should return 400 for missing endDate', async () => {
@@ -99,7 +100,8 @@ describe('GET /tax-reports', () => {
         .query({ startDate: '2025-01-01' })
 
       expect(res.status).toBe(400)
-      expect(res.body.detail).toContain('Invalid query parameters')
+      expect(Array.isArray(res.body.errors)).toBe(true)
+      expect(res.body.errors.length).toBeGreaterThan(0)
     })
 
     it('should return 400 for invalid date format', async () => {
@@ -109,7 +111,8 @@ describe('GET /tax-reports', () => {
         .query({ startDate: '01-01-2025', endDate: '2025-01-31' })
 
       expect(res.status).toBe(400)
-      expect(res.body.detail).toContain('Invalid query parameters')
+      expect(Array.isArray(res.body.errors)).toBe(true)
+      expect(res.body.errors.length).toBeGreaterThan(0)
     })
 
     it('should return 400 for startDate after endDate', async () => {
@@ -119,7 +122,11 @@ describe('GET /tax-reports', () => {
         .query({ startDate: '2025-02-01', endDate: '2025-01-31' })
 
       expect(res.status).toBe(400)
-      expect(res.body.detail).toContain('Start date cannot be after end date')
+      expect(
+        res.body.errors.some((e: { message: string }) =>
+          e.message.includes('Start date cannot be after end date'),
+        ),
+      ).toBe(true)
     })
 
     it('should return 400 for endDate in the future', async () => {
@@ -130,7 +137,11 @@ describe('GET /tax-reports', () => {
         .query({ startDate: '2025-01-01', endDate: futureDate })
 
       expect(res.status).toBe(400)
-      expect(res.body.detail).toContain('End date cannot be in the future')
+      expect(
+        res.body.errors.some((e: { message: string }) =>
+          e.message.includes('End date cannot be in the future'),
+        ),
+      ).toBe(true)
     })
   })
 

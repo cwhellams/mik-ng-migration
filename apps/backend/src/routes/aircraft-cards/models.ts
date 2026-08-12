@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AuditableSchema } from '../../types/schema.ts'
+import { AuditableSchema, LimitOffsetSchema } from '../../types/schema.ts'
 
 // Aircraft card schema
 export const AircraftCardSchema = z.object({
@@ -28,12 +28,12 @@ export const AircraftCardAuditableSchema = AuditableSchema.extend(AircraftCardSc
 export type AircraftCardAuditable = z.infer<typeof AircraftCardAuditableSchema>
 
 // Filters for aircraft cards
-export const AircraftCardFiltersSchema = z.object({
-  aircraftRegistration: z.string().optional(),
-  validOnly: z.coerce.boolean().optional(),
-  limit: z.coerce.number().min(1).max(1000).default(100),
-  offset: z.coerce.number().min(0).default(0),
-})
+export const AircraftCardFiltersSchema = z
+  .object({
+    aircraftRegistration: z.string().optional(),
+    validOnly: z.coerce.boolean().optional(),
+  })
+  .merge(LimitOffsetSchema(100))
 
 export type AircraftCardFilters = z.infer<typeof AircraftCardFiltersSchema>
 

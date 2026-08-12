@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { MileageLegSchema, CreateMileageLegSchema } from './mileageModels.ts'
+import { DateRangeSchema, PaginationSchema, withDateRangeCheck } from '../../types/schema.ts'
 export { MileageLegSchema, CreateMileageLegSchema } from './mileageModels.ts'
 
 export enum ExpenseClaimStatus {
@@ -217,11 +218,11 @@ export const ExpenseClaimListResponseSchema = z.object({
 })
 export type ExpenseClaimListResponse = z.infer<typeof ExpenseClaimListResponseSchema>
 
-export const ExpenseClaimFiltersSchema = z.object({
-  status: z.nativeEnum(ExpenseClaimStatus).optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
-})
+export const ExpenseClaimFiltersSchema = z
+  .object({
+    status: z.nativeEnum(ExpenseClaimStatus).optional(),
+  })
+  .merge(PaginationSchema(20))
 export type ExpenseClaimFilters = z.infer<typeof ExpenseClaimFiltersSchema>
 
 export const RejectExpenseClaimSchema = z.object({
@@ -291,10 +292,7 @@ export type RevealHetuResponse = z.infer<typeof RevealHetuResponseSchema>
 // Never includes HETU — the report is a worklist; HETU is only available via the
 // per-claim reveal endpoint above.
 
-export const MileageReportFiltersSchema = z.object({
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-})
+export const MileageReportFiltersSchema = withDateRangeCheck(DateRangeSchema)
 export type MileageReportFilters = z.infer<typeof MileageReportFiltersSchema>
 
 export const MileageReportRowSchema = z.object({

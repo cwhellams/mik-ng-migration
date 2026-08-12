@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { OptionalLimitOffsetSchema } from '../../types/schema.ts'
 
 export const MailboxSeveritySchema = z.enum(['info', 'warning', 'error', 'success'])
 export type MailboxSeverity = z.infer<typeof MailboxSeveritySchema>
@@ -15,9 +16,6 @@ export const MailboxMessageSchema = z.object({
 
 export type MailboxMessage = z.infer<typeof MailboxMessageSchema>
 
-export const MailboxListQuerySchema = z.object({
-  limit: z.coerce.number().int().positive().max(500).optional(),
-  offset: z.coerce.number().int().min(0).optional(),
-})
+export const MailboxListQuerySchema = OptionalLimitOffsetSchema()
 
 export type MailboxListQuery = z.infer<typeof MailboxListQuerySchema>

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { LimitOffsetSchema } from '../../types/schema.ts'
 
 // Aircraft navdata entry schema
 export const NavdataSchema = z.object({
@@ -27,11 +28,11 @@ export const NavdataCreateSchema = z.object({
 export type NavdataCreate = z.infer<typeof NavdataCreateSchema>
 
 // Filters for navdata records
-export const NavdataFiltersSchema = z.object({
-  aircraftRegistration: z.string().optional(),
-  limit: z.coerce.number().min(1).max(1000).default(100),
-  offset: z.coerce.number().min(0).default(0),
-})
+export const NavdataFiltersSchema = z
+  .object({
+    aircraftRegistration: z.string().optional(),
+  })
+  .merge(LimitOffsetSchema(100))
 
 export type NavdataFilters = z.infer<typeof NavdataFiltersSchema>
 

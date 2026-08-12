@@ -74,6 +74,10 @@ export const problemErrorHandler = (
   if (err instanceof ZodError) {
     return sendProblem({
       status: 400,
+      // The full issue list is always in extensions.errors; detail surfaces the
+      // first one so a client that only reads `detail` (like RemoteContent)
+      // still shows something more useful than a bare "Bad Request".
+      detail: err.issues[0]?.message,
       extensions: {
         errors: err.issues,
       },

@@ -102,6 +102,7 @@ describe('GET /ajlb', () => {
       title: 'Bad Request',
       instance: '/ajlb',
       timestamp: expect.any(String),
+      detail: 'Unrecognized key: "someField"',
       errors: expect.arrayContaining([
         expect.objectContaining({
           code: 'unrecognized_keys',

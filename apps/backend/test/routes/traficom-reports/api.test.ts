@@ -87,7 +87,8 @@ describe('GET /traficom-reports', () => {
         .set('Cookie', `accessToken=${adminToken}`)
 
       expect(res.status).toBe(400)
-      expect(res.body.detail).toContain('Invalid query parameters')
+      expect(Array.isArray(res.body.errors)).toBe(true)
+      expect(res.body.errors.length).toBeGreaterThan(0)
     })
 
     it('should return 400 for non-numeric year', async () => {
@@ -97,7 +98,8 @@ describe('GET /traficom-reports', () => {
         .query({ year: 'abcd' })
 
       expect(res.status).toBe(400)
-      expect(res.body.detail).toContain('Invalid query parameters')
+      expect(Array.isArray(res.body.errors)).toBe(true)
+      expect(res.body.errors.length).toBeGreaterThan(0)
     })
 
     it('should return 400 for invalid filter value', async () => {
@@ -107,7 +109,8 @@ describe('GET /traficom-reports', () => {
         .query({ year: 2025, filter: 'BOGUS' })
 
       expect(res.status).toBe(400)
-      expect(res.body.detail).toContain('Invalid query parameters')
+      expect(Array.isArray(res.body.errors)).toBe(true)
+      expect(res.body.errors.length).toBeGreaterThan(0)
     })
 
     it.each(['ALL', 'PRIVATE', 'SCHOOL', 'DTO_SCHOOL', 'NON_DTO_SCHOOL'])(

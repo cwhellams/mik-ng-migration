@@ -8,6 +8,7 @@ import {
   type TraficomReportResponse,
 } from './models.ts'
 import { problem } from '../response.ts'
+import { validate } from '../validate.ts'
 import { HttpStatusCode } from 'axios'
 import logger from '../../lib/logger.ts'
 
@@ -16,42 +17,28 @@ const router = Router()
 // Only INVOICING_ADMIN can access traficom reports
 router.use(validateUser(MIKPermissions.INVOICING_ADMIN))
 
-router.get('/', async (req: Request, res: Response<TraficomReportResponse>) => {
-  const parsed = TraficomReportFiltersSchema.safeParse(req.query)
+router.get(
+  '/',
+  validate(TraficomReportFiltersSchema, 'query'),
+  async (req: Request, res: Response<TraficomReportResponse>) => {
+    const filters = req.validated?.query as TraficomReportFilters
 
-  if (!parsed.success) {
-    const errors = parsed.error.issues.map((issue) => ({
-      path: issue.path.join('.'),
-      message: issue.message,
-      code: issue.code,
-    }))
-    return problem({
-      status: HttpStatusCode.BadRequest,
-      detail:
-        'Invalid query parameters. year (YYYY) is required and filter must be one of ALL, PRIVATE, SCHOOL, DTO_SCHOOL, NON_DTO_SCHOOL.',
-      extensions: {
-        errors,
-      },
-    })
-  }
+    logger.info(`Fetching traficom report with filters: ${JSON.stringify(filters)}`)
 
-  const filters: TraficomReportFilters = parsed.data
-
-  logger.info(`Fetching traficom report with filters: ${JSON.stringify(filters)}`)
-
-  try {
-    const data = await getTraficomReport(filters)
-    res.json({
-      data,
-      filters,
-    })
-  } catch (error) {
-    logger.error('Error fetching traficom report:', error)
-    return problem({
-      status: HttpStatusCode.InternalServerError,
-      detail: 'Failed to fetch traficom report data.',
-    })
-  }
-})
+    try {
+      const data = await getTraficomReport(filters)
+      res.json({
+        data,
+        filters,
+      })
+    } catch (error) {
+      logger.error('Error fetching traficom report:', error)
+      return problem({
+        status: HttpStatusCode.InternalServerError,
+        detail: 'Failed to fetch traficom report data.',
+      })
+    }
+  },
+)
 
 export default router
