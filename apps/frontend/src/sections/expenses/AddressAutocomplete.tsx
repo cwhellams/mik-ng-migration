@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Autocomplete, TextField } from '@mui/material'
-import type { AddressSearchResponse, AddressSearchResult } from '@backend/routes/mileage-geo/models'
+import type { AddressSearchResponse, AddressSearchResult } from '@mik/contracts/mileage-geo'
 import { api } from '../../hooks/useApi'
 
 // lat/lon are optional: when the address-search service is unavailable, the member can

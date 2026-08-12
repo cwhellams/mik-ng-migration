@@ -1,4 +1,4 @@
-import { FlightType, type FlightLogUpsertRequest } from '../../../src/routes/flight-log/models.ts'
+import { FlightType, type FlightLogUpsertRequest } from '@mik/contracts/flight-log'
 
 export const flightPayload: FlightLogUpsertRequest = {
   aircraftRegistration: 'OH-STL',

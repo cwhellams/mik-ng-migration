@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals'
-import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
+import { MIKLang, MIKMemberTypes, type Member } from '@mik/contracts/members'
 import {
   PurchasePostSchema,
   PurchaseRowWrapperSchema,

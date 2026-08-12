@@ -5,18 +5,10 @@ import request from 'supertest'
 
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import bookingsRouter from '../../../src/routes/bookings/api.ts'
-import {
-  BookingStatus,
-  BookingType,
-  CancellationReason,
-} from '../../../src/routes/bookings/models.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { BookingStatus, BookingType, CancellationReason } from '@mik/contracts/bookings'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
-import type {
-  Booking,
-  BookingFilters,
-  BookingUpsertRequest,
-} from '../../../src/routes/bookings/models.ts'
+import type { Booking, BookingFilters, BookingUpsertRequest } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
 
 const userId = 'Matti1'

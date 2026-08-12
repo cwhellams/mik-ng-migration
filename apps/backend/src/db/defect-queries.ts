@@ -7,7 +7,7 @@ import type {
   DefectStatus,
   CreateDefectRequest,
   UpdateDefectRequest,
-} from '../routes/defects/models.ts'
+} from '@mik/contracts/defects'
 
 function mapRowToDefect(row: {
   defect_id: string

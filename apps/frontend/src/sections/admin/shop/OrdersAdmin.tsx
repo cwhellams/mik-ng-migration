@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type { Order, OrderStatus } from '@backend/routes/shop/models'
+import type { Order, OrderStatus } from '@mik/contracts/shop'
 import { Link } from 'react-router'
 import { ORDER_STATUS_COLOR } from '../../shop/orderStatusColor'
 

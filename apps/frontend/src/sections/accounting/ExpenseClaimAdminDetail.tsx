@@ -20,9 +20,9 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import type { ItemListResponse } from '@backend/routes/invoicing/models'
-import { ExpenseClaimStatus, type ExpenseClaim } from '@backend/routes/expenses/models'
-import { MIKPermissions } from '@backend/routes/members/models'
+import type { ItemListResponse } from '@mik/contracts/invoicing'
+import { ExpenseClaimStatus, type ExpenseClaim } from '@mik/contracts/expenses'
+import { MIKPermissions } from '@mik/contracts/members'
 import useApi, { sharedApi } from '../../hooks/useApi'
 import { useMe } from '../../hooks/useMe'
 import { useRoles } from '../../hooks/useRoles'

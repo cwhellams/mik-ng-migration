@@ -23,8 +23,8 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import type { ExpenseClaimReceipt, ExpenseClaimAttachment } from '@backend/routes/expenses/models'
-import type { AirfieldListResponse } from '@backend/routes/flight-log/models'
+import type { ExpenseClaimReceipt, ExpenseClaimAttachment } from '@mik/contracts/expenses'
+import type { AirfieldListResponse } from '@mik/contracts/flight-log'
 import useApi from '../../hooks/useApi'
 import { matchAircraftCostCentre, type EditableLineItem } from './expenseHelpers'
 import { validateIban } from './validation'

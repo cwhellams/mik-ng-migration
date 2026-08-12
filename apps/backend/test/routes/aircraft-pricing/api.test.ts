@@ -5,9 +5,9 @@ import request from 'supertest'
 
 import { db } from '../../../src/db/connection.ts'
 import { router } from '../../../src/routes/aircraft-pricing/api.ts'
-import type { AircraftPricing } from '../../../src/routes/aircraft-pricing/models.ts'
+import type { AircraftPricing } from '@mik/contracts/aircraft-pricing'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 // Create an instance of the Express app

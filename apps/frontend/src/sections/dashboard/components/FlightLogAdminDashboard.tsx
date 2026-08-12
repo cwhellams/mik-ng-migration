@@ -1,4 +1,4 @@
-import { AjlbListResponse } from '@backend/routes/ajlb/model'
+import { AjlbListResponse } from '@mik/contracts/ajlb'
 import useApi from '../../../hooks/useApi'
 import {
   Accordion,
@@ -12,7 +12,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router'
 import { RemoteContent } from '../../../components/RemoteContent'
-import { FlightLogListResponse, FlightLogStatus } from '@backend/routes/flight-log/models'
+import { FlightLogListResponse, FlightLogStatus } from '@mik/contracts/flight-log'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
 import { useTimezone } from '../../../hooks/useTimezone'

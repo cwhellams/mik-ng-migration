@@ -28,11 +28,10 @@ const { router } = await import('../../../src/routes/members/api.ts')
 const { generateAccessToken } = await import('../../../src/routes/auth/token.ts')
 const { db } = await import('../../../src/db/connection.ts')
 const { problemErrorHandler } = await import('../../../src/routes/response.ts')
-const { MIKLang, MIKMemberTypes, MIKPermissions } =
-  await import('../../../src/routes/members/models.ts')
+const { MIKLang, MIKMemberTypes, MIKPermissions } = await import('@mik/contracts/members')
 const { deleteSimplbooksOutbox } = await import('../../db/__helpers__/simplbooksDbHelpers.ts')
-import type { Member } from '../../../src/routes/members/models.ts'
-import type { RegisterRequest } from '../../../src/routes/auth/schema.ts'
+import type { Member } from '@mik/contracts/members'
+import type { RegisterRequest } from '@mik/contracts/auth'
 
 process.env.ACCESS_TOKEN_SECRET ??= 'test-access-secret'
 process.env.ACCESS_TOKEN_EXPIRATION ??= '15m'

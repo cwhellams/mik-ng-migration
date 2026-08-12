@@ -34,11 +34,7 @@ import useApi from '../../../hooks/useApi'
 import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
-import type {
-  InventoryItem,
-  InventoryCategory,
-  InventoryLocation,
-} from '@backend/routes/inventory/models'
+import type { InventoryItem, InventoryCategory, InventoryLocation } from '@mik/contracts/inventory'
 import { resolveLanguage, localName } from '../../inventory/localized'
 
 // ── Localized CRUD tab (shared by Categories & Locations) ───────────────────────

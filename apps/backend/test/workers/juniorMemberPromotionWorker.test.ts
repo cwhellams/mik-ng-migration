@@ -26,7 +26,7 @@ import {
   promoteMemberToFlying,
 } from '../../src/db/member-queries.ts'
 import { processJuniorPromotions } from '../../src/workers/juniorMemberPromotionWorker.ts'
-import { MIKMemberTypes } from '../../src/routes/members/models.ts'
+import { MIKMemberTypes } from '@mik/contracts/members'
 import type { ScheduledTask, TaskFn, TaskOptions } from 'node-cron'
 
 /** Format a Date as YYYY-MM-DD using local time (avoids UTC offset shifting the date). */

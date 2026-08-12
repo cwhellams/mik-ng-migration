@@ -14,7 +14,7 @@ import {
   type LoginRequest,
   type LoginResponse,
   type RegisterRequest,
-} from './schema.ts'
+} from '@mik/contracts/auth'
 import { decodeRefreshToken, respondWithAccessAndRefreshToken } from './token.ts'
 import { generateJWTUser } from './token.ts'
 import {

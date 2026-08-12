@@ -3,9 +3,9 @@ import {
   MemberRolesResponse,
   MIKPermissions,
   downgradePermission,
-} from '@backend/routes/members/models'
+} from '@mik/contracts/members'
 import useApi from './useApi'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { useMe } from './useMe'
 import { useThemeMode } from '../theme/ThemeContext'
 

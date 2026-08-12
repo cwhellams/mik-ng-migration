@@ -30,8 +30,8 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { SelectMember } from '../../components/SelectMember'
 import { useRoles } from '../../hooks/useRoles'
-import { MIKPermissions, MIKMemberTypes } from '@backend/routes/members/models'
-import type { StudentProgress, TrainingProgram } from '@backend/routes/dto/models'
+import { MIKPermissions, MIKMemberTypes } from '@mik/contracts/members'
+import type { StudentProgress, TrainingProgram } from '@mik/contracts/dto'
 import { assignSyllabus } from './dtoApi'
 
 function formatMins(mins: number): string {

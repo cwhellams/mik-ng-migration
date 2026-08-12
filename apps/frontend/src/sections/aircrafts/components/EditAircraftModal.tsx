@@ -29,19 +29,14 @@ import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import useApi from '../../../hooks/useApi'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
-import {
-  Aircraft,
-  AircraftNote,
-  Severity,
-  FuelTypesListResponse,
-} from '@backend/routes/aircrafts/models'
+import { Aircraft, AircraftNote, Severity, FuelTypesListResponse } from '@mik/contracts/aircrafts'
 import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { EditButton } from '../../../components/EditButton'
 import { SaveButton } from '../../../components/SaveButton'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { HoursAndMinutes } from '../../flightLog/components/HoursAndMinutes'
 

@@ -25,14 +25,14 @@ import {
   FlightLogListResponse,
   FlightLogStatus,
   PageItemRow,
-} from '@backend/routes/flight-log/models'
+} from '@mik/contracts/flight-log'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
-import { AircraftJourneyLogBook } from '@backend/routes/ajlb/model'
+import { AircraftJourneyLogBook } from '@mik/contracts/ajlb'
 import { useEffect, useState } from 'react'
 import { EditButton } from '../../components/EditButton'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { StatusButton } from './components/StatusButton'
 import { FlightLogValidation } from './components/FlightLogValidation'
 import { SnackAlert } from '../../components/SnackAlert'
@@ -52,9 +52,9 @@ import { MaintenanceNoteMarker } from './MaintenanceNoteMarker'
 import { AddMaintenanceNoteDialog } from './AddMaintenanceNoteDialog'
 import { DefectMarker } from './DefectMarker'
 import { AddDefectDialog } from './AddDefectDialog'
-import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
-import type { Defect } from '@backend/routes/defects/models'
-import { MIKPermissions } from '@backend/routes/members/models'
+import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
+import type { Defect } from '@mik/contracts/defects'
+import { MIKPermissions } from '@mik/contracts/members'
 
 // A maintenance note / defect that renders inline as a chip on its anchor
 // flight's row instead of consuming a row of its own (rows: 0 -- an in-flight

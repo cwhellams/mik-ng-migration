@@ -14,10 +14,10 @@ import {
   Radio,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import type { Secret, SecretsListResponse, SecretClass } from '@backend/routes/secrets/models'
+import type { Secret, SecretsListResponse, SecretClass } from '@mik/contracts/secrets'
 import useApi from '../../hooks/useApi'
 import { SaveButton } from '../../components/SaveButton'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../components/SnackAlert'
 import { useRoles } from '../../hooks/useRoles'
 

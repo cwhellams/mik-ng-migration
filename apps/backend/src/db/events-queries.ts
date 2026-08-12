@@ -6,7 +6,7 @@ import type {
   EventUpdate,
   EventFilters,
   EventTranslations,
-} from '../routes/events/models.ts'
+} from '@mik/contracts/events'
 
 type EventRow = {
   event_id: string

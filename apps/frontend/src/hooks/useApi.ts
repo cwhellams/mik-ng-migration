@@ -1,11 +1,11 @@
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr'
 import { PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { useLocation, useNavigate } from 'react-router'
 import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
 import { useThemeMode } from '../theme/ThemeContext'
-import { validateApiPath } from '@backend/util/sanitizers'
+import { validateApiPath } from '@mik/contracts/sanitizers'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 

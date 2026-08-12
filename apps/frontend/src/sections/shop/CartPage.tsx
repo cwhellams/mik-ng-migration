@@ -23,7 +23,7 @@ import useApi from '../../hooks/useApi'
 import { useSnackbar } from '../../hooks/useSnackbar'
 import { useLocalisedText } from '../../utils/localisedText'
 import { RemoteContent } from '../../components/RemoteContent'
-import type { Cart, Order } from '@backend/routes/shop/models'
+import type { Cart, Order } from '@mik/contracts/shop'
 import { Link, useNavigate } from 'react-router'
 
 export default function CartPage() {

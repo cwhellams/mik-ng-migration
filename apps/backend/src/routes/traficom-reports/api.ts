@@ -1,12 +1,12 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { getTraficomReport } from '../../db/traficom-report-queries.ts'
 import {
   TraficomReportFiltersSchema,
   type TraficomReportFilters,
   type TraficomReportResponse,
-} from './models.ts'
+} from '@mik/contracts/traficom-reports'
 import { problem } from '../response.ts'
 import { validate } from '../validate.ts'
 import { HttpStatusCode } from 'axios'

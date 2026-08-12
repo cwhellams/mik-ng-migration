@@ -22,7 +22,7 @@ import useApi from '../../../hooks/useApi'
 import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
-import type { Category } from '@backend/routes/shop/models'
+import type { Category } from '@mik/contracts/shop'
 
 interface CategoryFormState {
   nameEn: string

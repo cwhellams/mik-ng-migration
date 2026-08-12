@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import type { Defect } from '@backend/routes/defects/models'
+import type { Defect } from '@mik/contracts/defects'
 import { useTimezone } from '../../hooks/useTimezone'
 import { DefectDialog } from './DefectDialog'
 

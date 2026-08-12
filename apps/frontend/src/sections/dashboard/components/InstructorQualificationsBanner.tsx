@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router'
 import dayjs from 'dayjs'
 import useApi from '../../../hooks/useApi'
 import { useMe } from '../../../hooks/useMe'
-import type { InstructorQualification } from '@backend/routes/instructor-qualifications/models'
+import type { InstructorQualification } from '@mik/contracts/instructor-qualifications'
 
 const EXPIRING_DAYS_THRESHOLD = 30
 

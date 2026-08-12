@@ -1,6 +1,6 @@
 import { db } from './connection.ts'
 import { sql } from 'kysely'
-import type { TaxReportEntry, TaxReportFilters } from '../routes/tax-reports/models.ts'
+import type { TaxReportEntry, TaxReportFilters } from '@mik/contracts/tax-reports'
 
 export async function getTaxReport(filters: TaxReportFilters): Promise<TaxReportEntry[]> {
   const result = await db

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { MIKLang, MIKMemberTypes } from '../../routes/members/models.ts'
+import { MIKLang, MIKMemberTypes } from '@mik/contracts/members'
 
 // Brevo Contact Attributes
 export const BrevoContactAttributesSchema = z.object({

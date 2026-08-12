@@ -11,7 +11,7 @@ import {
   type UpdateMeeting,
   type VoteCounter,
   type VoteOption,
-} from '../routes/meetings/models.ts'
+} from '@mik/contracts/meetings'
 import { problem } from '../routes/response.ts'
 
 type Executor = Kysely<DB> | Transaction<DB>

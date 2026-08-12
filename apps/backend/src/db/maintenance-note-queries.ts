@@ -4,7 +4,7 @@ import type {
   MaintenanceNote,
   CreateMaintenanceNoteRequest,
   UpdateMaintenanceNoteRequest,
-} from '../routes/maintenance-notes/models.ts'
+} from '@mik/contracts/maintenance-notes'
 
 function mapRowToNote(row: {
   note_id: string

@@ -1,7 +1,7 @@
 import { FormControl, FormHelperText } from '@mui/material'
 import { t } from 'i18next'
 import { Control, Controller } from 'react-hook-form'
-import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
+import { FlightLogUpsertRequest } from '@mik/contracts/flight-log'
 import { TimeField } from '@mui/x-date-pickers/TimeField'
 import { durationToDayjs } from '../utils/timeUtils'
 

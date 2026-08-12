@@ -1,17 +1,17 @@
 import 'dotenv/config'
-import type { Booking } from '../routes/bookings/models.ts'
-import { epochToLocal } from '../util/date.ts'
-import { generateGoogleCalendarLink } from '../lib/calendarEvent.ts'
+import type { Booking } from '@mik/contracts/bookings'
+import { epochToHelsinki } from '@mik/contracts/date'
+import { generateGoogleCalendarLink } from '@mik/contracts/calendar'
 
 // Shared across all booking-related email templates (confirmed, updated,
 // cancelled, transferred, reminder, instructor notifications).
 export const bookingScheduleHref = (booking: Booking): string =>
-  `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/schedule?day=${epochToLocal(
+  `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/schedule?day=${epochToHelsinki(
     booking.startTimeEpoch,
   ).format('YYYY-MM-DD')}`
 
 export const formatBookingRange = (booking: Booking): string =>
-  `${epochToLocal(booking.startTimeEpoch).format('DD.MM. HH:mm')} - ${epochToLocal(
+  `${epochToHelsinki(booking.startTimeEpoch).format('DD.MM. HH:mm')} - ${epochToHelsinki(
     booking.endTimeEpoch,
   ).format('DD.MM. HH:mm')}`
 

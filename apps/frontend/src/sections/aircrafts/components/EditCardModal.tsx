@@ -15,10 +15,10 @@ import useApi from '../../../hooks/useApi'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { SaveButton } from '../../../components/SaveButton'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../../components/SnackAlert'
 import dayjs, { Dayjs } from 'dayjs'
-import { AircraftCard, AircraftCardAuditable } from '@backend/routes/aircraft-cards/models'
+import { AircraftCard, AircraftCardAuditable } from '@mik/contracts/aircraft-cards'
 
 export type CardEditMode = 'new' | 'edit'
 

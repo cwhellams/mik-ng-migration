@@ -18,8 +18,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
-import { AME_MEDICAL_TYPES } from '@backend/routes/ame/models'
-import type { CreateAmeEntry } from '@backend/routes/ame/models'
+import { AME_MEDICAL_TYPES } from '@mik/contracts/ame'
+import type { CreateAmeEntry } from '@mik/contracts/ame'
 
 const MEDICAL_TYPE_LABELS: Record<string, string> = {
   EASA_CLASS_1: 'EASA Class 1',

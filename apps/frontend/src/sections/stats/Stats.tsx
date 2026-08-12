@@ -21,7 +21,7 @@ import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
 import { useNivoTheme } from './useNivoTheme'
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 import {
   TotalFlightTimeByAcYrFt,
   TotalFlightTimeByPilotYr,
@@ -32,7 +32,7 @@ import {
   CommercialFlightTimeByAcYrMth,
   TotalLandingsByAcYr,
   PobDistributionByAcYr,
-} from '@backend/routes/stats/models'
+} from '@mik/contracts/stats'
 import { RemoteContent } from '../../components/RemoteContent'
 import { PilotStatistics as PilotStatisticsView } from './components/PilotStatistics'
 import { ReservationEfficiency as ReservationEfficiencyView } from './components/ReservationEfficiency'

@@ -9,7 +9,7 @@ import type {
   UseFormTrigger,
   UseFormWatch,
 } from 'react-hook-form'
-import type { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
+import type { FlightLogUpsertRequest } from '@mik/contracts/flight-log'
 
 // The subset of react-hook-form's API every wizard step needs, threaded down from the
 // single useForm() call owned by FlightLogEntryWizard.

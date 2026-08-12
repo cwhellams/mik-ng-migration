@@ -14,7 +14,7 @@
  * re-declaring a factory in a suite.
  */
 
-import { MIKLang } from '../../src/routes/members/models.ts'
+import { MIKLang } from '@mik/contracts/members'
 
 export const booking = (overrides: Record<string, unknown> = {}) =>
   ({

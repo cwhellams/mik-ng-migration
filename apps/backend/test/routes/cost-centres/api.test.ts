@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import express from 'express'
 import request from 'supertest'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 
 const mockGetCostCentres =
   jest.fn<(...args: any[]) => Promise<Array<{ code: string; description: string }>>>()

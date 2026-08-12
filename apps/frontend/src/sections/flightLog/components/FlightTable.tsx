@@ -12,7 +12,7 @@ import dayjs from 'dayjs'
 import { t } from 'i18next'
 import theme from '../../../theme/theme'
 import { formatDuration } from '../../flightLog/utils/timeUtils'
-import { FlightLogListEntry } from '@backend/routes/flight-log/models'
+import { FlightLogListEntry } from '@mik/contracts/flight-log'
 import { useTimezone } from '../../../hooks/useTimezone'
 
 export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {

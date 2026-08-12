@@ -1,4 +1,4 @@
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 import { screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { Component, type ReactNode } from 'react'

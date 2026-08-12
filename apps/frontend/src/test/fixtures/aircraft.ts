@@ -3,7 +3,7 @@ import {
   type Aircraft,
   type AircraftListResponse,
   type AircraftStatus,
-} from '@backend/routes/aircrafts/models'
+} from '@mik/contracts/aircrafts'
 
 import { AIRCRAFT_REGISTRATION, auditFields } from './cast'
 

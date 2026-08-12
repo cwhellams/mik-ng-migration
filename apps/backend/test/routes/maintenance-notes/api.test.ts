@@ -5,7 +5,7 @@ import request from 'supertest'
 
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import maintenanceNoteRouter from '../../../src/routes/maintenance-notes/api.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import {
   createMaintenanceNote,

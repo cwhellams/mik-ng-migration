@@ -2,7 +2,7 @@ import { Router } from 'express'
 import type { Request, Response } from 'express'
 import { HttpStatusCode } from 'axios'
 
-import type { PublicPricesResponse } from './models.ts'
+import type { PublicPricesResponse } from '@mik/contracts/prices'
 import {
   getCurrentAircraftPricing,
   getMembershipFees,

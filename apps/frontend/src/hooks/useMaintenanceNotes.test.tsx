@@ -1,4 +1,4 @@
-import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
+import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import { waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

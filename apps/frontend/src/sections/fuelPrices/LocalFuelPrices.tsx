@@ -15,8 +15,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import type { LocalFuelPrice } from '@backend/routes/fuel-prices/models'
-import { FUEL_TYPES } from '@backend/routes/expenses/models'
+import type { LocalFuelPrice } from '@mik/contracts/fuel-prices'
+import { FUEL_TYPES } from '@mik/contracts/expenses'
 import useApi from '../../hooks/useApi'
 
 // Local (EFNU) fuel price cap per fuel type, used to compute the balanced cross-trip

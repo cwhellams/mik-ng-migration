@@ -12,8 +12,8 @@ import type {
   UpdateAircraftHilRequest,
   CreateAircraftHilExtensionRequest,
   HilLinkedDefect,
-} from '../routes/aircraft-hil/models.ts'
-import type { DefectStatus } from '../routes/defects/models.ts'
+} from '@mik/contracts/aircraft-hil'
+import type { DefectStatus } from '@mik/contracts/defects'
 import { problem } from '../routes/response.ts'
 
 function mapRowToHil(row: {

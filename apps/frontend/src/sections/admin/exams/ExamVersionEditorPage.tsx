@@ -27,7 +27,7 @@ import { useParams, useNavigate } from 'react-router'
 import { Title } from '../../../components/Title'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
-import type { ExamVersionDetail } from '@backend/routes/exams/models'
+import type { ExamVersionDetail } from '@mik/contracts/exams'
 
 type QuestionDetail = ExamVersionDetail['questions'][number]
 type ChoiceDetail = QuestionDetail['choices'][number]

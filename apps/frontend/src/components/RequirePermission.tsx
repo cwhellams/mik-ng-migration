@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
 import Forbidden from '../sections/error/Forbidden'

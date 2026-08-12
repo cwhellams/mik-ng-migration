@@ -4,7 +4,7 @@ import type {
   UpliftReportEntry,
   UpliftReportFilters,
   UpliftReportSummary,
-} from '../routes/uplift-reports/models.ts'
+} from '@mik/contracts/uplift-reports'
 
 export async function getUpliftReport(filters: UpliftReportFilters): Promise<{
   data: UpliftReportEntry[]

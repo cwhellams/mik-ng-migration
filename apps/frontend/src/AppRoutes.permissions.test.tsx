@@ -1,4 +1,4 @@
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 import { screen } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'

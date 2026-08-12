@@ -30,7 +30,7 @@ import useApi from '../../../hooks/useApi'
 import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useLocalisedText } from '../../../utils/localisedText'
-import type { Category, DiscountCode } from '@backend/routes/shop/models'
+import type { Category, DiscountCode } from '@mik/contracts/shop'
 
 interface CodeForm {
   code: string

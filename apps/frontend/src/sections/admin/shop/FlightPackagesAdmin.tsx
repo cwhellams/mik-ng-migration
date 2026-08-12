@@ -32,9 +32,9 @@ import useApi from '../../../hooks/useApi'
 import { useSnackbar } from '../../../hooks/useSnackbar'
 import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type { PrepaidPackage, MemberPackage } from '@backend/routes/prepaid-hours/models'
-import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
-import type { ItemListResponse } from '@backend/routes/invoicing/models'
+import type { PrepaidPackage, MemberPackage } from '@mik/contracts/prepaid-hours'
+import type { AircraftListResponse } from '@mik/contracts/aircrafts'
+import type { ItemListResponse } from '@mik/contracts/invoicing'
 
 interface PackageForm {
   nameEn: string

@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express'
 
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import {
   getAnnualEquipmmentFee,
   getInvoiceItems,
@@ -31,7 +31,7 @@ import {
   UpdateIsFuelItemSchema,
   UpdateIsKmItemSchema,
   UpdateIsOtherItemSchema,
-} from './models.ts'
+} from '@mik/contracts/invoicing'
 
 import { getInvoicePdf, getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
 import { HttpStatusCode } from 'axios'
@@ -45,7 +45,7 @@ import {
   type InvoicableFlightListResponse,
   FlightCreditSchema,
   type PrepaidFlightSummaryResponse,
-} from '../flight-log/models.ts'
+} from '@mik/contracts/flight-log'
 import {
   getInvoicableFlights,
   invoiceFlights,

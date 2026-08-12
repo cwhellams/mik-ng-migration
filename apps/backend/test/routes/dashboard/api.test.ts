@@ -27,7 +27,7 @@ jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
 }))
 
 const { router } = await import('../../../src/routes/dashboard/api.ts')
-const { DEFAULT_DASHBOARD_COMPONENTS } = await import('../../../src/routes/dashboard/models.ts')
+const { DEFAULT_DASHBOARD_COMPONENTS } = await import('@mik/contracts/dashboard')
 const { problemErrorHandler } = await import('../../../src/routes/response.ts')
 
 const app = express()

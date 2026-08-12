@@ -34,6 +34,23 @@ export default tseslint.config(
       'preserve-caught-error': 'warn',
       'no-useless-assignment': 'warn',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // The browser must not be able to import backend source. It used to, via an
+      // `@backend/*` path alias into apps/backend/src, which meant nothing stopped a
+      // component from pulling in db/connection.ts or dotenv (issue #1115, finding 7).
+      // The shared Zod models, Problem shape and isomorphic helpers now live in
+      // @mik/contracts; anything else in the backend is server-only by definition.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@backend', '@backend/*', '**/backend/src/**'],
+              message:
+                'Import shared models and helpers from @mik/contracts/<domain>. The frontend must not reach into apps/backend/src.',
+            },
+          ],
+        },
+      ],
     },
   },
 )

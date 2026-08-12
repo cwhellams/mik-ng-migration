@@ -1,4 +1,4 @@
-import { BookingStatus } from '@backend/routes/bookings/models'
+import { BookingStatus } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 

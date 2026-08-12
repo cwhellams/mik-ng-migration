@@ -1,4 +1,4 @@
-import { Member } from '@backend/routes/members/models'
+import { Member } from '@mik/contracts/members'
 import useApi from './useApi'
 
 export const useMe = () => {

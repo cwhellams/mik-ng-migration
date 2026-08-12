@@ -1,4 +1,4 @@
-import { MemberListFilters, MemberListResponse } from '@backend/routes/members/models'
+import { MemberListFilters, MemberListResponse } from '@mik/contracts/members'
 import useApi from '../hooks/useApi'
 import { Autocomplete, TextField } from '@mui/material'
 import { useMemo } from 'react'

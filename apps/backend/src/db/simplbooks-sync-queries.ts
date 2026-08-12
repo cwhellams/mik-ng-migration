@@ -3,7 +3,7 @@ import type { Selectable } from 'kysely'
 import type { MemberRegister, MemberBrevoSyncState } from './schema.js'
 import logger from '../lib/logger.ts'
 import type { SimplbooksSyncStatus } from '../services/simplbooks/models.ts'
-import { MIKMemberTypes } from '../routes/members/models.ts'
+import { MIKMemberTypes } from '@mik/contracts/members'
 
 /**
  * Get the last successful sync state

@@ -3,7 +3,7 @@ import express from 'express'
 import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
-import type { RegisterRequest } from '../../../src/routes/auth/schema.ts'
+import type { RegisterRequest } from '@mik/contracts/auth'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { router } from '../../../src/routes/members/api.ts'
 import {
@@ -18,9 +18,9 @@ import {
   type MemberListResponse,
   type MemberRole,
   type MemberRolesResponse,
-} from '../../../src/routes/members/models.ts'
+} from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
-import type { Upsert } from '../../../src/types/schema.ts'
+import type { Upsert } from '@mik/contracts/schema'
 import { deleteSimplbooksOutbox } from '../../db/__helpers__/simplbooksDbHelpers.ts'
 import { HttpStatusCode } from 'axios'
 import { db } from '../../../src/db/connection.ts'
@@ -28,7 +28,7 @@ import { addMember } from '../../../src/db/member-queries.ts'
 import { generateMagicLinkToken } from '../../../src/routes/auth/magiclink.ts'
 import { createPendingEmailChange } from '../../../src/db/email-change-queries.ts'
 import { insertBooking, getBookings } from '../../../src/db/booking-queries.ts'
-import { BookingStatus, BookingType } from '../../../src/routes/bookings/models.ts'
+import { BookingStatus, BookingType } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
 
 // Create an instance of the Express app

@@ -1,4 +1,4 @@
-import type { Auditable } from '@backend/types/schema'
+import type { Auditable } from '@mik/contracts/schema'
 
 /**
  * The shared cast of characters.

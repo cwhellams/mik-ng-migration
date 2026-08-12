@@ -1,8 +1,4 @@
-import type {
-  InventoryCategory,
-  InventoryItem,
-  InventoryLocation,
-} from '@backend/routes/inventory/models'
+import type { InventoryCategory, InventoryItem, InventoryLocation } from '@mik/contracts/inventory'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'

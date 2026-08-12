@@ -3,7 +3,7 @@ import express from 'express'
 import request from 'supertest'
 import sharp from 'sharp'
 
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 
 const mockGetAllEvents = jest.fn<(...args: any[]) => Promise<unknown[]>>()
 const mockGetEventById = jest.fn<(...args: any[]) => Promise<unknown>>()

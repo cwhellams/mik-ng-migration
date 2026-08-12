@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express'
 import { HttpStatusCode } from 'axios'
 import multer from 'multer'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 import {
   TrainingProgramUpsertSchema,
@@ -12,7 +12,7 @@ import {
   SyllabusTextPatchSchema,
   SyllabusUpsertBodySchema,
   FlightTypeEnum,
-} from './models.ts'
+} from '@mik/contracts/dto'
 import {
   getTrainingPrograms,
   getTrainingProgramById,

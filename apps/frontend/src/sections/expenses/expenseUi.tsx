@@ -1,5 +1,5 @@
 import { Chip } from '@mui/material'
-import { ExpenseClaimStatus, type ExpenseClaim } from '@backend/routes/expenses/models'
+import { ExpenseClaimStatus, type ExpenseClaim } from '@mik/contracts/expenses'
 
 const currencyFormatter = new Intl.NumberFormat('fi-FI', {
   style: 'currency',

@@ -5,7 +5,7 @@ import { useController, type Control, type UseFormTrigger } from 'react-hook-for
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import type { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
+import type { FlightLogUpsertRequest } from '@mik/contracts/flight-log'
 import { TimeEntryField } from '../components/TimeEntryField'
 import { calculateNext } from '../../utils/timeUtils'
 import { vibrate } from '../../../../utils/haptics'

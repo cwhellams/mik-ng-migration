@@ -1,6 +1,6 @@
 import * as connection from './connection.ts'
 import { sql } from 'kysely'
-import type { Navdata, NavdataCreate, NavdataFilters } from '../routes/aircraft-navdata/models.ts'
+import type { Navdata, NavdataCreate, NavdataFilters } from '@mik/contracts/aircraft-navdata'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
 

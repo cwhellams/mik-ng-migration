@@ -1,7 +1,7 @@
 import { Box, TextField, InputAdornment, Stack, Chip, Button } from '@mui/material'
 import { Link } from 'react-router'
 import useApi from '../../hooks/useApi'
-import { Member, MemberListResponse } from '@backend/routes/members/models'
+import { Member, MemberListResponse } from '@mik/contracts/members'
 import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'
 import { t } from 'i18next'
@@ -12,7 +12,7 @@ import { formatPhoneNumber } from '../../utils/format'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { SnackAlert } from '../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 
 const MemberTrash = () => {
   const [nameFilter, setNameFilter] = useState('')

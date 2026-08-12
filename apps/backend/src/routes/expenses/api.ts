@@ -45,12 +45,12 @@ import {
   deleteExpenseAttachment,
 } from '../../db/expense-attachment-queries.ts'
 import { mergeAttachmentsToPdf } from '../../util/mergeAttachmentsToPdf.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import { validate } from '../validate.ts'
 import {
-  CreateExpenseClaimSchema,
+  createExpenseClaimSchema,
   ExpenseClaimFiltersSchema,
   ExpenseClaimStatus,
   ExpenseMessageType,
@@ -59,10 +59,13 @@ import {
   RejectExpenseClaimSchema,
   RequestInfoSchema,
   TreasurerEditExpenseClaimSchema,
-  UpdateExpenseClaimSchema,
   type MileageReportFilters,
-} from './models.ts'
-import type { CreateMileageLeg, MileageLeg } from './mileageModels.ts'
+} from '@mik/contracts/expenses'
+import {
+  DEFAULT_MILEAGE_MAX_KM,
+  type CreateMileageLeg,
+  type MileageLeg,
+} from '@mik/contracts/expenses-mileage'
 import { isValidHetu } from '../../util/hetu.ts'
 import { renderEmail } from '../../templates/renderEmail.ts'
 import { getEcbFxRate } from '../../services/ecbFxRate.ts'
@@ -213,6 +216,12 @@ async function validateCategoryRequirements(data: {
 
   return category
 }
+
+// The deployed board-approval distance cap. It lives here rather than in
+// @mik/contracts/expenses-mileage because that package is also loaded by the browser
+// and has no environment to read. Read per call (not at module scope) so tests can
+// override it after import, matching the OSRM_BASE_URL pattern in mileageRouting.ts.
+const mileageMaxKm = (): number => Number(process.env.MILEAGE_MAX_KM) || DEFAULT_MILEAGE_MAX_KM
 
 // Server-authoritative check for the >20% justification-note requirement (issue #1021).
 // A client-submitted leg.directDistanceKm is advisory only — trusting it would let a
@@ -394,7 +403,7 @@ router.post(
   '/',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
   async (req: Request<Record<string, string>>, res: Response) => {
-    const data = CreateExpenseClaimSchema.parse(req.body)
+    const data = createExpenseClaimSchema(mileageMaxKm()).parse(req.body)
     await validateCategoryRequirements({
       categoryId: data.categoryId,
       flightLogId: data.flightLogId ?? null,
@@ -514,7 +523,7 @@ router.put(
       })
     }
 
-    const patch = UpdateExpenseClaimSchema.parse(req.body)
+    const patch = createExpenseClaimSchema(mileageMaxKm()).partial().parse(req.body)
     await validateCategoryRequirements({
       categoryId: patch.categoryId ?? existing.categoryId,
       flightLogId: patch.flightLogId ?? existing.flightLogId ?? undefined,

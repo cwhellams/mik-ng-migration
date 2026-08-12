@@ -11,8 +11,8 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-import type { UnbilledTimeByAircraft, MemberPackage } from '@backend/routes/prepaid-hours/models'
-import type { EquipmentFeeStatus } from '@backend/routes/invoicing/models'
+import type { UnbilledTimeByAircraft, MemberPackage } from '@mik/contracts/prepaid-hours'
+import type { EquipmentFeeStatus } from '@mik/contracts/invoicing'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'

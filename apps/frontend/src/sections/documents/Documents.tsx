@@ -34,7 +34,7 @@ import type {
   DocumentListResponse,
   Document,
   DownloadDocument,
-} from '@backend/routes/documents/models'
+} from '@mik/contracts/documents'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'

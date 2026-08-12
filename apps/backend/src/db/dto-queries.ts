@@ -16,7 +16,7 @@ import type {
   SyllabusTextPatch,
   VerifyAttempt,
   FlightType,
-} from '../routes/dto/models.ts'
+} from '@mik/contracts/dto'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers

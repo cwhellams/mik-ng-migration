@@ -19,7 +19,7 @@ import { useNavigate, useParams } from 'react-router'
 import { Title } from '../../../components/Title'
 import { MarkdownContent } from '../../../components/MarkdownContent'
 import useApi from '../../../hooks/useApi'
-import type { SyllabusWithFlights, SyllabusFlight } from '@backend/routes/dto/models'
+import type { SyllabusWithFlights, SyllabusFlight } from '@mik/contracts/dto'
 import {
   updateSyllabus,
   updateSyllabusFlights,

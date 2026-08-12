@@ -1,5 +1,5 @@
 import useApi from './useApi'
-import type { Defect } from '@backend/routes/defects/models'
+import type { Defect } from '@mik/contracts/defects'
 
 /** Pass ajlbSeqNo to scope to one logbook page, or omit it for the whole aircraft. */
 export function useDefects(aircraftRegistration?: string, ajlbSeqNo?: number) {

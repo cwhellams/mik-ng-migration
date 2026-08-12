@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import type { FlightLogOverlapConflict } from '@backend/routes/flight-log/models'
+import type { FlightLogOverlapConflict } from '@mik/contracts/flight-log'
 
 type Props = {
   open: boolean

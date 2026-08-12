@@ -5,7 +5,7 @@ import {
   type Member,
   type MemberList,
   type MemberListResponse,
-} from '@backend/routes/members/models'
+} from '@mik/contracts/members'
 
 import {
   ADMIN_MEMBER_ID,

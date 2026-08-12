@@ -9,7 +9,7 @@ import {
   type AircraftListResponse,
   type AircraftStatus,
   type FuelTypesListResponse,
-} from './models.ts'
+} from '@mik/contracts/aircrafts'
 import {
   getAllAircraft,
   getAircraftByRegistration,
@@ -20,11 +20,11 @@ import {
 } from '../../db/aircraft-queries.ts'
 import { getFlightLogs, getFlightLogTotals } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { UpsertSchema } from '../../types/schema.ts'
+import { UpsertSchema } from '@mik/contracts/schema'
 import type { JWTUser } from '../auth/token.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
-import type { FlightLogListEntry } from '../flight-log/models.ts'
+import type { FlightLogListEntry } from '@mik/contracts/flight-log'
 import { getAircraftRegistrations } from '../../db/aircraft-document-queries.ts'
 
 // all aircarft routes are protected by aircraft permissions

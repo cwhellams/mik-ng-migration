@@ -2,12 +2,12 @@ import { sql, type Selectable } from 'kysely'
 
 import * as connection from './connection.ts'
 import type { FlightAircraft } from './schema.js'
-import type { Aircraft, AircraftNote, FuelTypeEntry } from '../routes/aircrafts/models.ts'
+import type { Aircraft, AircraftNote, FuelTypeEntry } from '@mik/contracts/aircrafts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
-import type { Upsert } from '../types/schema.ts'
+import type { Upsert } from '@mik/contracts/schema'
 import { getAllAircraftDocuments } from './aircraft-document-queries.ts'
-import type { AircraftDocument } from '../routes/aircraft-documents/models.ts'
+import type { AircraftDocument } from '@mik/contracts/aircraft-documents'
 
 // Get all aircraft
 export const getAllAircraft = async (

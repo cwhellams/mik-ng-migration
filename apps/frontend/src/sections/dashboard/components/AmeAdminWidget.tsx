@@ -2,7 +2,7 @@ import { Alert, Badge, Box, Button, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router'
 import useApi from '../../../hooks/useApi'
-import type { AmePendingCounts } from '@backend/routes/ame/models'
+import type { AmePendingCounts } from '@mik/contracts/ame'
 
 export function AmeAdminWidget() {
   const { data, isLoading, error } = useApi<AmePendingCounts>({

@@ -3,7 +3,7 @@ import {
   BookingType,
   type Booking,
   type BookingListResponse,
-} from '@backend/routes/bookings/models'
+} from '@mik/contracts/bookings'
 
 import { AIRCRAFT_REGISTRATION, auditFields, INSTRUCTOR_MEMBER_ID, MEMBER_ID } from './cast'
 

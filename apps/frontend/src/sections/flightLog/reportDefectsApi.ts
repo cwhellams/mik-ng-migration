@@ -1,5 +1,5 @@
 import { sharedApi } from '../../hooks/useApi'
-import type { FlightLog } from '@backend/routes/flight-log/models'
+import type { FlightLog } from '@mik/contracts/flight-log'
 
 // A row the user started typing into but left as only whitespace -- unlike a genuinely
 // empty (never touched) row, this must block submission rather than being silently

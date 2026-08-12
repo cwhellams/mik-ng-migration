@@ -1,4 +1,4 @@
-import { MIKLang } from '@backend/routes/members/models'
+import { MIKLang } from '@mik/contracts/members'
 import { screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 

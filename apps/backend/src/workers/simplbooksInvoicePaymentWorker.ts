@@ -4,7 +4,7 @@ import Bottleneck from 'bottleneck'
 import { getUnpaidInvoicesWithSimplbooksRef, markInvoiceAsPaid } from '../db/invoicing-queries.ts'
 import { getInvoice } from '../services/simplbooks/simplbooksApiClient.ts'
 import logger from '../lib/logger.ts'
-import type { Invoice } from '../routes/invoicing/models.ts'
+import type { Invoice } from '@mik/contracts/invoicing'
 import type { InvoiceResponse } from '../services/simplbooks/models.ts'
 import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 

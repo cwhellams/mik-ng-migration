@@ -6,9 +6,9 @@ import {
   RouteDistanceRequestSchema,
   type AddressSearchResponse,
   type RouteDistanceResponse,
-} from './models.ts'
+} from '@mik/contracts/mileage-geo'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 import logger from '../../lib/logger.ts'
 import { fetchOsrmDistanceKm } from '../../services/mileageRouting.ts'

@@ -9,7 +9,7 @@ const { getItemByCode } = await import('../../../src/services/simplbooks/simplbo
 const { createNewMemberFeesInvoicePayload: createMembershipFeeInvoicePayload } =
   await import('../../../src/services/accounting/recurringFeesInvoiceCreator.ts')
 
-import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
+import { MIKLang, MIKMemberTypes, type Member } from '@mik/contracts/members'
 
 // A date in January — before both discount cutoffs (Sept 1 and Oct 1)
 const DATE_BEFORE_DISCOUNTS = new Date('2025-01-15T12:00:00Z')

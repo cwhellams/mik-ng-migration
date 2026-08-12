@@ -1,4 +1,4 @@
-import type { MailboxMessage } from '@backend/routes/mailbox/models'
+import type { MailboxMessage } from '@mik/contracts/mailbox'
 import { waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

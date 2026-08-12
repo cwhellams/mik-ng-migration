@@ -7,7 +7,7 @@ import {
   AircraftDocumentFilters,
   AircraftDocumentListResponse,
   AircraftDocumentType,
-} from '@backend/routes/aircraft-documents/models'
+} from '@mik/contracts/aircraft-documents'
 import { DOCUMENT_CONSTANTS, DEFAULT_ALLOWED_FILE_TYPES } from '../utils/documentHelpers'
 
 export interface AircraftDocumentFile extends File {

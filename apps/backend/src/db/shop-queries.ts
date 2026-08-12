@@ -16,7 +16,7 @@ import type {
   OrderListResponse,
   ProductFilters,
   OrderFilters,
-} from '../routes/shop/models.ts'
+} from '@mik/contracts/shop'
 import { sql } from 'kysely'
 import type { Json } from './schema.d.ts'
 import { insertOutboxItem } from './outbox-simplbooks-queries.ts'

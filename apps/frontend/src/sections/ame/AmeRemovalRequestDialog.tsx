@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 import useApi from '../../hooks/useApi'
-import type { AmeEntry } from '@backend/routes/ame/models'
+import type { AmeEntry } from '@mik/contracts/ame'
 
 export function AmeRemovalRequestDialog({
   entry,

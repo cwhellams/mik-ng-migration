@@ -12,8 +12,8 @@ import {
 } from '../db/brevo-sync-queries.ts'
 import type { BrevoContactAttributes, BrevoCreateContactRequest } from '../services/brevo/models.ts'
 import { MemberTypeToBrevoListId, BrevoListId } from '../services/brevo/models.ts'
-import type { Member, MIKLang, MIKMemberTypes } from '../routes/members/models.ts'
-import { MIKMemberTypes as MemberTypes } from '../routes/members/models.ts'
+import type { Member, MIKLang, MIKMemberTypes } from '@mik/contracts/members'
+import { MIKMemberTypes as MemberTypes } from '@mik/contracts/members'
 
 let intervalId: NodeJS.Timeout | null = null
 const SYNC_INTERVAL_MS = 8 * 60 * 60 * 1000 // 8 hours

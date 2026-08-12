@@ -1,4 +1,4 @@
-import type { ExamVersion } from '@backend/routes/exams/models'
+import type { ExamVersion } from '@mik/contracts/exams'
 
 export const EXAM_LANGUAGES = ['en', 'fi', 'sv'] as const
 

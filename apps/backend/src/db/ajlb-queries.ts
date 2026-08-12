@@ -1,8 +1,8 @@
 import * as connection from './connection.ts'
-import type { AjlbFilter, AircraftJourneyLogBook } from '../routes/ajlb/model.ts'
+import type { AjlbFilter, AircraftJourneyLogBook } from '@mik/contracts/ajlb'
 import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './schema.js'
 import type { Selectable } from 'kysely'
-import type { Upsert } from '../types/schema.ts'
+import type { Upsert } from '@mik/contracts/schema'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type { PoolClient } from 'pg'
 

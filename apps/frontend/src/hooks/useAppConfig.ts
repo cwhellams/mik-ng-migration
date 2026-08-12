@@ -1,5 +1,5 @@
 import useApi from './useApi'
-import type { AppConfig } from '@backend/routes/config/models'
+import type { AppConfig } from '@mik/contracts/config'
 
 export function useAppConfig(): {
   config: AppConfig | undefined

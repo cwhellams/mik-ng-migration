@@ -4,7 +4,7 @@ import type {
   AircraftDocument,
   AircraftDocumentAuditable,
   AircraftDocumentFilters,
-} from '../routes/aircraft-documents/models.ts'
+} from '@mik/contracts/aircraft-documents'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
 

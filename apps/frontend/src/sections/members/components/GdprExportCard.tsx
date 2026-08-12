@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { FormTitle } from '../../../components/FormTitle'
 import { SnackAlert } from '../../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 

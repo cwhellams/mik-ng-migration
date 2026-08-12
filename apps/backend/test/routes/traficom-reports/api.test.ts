@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser'
 import router from '../../../src/routes/traficom-reports/api.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 
 const app = express()
 app.use(express.json())

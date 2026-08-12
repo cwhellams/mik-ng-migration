@@ -1,4 +1,4 @@
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 import { waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 

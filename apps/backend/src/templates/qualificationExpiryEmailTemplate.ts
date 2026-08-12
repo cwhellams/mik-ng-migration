@@ -1,4 +1,4 @@
-import { MIKLang } from '../routes/members/models.ts'
+import { MIKLang } from '@mik/contracts/members'
 
 const QUALIFICATION_LABELS: Record<string, Record<string, string>> = {
   fiExpiry: { en: 'Flight Instructor (FI)', fi: 'Lentokouluttaja (FI)', sv: 'Flyginstruktör (FI)' },

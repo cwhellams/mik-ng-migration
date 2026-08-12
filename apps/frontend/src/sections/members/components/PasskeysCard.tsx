@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next'
 import useApi from '../../../hooks/useApi'
 import { FormTitle } from '../../../components/FormTitle'
 import { SnackAlert } from '../../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import {
   isSecureContextForPasskeys,
   passkeySupported,

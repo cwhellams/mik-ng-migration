@@ -31,7 +31,7 @@ import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useTimezone } from '../../../hooks/useTimezone'
 import { getOffsetLabelInTz, timezoneName } from '../../../utils/date'
-import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
+import type { ClubEvent, EventListResponse } from '@mik/contracts/events'
 
 type EventTimezone = 'helsinki' | 'utc' | 'local'
 

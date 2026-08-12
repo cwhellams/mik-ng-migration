@@ -1,4 +1,4 @@
-import type { OrderStatus } from '@backend/routes/shop/models'
+import type { OrderStatus } from '@mik/contracts/shop'
 
 export const ORDER_STATUS_COLOR: Record<
   OrderStatus,

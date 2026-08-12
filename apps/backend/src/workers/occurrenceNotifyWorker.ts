@@ -2,10 +2,10 @@ import 'dotenv/config'
 
 import logger from '../lib/logger.ts'
 import { getOccurrences } from '../db/occurrence-queries.ts'
-import { OccurrenceStatus } from '../routes/occurrences/models.ts'
+import { OccurrenceStatus } from '@mik/contracts/occurrences'
 import { sendOccurrenceNotification } from '../templates/occurrenceNotification.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
-import { MIKPermissions } from '../routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { getMemberRolesByPermission } from '../db/member-queries.ts'
 import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 

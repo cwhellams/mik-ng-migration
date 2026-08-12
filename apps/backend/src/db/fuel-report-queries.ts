@@ -1,7 +1,7 @@
 import { sql } from 'kysely'
 import { db } from './connection.ts'
-import { ExpenseClaimStatus } from '../routes/expenses/models.ts'
-import type { FuelReportEntry, FuelReportFilters } from '../routes/fuel-report/models.ts'
+import { ExpenseClaimStatus } from '@mik/contracts/expenses'
+import type { FuelReportEntry, FuelReportFilters } from '@mik/contracts/fuel-report'
 
 // Claims that are still a draft, or were rejected, aren't reliable enough to report a price from.
 const REPORTABLE_STATUSES = [

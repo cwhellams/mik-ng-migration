@@ -14,7 +14,7 @@ import {
 } from '@mui/material'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import type { AircraftHilAuditEntry, AircraftHilDetail } from '@backend/routes/aircraft-hil/models'
+import type { AircraftHilAuditEntry, AircraftHilDetail } from '@mik/contracts/aircraft-hil'
 import { EditDialogTitle } from '../../../../components/EditDialogTitle'
 import { RemoteContent } from '../../../../components/RemoteContent'
 import useApi from '../../../../hooks/useApi'

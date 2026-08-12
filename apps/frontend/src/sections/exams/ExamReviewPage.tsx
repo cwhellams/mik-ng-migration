@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
-import type { Attempt, AttemptAnswer, ExamVersionDetail } from '@backend/routes/exams/models'
+import type { Attempt, AttemptAnswer, ExamVersionDetail } from '@mik/contracts/exams'
 import { getPreferredExamLanguage } from './language'
 
 export default function ExamReviewPage() {

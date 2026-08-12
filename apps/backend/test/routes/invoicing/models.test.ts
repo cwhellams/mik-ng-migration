@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals'
-import { InvoiceItemQuerySchema, InvoiceTypeEnum } from '../../../src/routes/invoicing/models.ts'
-import { MIKInvoiceType } from '../../../src/services/simplbooks/models.ts'
+import { InvoiceItemQuerySchema, InvoiceTypeEnum } from '@mik/contracts/invoicing'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
 
 describe('InvoiceItemQuerySchema', () => {
   it('should parse valid full input', () => {

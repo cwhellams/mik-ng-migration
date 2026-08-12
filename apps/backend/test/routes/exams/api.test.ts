@@ -81,7 +81,7 @@ jest.unstable_mockModule('../../../src/db/exam-queries.ts', () => ({
 const { router } = await import('../../../src/routes/exams/api.ts')
 const { problemErrorHandler } = await import('../../../src/routes/response.ts')
 const { generateAccessToken } = await import('../../../src/routes/auth/token.ts')
-const { MIKPermissions } = await import('../../../src/routes/members/models.ts')
+const { MIKPermissions } = await import('@mik/contracts/members')
 
 const app = express()
 app.use(express.json())

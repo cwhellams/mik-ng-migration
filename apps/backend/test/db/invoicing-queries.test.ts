@@ -7,12 +7,9 @@ import {
   deleteInvoiceItem,
   getRecurringFeesProcessing,
 } from '../../src/db/invoicing-queries.ts'
-import type { InvoiceItemQueryParams } from '../../src/routes/invoicing/models.ts'
-import {
-  MIKInvoiceType,
-  RecurringFeeType,
-  type ItemListArticle,
-} from '../../src/services/simplbooks/models.ts'
+import type { InvoiceItemQueryParams } from '@mik/contracts/invoicing'
+import { RecurringFeeType, type ItemListArticle } from '../../src/services/simplbooks/models.ts'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import { db } from '../../src/db/connection.ts'
 import { ART_EQUIP_FEE_CODE } from '../../src/services/accounting/config.ts'
 

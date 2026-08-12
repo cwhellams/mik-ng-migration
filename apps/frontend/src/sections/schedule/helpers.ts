@@ -1,4 +1,4 @@
-import { BookingListResponse, BookingStatus } from '@backend/routes/bookings/models'
+import { BookingListResponse, BookingStatus } from '@mik/contracts/bookings'
 import dayjs, { Dayjs } from 'dayjs'
 import { useMe } from '../../hooks/useMe'
 

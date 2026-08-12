@@ -1,4 +1,4 @@
-import type { Exam, ExamVersion } from '@backend/routes/exams/models'
+import type { Exam, ExamVersion } from '@mik/contracts/exams'
 import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

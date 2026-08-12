@@ -8,15 +8,15 @@ import {
   type ArticleFee,
   type Invoice,
   type UnpaidOverdueInvoice,
-} from '../routes/invoicing/models.ts'
+} from '@mik/contracts/invoicing'
 import { ART_EQUIP_FEE_CODE } from '../services/accounting/config.ts'
 import {
-  MIKInvoiceType,
   RecurringFeeType,
   type FeeType,
   type ItemListArticle,
 } from '../services/simplbooks/models.ts'
-import { FlightLogStatus } from '../routes/flight-log/models.ts'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
+import { FlightLogStatus } from '@mik/contracts/flight-log'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'

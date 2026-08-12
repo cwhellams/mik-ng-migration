@@ -24,15 +24,10 @@ import {
 } from '../../src/db/member-queries.ts'
 import { db } from '../../src/db/connection.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
-import {
-  MIKLang,
-  MIKMemberTypes,
-  MIKPermissions,
-  type MemberRole,
-} from '../../src/routes/members/models.ts'
-import type { Upsert } from '../../src/types/schema.ts'
+import { MIKLang, MIKMemberTypes, MIKPermissions, type MemberRole } from '@mik/contracts/members'
+import type { Upsert } from '@mik/contracts/schema'
 import { deleteSimplbooksOutbox } from './__helpers__/simplbooksDbHelpers.ts'
-import { MIKInvoiceType } from '../../src/services/simplbooks/models.ts'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',

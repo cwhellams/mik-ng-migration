@@ -7,12 +7,12 @@ import type {
   MileageLeg,
   UpsertMileageAllowance,
   CreateMileageLeg,
-} from '../routes/expenses/mileageModels.ts'
+} from '@mik/contracts/expenses-mileage'
 import {
   ExpenseClaimStatus,
   type MileageReportFilters,
   type MileageReportRow,
-} from '../routes/expenses/models.ts'
+} from '@mik/contracts/expenses'
 import { decryptField } from '../lib/fieldEncryption.ts'
 
 type Executor = Kysely<DB> | Transaction<DB>

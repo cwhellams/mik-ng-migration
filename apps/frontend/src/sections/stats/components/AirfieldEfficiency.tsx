@@ -18,7 +18,7 @@ import type {
   AirfieldEfficiencyByYrMth,
   AirfieldEfficiencyByAcYr,
   AirfieldEfficiencyByAcYrMth,
-} from '@backend/routes/stats/models'
+} from '@mik/contracts/stats'
 
 type GroupBy = 'overall' | 'aircraft'
 type Period = 'year' | 'month'

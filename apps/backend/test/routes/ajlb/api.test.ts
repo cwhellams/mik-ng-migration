@@ -4,11 +4,11 @@ import request from 'supertest'
 
 import ajlbRouter from '../../../src/routes/ajlb/api.ts'
 import { generateAccessToken, type JWTUser } from '../../../src/routes/auth/token.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { audit, maskAudit } from '../../util/helpers.ts'
-import type { AircraftJourneyLogBook } from '../../../src/routes/ajlb/model.ts'
-import type { Upsert } from '../../../src/types/schema.ts'
+import type { AircraftJourneyLogBook } from '@mik/contracts/ajlb'
+import type { Upsert } from '@mik/contracts/schema'
 import { db } from '../../../src/db/connection.ts'
 import {
   deleteFlightLog,

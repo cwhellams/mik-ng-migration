@@ -1,7 +1,7 @@
 import { Marked } from 'marked'
 import type { Token, Tokens } from 'marked'
 
-import { escapeHtml, sanitizeUrl } from './sanitizers.ts'
+import { escapeHtml, sanitizeUrl } from '@mik/contracts/sanitizers'
 
 const validateOnlyUrl = (href: string): string => {
   return sanitizeUrl(href) ? href : ''

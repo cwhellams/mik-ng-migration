@@ -46,7 +46,7 @@ import type {
   SchoolFlightEfficiencyByAcYrMth,
   SchoolFlightEfficiencyByInstructorYr,
   SchoolFlightEfficiencyByInstructorYrMth,
-} from '../routes/stats/models.ts'
+} from '@mik/contracts/stats'
 
 // Helper function to apply year filters
 const applyYearFilter = <DB, TB extends keyof DB, O>(

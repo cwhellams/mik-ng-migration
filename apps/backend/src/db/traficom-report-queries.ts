@@ -4,7 +4,7 @@ import {
   TraficomReportFilter,
   type TraficomReportEntry,
   type TraficomReportFilters,
-} from '../routes/traficom-reports/models.ts'
+} from '@mik/contracts/traficom-reports'
 
 /**
  * Returns the SQL fragment used to identify flight log entries that match the

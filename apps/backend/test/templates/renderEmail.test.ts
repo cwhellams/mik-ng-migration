@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals'
 import { existsSync } from 'node:fs'
-import { MIKLang } from '../../src/routes/members/models.ts'
+import { MIKLang } from '@mik/contracts/members'
 
 const markdownEmailTemplateMock = jest.fn((...args: unknown[]) => '<html>ok</html>')
 

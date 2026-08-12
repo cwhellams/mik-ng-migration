@@ -7,7 +7,7 @@ import {
   type AjlbFilter,
   type AjlbListResponse,
   type AircraftLandingsBaselineResponse,
-} from './model.ts'
+} from '@mik/contracts/ajlb'
 import {
   getAjlbs,
   getAjlb,
@@ -19,11 +19,11 @@ import {
   deleteAircraftLandingsBaseline,
 } from '../../db/ajlb-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
-import { UpsertSchema } from '../../types/schema.ts'
+import { MIKPermissions } from '@mik/contracts/members'
+import { UpsertSchema } from '@mik/contracts/schema'
 import { problem } from '../response.ts'
 import { getFlightLogs, updateFlightLog } from '../../db/flight-log-queries.ts'
-import { FlightLogStatus } from '../flight-log/models.ts'
+import { FlightLogStatus } from '@mik/contracts/flight-log'
 import { z } from 'zod'
 
 export const router = Router()

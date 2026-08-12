@@ -7,7 +7,7 @@ import type {
   PrepaidFlightGroup,
   PrepaidInvoicableFlight,
   PrepaidFlightUsage,
-} from '../../routes/flight-log/models.ts'
+} from '@mik/contracts/flight-log'
 
 type QueryExecutor = Kysely<DB> | Transaction<DB>
 

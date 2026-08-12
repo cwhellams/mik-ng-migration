@@ -5,7 +5,7 @@ import multer from 'multer'
 import { nanoid } from 'nanoid'
 
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
 import {
   EventCreateSchema,
@@ -13,7 +13,7 @@ import {
   EventUpdateSchema,
   type ClubEvent,
   type EventListResponse,
-} from './models.ts'
+} from '@mik/contracts/events'
 import {
   getAllEvents,
   getEventById,

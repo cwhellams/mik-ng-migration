@@ -1,4 +1,4 @@
-import type { OrderStatus } from '@backend/routes/shop/models'
+import type { OrderStatus } from '@mik/contracts/shop'
 import { describe, expect, it } from 'vitest'
 
 import { ORDER_STATUS_COLOR } from './orderStatusColor'

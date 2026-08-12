@@ -1,4 +1,4 @@
-import { FlightLogStatus, type FlightLog } from '@backend/routes/flight-log/models'
+import { FlightLogStatus, type FlightLog } from '@mik/contracts/flight-log'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

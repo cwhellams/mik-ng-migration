@@ -1,7 +1,7 @@
 import { jest, beforeEach, describe, it, expect } from '@jest/globals'
 import request from 'supertest'
 import express from 'express'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 
 const mockGetNotificationBanner = jest.fn<(...args: any[]) => Promise<any>>()
 const mockSetNotificationBanner = jest.fn<(...args: any[]) => Promise<void>>()

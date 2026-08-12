@@ -1,4 +1,4 @@
-import { MailboxMessage } from '@backend/routes/mailbox/models'
+import { MailboxMessage } from '@mik/contracts/mailbox'
 import useApi from './useApi'
 
 /**

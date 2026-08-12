@@ -5,3 +5,8 @@ build
 *.sql
 .env
 **/eslint-results.json
+
+# pnpm owns this file's formatting. Root `pnpm format` used to expand its inline
+# YAML flow maps, turning a two-line dependency bump into a 10k-line diff that
+# pnpm then rewrote on the next install.
+pnpm-lock.yaml

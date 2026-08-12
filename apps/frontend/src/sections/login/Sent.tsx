@@ -4,9 +4,9 @@ import { LoginLayout } from './LoginLayout'
 import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
-import { VerifyCodeRequest, VerifyResponse } from '@backend/routes/auth/schema'
+import { VerifyCodeRequest, VerifyResponse } from '@mik/contracts/auth'
 
-import { validateInternalPath } from '@backend/util/sanitizers'
+import { validateInternalPath } from '@mik/contracts/sanitizers'
 
 const LoginSent = () => {
   const location = useLocation()

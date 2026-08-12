@@ -1,8 +1,5 @@
 import { db } from './connection.ts'
-import type {
-  ProofFile,
-  ProofDocumentCategory,
-} from '../routes/instructor-qualifications/models.ts'
+import type { ProofFile, ProofDocumentCategory } from '@mik/contracts/instructor-qualifications'
 
 function mapProofRow(row: {
   id: number

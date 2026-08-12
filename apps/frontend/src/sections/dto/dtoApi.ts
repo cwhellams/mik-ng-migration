@@ -1,5 +1,5 @@
 import { sharedApi } from '../../hooks/useApi'
-import { FlightTypeEnum } from '@backend/routes/dto/models'
+import { FlightTypeEnum } from '@mik/contracts/dto'
 import type {
   TrainingProgram,
   Syllabus,
@@ -12,7 +12,7 @@ import type {
   StudentProgress,
   VerifyAttempt,
   FlightType,
-} from '@backend/routes/dto/models'
+} from '@mik/contracts/dto'
 
 const BASE = 'v1/dto'
 

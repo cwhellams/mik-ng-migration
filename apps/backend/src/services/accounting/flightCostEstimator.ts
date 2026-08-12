@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
 
-import { FlightType } from '../../routes/flight-log/models.ts'
+import { FlightType } from '@mik/contracts/flight-log'
 import { getAircraftPriceForDate } from '../../db/aircraft-pricing-queries.ts'
 import { getArticleFees, hasRequestedEquipmentFee } from '../../db/invoicing-queries.ts'
 import { ART_EQUIP_USAGE_FEE_CODE } from './config.ts'

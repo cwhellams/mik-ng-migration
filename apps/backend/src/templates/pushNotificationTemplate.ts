@@ -1,4 +1,4 @@
-import { epochToLocal } from '../util/date.ts'
+import { epochToHelsinki } from '@mik/contracts/date'
 
 /** Localized title/body for the "booking in 1 hour" push notification. */
 export const bookingPushReminderTitle = (lang: string | undefined): string =>
@@ -13,7 +13,7 @@ export const bookingPushReminderBody = (
   registration: string,
   startTimeEpoch: string,
 ): string => {
-  const time = epochToLocal(startTimeEpoch).format('HH:mm')
+  const time = epochToHelsinki(startTimeEpoch).format('HH:mm')
   if (lang === 'fi') return `${registration} klo ${time}`
   if (lang === 'sv') return `${registration} kl ${time}`
   return `${registration} at ${time}`

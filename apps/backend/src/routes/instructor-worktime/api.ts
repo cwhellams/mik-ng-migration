@@ -1,12 +1,12 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { getInstructorWorktime } from '../../db/instructor-worktime-queries.ts'
 import {
   InstructorWorktimeFiltersSchema,
   type InstructorWorktimeFilters,
   type InstructorWorktimeResponse,
-} from './models.ts'
+} from '@mik/contracts/instructor-worktime'
 import { problem } from '../response.ts'
 import { validate } from '../validate.ts'
 import { HttpStatusCode } from 'axios'

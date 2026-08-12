@@ -4,7 +4,7 @@ import type { Request, Response } from 'express'
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import { HttpStatusCode } from 'axios'
-import { DashboardSettingsSchema, DEFAULT_DASHBOARD_COMPONENTS } from './models.ts'
+import { DashboardSettingsSchema, DEFAULT_DASHBOARD_COMPONENTS } from '@mik/contracts/dashboard'
 
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'

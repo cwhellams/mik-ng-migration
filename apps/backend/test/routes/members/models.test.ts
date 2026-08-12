@@ -1,4 +1,4 @@
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 
 describe('getBasicUserRole', () => {
   it('should return MEMBER for MEMBER_ADMIN', () => {

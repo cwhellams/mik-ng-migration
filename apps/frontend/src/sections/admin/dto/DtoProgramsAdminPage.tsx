@@ -23,7 +23,7 @@ import { useNavigate } from 'react-router'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type { TrainingProgram, Syllabus } from '@backend/routes/dto/models'
+import type { TrainingProgram, Syllabus } from '@mik/contracts/dto'
 import {
   createProgram,
   updateProgram,

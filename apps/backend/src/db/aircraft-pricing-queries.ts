@@ -4,7 +4,7 @@ import type {
   AircraftPricingFilters,
   CreateAircraftPricing,
   UpdateAircraftPricing,
-} from '../routes/aircraft-pricing/models.ts'
+} from '@mik/contracts/aircraft-pricing'
 import { problem } from '../routes/response.ts'
 
 /**

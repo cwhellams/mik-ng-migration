@@ -10,7 +10,7 @@ import {
   OccurrenceStatus,
   OccurrenceCategory,
   type OccurrenceUpsert,
-} from '../../src/routes/occurrences/models.ts'
+} from '@mik/contracts/occurrences'
 import dayjs from 'dayjs'
 
 const TEST_USER: JWTUser = { memberId: 'Sanna1' } as JWTUser

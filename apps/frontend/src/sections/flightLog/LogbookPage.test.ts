@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { FlightLogListEntry, PageItemRow } from '@backend/routes/flight-log/models'
-import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
-import type { Defect } from '@backend/routes/defects/models'
+import type { FlightLogListEntry, PageItemRow } from '@mik/contracts/flight-log'
+import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
+import type { Defect } from '@mik/contracts/defects'
 import { buildLogbookRows, buildInlineItems } from './LogbookPage'
 
 let logCounter = 0

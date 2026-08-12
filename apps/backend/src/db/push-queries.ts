@@ -1,5 +1,5 @@
 import { db } from './connection.ts'
-import { BookingStatus } from '../routes/bookings/models.ts'
+import { BookingStatus } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
 
 export type PushSubscriptionRow = {

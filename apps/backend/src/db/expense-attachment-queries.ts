@@ -1,7 +1,7 @@
 import type { Kysely, Transaction } from 'kysely'
 import { db } from './connection.ts'
 import type { DB } from './schema.d.ts'
-import type { ExpenseClaimAttachment } from '../routes/expenses/models.ts'
+import type { ExpenseClaimAttachment } from '@mik/contracts/expenses'
 
 type Executor = Kysely<DB> | Transaction<DB>
 

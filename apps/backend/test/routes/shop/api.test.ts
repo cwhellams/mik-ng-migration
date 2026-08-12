@@ -4,7 +4,7 @@ import request from 'supertest'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 
 process.env.ACCESS_TOKEN_SECRET ??= 'test-access-secret'
 process.env.ACCESS_TOKEN_EXPIRATION ??= '15m'

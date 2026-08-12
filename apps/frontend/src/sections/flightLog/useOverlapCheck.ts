@@ -3,7 +3,7 @@ import type {
   FlightLogOverlapConflict,
   FlightLogOverlapResponse,
   FlightLogUpsertRequest,
-} from '@backend/routes/flight-log/models'
+} from '@mik/contracts/flight-log'
 import { api } from '../../hooks/useApi'
 
 /**

@@ -5,10 +5,7 @@ import {
   updateAircraftPricing,
   deleteAircraftPricing,
 } from '../../src/db/aircraft-pricing-queries.ts'
-import type {
-  CreateAircraftPricing,
-  UpdateAircraftPricing,
-} from '../../src/routes/aircraft-pricing/models.ts'
+import type { CreateAircraftPricing, UpdateAircraftPricing } from '@mik/contracts/aircraft-pricing'
 import { db } from '../../src/db/connection.ts'
 
 describe('Aircraft Pricing Queries', () => {

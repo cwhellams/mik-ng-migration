@@ -1,8 +1,4 @@
-import {
-  MIKPermissions,
-  type MemberRole,
-  type MemberRolesResponse,
-} from '@backend/routes/members/models'
+import { MIKPermissions, type MemberRole, type MemberRolesResponse } from '@mik/contracts/members'
 
 import { auditFields } from './cast'
 

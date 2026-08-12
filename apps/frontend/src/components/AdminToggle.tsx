@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 
 const AdminToggle = () => {
   const { hasAccess } = useRoles()

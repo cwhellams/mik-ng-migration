@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import type { TimeResponse } from '@backend/routes/time/api'
+import type { TimeResponse } from '@mik/contracts/time'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 

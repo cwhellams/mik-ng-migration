@@ -32,7 +32,7 @@ import {
   type AircraftDocumentFile,
   type UploadProgress,
 } from '../../../hooks/useAircraftDocumentUpload'
-import { AircraftDocumentType } from '@backend/routes/aircraft-documents/models'
+import { AircraftDocumentType } from '@mik/contracts/aircraft-documents'
 import { getFileIcon, formatFileSize } from '../../../utils/documentHelpers'
 
 interface DocumentUploadAreaProps {

@@ -16,7 +16,7 @@ import {
   type CreateAmeEntry,
   type RequestAmeRemoval,
   type SuggestAmeEdit,
-} from '../routes/ame/models.ts'
+} from '@mik/contracts/ame'
 import type { JWTUser } from '../routes/auth/token.ts'
 
 type AmeRow = {

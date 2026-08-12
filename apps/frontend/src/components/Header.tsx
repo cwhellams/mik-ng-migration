@@ -33,10 +33,10 @@ import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
 import { HeaderSubMenu } from './HeaderSubMenu'
 import ClockDisplay from './ClockDisplay'
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 import { useMyDtoSyllabus } from '../sections/dto/useMyDtoSyllabus'
 import useApi from '../hooks/useApi'
-import type { Cart } from '@backend/routes/shop/models'
+import type { Cart } from '@mik/contracts/shop'
 
 interface HeaderProps {
   window?: () => Window

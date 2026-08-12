@@ -1,5 +1,5 @@
-import type { Defect } from '@backend/routes/defects/models'
-import { MIKPermissions } from '@backend/routes/members/models'
+import type { Defect } from '@mik/contracts/defects'
+import { MIKPermissions } from '@mik/contracts/members'
 import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'

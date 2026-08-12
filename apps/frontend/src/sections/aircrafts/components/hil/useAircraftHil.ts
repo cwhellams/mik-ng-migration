@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { mutate } from 'swr'
-import type { AircraftHilOverview } from '@backend/routes/aircraft-hil/models'
+import type { AircraftHilOverview } from '@mik/contracts/aircraft-hil'
 import useApi from '../../../../hooks/useApi'
 
 const OVERVIEW_URL = 'v1/aircraft-hil/overview'

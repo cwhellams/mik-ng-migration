@@ -24,7 +24,7 @@ import { Icon } from '@iconify/react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
-import { LoginResponse, RegisterRequest } from '@backend/routes/auth/schema'
+import { LoginResponse, RegisterRequest } from '@mik/contracts/auth'
 import {
   MIKLang,
   MIKMemberTypes,
@@ -32,7 +32,7 @@ import {
   PilotLicenceType,
   AircraftRating,
   type ApplicationData,
-} from '@backend/routes/members/models.ts'
+} from '@mik/contracts/members'
 import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import LanguageSelector from '../../components/LanguageSelector'

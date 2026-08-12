@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express'
 import { HttpStatusCode } from 'axios'
 
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 import { validate } from '../validate.ts'
 import {
@@ -14,7 +14,7 @@ import {
   PushSubscriptionRequestSchema,
   PushUnsubscribeRequestSchema,
   type PushSubscriptionRequest,
-} from './models.ts'
+} from '@mik/contracts/push'
 
 export const router = Router()
 

@@ -1,4 +1,4 @@
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { Alert, Slide, Snackbar } from '@mui/material'
 import { useState, useEffect } from 'react'
 

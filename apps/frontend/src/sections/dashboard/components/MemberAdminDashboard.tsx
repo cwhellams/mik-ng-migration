@@ -1,4 +1,4 @@
-import { MemberListFilters, MemberListResponse, Member } from '@backend/routes/members/models'
+import { MemberListFilters, MemberListResponse, Member } from '@mik/contracts/members'
 import {
   Accordion,
   AccordionSummary,

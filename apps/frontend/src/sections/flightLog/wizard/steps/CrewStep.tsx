@@ -1,9 +1,9 @@
 import { Box } from '@mui/material'
 import FlightCrew from '../../components/FlightCrew'
 import { PersonsOnBoard } from '../../components/PersonsOnBoard'
-import { FlightType } from '@backend/routes/flight-log/models'
-import type { Aircraft } from '@backend/routes/aircrafts/models'
-import type { Member } from '@backend/routes/members/models'
+import { FlightType } from '@mik/contracts/flight-log'
+import type { Aircraft } from '@mik/contracts/aircrafts'
+import type { Member } from '@mik/contracts/members'
 import type { WizardFormProps } from '../types'
 
 interface Props extends WizardFormProps {

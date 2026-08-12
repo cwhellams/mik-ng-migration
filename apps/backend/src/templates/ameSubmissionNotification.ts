@@ -2,7 +2,7 @@ import 'dotenv/config'
 import { markdownEmailTemplate } from './emailTemplate.ts'
 import { getMembers } from '../db/member-queries.ts'
 import type { sendEmail } from '../lib/sendGmail.ts'
-import { type MIKLang } from '../routes/members/models.ts'
+import { type MIKLang } from '@mik/contracts/members'
 
 export type AmeNotificationKind = 'new' | 'edit' | 'removal'
 

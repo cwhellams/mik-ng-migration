@@ -1,4 +1,4 @@
-import type { Syllabus, TrainingProgram } from '@backend/routes/dto/models'
+import type { Syllabus, TrainingProgram } from '@mik/contracts/dto'
 import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

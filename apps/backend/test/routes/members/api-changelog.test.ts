@@ -13,7 +13,7 @@ import {
   MIKPermissions,
   type MemberChangeLogEntry,
   type MemberChangeLogResponse,
-} from '../../../src/routes/members/models.ts'
+} from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { db } from '../../../src/db/connection.ts'
 import { addMember } from '../../../src/db/member-queries.ts'

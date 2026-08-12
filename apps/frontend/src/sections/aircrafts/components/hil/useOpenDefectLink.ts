@@ -1,4 +1,4 @@
-import type { HilLinkedDefect } from '@backend/routes/aircraft-hil/models'
+import type { HilLinkedDefect } from '@mik/contracts/aircraft-hil'
 import { useOpenLogbookItemLink } from '../../../../hooks/useOpenLogbookItemLink'
 
 export const useOpenDefectLink = (aircraftRegistration: string) => {

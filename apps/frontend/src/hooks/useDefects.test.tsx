@@ -1,4 +1,4 @@
-import type { Defect } from '@backend/routes/defects/models'
+import type { Defect } from '@mik/contracts/defects'
 import { waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

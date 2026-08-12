@@ -1,12 +1,9 @@
 import { HttpStatusCode } from 'axios'
 import { Router, type Request, type Response } from 'express'
 
-export const router = Router()
+import type { TimeResponse } from '@mik/contracts/time'
 
-export interface TimeResponse {
-  utcIso: string
-  epochMs: number
-}
+export const router = Router()
 
 // Public endpoint — no auth required. Returns server wall-clock time so clients
 // can detect and compensate for local clock skew. The server runs NTP-sync'd

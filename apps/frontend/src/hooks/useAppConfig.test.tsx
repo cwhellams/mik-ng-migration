@@ -1,4 +1,4 @@
-import type { AppConfig } from '@backend/routes/config/models'
+import type { AppConfig } from '@mik/contracts/config'
 import { waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

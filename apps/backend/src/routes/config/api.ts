@@ -3,8 +3,8 @@ import type { Request, Response } from 'express'
 import { HttpStatusCode } from 'axios'
 
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
-import type { AppConfig } from './models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
+import type { AppConfig } from '@mik/contracts/config'
 
 export const router = Router()
 

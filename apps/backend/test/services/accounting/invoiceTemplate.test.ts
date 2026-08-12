@@ -1,4 +1,4 @@
-import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
+import { MIKLang, MIKMemberTypes, type Member } from '@mik/contracts/members'
 import { createInvoicePostPayload } from '../../../src/services/accounting/invoiceTemplate.ts'
 
 const invoicingMember: Member = {

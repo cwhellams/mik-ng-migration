@@ -1,5 +1,5 @@
-import { MIKPermissions } from '@backend/routes/members/models'
-import { FuelPrices as FuelPricesResponse } from '@backend/routes/fuel-prices/models'
+import { MIKPermissions } from '@mik/contracts/members'
+import { FuelPrices as FuelPricesResponse } from '@mik/contracts/fuel-prices'
 import { Alert, Box, Button, Paper, Stack, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { EditButton } from '../../components/EditButton'

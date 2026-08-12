@@ -6,8 +6,8 @@ import request from 'supertest'
 import { db } from '../../../src/db/connection.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import fuelReportRoutes from '../../../src/routes/fuel-report/api.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
-import { ExpenseClaimStatus } from '../../../src/routes/expenses/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
+import { ExpenseClaimStatus } from '@mik/contracts/expenses'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 const app = express()

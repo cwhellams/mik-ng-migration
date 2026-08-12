@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals'
-import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
+import { MIKLang, MIKMemberTypes, type Member } from '@mik/contracts/members'
 import type { EmailAttachment } from '../../../src/lib/sendGmail.ts'
 
 // Mock the dependencies with proper typing

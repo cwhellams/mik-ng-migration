@@ -4,7 +4,7 @@ import Papa from 'papaparse'
 import PDFDocument from 'pdfkit'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
-import { FlightLogExportFormat, type FlightLogExportEntry } from './models.ts'
+import { FlightLogExportFormat, type FlightLogExportEntry } from '@mik/contracts/flight-log'
 
 const LOGO_PATH = path.join(
   path.dirname(fileURLToPath(import.meta.url)),

@@ -1,7 +1,7 @@
 import 'dotenv/config'
 
 import { getTaxReport } from '../../src/db/tax-report-queries.ts'
-import type { TaxReportFilters } from '../../src/routes/tax-reports/models.ts'
+import type { TaxReportFilters } from '@mik/contracts/tax-reports'
 
 describe('Tax Report Queries', () => {
   describe('getTaxReport', () => {

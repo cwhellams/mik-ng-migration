@@ -1,11 +1,8 @@
 import { jest } from '@jest/globals'
-import {
-  FlightLogStatus,
-  FlightType,
-  type InvoicableFlight,
-} from '../../../src/routes/flight-log/models.ts'
+import { FlightLogStatus, FlightType, type InvoicableFlight } from '@mik/contracts/flight-log'
 import { db } from '../../../src/db/connection.ts'
-import { RecurringFeeType, MIKInvoiceType } from '../../../src/services/simplbooks/models.ts'
+import { RecurringFeeType } from '../../../src/services/simplbooks/models.ts'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import {
   ART_ENTRY_ERROR_CODE,
   ART_EQUIP_USAGE_FEE_CODE,

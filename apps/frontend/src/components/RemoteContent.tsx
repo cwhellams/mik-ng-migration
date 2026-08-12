@@ -1,6 +1,6 @@
 import { Alert, Box, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { ReactNode } from 'react'
 
 export const RemoteContent = ({

@@ -1,4 +1,4 @@
-import { DateRangeSchema, withDateRangeCheck } from '../../src/types/schema.ts'
+import { DateRangeSchema, withDateRangeCheck } from '@mik/contracts/schema'
 
 describe('withDateRangeCheck', () => {
   const schema = withDateRangeCheck(DateRangeSchema)

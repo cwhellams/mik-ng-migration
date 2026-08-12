@@ -1,4 +1,4 @@
-import { MIKMemberTypes } from '@backend/routes/members/models'
+import { MIKMemberTypes } from '@mik/contracts/members'
 import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'

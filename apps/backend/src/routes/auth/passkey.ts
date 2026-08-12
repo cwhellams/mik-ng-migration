@@ -42,7 +42,7 @@ import {
 import { createLoginEvent } from '../../db/auth-queries.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 
 export const passkeyRouter = Router()
 export const memberPasskeysRouter = Router({ mergeParams: true })

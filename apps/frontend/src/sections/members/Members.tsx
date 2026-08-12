@@ -24,8 +24,8 @@ import {
   MemberListResponse,
   MemberRole,
   MIKLang,
-} from '@backend/routes/members/models'
-import { Problem } from '@backend/routes/response'
+} from '@mik/contracts/members'
+import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'

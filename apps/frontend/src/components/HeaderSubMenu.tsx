@@ -4,7 +4,7 @@ import { t } from 'i18next'
 import { MenuItem } from '../config/menuItems'
 import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 
 export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const location = useLocation()

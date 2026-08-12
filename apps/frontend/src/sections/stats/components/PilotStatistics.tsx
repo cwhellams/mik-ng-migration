@@ -14,7 +14,7 @@ import { ResponsiveBar } from '@nivo/bar'
 import useApi from '../../../hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type { PilotStatistics as PilotStatisticsType } from '@backend/routes/stats/models'
+import type { PilotStatistics as PilotStatisticsType } from '@mik/contracts/stats'
 import { useTranslation } from 'react-i18next'
 import { dayjs } from '../../../utils/date'
 

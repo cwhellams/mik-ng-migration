@@ -23,13 +23,8 @@ import {
   Switch,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
-import {
-  Aircraft,
-  AircraftAlert,
-  AircraftListResponse,
-  Severity,
-} from '@backend/routes/aircrafts/models'
-import { AircraftPricingListResponse } from '@backend/routes/aircraft-pricing/models'
+import { Aircraft, AircraftAlert, AircraftListResponse, Severity } from '@mik/contracts/aircrafts'
+import { AircraftPricingListResponse } from '@mik/contracts/aircraft-pricing'
 import { t } from 'i18next'
 import { EditButton } from '../../components/EditButton'
 import { FormTitle } from '../../components/FormTitle'
@@ -43,7 +38,7 @@ import { AircraftHilSection } from './components/hil/AircraftHilSection'
 import { AircraftGroundedAlert } from './components/hil/AircraftGroundedAlert'
 import { useRoles } from '../../hooks/useRoles'
 import { useEffect, useState } from 'react'
-import type { Problem } from '@backend/routes/response'
+import type { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../components/SnackAlert'
 import { useSearchParams } from 'react-router'
 import { AircraftEditMode, EditAircraftModal } from './components/EditAircraftModal'
@@ -53,7 +48,7 @@ import MIKLogo from '../../assets/mik-logo-blue.png'
 import ProgressLine from './components/Progress'
 import { Title } from '../../components/Title'
 import { RemoveButton } from '../../components/RemoveButton'
-import { AircraftPricing } from '@backend/routes/aircraft-pricing/models'
+import { AircraftPricing } from '@mik/contracts/aircraft-pricing'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { mutate } from 'swr'
 import { formatHHMM } from '../../utils/format'

@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 import { t } from 'i18next'
 import theme from '../../../theme/theme'
-import { Booking } from '@backend/routes/bookings/models'
+import { Booking } from '@mik/contracts/bookings'
 import { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { formatDuration } from '../../flightLog/utils/timeUtils'

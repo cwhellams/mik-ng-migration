@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-import { MIKLang, type Member } from '../../routes/members/models.ts'
-import { AuditableSchema } from '../../types/schema.ts'
+import { MIKLang, type Member } from '@mik/contracts/members'
+import { AuditableSchema } from '@mik/contracts/schema'
 
 // Regex pattern for dd-mm-yyyy
 const datePattern = /^\d{2}-\d{2}-\d{4}$/ // Matches dates in the format dd-mm-yyyy
@@ -29,17 +29,6 @@ export enum SimplbooksStatus {
   SYNCED = 'SYNCED',
   FAILED = 'FAILED',
   SKIPPED = 'SKIPPED',
-}
-
-export enum MIKInvoiceType {
-  JOINING_FEE = 'JOINING_FEE',
-  ANNUAL_FEE = 'ANNUAL_FEE',
-  EQUIPMENT_FEE = 'EQUIPMENT_FEE',
-  FLIGHT = 'FLIGHT',
-  INSTRUCTION = 'INSTRUCTION',
-  MISC = 'MISC',
-  CREDIT_NOTE = 'CREDIT_NOTE',
-  SHOP_ORDER = 'SHOP_ORDER',
 }
 
 export enum RecurringFeeType {

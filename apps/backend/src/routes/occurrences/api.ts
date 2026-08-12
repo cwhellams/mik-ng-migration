@@ -15,9 +15,9 @@ import {
   type OccurrenceComment,
   type OccurrenceFilters,
   type OccurrencesListResponse,
-} from './models.ts'
+} from '@mik/contracts/occurrences'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import {
   addOccurrenceAccess,
   addOccurrenceAttachment,

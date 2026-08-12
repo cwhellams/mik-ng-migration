@@ -1,4 +1,4 @@
-import { MIKMemberTypes, type InvoiceMember } from '../../routes/members/models.ts'
+import { MIKMemberTypes, type InvoiceMember } from '@mik/contracts/members'
 import type { InvoicePost } from '../simplbooks/models.ts'
 import * as simplbooksApiClient from '../simplbooks/simplbooksApiClient.ts'
 

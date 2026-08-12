@@ -23,7 +23,7 @@ import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
-import type { AmeListResponse, AmeEntry } from '@backend/routes/ame/models'
+import type { AmeListResponse, AmeEntry } from '@mik/contracts/ame'
 
 const MEDICAL_TYPE_LABELS: Record<string, string> = {
   EASA_CLASS_1: 'EASA Class 1',

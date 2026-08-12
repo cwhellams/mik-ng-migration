@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
-import { InvoicableFlights, InvoicableFlightFilters } from '@backend/routes/flight-log/models'
+import { InvoicableFlights, InvoicableFlightFilters } from '@mik/contracts/flight-log'
 import { dayjs } from '../../utils/date'
 import { useState } from 'react'
 import { InvoicingRange } from './components/InvoicingRange'

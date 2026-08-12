@@ -29,7 +29,7 @@ import { useNavigate } from 'react-router'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type { Exam, ExamVersion } from '@backend/routes/exams/models'
+import type { Exam, ExamVersion } from '@mik/contracts/exams'
 import {
   adminCreateExam,
   adminUpdateExam,

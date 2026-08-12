@@ -19,7 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
 import { useDefects } from '../../hooks/useDefects'
-import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
+import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import {
   MaintenanceNoteFormSchema,
   type MaintenanceNoteFormValues,
@@ -30,7 +30,7 @@ import { useOpenDefectLink } from '../aircrafts/components/hil/useOpenDefectLink
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 
 interface MaintenanceNoteDialogProps {
   note: MaintenanceNote

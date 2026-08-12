@@ -1,5 +1,5 @@
-import { AircraftListResponse } from '@backend/routes/aircrafts/models'
-import { FlightLogFilters } from '@backend/routes/flight-log/models'
+import { AircraftListResponse } from '@mik/contracts/aircrafts'
+import { FlightLogFilters } from '@mik/contracts/flight-log'
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { t } from 'i18next'
 import useApi from '../../../hooks/useApi'

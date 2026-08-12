@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto'
 import { db } from '../../../src/db/connection.ts'
-import { MIKInvoiceType, SimplbooksEventType } from '../../../src/services/simplbooks/models.ts'
+import { SimplbooksEventType } from '../../../src/services/simplbooks/models.ts'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
 
 export const deleteSimplbooksOutbox = async () =>
   await db.deleteFrom('accts.outbox_simplbooks').execute()

@@ -3,7 +3,7 @@ import { sql } from 'kysely'
 import type {
   InstructorWorktimeEntry,
   InstructorWorktimeFilters,
-} from '../routes/instructor-worktime/models.ts'
+} from '@mik/contracts/instructor-worktime'
 
 /**
  * Query flight logs to calculate instructor work time.

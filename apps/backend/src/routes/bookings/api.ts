@@ -11,11 +11,11 @@ import {
   type BookingFilters,
   type BookingListResponse,
   type BookingUpsertRequest,
-} from './models.ts'
+} from '@mik/contracts/bookings'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { type JWTUser } from '../auth/token.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 import {
   cancelBooking,

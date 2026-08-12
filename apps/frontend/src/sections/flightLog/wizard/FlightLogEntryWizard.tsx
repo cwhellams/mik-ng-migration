@@ -18,13 +18,13 @@ import {
   FlightLogStatus,
   FlightLogUpsertSchema,
   type FlightLogUpsertRequest,
-} from '@backend/routes/flight-log/models'
-import { AircraftListResponse } from '@backend/routes/aircrafts/models'
-import { MemberListResponse } from '@backend/routes/members/models'
+} from '@mik/contracts/flight-log'
+import { AircraftListResponse } from '@mik/contracts/aircrafts'
+import { MemberListResponse } from '@mik/contracts/members'
 import useApi from '../../../hooks/useApi'
 import { useMe } from '../../../hooks/useMe'
 import { SnackAlert } from '../../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { buildFlightLogResolver } from '../formResolver'
 import { calculateNext } from '../utils/timeUtils'
 import {

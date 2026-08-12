@@ -4,7 +4,7 @@ import { Box, CircularProgress, Typography, Button } from '@mui/material'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
-import { Member } from '@backend/routes/members/models'
+import { Member } from '@mik/contracts/members'
 import { Title } from '../../components/Title'
 
 const EmailChangeVerify = () => {

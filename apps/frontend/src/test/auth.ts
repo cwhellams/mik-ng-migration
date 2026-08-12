@@ -1,4 +1,4 @@
-import type { MIKPermissions, Member } from '@backend/routes/members/models'
+import type { MIKPermissions, Member } from '@mik/contracts/members'
 import { http, HttpResponse } from 'msw'
 import type { ReactElement } from 'react'
 

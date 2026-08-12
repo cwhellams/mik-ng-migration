@@ -1,4 +1,4 @@
-import type { InvoiceMember } from '../../routes/members/models.ts'
+import type { InvoiceMember } from '@mik/contracts/members'
 import type { InvoicePostPayload } from '../simplbooks/models.ts'
 
 export const createInvoicePostPayload = (

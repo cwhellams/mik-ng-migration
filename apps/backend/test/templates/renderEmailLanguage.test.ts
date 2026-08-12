@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals'
-import { MIKLang } from '../../src/routes/members/models.ts'
+import { MIKLang } from '@mik/contracts/members'
 
 // A template that exists only in English while still declaring translated
 // subjects and a translated footer. The registry interface allows that

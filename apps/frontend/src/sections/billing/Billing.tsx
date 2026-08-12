@@ -1,4 +1,4 @@
-import { InvoiceListResponse } from '@backend/routes/invoicing/models'
+import { InvoiceListResponse } from '@mik/contracts/invoicing'
 
 import {
   Box,
@@ -30,7 +30,7 @@ import { Icon } from '@iconify/react'
 import { InvoiceDatesCell } from './components/DateCombo'
 import { RemoteContent } from '../../components/RemoteContent'
 import { SnackAlert } from '../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'

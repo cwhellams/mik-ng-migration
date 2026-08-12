@@ -1,12 +1,12 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { getUpliftReport } from '../../db/uplift-report-queries.ts'
 import {
   UpliftReportFiltersSchema,
   type UpliftReportFilters,
   type UpliftReportResponse,
-} from './models.ts'
+} from '@mik/contracts/uplift-reports'
 import { problem } from '../response.ts'
 import { validate } from '../validate.ts'
 import { HttpStatusCode } from 'axios'

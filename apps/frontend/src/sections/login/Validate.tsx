@@ -3,8 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { LoginLayout } from './LoginLayout'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../../hooks/useAuth'
-import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
-import { validateInternalPath } from '@backend/util/sanitizers'
+import { VerifyRequest, VerifyResponse } from '@mik/contracts/auth'
+import { validateInternalPath } from '@mik/contracts/sanitizers'
 
 const LoginValidate = () => {
   const [searchParams] = useSearchParams()

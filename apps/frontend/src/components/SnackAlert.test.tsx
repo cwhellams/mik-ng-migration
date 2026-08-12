@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/react'
-import type { Problem } from '@backend/routes/response'
+import type { Problem } from '@mik/contracts/problem'
 import { describe, expect, it } from 'vitest'
 
 import { renderWithProviders } from '../test/renderWithProviders'

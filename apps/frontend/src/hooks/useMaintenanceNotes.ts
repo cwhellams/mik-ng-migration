@@ -1,5 +1,5 @@
 import useApi from './useApi'
-import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
+import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 
 /** Pass ajlbSeqNo to scope to one logbook page, or omit it for the whole aircraft. */
 export function useMaintenanceNotes(aircraftRegistration?: string, ajlbSeqNo?: number) {

@@ -1,4 +1,4 @@
-import type { NotificationBanner as Banner } from '@backend/routes/notification-banner/models'
+import type { NotificationBanner as Banner } from '@mik/contracts/notification-banner'
 import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

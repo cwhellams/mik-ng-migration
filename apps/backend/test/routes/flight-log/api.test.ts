@@ -11,8 +11,8 @@ import {
   FlightType,
   FlightLogStatus,
   type FlightLogUpsertRequest,
-} from '../../../src/routes/flight-log/models.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+} from '@mik/contracts/flight-log'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { flightPayload } from './fixtures.ts'
 import { audit } from '../../util/helpers.ts'

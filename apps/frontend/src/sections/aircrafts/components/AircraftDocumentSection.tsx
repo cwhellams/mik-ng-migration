@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { AircraftDocumentList } from './AircraftDocumentList'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
-import { AircraftDocumentListResponse } from '@backend/routes/aircraft-documents/models'
+import { AircraftDocumentListResponse } from '@mik/contracts/aircraft-documents'
 
 interface AircraftDocumentSectionProps {
   aircraftRegistration: string

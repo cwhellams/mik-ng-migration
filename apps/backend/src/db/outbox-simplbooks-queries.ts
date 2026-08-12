@@ -4,17 +4,17 @@ import type { DB } from './schema.d.ts'
 import {
   AnnualFeeInfoSchema,
   FeeProcessingStatus,
-  MIKInvoiceType,
   RecurringFeeType,
   SimplbooksEventType,
   SimplbooksStatus,
   type AnnualFeeInfo,
   type InvoiceBase,
 } from '../services/simplbooks/models.ts'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import logger from '../lib/logger.ts'
 import { db } from './connection.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
-import { FlightLogStatus } from '../routes/flight-log/models.ts'
+import { FlightLogStatus } from '@mik/contracts/flight-log'
 
 export async function insertOutboxItem(
   eventType: SimplbooksEventType,

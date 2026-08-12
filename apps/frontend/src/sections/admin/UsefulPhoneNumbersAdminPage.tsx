@@ -17,7 +17,7 @@ import {
 import useApi, { api } from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
-import type { UsefulPhoneNumber } from '@backend/routes/useful-phone-numbers/models'
+import type { UsefulPhoneNumber } from '@mik/contracts/useful-phone-numbers'
 
 const EMPTY_FORM = {
   label: '',

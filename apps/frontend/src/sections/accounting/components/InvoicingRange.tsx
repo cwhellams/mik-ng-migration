@@ -1,9 +1,9 @@
 import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Select } from '@mui/material'
 import useApi from '../../../hooks/useApi'
-import { InvoicableFlightFilters } from '@backend/routes/flight-log/models'
+import { InvoicableFlightFilters } from '@mik/contracts/flight-log'
 import { dayjs } from '../../../utils/date'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { AjlbListResponse } from '@backend/routes/ajlb/model'
+import { AjlbListResponse } from '@mik/contracts/ajlb'
 import { t } from 'i18next'
 import { RemoteContent } from '../../../components/RemoteContent'
 

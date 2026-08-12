@@ -5,7 +5,7 @@ import {
   sanitizeUrl,
   validateApiPath,
   validateInternalPath,
-} from '../../src/util/sanitizers.ts'
+} from '@mik/contracts/sanitizers'
 
 describe('sanitizers', () => {
   describe('escapeHtml', () => {

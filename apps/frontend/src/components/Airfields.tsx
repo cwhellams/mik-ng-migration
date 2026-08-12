@@ -1,4 +1,4 @@
-import { AirfieldListResponse } from '@backend/routes/flight-log/models'
+import { AirfieldListResponse } from '@mik/contracts/flight-log'
 import { Autocomplete, TextField } from '@mui/material'
 import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'

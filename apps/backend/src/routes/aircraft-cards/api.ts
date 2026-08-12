@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import {
   getAllAircraftCards,
   countAircraftCards,
@@ -19,7 +19,7 @@ import {
   type AircraftCardAuditable,
   type AircraftCardFilters,
   type AircraftCardListResponse,
-} from './models.ts'
+} from '@mik/contracts/aircraft-cards'
 
 export const router = Router()
 

@@ -14,7 +14,7 @@ declare namespace Express {
       lastName: string
       email: string
       roles: string[]
-      permissions: import('../routes/members/models.ts').MIKPermissions[]
+      permissions: import('@mik/contracts/members').MIKPermissions[]
       canMakeReservations: boolean
     }
   }

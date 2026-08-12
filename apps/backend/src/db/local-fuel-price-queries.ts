@@ -1,7 +1,7 @@
 import { db } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
-import type { LocalFuelPrice, UpsertLocalFuelPrice } from '../routes/fuel-prices/models.ts'
-import type { FuelType } from '../routes/expenses/models.ts'
+import type { LocalFuelPrice, UpsertLocalFuelPrice } from '@mik/contracts/fuel-prices'
+import type { FuelType } from '@mik/contracts/expenses'
 
 const mapLocalFuelPrice = (row: {
   id: number

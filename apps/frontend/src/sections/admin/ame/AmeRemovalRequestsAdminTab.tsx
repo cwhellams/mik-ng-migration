@@ -23,7 +23,7 @@ import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
-import type { AmeRemovalRequest, AmeRemovalRequestListResponse } from '@backend/routes/ame/models'
+import type { AmeRemovalRequest, AmeRemovalRequestListResponse } from '@mik/contracts/ame'
 
 const STATUS_COLOR: Record<string, 'warning' | 'success' | 'error' | 'default'> = {
   SUBMITTED: 'warning',

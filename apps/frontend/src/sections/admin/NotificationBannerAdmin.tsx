@@ -18,7 +18,7 @@ import { Title } from '../../components/Title'
 import type {
   NotificationBanner,
   NotificationBannerSeverity,
-} from '@backend/routes/notification-banner/models'
+} from '@mik/contracts/notification-banner'
 
 export default function NotificationBannerAdmin() {
   const { t } = useTranslation()

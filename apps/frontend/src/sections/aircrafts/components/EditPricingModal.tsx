@@ -17,7 +17,7 @@ import useApi from '../../../hooks/useApi'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { SaveButton } from '../../../components/SaveButton'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../../components/SnackAlert'
 import dayjs, { Dayjs } from 'dayjs'
 import { useMe } from '../../../hooks/useMe'
@@ -25,7 +25,7 @@ import {
   AircraftPricing,
   CreateAircraftPricing,
   UpdateAircraftPricing,
-} from '@backend/routes/aircraft-pricing/models'
+} from '@mik/contracts/aircraft-pricing'
 
 export type PricingEditMode = 'new' | 'edit'
 

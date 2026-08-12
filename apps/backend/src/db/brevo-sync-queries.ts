@@ -3,7 +3,7 @@ import type { Selectable } from 'kysely'
 import type { MemberRegister, MemberBrevoSyncState } from './schema.ts'
 import logger from '../lib/logger.ts'
 import type { BrevoSyncStatus } from '../services/brevo/models.ts'
-import { MIKMemberTypes } from '../routes/members/models.ts'
+import { MIKMemberTypes } from '@mik/contracts/members'
 
 /**
  * Get the last successful sync state

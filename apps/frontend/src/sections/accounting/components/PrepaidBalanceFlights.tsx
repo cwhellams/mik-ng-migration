@@ -2,11 +2,11 @@ import { Alert, Box, Button, Paper, Typography } from '@mui/material'
 import { Grid } from '@mui/system'
 import { useState } from 'react'
 
-import type { Problem } from '@backend/routes/response'
+import type { Problem } from '@mik/contracts/problem'
 import type {
   InvoicableFlightFilters,
   PrepaidFlightSummaryResponse,
-} from '@backend/routes/flight-log/models'
+} from '@mik/contracts/flight-log'
 
 import { ResponsiveTable } from '../../../components/ResponsiveTable'
 import { RemoteContent } from '../../../components/RemoteContent'

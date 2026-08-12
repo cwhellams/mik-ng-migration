@@ -1,5 +1,5 @@
 import { Box, Chip, Stack } from '@mui/material'
-import { OccurrenceStatus } from '@backend/routes/occurrences/models'
+import { OccurrenceStatus } from '@mik/contracts/occurrences'
 import { t } from 'i18next'
 import { Icon } from '@iconify/react/dist/iconify.js'
 

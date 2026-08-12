@@ -16,7 +16,7 @@ import { Link } from 'react-router'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
-import type { AttemptListResponse } from '@backend/routes/exams/models'
+import type { AttemptListResponse } from '@mik/contracts/exams'
 import dayjs from 'dayjs'
 
 export default function MyExamHistoryPage() {

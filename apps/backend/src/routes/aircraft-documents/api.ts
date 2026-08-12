@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import {
   getAllAircraftDocuments,
   countAircraftDocuments,
@@ -20,8 +20,9 @@ import {
   type AircraftDocumentAuditable,
   type AircraftDocumentFilters,
   type AircraftDocumentListResponse,
-} from './models.ts'
-import { validateDocumentId, type DownloadDocument } from '../documents/models.ts'
+} from '@mik/contracts/aircraft-documents'
+import type { DownloadDocument } from '@mik/contracts/documents'
+import { validateDocumentId } from '../documents/documentId.ts'
 import logger from '../../lib/logger.ts'
 import { documentUpload, getDocument, processDocumentFile } from '../../util/documentHelper.ts'
 

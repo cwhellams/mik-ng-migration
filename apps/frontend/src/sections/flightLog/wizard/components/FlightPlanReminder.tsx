@@ -12,7 +12,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../../../hooks/useApi'
-import type { UsefulPhoneNumber } from '@backend/routes/useful-phone-numbers/models'
+import type { UsefulPhoneNumber } from '@mik/contracts/useful-phone-numbers'
 
 // Yellow-and-black "C" panel-style badge — the visual marker this club uses on
 // airfield diagrams for the control/clubhouse building.

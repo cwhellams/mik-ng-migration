@@ -11,9 +11,9 @@ import {
   OccurrenceCategory,
   type OccurrencesListResponse,
   type OccurrenceUpsert,
-} from '../../../src/routes/occurrences/models.ts'
+} from '@mik/contracts/occurrences'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { db } from '../../../src/db/connection.ts'
 
 // Create an instance of the Express app

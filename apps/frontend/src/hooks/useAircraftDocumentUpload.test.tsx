@@ -1,7 +1,4 @@
-import type {
-  AircraftDocument,
-  AircraftDocumentType,
-} from '@backend/routes/aircraft-documents/models'
+import type { AircraftDocument, AircraftDocumentType } from '@mik/contracts/aircraft-documents'
 import { act, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

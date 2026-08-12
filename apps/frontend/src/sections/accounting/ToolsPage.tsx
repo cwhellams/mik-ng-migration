@@ -12,11 +12,8 @@ import {
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
-import type {
-  RecurringFeesProcessing,
-  AnnualBillingResponse,
-} from '@backend/routes/invoicing/models'
-import type { AnnualMembershipStats } from '@backend/routes/members/models'
+import type { RecurringFeesProcessing, AnnualBillingResponse } from '@mik/contracts/invoicing'
+import type { AnnualMembershipStats } from '@mik/contracts/members'
 import { RemoteContent } from '../../components/RemoteContent'
 
 export default function ToolsPage() {

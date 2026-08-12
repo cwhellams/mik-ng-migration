@@ -1,5 +1,5 @@
-import { MIKPermissions } from '@backend/routes/members/models'
-import { OccurrenceStatus, type Occurrence } from '@backend/routes/occurrences/models'
+import { MIKPermissions } from '@mik/contracts/members'
+import { OccurrenceStatus, type Occurrence } from '@mik/contracts/occurrences'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

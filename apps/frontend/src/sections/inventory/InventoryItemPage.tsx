@@ -18,7 +18,7 @@ import { useParams, Link } from 'react-router'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
-import type { InventoryItem, InventoryAuditLogEntry } from '@backend/routes/inventory/models'
+import type { InventoryItem, InventoryAuditLogEntry } from '@mik/contracts/inventory'
 import { resolveLanguage, localName, conditionColor } from './localized'
 
 export default function InventoryItemPage() {

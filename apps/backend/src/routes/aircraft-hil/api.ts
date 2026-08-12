@@ -9,7 +9,7 @@ import {
   type AircraftHilAuditEntry,
   type AircraftHilExtension,
   type AircraftHilOverview,
-} from './models.ts'
+} from '@mik/contracts/aircraft-hil'
 import {
   getAircraftHilEntries,
   createAircraftHilEntry,
@@ -24,7 +24,7 @@ import { resolveDefectsByHil, getDefect, setDefectsForHil } from '../../db/defec
 import { getMaintenanceNote } from '../../db/maintenance-note-queries.ts'
 import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 
 export const router = Router()

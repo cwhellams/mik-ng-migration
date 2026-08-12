@@ -2,7 +2,7 @@ import { Box, Button, Menu, MenuItem, ListItemIcon, Typography } from '@mui/mate
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { MIKLang } from '@backend/routes/members/models'
+import { MIKLang } from '@mik/contracts/members'
 
 interface LanguageSelectorProps {
   selectedLanguage: MIKLang

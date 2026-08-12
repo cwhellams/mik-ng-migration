@@ -12,7 +12,7 @@
 
 import 'dotenv/config'
 import { jest } from '@jest/globals'
-import { MIKLang } from '../../src/routes/members/models.ts'
+import { MIKLang } from '@mik/contracts/members'
 import { booking, member } from './sendLoopFixtures.ts'
 
 jest.unstable_mockModule('../../src/db/booking-queries.ts', () => ({

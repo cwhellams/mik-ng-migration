@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals'
-import { validateFlightLogTimes } from '../../../src/routes/flight-log/models.ts'
+import { validateFlightLogTimes } from '@mik/contracts/flight-log'
 
 describe('validateFlightLogTimes', () => {
   it('rejects epochs in the future', () => {

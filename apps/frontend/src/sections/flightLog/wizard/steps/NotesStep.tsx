@@ -1,7 +1,7 @@
 import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
-import { FlightType } from '@backend/routes/flight-log/models'
+import { FlightType } from '@mik/contracts/flight-log'
 import { TxtField } from '../../components/TxtField'
 import { ReportDefectsSection } from '../../components/ReportDefectsSection'
 import type { WizardFormProps } from '../types'

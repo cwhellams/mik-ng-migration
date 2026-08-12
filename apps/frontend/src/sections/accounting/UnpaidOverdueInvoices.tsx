@@ -7,7 +7,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { OverdueInvoiceLink } from './components/OverdueInvoiceLink'
-import type { UnpaidOverdueInvoiceListResponse } from '@backend/routes/invoicing/models'
+import type { UnpaidOverdueInvoiceListResponse } from '@mik/contracts/invoicing'
 
 export const UnpaidOverdueInvoices = () => {
   const { t } = useTranslation()

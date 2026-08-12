@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto'
 import type { Response } from 'express'
 import dayjs from 'dayjs'
 
-import { MIKPermissions, type Member } from '../members/models.ts'
+import { MIKPermissions, type Member } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 
 export const MIK_ISS = 'mik'

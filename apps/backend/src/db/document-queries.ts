@@ -1,8 +1,8 @@
 import * as connection from './connection.ts'
 import { sql } from 'kysely'
-import type { Document, DocumentFilters } from '../routes/documents/models.ts'
+import type { Document, DocumentFilters } from '@mik/contracts/documents'
 import type { JWTUser } from '../routes/auth/token.ts'
-import type { Upsert } from '../types/schema.ts'
+import type { Upsert } from '@mik/contracts/schema'
 import { problem } from '../routes/response.ts'
 
 export const getAllDocuments = async (

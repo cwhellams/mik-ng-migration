@@ -6,9 +6,9 @@ import { randomUUID } from 'node:crypto'
 
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { router } from '../../../src/routes/outbox/api.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
-import type { OutboxListResponse } from '../../../src/routes/outbox/models.ts'
+import type { OutboxListResponse } from '@mik/contracts/outbox'
 import { db } from '../../../src/db/connection.ts'
 
 // ─── App Setup ──────────────────────────────────────────────────────────────

@@ -10,7 +10,7 @@ import {
   type OccurrenceAttachment,
   type OccurrenceUpsert,
   type OccurrenceFilters,
-} from '../routes/occurrences/models.ts'
+} from '@mik/contracts/occurrences'
 import { generateShortId } from '../util/nanoId.ts'
 import * as connection from './connection.ts'
 import type { DB, FlightOccurrences, FlightOccurrenceAttachments } from './schema.js'

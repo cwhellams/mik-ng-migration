@@ -20,7 +20,7 @@ import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'
 import { MarkdownContent } from '../../components/MarkdownContent'
 import useApi from '../../hooks/useApi'
-import type { SyllabusFlight } from '@backend/routes/dto/models'
+import type { SyllabusFlight } from '@mik/contracts/dto'
 import type { StudentProgressDetail, AttemptWithOutcomes } from './dtoApi'
 
 function flightStatus(

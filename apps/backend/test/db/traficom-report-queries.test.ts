@@ -1,7 +1,7 @@
 import 'dotenv/config'
 
 import { getTraficomReport } from '../../src/db/traficom-report-queries.ts'
-import { TraficomReportFilter } from '../../src/routes/traficom-reports/models.ts'
+import { TraficomReportFilter } from '@mik/contracts/traficom-reports'
 
 describe('Traficom Report Queries', () => {
   describe('getTraficomReport', () => {

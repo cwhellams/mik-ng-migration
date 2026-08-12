@@ -1,4 +1,4 @@
-import type { ClubEvent } from '@backend/routes/events/models'
+import type { ClubEvent } from '@mik/contracts/events'
 
 const formatIcsDate = (iso: string): string =>
   new Date(iso).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'

@@ -7,7 +7,7 @@ import {
   type BookingType,
   type BookingUpsertRequest,
   type CancellationRequest,
-} from '../routes/bookings/models.ts'
+} from '@mik/contracts/bookings'
 import type { MemberRegister, ScheduleBookings } from './schema.js'
 import type { Selectable } from 'kysely'
 import { sql } from 'kysely'

@@ -26,7 +26,7 @@ import type {
   SchoolFlightEfficiencyByAcYrMth,
   SchoolFlightEfficiencyByInstructorYr,
   SchoolFlightEfficiencyByInstructorYrMth,
-} from '@backend/routes/stats/models'
+} from '@mik/contracts/stats'
 
 type FlightScope = 'all' | 'school'
 type GroupBy = 'overall' | 'aircraft' | 'member'

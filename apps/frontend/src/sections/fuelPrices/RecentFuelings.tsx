@@ -11,7 +11,7 @@ import {
   TableRow,
   TableSortLabel,
 } from '@mui/material'
-import type { FuelReportResponse } from '@backend/routes/fuel-report/models'
+import type { FuelReportResponse } from '@mik/contracts/fuel-report'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'

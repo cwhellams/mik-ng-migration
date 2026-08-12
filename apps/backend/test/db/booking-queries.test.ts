@@ -5,7 +5,7 @@ import {
   CancellationReason,
   type Booking,
   type BookingUpsertRequest,
-} from '../../src/routes/bookings/models.ts'
+} from '@mik/contracts/bookings'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import dayjs from 'dayjs'
 

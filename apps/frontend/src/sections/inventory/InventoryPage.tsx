@@ -21,11 +21,7 @@ import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
-import type {
-  InventoryItem,
-  InventoryCategory,
-  InventoryLocation,
-} from '@backend/routes/inventory/models'
+import type { InventoryItem, InventoryCategory, InventoryLocation } from '@mik/contracts/inventory'
 import { resolveLanguage, localName, conditionColor } from './localized'
 
 export default function InventoryPage() {

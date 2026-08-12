@@ -4,8 +4,8 @@ import {
   FlightLogUpsertSchema,
   type FlightLogUpsertRequest,
   flightLogDateValidator,
-} from '@backend/routes/flight-log/models'
-import { MemberListResponse } from '@backend/routes/members/models'
+} from '@mik/contracts/flight-log'
+import { MemberListResponse } from '@mik/contracts/members'
 
 // Shared resolver for both the classic flight log form and the mobile wizard: wraps
 // zodResolver and adds FI/FE member-role validation plus the "oil/fuel uplift

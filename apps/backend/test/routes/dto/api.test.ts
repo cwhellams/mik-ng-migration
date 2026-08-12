@@ -6,7 +6,7 @@ import request from 'supertest'
 import { db } from '../../../src/db/connection.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { router } from '../../../src/routes/dto/api.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 // ── App ───────────────────────────────────────────────────────────────────────

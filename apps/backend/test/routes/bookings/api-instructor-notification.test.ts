@@ -30,8 +30,8 @@ const { default: request } = await import('supertest')
 const { default: bookingsRouter } = await import('../../../src/routes/bookings/api.ts')
 const { generateAccessToken } = await import('../../../src/routes/auth/token.ts')
 const { problemErrorHandler } = await import('../../../src/routes/response.ts')
-const { MIKPermissions } = await import('../../../src/routes/members/models.ts')
-const { BookingStatus, BookingType } = await import('../../../src/routes/bookings/models.ts')
+const { MIKPermissions } = await import('@mik/contracts/members')
+const { BookingStatus, BookingType } = await import('@mik/contracts/bookings')
 const { getMemberById } = await import('../../../src/db/member-queries.ts')
 const { emailTemplates } = await import('../../../src/templates/registry.ts')
 const { normaliseEmailLang } = await import('../../../src/templates/renderEmail.ts')
@@ -46,7 +46,7 @@ const bookingInstructorUpdatedEmailSubject = (lang: string | undefined) =>
   subjectFor('updated', lang)
 const bookingInstructorCancelledEmailSubject = (lang: string | undefined) =>
   subjectFor('cancelled', lang)
-import type { BookingUpsertRequest } from '../../../src/routes/bookings/models.ts'
+import type { BookingUpsertRequest } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
 
 const app = express()

@@ -5,7 +5,7 @@ import request from 'supertest'
 
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 const app = express()

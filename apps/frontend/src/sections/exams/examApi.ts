@@ -6,7 +6,7 @@ import type {
   Attempt,
   AttemptAnswer,
   AttemptListResponse,
-} from '@backend/routes/exams/models'
+} from '@mik/contracts/exams'
 import { sharedApi } from '../../hooks/useApi'
 
 const EXAMS_BASE = 'v1/exams/'

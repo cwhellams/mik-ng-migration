@@ -20,7 +20,7 @@ import {
   MemberChangeLogFiltersSchema,
   MemberChangeType,
   type MemberChangeLogResponse,
-} from './models.ts'
+} from '@mik/contracts/members'
 import {
   getMemberById,
   getMemberByEmail,
@@ -51,8 +51,8 @@ import {
 } from '../../db/member-queries.ts'
 import { getInvoices } from '../../db/invoicing-queries.ts'
 import { getFlightLogs } from '../../db/flight-log-queries.ts'
-import type { InvoiceListResponse } from '../invoicing/models.ts'
-import type { FlightLogListResponse } from '../flight-log/models.ts'
+import type { InvoiceListResponse } from '@mik/contracts/invoicing'
+import type { FlightLogListResponse } from '@mik/contracts/flight-log'
 import { cancelAllFutureBookingsForMember } from '../../db/booking-queries.ts'
 import {
   getGdprFlightLogs,
@@ -73,8 +73,8 @@ import {
 } from '../../db/gdpr-queries.ts'
 import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { UpsertSchema } from '../../types/schema.ts'
-import { RegisterRequestSchema } from '../auth/schema.ts'
+import { UpsertSchema } from '@mik/contracts/schema'
+import { RegisterRequestSchema } from '@mik/contracts/auth'
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import { HttpStatusCode } from 'axios'

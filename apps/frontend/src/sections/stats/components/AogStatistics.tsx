@@ -14,7 +14,7 @@ import { ResponsiveBar } from '@nivo/bar'
 import useApi from '../../../hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type { AogDaysByAcYr, AogDaysByAcYrMth } from '@backend/routes/stats/models'
+import type { AogDaysByAcYr, AogDaysByAcYrMth } from '@mik/contracts/stats'
 
 const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
 

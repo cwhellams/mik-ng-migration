@@ -23,8 +23,8 @@ import {
   type FlightLogOverlapConflict,
   type FlightLogOverlapQuery,
   type PageItemRow,
-} from '../routes/flight-log/models.ts'
-import type { MIKPermissions } from '../routes/members/models.ts'
+} from '@mik/contracts/flight-log'
+import type { MIKPermissions } from '@mik/contracts/members'
 import { generateShortId } from '../util/nanoId.ts'
 import type { DB, FlightLogs, FlightVwFlightLogs } from './schema.js'
 import {
@@ -38,7 +38,7 @@ import {
 import dayjs from 'dayjs'
 import { randomUUID } from 'node:crypto'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
-import { toLocal } from '../util/date.ts'
+import { toHelsinki } from '@mik/contracts/date'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import type { FlightForEstimation } from '../services/accounting/flightCostEstimator.ts'
 
@@ -259,7 +259,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
     )
     .$if(!!filters.startDate, (qb) =>
-      qb.where('off_block_time_epoch', '>=', toLocal(filters.startDate!).unix().toString()),
+      qb.where('off_block_time_epoch', '>=', toHelsinki(filters.startDate!).unix().toString()),
     )
     .$if(!!filters.endDate, (qb) =>
       qb.where('on_block_time_epoch', '<=', dayjs(filters.endDate).endOf('day').unix().toString()),
@@ -569,7 +569,7 @@ export async function getInvoicableFlights(
     .$if(!!filters.aircraftRegistration, (qb) =>
       qb.where('aircraft_registration', '=', filters.aircraftRegistration),
     )
-    .where('on_block_time_epoch', '<=', toLocal(filters.endDate).endOf('day').unix().toString())
+    .where('on_block_time_epoch', '<=', toHelsinki(filters.endDate).endOf('day').unix().toString())
 
   if (filters.flights === InvoicableFlights.FERRY) {
     query = query.where('flight_type', '=', FlightType.FERRY)

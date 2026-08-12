@@ -38,12 +38,7 @@ import { useSnackbar } from '../../../hooks/useSnackbar'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { LocalisedTextField, withLocalisedField } from '../../../components/LocalisedTextField'
 import { useLocalisedText } from '../../../utils/localisedText'
-import type {
-  Product,
-  Category,
-  ProductProperty,
-  PropertyUpsert,
-} from '@backend/routes/shop/models'
+import type { Product, Category, ProductProperty, PropertyUpsert } from '@mik/contracts/shop'
 
 // ── Localised field ───────────────────────────────────────────────────────────
 

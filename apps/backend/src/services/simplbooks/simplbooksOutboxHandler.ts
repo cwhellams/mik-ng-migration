@@ -4,11 +4,10 @@ import { getMemberById } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
 import { storageService } from '../storage.ts'
 import { mergeAttachmentsToPdf } from '../../util/mergeAttachmentsToPdf.ts'
-import { InvoiceMemberSchema, MemberSchema } from '../../routes/members/models.ts'
+import { InvoiceMemberSchema, MemberSchema } from '@mik/contracts/members'
 import {
   FeeTypeEnum,
   mapMemberToClient,
-  MIKInvoiceType,
   RecurringFeeType,
   ShopOrderInvoicePayloadSchema,
   SimplbooksEventType,
@@ -19,6 +18,7 @@ import {
   type InvoiceResponse,
   type ReceiptPost,
 } from './models.ts'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import {
   createNewClient,
   updateClient,
@@ -51,7 +51,7 @@ import {
 import type { Transaction } from 'kysely'
 import type { DB } from '../../db/schema.js'
 import { createPlannedFlightInvoicePayload } from '../accounting/flightInvoiceCreator.ts'
-import { FlightInvoicePayloadSchema } from '../../routes/flight-log/models.ts'
+import { FlightInvoicePayloadSchema } from '@mik/contracts/flight-log'
 import { isRecurringFeeAlreadyCreated } from '../accounting/recurringFeesProcessor.ts'
 import { SimplbooksApiError } from './simplbooksErrorHandler.ts'
 import { z } from 'zod'

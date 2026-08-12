@@ -6,7 +6,7 @@ import {
   type AircraftPricing,
   type AircraftPricingFilters,
   type AircraftPricingListResponse,
-} from './models.ts'
+} from '@mik/contracts/aircraft-pricing'
 import {
   getAircraftPricing,
   insertAircraftPricing,
@@ -14,7 +14,7 @@ import {
   deleteAircraftPricing,
 } from '../../db/aircraft-pricing-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 
 export const router = Router()
 

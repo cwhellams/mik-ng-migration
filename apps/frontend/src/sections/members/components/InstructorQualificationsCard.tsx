@@ -29,12 +29,12 @@ import { EditButton } from '../../../components/EditButton'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { SaveButton } from '../../../components/SaveButton'
 import { SnackAlert } from '../../../components/SnackAlert'
-import type { Problem } from '@backend/routes/response'
+import type { Problem } from '@mik/contracts/problem'
 import type {
   InstructorQualification,
   InstructorQualificationUpsert,
   QualificationSnapshot,
-} from '@backend/routes/instructor-qualifications/models'
+} from '@mik/contracts/instructor-qualifications'
 
 const EXPIRING_DAYS_THRESHOLD = 30
 // Matches the backend's proofUpload raw limit (apps/backend/src/routes/instructor-qualifications/api.ts).

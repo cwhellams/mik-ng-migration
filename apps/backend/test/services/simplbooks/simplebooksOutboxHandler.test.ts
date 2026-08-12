@@ -2,18 +2,18 @@ import { jest } from '@jest/globals'
 
 import { randomUUID } from 'crypto'
 import {
-  MIKInvoiceType,
   SimplbooksEventType,
   SimplbooksStatus,
   type AcctsOutboxSimplbooks,
 } from '../../../src/services/simplbooks/models.ts'
+import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import {
   InvoiceMemberSchema,
   MIKLang,
   MIKMemberTypes,
   type InvoiceMember,
   type Member,
-} from '../../../src/routes/members/models.ts'
+} from '@mik/contracts/members'
 import {
   buildCreditNotePayload,
   buildReceiptPayload,

@@ -18,7 +18,7 @@ import { useMe } from '../hooks/useMe'
 import { useMailboxUnreadCount } from '../hooks/useMailbox'
 import UserAvatar from '../sections/members/components/UserAvatar'
 import useApi from '../hooks/useApi'
-import { Member, MIKLang } from '@backend/routes/members/models'
+import { Member, MIKLang } from '@mik/contracts/members'
 import { useTimezone } from '../hooks/useTimezone'
 import { getOffsetLabelInTz } from '../utils/date'
 

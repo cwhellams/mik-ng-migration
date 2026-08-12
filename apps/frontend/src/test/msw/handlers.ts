@@ -1,6 +1,6 @@
-import type { AppConfig } from '@backend/routes/config/models'
-import type { NotificationBanner } from '@backend/routes/notification-banner/models'
-import type { TimeResponse } from '@backend/routes/time/api'
+import type { AppConfig } from '@mik/contracts/config'
+import type { NotificationBanner } from '@mik/contracts/notification-banner'
+import type { TimeResponse } from '@mik/contracts/time'
 import { http, HttpResponse } from 'msw'
 
 import {

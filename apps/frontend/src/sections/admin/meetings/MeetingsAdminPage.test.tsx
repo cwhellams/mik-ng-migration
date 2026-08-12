@@ -1,5 +1,5 @@
-import type { Meeting, MeetingVote } from '@backend/routes/meetings/models'
-import { MIKPermissions } from '@backend/routes/members/models'
+import type { Meeting, MeetingVote } from '@mik/contracts/meetings'
+import { MIKPermissions } from '@mik/contracts/members'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'

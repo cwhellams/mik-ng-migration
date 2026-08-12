@@ -12,8 +12,8 @@ import {
   OccurrenceFilters,
   OccurrencesListResponse,
   OccurrenceStatus,
-} from '@backend/routes/occurrences/models'
-import { MIKPermissions } from '@backend/routes/members/models'
+} from '@mik/contracts/occurrences'
+import { MIKPermissions } from '@mik/contracts/members'
 import { useTimezone } from '../../hooks/useTimezone'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import { useRoles } from '../../hooks/useRoles'

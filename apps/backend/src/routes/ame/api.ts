@@ -9,7 +9,7 @@ import {
   RejectAmeEntrySchema,
   RequestAmeRemovalSchema,
   SuggestAmeEditSchema,
-} from './models.ts'
+} from '@mik/contracts/ame'
 import {
   approveAmeEditSuggestion,
   approveAmeEntry,
@@ -32,7 +32,7 @@ import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { sendAmeSecretaryNotification } from '../../templates/ameSubmissionNotification.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 
 export const router = Router()

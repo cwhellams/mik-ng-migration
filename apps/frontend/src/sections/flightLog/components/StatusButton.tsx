@@ -1,4 +1,4 @@
-import { FlightLogListEntry } from '@backend/routes/flight-log/models'
+import { FlightLogListEntry } from '@mik/contracts/flight-log'
 import { Tooltip, useTheme, IconButton, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
 import { EditButton } from '../../../components/EditButton'

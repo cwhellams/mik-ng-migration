@@ -16,8 +16,8 @@ import { useTranslation } from 'react-i18next'
 import useApi from '../../../hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type { TotalFlightTimeByAcYrMth } from '@backend/routes/stats/models'
-import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
+import type { TotalFlightTimeByAcYrMth } from '@mik/contracts/stats'
+import type { AircraftListResponse } from '@mik/contracts/aircrafts'
 
 const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
 

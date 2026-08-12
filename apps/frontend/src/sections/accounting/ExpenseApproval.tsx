@@ -19,7 +19,7 @@ import {
   ExpenseClaimStatus,
   type ExpenseClaim,
   type ExpenseClaimListResponse,
-} from '@backend/routes/expenses/models'
+} from '@mik/contracts/expenses'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'

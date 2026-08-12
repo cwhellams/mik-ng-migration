@@ -1,6 +1,6 @@
 import { Alert } from '@mui/material'
 import useApi from '../hooks/useApi'
-import type { NotificationBanner as NotificationBannerType } from '@backend/routes/notification-banner/models'
+import type { NotificationBanner as NotificationBannerType } from '@mik/contracts/notification-banner'
 
 export function NotificationBanner() {
   const { data } = useApi<NotificationBannerType>({

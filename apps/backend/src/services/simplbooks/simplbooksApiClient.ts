@@ -22,7 +22,7 @@ import {
   type SimplBooksInsertResponse,
 } from './models.ts'
 import logger from '../../lib/logger.ts'
-import { MemberSchema, type Member } from '../../routes/members/models.ts'
+import { MemberSchema, type Member } from '@mik/contracts/members'
 import dayjs from 'dayjs'
 import http from 'node:http'
 import https from 'node:https'

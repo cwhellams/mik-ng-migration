@@ -1,6 +1,6 @@
-import { type FlightInvoicePayload, type InvoicableFlight } from '../../routes/flight-log/models.ts'
+import { type FlightInvoicePayload, type InvoicableFlight } from '@mik/contracts/flight-log'
 import type { InvoicePost } from '../simplbooks/models.ts'
-import type { ArticleFee } from '../../routes/invoicing/models.ts'
+import type { ArticleFee } from '@mik/contracts/invoicing'
 
 import { getAircraftPriceForDate } from '../../db/aircraft-pricing-queries.ts'
 import { getArticleFees, hasRequestedEquipmentFee } from '../../db/invoicing-queries.ts'

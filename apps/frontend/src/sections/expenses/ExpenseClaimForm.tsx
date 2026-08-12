@@ -20,7 +20,7 @@ import {
 import { Icon } from '@iconify/react'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs, { type Dayjs } from 'dayjs'
-import type { ItemListResponse } from '@backend/routes/invoicing/models'
+import type { ItemListResponse } from '@mik/contracts/invoicing'
 import {
   MIK_SUPPORTED_CURRENCIES,
   type CreateExpenseClaim,
@@ -29,7 +29,7 @@ import {
   type ExpenseClaimAttachment,
   type ExpenseClaimReceipt,
   ExpenseClaimStatus,
-} from '@backend/routes/expenses/models'
+} from '@mik/contracts/expenses'
 import useApi from '../../hooks/useApi'
 import { sharedApi } from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'

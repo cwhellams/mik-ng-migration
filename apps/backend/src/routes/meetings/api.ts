@@ -32,10 +32,10 @@ import {
 import { addDocument, removeDocument } from '../../db/document-queries.ts'
 import { storageService } from '../../services/storage.ts'
 import { documentUpload } from '../../util/documentHelper.ts'
-import { UpsertSchema } from '../../types/schema.ts'
+import { UpsertSchema } from '@mik/contracts/schema'
 import logger from '../../lib/logger.ts'
-import { MIKPermissions } from '../members/models.ts'
-import { DocumentCategory, DocumentSchema } from '../documents/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
+import { DocumentCategory, DocumentSchema } from '@mik/contracts/documents'
 import {
   AddVoteCounterSchema,
   CreateMeetingSchema,
@@ -48,7 +48,7 @@ import {
   SubmitVoteSchema,
   UpdateMeetingSchema,
   type VoteCountersResponse,
-} from './models.ts'
+} from '@mik/contracts/meetings'
 import { problem } from '../response.ts'
 
 const router = Router()

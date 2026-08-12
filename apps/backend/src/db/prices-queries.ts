@@ -3,7 +3,7 @@ import type {
   PublicAircraftPricing,
   PublicMembershipFee,
   PublicEquipmentFee,
-} from '../routes/prices/models.ts'
+} from '@mik/contracts/prices'
 import {
   ART_EQUIP_FEE_CODE,
   ART_MEMBER_FEE_CODE,

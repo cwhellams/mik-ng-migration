@@ -26,7 +26,7 @@ import { Download } from '@mui/icons-material'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { formatExpenseAmount } from '../expenses/expenseUi'
-import type { MileageReportResponse } from '@backend/routes/expenses/models'
+import type { MileageReportResponse } from '@mik/contracts/expenses'
 
 // Structured start/end addresses (issue #1021) for legs created after that change;
 // route is the legacy free-text fallback for older claims.

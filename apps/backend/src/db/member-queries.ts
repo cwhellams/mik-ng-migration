@@ -3,7 +3,7 @@ import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 import { db } from './connection.ts'
 import type { MemberRegister, MemberRoles } from './schema.js'
-import type { RegisterRequest } from '../routes/auth/schema.ts'
+import type { RegisterRequest } from '@mik/contracts/auth'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   MIKLang,
@@ -24,13 +24,13 @@ import {
   MemberChangeType,
   type MemberChangeLogEntry,
   type MemberChangeLogFilters,
-} from '../routes/members/models.ts'
+} from '@mik/contracts/members'
 import { problem } from '../routes/response.ts'
-import type { Upsert } from '../types/schema.ts'
+import type { Upsert } from '@mik/contracts/schema'
 import { generateShortId } from '../util/nanoId.ts'
 import { randomUUID } from 'node:crypto'
 import { RecurringFeeType, SimplbooksEventType } from '../services/simplbooks/models.ts'
-import type { DashboardSettings } from '../routes/dashboard/models.ts'
+import type { DashboardSettings } from '@mik/contracts/dashboard'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
   const member = await db

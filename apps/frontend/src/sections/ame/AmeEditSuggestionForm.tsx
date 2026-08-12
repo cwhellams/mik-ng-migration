@@ -19,8 +19,8 @@ import { useNavigate, useParams } from 'react-router'
 import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'
 import useApi from '../../hooks/useApi'
-import { AME_MEDICAL_TYPES } from '@backend/routes/ame/models'
-import type { AmeListResponse, SuggestAmeEdit } from '@backend/routes/ame/models'
+import { AME_MEDICAL_TYPES } from '@mik/contracts/ame'
+import type { AmeListResponse, SuggestAmeEdit } from '@mik/contracts/ame'
 
 const MEDICAL_TYPE_LABELS: Record<string, string> = {
   EASA_CLASS_1: 'EASA Class 1',

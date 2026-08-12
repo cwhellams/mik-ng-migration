@@ -3,8 +3,10 @@ import jwt from 'jsonwebtoken'
 
 import logger from '../lib/logger.ts'
 import { API_AUD, MIK_ISS, type JWTUser } from '../routes/auth/token.ts'
-import { MIKPermissions, downgradePermission } from '../routes/members/models.ts'
-import { problem, type Problem } from '../routes/response.ts'
+import { MIKPermissions, downgradePermission } from '@mik/contracts/members'
+import type { Problem } from '@mik/contracts/problem'
+
+import { problem } from '../routes/response.ts'
 
 // Middleware to authenticate and authorize user
 export const validateUser = (...permissions: MIKPermissions[]): RequestHandler[] => [

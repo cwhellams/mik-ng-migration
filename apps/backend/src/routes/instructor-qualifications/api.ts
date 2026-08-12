@@ -3,7 +3,7 @@ import multer from 'multer'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
 import {
@@ -27,7 +27,7 @@ import {
   type ProofFile,
   type ProofDocumentCategory,
   type QualificationSnapshot,
-} from './models.ts'
+} from '@mik/contracts/instructor-qualifications'
 import { getMemberById } from '../../db/member-queries.ts'
 import { storageService } from '../../services/storage.ts'
 import logger from '../../lib/logger.ts'

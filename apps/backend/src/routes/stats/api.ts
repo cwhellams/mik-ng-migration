@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import {
   getTotalFlightTimeByAc,
   getTotalFlightTimeByAcYrFt,
@@ -45,7 +45,7 @@ import {
   getSchoolFlightEfficiencyByInstructorYr,
   getSchoolFlightEfficiencyByInstructorYrMth,
 } from '../../db/stats-queries.ts'
-import { MyStatisticsFilterSchema } from './models.ts'
+import { MyStatisticsFilterSchema } from '@mik/contracts/stats'
 import type {
   TotalFlightTimeByAc,
   TotalFlightTimeByAcYrFt,
@@ -89,7 +89,7 @@ import type {
   SchoolFlightEfficiencyByAcYrMth,
   SchoolFlightEfficiencyByInstructorYr,
   SchoolFlightEfficiencyByInstructorYrMth,
-} from './models.ts'
+} from '@mik/contracts/stats'
 
 export const router = Router()
 

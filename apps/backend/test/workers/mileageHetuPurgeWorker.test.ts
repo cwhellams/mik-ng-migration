@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import { db } from '../../src/db/connection.ts'
-import { ExpenseClaimStatus } from '../../src/routes/expenses/models.ts'
+import { ExpenseClaimStatus } from '@mik/contracts/expenses'
 
 // Mock the logger
 jest.mock('../../src/lib/logger.ts', () => ({

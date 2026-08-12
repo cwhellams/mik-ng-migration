@@ -26,7 +26,7 @@ import {
   FlightLogOverlapQuerySchema,
   type FlightLogOverlapResponse,
   FlightLogPageForMinsFilterSchema,
-} from './models.ts'
+} from '@mik/contracts/flight-log'
 import {
   deleteFlightLog,
   getFlightLog,
@@ -48,7 +48,7 @@ import { invalidateApprovedAttempt } from '../../db/dto-queries.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 import { getMemberById } from '../../db/member-queries.ts'
 import { getAirfields } from '../../db/airfields-queries.ts'

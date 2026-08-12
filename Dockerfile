@@ -21,6 +21,8 @@ WORKDIR /home/node/app
 # Copy only necessary pnpm files for production
 COPY pnpm-lock.yaml package.json pnpm-workspace.yaml* ./
 COPY apps/backend/package.json ./apps/backend/
+# Workspace dependency of the backend — pnpm needs its manifest present to link it
+COPY packages/contracts/package.json ./packages/contracts/
 
 # Install only production dependencies with aggressive optimization
 RUN pnpm install --frozen-lockfile --prod --shamefully-hoist \
@@ -30,6 +32,10 @@ RUN pnpm install --frozen-lockfile --prod --shamefully-hoist \
 
 # Copy backend source code (needed for tsx runtime)
 COPY apps/backend/src ./apps/backend/src
+
+# @mik/contracts ships TypeScript source rather than a build output, so the runtime
+# needs its src/ the same way it needs the backend's
+COPY packages/contracts/src ./packages/contracts/src
 
 # Copy CA certificate
 COPY apps/backend/ca-certificate.crt /home/node/app/ca-certificate.crt

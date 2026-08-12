@@ -6,11 +6,13 @@ on:
     branches: [main]
     paths:
       - 'apps/frontend/**'
+      - 'packages/**'
       - '.github/workflows/**'
   push:
     branches: [main]
     paths:
       - 'apps/frontend/**'
+      - 'packages/**'
       - '.github/workflows/**'
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: '--max-old-space-size=8192' # Increase memory limit for Node.js

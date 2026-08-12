@@ -10,7 +10,7 @@ import type {
   InventoryItemUpsert,
   InventoryFilters,
   InventoryAuditLogEntry,
-} from '../routes/inventory/models.ts'
+} from '@mik/contracts/inventory'
 import type { DB, Json } from './schema.d.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
 

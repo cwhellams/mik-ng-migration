@@ -14,12 +14,12 @@ import {
   InvoicableFlightListResponse,
   InvoicableFlightFilters,
   InvoicableFlights,
-} from '@backend/routes/flight-log/models'
+} from '@mik/contracts/flight-log'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useTimezone } from '../../../hooks/useTimezone'
 import { useScrollOnRender } from '../../../hooks/useScrollOnRender'
 import { useState } from 'react'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { t } from 'i18next'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Grid } from '@mui/system'

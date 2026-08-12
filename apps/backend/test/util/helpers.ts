@@ -1,4 +1,4 @@
-import type { Auditable } from '../../src/types/schema.ts'
+import type { Auditable } from '@mik/contracts/schema'
 
 export const maskAudit = (entity: Auditable) => ({
   ...entity,

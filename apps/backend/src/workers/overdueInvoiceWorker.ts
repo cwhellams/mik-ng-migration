@@ -16,7 +16,7 @@ import { cancelAllFutureBookingsForMember } from '../db/booking-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
 import { createClientNote } from '../services/simplbooks/simplbooksApiClient.ts'
 import logger from '../lib/logger.ts'
-import type { Invoice } from '../routes/invoicing/models.ts'
+import type { Invoice } from '@mik/contracts/invoicing'
 import { renderEmail } from '../templates/renderEmail.ts'
 import { defineWorker, type CronWorkerDeps } from './defineWorker.ts'
 

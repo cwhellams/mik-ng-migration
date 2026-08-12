@@ -8,9 +8,9 @@ import type {
   MemberPackage,
   UsageLog,
   UnbilledTimeByAircraft,
-} from '../routes/prepaid-hours/models.ts'
-import { FlightLogStatus } from '../routes/flight-log/models.ts'
-import { ProductTypeEnum } from '../routes/shop/models.ts'
+} from '@mik/contracts/prepaid-hours'
+import { FlightLogStatus } from '@mik/contracts/flight-log'
+import { ProductTypeEnum } from '@mik/contracts/shop'
 import { insertProduct } from './shop-queries.ts'
 
 // ─────────────────────────────────────────────────────────────────────────────

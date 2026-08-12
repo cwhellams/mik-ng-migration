@@ -29,15 +29,15 @@ import {
 import { Icon } from '@iconify/react'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs, { type Dayjs } from 'dayjs'
-import type { ItemListResponse } from '@backend/routes/invoicing/models'
+import type { ItemListResponse } from '@mik/contracts/invoicing'
 import {
   MIK_SUPPORTED_CURRENCIES,
   type CreateExpenseClaim,
   type ExpenseCategory,
   type ExpenseClaim,
   type ExpenseClaimAttachment,
-} from '@backend/routes/expenses/models'
-import type { FlightLogListEntry, FlightLogListResponse } from '@backend/routes/flight-log/models'
+} from '@mik/contracts/expenses'
+import type { FlightLogListEntry, FlightLogListResponse } from '@mik/contracts/flight-log'
 import useApi, { sharedApi } from '../../hooks/useApi'
 import { useMe } from '../../hooks/useMe'
 import { Title } from '../../components/Title'

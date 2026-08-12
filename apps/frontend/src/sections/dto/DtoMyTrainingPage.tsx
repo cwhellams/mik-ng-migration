@@ -18,7 +18,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { MarkdownContent } from '../../components/MarkdownContent'
 import useApi from '../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
-import type { SyllabusFlight, SyllabusFlightAttempt, HilEntry } from '@backend/routes/dto/models'
+import type { SyllabusFlight, SyllabusFlightAttempt, HilEntry } from '@mik/contracts/dto'
 import type { MemberSyllabusDetail } from './dtoApi'
 
 export default function DtoMyTrainingPage() {

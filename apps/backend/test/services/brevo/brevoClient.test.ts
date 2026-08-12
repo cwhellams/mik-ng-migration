@@ -14,7 +14,7 @@ import {
   mockBrevoGet,
 } from '../../__mocks__/brevoMock.ts'
 import logger from '../../../src/lib/logger.ts'
-import { MIKMemberTypes, MIKLang } from '../../../src/routes/members/models.ts'
+import { MIKMemberTypes, MIKLang } from '@mik/contracts/members'
 
 // Mock environment variables
 process.env.BREVO_API_KEY = 'test-api-key'

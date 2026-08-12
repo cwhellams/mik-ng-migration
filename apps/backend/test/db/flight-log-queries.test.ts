@@ -23,8 +23,8 @@ import {
   InvoicableFlights,
   type FlightLog,
   type FlightLogMemberRequest,
-} from '../../src/routes/flight-log/models.ts'
-import { MIKPermissions } from '../../src/routes/members/models.ts'
+} from '@mik/contracts/flight-log'
+import { MIKPermissions } from '@mik/contracts/members'
 import { deleteSimplbooksOutbox, expectOutbox1Row } from './__helpers__/simplbooksDbHelpers.ts'
 import { SimplbooksEventType } from '../../src/services/simplbooks/models.ts'
 

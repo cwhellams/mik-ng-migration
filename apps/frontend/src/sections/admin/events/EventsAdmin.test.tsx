@@ -1,4 +1,4 @@
-import type { ClubEvent } from '@backend/routes/events/models'
+import type { ClubEvent } from '@mik/contracts/events'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'

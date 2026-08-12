@@ -4,7 +4,7 @@ import {
   CreateMaintenanceNoteSchema,
   UpdateMaintenanceNoteSchema,
   type MaintenanceNote,
-} from './models.ts'
+} from '@mik/contracts/maintenance-notes'
 import {
   getMaintenanceNotes,
   getMaintenanceNote,
@@ -13,7 +13,7 @@ import {
 } from '../../db/maintenance-note-queries.ts'
 import { getAjlbLiveBaselineFlightMins } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 
 export const router = Router()

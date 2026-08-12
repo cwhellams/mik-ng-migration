@@ -1,5 +1,5 @@
-import { BookingListResponse, Booking, BookingFilters } from '@backend/routes/bookings/models'
-import { Upsert } from '@backend/types/schema'
+import { BookingListResponse, Booking, BookingFilters } from '@mik/contracts/bookings'
+import { Upsert } from '@mik/contracts/schema'
 import { Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box } from '@mui/system'

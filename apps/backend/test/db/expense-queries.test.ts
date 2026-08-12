@@ -2,7 +2,7 @@ import 'dotenv/config'
 
 import { db } from '../../src/db/connection.ts'
 import { getPendingExpenseClaimsCount } from '../../src/db/expense-queries.ts'
-import { ExpenseClaimStatus } from '../../src/routes/expenses/models.ts'
+import { ExpenseClaimStatus } from '@mik/contracts/expenses'
 
 // ── Seed data IDs ─────────────────────────────────────────────────────────────
 

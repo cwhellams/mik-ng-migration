@@ -25,11 +25,7 @@ import { useNavigate } from 'react-router'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
-import type {
-  FlightItemOutcome,
-  SyllabusFlight,
-  SyllabusFlightItem,
-} from '@backend/routes/dto/models'
+import type { FlightItemOutcome, SyllabusFlight, SyllabusFlightItem } from '@mik/contracts/dto'
 import {
   verifyAttempt,
   type PendingVerificationItem,

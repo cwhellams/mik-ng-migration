@@ -1,6 +1,5 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
-import path from 'node:path'
 
 // The club is in Finland and much of the date/time code distinguishes local
 // from UTC, so pin the timezone rather than inheriting the machine's. Under
@@ -9,11 +8,6 @@ process.env.TZ = 'Europe/Helsinki'
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@backend': path.resolve(__dirname, '../backend/src'),
-    },
-  },
   test: {
     // jsdom everywhere, so any test can render. Pure-logic suites that want the
     // (slightly faster) node environment can opt out per file with a

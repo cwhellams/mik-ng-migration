@@ -1,9 +1,9 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 import { HttpStatusCode } from 'axios'
-import { PrepaidPackageUpsertSchema, ExtendExpirySchema } from './models.ts'
+import { PrepaidPackageUpsertSchema, ExtendExpirySchema } from '@mik/contracts/prepaid-hours'
 import {
   getPrepaidPackages,
   getPrepaidPackageById,

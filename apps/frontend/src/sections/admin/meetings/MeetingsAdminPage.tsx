@@ -18,7 +18,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { MIKMemberTypes, type MemberListFilters } from '@backend/routes/members/models'
+import { MIKMemberTypes, type MemberListFilters } from '@mik/contracts/members'
 import type {
   CreateMeeting,
   CreateVote,
@@ -29,7 +29,7 @@ import type {
   MeetingVotesResponse,
   UpdateMeeting,
   VoteCountersResponse,
-} from '@backend/routes/meetings/models'
+} from '@mik/contracts/meetings'
 import { SelectMember } from '../../../components/SelectMember'
 import { Title } from '../../../components/Title'
 import { RemoteContent } from '../../../components/RemoteContent'

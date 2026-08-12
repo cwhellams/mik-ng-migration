@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../../hooks/useApi'
-import { EquipmentFee, EquipmentFeeStatus } from '@backend/routes/invoicing/models'
+import { EquipmentFee, EquipmentFeeStatus } from '@mik/contracts/invoicing'
 import { useState } from 'react'
 import { RemoteContent } from '../../../components/RemoteContent'
 

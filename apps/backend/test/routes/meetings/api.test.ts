@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import express from 'express'
 import request from 'supertest'
 
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import type { updateMeeting } from '../../../src/db/meeting-queries.ts'
 
 const mockAbandonVote = jest.fn<() => Promise<unknown>>()

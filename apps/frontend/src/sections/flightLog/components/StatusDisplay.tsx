@@ -1,8 +1,4 @@
-import {
-  FlightLog,
-  FlightLogStatus,
-  FlightLogValidationRequest,
-} from '@backend/routes/flight-log/models'
+import { FlightLog, FlightLogStatus, FlightLogValidationRequest } from '@mik/contracts/flight-log'
 import { Box, Button, Stack, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
 import { Link } from 'react-router'

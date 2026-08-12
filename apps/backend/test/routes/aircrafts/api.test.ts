@@ -9,11 +9,11 @@ import {
   type Aircraft,
   type AircraftListResponse,
   type FuelTypesListResponse,
-} from '../../../src/routes/aircrafts/models.ts'
+} from '@mik/contracts/aircrafts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
-import type { Upsert } from '../../../src/types/schema.ts'
+import type { Upsert } from '@mik/contracts/schema'
 
 // Create an instance of the Express app
 const app = express()

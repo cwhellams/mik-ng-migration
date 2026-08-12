@@ -5,10 +5,10 @@ import request from 'supertest'
 
 import { db } from '../../../src/db/connection.ts'
 import { router } from '../../../src/routes/aircraft-hil/api.ts'
-import type { AircraftHilOverview } from '../../../src/routes/aircraft-hil/models.ts'
+import type { AircraftHilOverview } from '@mik/contracts/aircraft-hil'
 import { createDefect } from '../../../src/db/defect-queries.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
-import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 const app = express()

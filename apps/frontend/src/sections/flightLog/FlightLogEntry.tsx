@@ -42,12 +42,12 @@ import {
   type FlightLogUpsertRequest,
   FlightLogStatus,
   FlightType,
-} from '@backend/routes/flight-log/models'
+} from '@mik/contracts/flight-log'
 import useApi, { api } from '../../hooks/useApi'
 import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
-import { AircraftListResponse } from '@backend/routes/aircrafts/models'
-import { FUEL_TYPES } from '@backend/routes/expenses/models'
-import { MemberListResponse } from '@backend/routes/members/models'
+import { AircraftListResponse } from '@mik/contracts/aircrafts'
+import { FUEL_TYPES } from '@mik/contracts/expenses'
+import { MemberListResponse } from '@mik/contracts/members'
 import FlightTimeline from './components/FlightTimeline'
 import FlightCrew from './components/FlightCrew'
 import { buildFlightLogResolver } from './formResolver'
@@ -70,7 +70,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import { SelectMember } from '../../components/SelectMember'
 import { SnackAlert } from '../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { SaveButton } from '../../components/SaveButton'
 import { Title } from '../../components/Title'
 import {
@@ -80,7 +80,7 @@ import {
   updateFlightAttempt,
   type MemberSyllabusDetail,
 } from '../dto/dtoApi'
-import { MIKPermissions } from '@backend/routes/members/models'
+import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
 import { ReportDefectsSection } from './components/ReportDefectsSection'

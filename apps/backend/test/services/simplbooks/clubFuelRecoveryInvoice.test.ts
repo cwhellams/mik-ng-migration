@@ -14,7 +14,7 @@ import {
   resetSimplbooksMockCounters,
 } from '../../__mocks__/simplbooksMock.ts'
 import { db } from '../../../src/db/connection.ts'
-import { ExpenseClaimStatus } from '../../../src/routes/expenses/models.ts'
+import { ExpenseClaimStatus } from '@mik/contracts/expenses'
 
 const MEMBER_ID = 'Juha1'
 

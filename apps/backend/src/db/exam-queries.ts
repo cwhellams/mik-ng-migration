@@ -20,7 +20,7 @@ import type {
   AttemptListResponse,
   ExamImport,
   ExamImportResult,
-} from '../routes/exams/models.ts'
+} from '@mik/contracts/exams'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers

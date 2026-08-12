@@ -15,10 +15,10 @@ import { useForm, Controller, useWatch, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import useApi from '../../hooks/useApi'
-import type { Defect } from '@backend/routes/defects/models'
+import type { Defect } from '@mik/contracts/defects'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 
 const AddDefectFormSchema = z.object({
   description: z.string().min(1),

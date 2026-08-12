@@ -4,7 +4,7 @@ import type {
   AircraftCardAuditable,
   AircraftCardFilters,
   AircraftCardPatch,
-} from '../routes/aircraft-cards/models.ts'
+} from '@mik/contracts/aircraft-cards'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
 

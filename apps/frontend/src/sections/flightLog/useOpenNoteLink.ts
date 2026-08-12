@@ -1,4 +1,4 @@
-import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
+import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import { useOpenLogbookItemLink } from '../../hooks/useOpenLogbookItemLink'
 
 export const useOpenNoteLink = (aircraftRegistration: string) => {

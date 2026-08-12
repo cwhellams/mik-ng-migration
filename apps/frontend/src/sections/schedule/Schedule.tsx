@@ -24,14 +24,14 @@ import './styles.css'
 
 import { dayjs, HELSINKI_TIMEZONE } from '../../utils/date'
 import { useTranslation } from 'react-i18next'
-import { AircraftListResponse } from '@backend/routes/aircrafts/models'
+import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import {
   Booking,
   BookingFilters,
   BookingListResponse,
   BookingStatus,
   BookingType,
-} from '@backend/routes/bookings/models'
+} from '@mik/contracts/bookings'
 import useApi from '../../hooks/useApi'
 import {
   Box,
@@ -45,13 +45,13 @@ import {
   Button,
 } from '@mui/material'
 import { BookingEditor, BookingFlags } from './components/EditBookingModal'
-import { Upsert } from '@backend/types/schema'
+import { Upsert } from '@mik/contracts/schema'
 import { useRoles } from '../../hooks/useRoles'
 import { Dayjs } from 'dayjs'
 import { useSearchParams } from 'react-router'
 import { RemoteContent } from '../../components/RemoteContent'
 import { SnackAlert } from '../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { Title } from '../../components/Title'
 import { Icon } from '@iconify/react'
 import { bookingFlags, bookingMinDate } from './helpers'

@@ -144,6 +144,8 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 ├── apps/
 │   ├── backend/          # Node.js/Express API with TypeScript
 │   └── frontend/         # React/Vite application
+├── packages/
+│   └── contracts/        # @mik/contracts — API models shared by both apps (see below)
 ├── simplbooks/           # Cloudflare Worker — mock SimplBooks API (see below)
 ├── sql/                  # Database migrations and test data
 ├── scripts/              # Utility scripts for development
@@ -161,7 +163,47 @@ Always check these locations when working on the codebase:
 - `sql/migration.conf` - Flyway configuration (defines schemas via `flyway.schemas`)
 - `simplbooks/src/worker/` - Cloudflare Worker source for the SimplBooks mock API
 - `simplbooks/wrangler.toml` - Cloudflare Worker configuration (must set real `database_id` before first deploy)
-- Package files: `package.json`, `apps/*/package.json`
+- `packages/contracts/src/<domain>.ts` - Shared request/response models (see below)
+- Package files: `package.json`, `apps/*/package.json`, `packages/*/package.json`
+
+## Shared Contracts (`@mik/contracts`)
+
+Every Zod request/response model lives in `packages/contracts/src/<domain>.ts`, imported as
+`@mik/contracts/<domain>` by **both** apps. `packages/contracts/src/<domain>.ts` mirrors
+`apps/backend/src/routes/<domain>/` one-for-one, so `routes/members/api.ts` and the frontend's
+member pages both import `@mik/contracts/members`.
+
+```ts
+import { MIKPermissions, type Member } from '@mik/contracts/members'
+import type { Problem } from '@mik/contracts/problem'
+import { AuditableSchema, PaginationSchema } from '@mik/contracts/schema'
+```
+
+Rules:
+
+- **The frontend must never import from `apps/backend/src`.** It used to, through an
+  `@backend/*` path alias, which meant a component could pull in `db/connection.ts` or
+  `dotenv` with nothing to stop it. The alias is gone and an ESLint `no-restricted-imports`
+  rule in `apps/frontend/eslint.config.js` fails the build on `@backend/*` and on relative
+  paths into `backend/src`. Add the model to `@mik/contracts` instead.
+- **`packages/contracts` must stay isomorphic.** No Node builtins, no `process.env`, no
+  `Buffer`, no Express/Kysely/`pg`. Its `tsconfig.json` sets `"types": []` so Node globals
+  don't typecheck, and its `eslint.config.js` blocks the server-only packages by name.
+  Anything environment-derived is a **parameter** the backend passes in — see
+  `createExpenseClaimSchema(maxMileageKm)` (the backend reads `MILEAGE_MAX_KM` at the parse
+  site) and `buildBookingIcs(booking, { organizerEmail })`.
+- **Server behaviour stays in the backend.** A schema belongs in contracts; the `problem()`
+  call that reacts to it failing does not — see `DocumentIdSchema` in
+  `@mik/contracts/documents` versus `validateDocumentId` in `routes/documents/documentId.ts`.
+- The package ships TypeScript source and has **no build step** — `tsx`, Vite, Jest and
+  Vitest all consume `src/*.ts` directly. Its `build` script is a `tsc --noEmit` typecheck.
+- No barrel/`index.ts`: subpath exports (`"./*": "./src/*.ts"`) keep unrelated domains out
+  of each other's dependency graph.
+- Adding a file to `packages/contracts/src/` is all that's needed — the `exports` wildcard
+  picks it up. Adding a **new** package under `packages/` also needs a `COPY` line in the
+  `Dockerfile` if the backend depends on it at runtime.
+- CI holds `packages/contracts` at **zero** ESLint errors (it has no inherited backlog,
+  unlike the two apps' ratcheted thresholds).
 
 ## Background Workers
 
@@ -278,10 +320,13 @@ When asked to generate a changelog:
 
 The GitHub Actions workflows require:
 
-- ESLint error count below 15 errors per project
+- ESLint error count below each project's ratchet (frontend 15, backend 83, `packages/contracts` 0)
 - Prettier formatting compliance (`pnpm format:check`)
 - Successful build completion
 - PostgreSQL service for backend tests
+
+Both app workflows also trigger on `packages/**`, since a change to `@mik/contracts` can
+break either app.
 
 Always run `pnpm format` and `pnpm build` before committing changes to ensure CI passes.
 

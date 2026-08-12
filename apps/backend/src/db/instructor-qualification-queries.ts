@@ -7,7 +7,7 @@ import type {
   InstructorStatusSummary,
   QualificationSnapshot,
   ProofDocumentCategory,
-} from '../routes/instructor-qualifications/models.ts'
+} from '@mik/contracts/instructor-qualifications'
 import {
   getLatestProofByCategory,
   getLatestProofIdsByMembers,

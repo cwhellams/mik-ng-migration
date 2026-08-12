@@ -1,5 +1,5 @@
-import { FlightType, type FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
-import { MIKLang, type MemberListResponse } from '@backend/routes/members/models'
+import { FlightType, type FlightLogUpsertRequest } from '@mik/contracts/flight-log'
+import { MIKLang, type MemberListResponse } from '@mik/contracts/members'
 import { describe, expect, it } from 'vitest'
 
 import { AIRCRAFT_REGISTRATION, INSTRUCTOR_MEMBER_ID, MEMBER_ID } from '../../test/fixtures'

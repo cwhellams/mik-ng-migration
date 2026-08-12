@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals'
 import { db } from '../../src/db/connection.ts'
 import type { InvoiceResponse } from '../../src/services/simplbooks/models.ts'
-import { FlightLogStatus } from '../../src/routes/flight-log/models.ts'
+import { FlightLogStatus } from '@mik/contracts/flight-log'
 
 // Mock the logger
 jest.mock('../../src/lib/logger.ts', () => ({

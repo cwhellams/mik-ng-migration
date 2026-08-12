@@ -6,7 +6,7 @@ import {
   type SecretsListResponse,
   SecretCreateSchema,
   SecretUpdateSchema,
-} from './models.ts'
+} from '@mik/contracts/secrets'
 import {
   getAllSecrets,
   getSecretById,
@@ -15,7 +15,7 @@ import {
   deleteSecret,
 } from '../../db/secrets-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 
 export const router = Router()

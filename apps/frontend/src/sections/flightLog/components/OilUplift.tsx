@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Control, Controller } from 'react-hook-form'
-import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
+import { FlightLogUpsertRequest } from '@mik/contracts/flight-log'
 import { useTranslation } from 'react-i18next'
 import { useIsFormSubmitted } from '../../../hooks/useIsFormSubmitted'
 import { shouldShowFieldError } from '../../../utils/formErrors'

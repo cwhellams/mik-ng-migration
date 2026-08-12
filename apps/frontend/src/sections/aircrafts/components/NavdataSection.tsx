@@ -33,9 +33,9 @@ import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { mutate } from 'swr'
 import dayjs, { Dayjs } from 'dayjs'
-import type { Navdata, NavdataListResponse } from '@backend/routes/aircraft-navdata/models'
-import type { MemberListResponse } from '@backend/routes/members/models'
-import type { Problem } from '@backend/routes/response'
+import type { Navdata, NavdataListResponse } from '@mik/contracts/aircraft-navdata'
+import type { MemberListResponse } from '@mik/contracts/members'
+import type { Problem } from '@mik/contracts/problem'
 
 interface NavdataSectionProps {
   aircraftRegistration: string

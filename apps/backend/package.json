@@ -186,6 +186,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1104.0",
     "@event-driven-io/emmett": "^0.42.3",
     "@event-driven-io/emmett-postgresql": "^0.42.3",
+    "@mik/contracts": "workspace:*",
     "@simplewebauthn/server": "13.3.2",
     "axios": "^1.19.0",
     "bcryptjs": "^3.0.3",

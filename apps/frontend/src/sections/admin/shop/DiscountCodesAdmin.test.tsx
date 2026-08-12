@@ -1,4 +1,4 @@
-import type { Category, DiscountCode } from '@backend/routes/shop/models'
+import type { Category, DiscountCode } from '@mik/contracts/shop'
 import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

@@ -18,7 +18,7 @@ import {
   PilotLicenceType,
   AircraftRating,
   PrimaryMotivation,
-} from '@backend/routes/members/models'
+} from '@mik/contracts/members'
 import { ReactNode } from 'react'
 
 const pilotLicenceKey: Record<PilotLicenceType, string> = {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals'
-import { RegisterRequestSchema, calculateAge } from '../../../src/routes/auth/schema.ts'
-import { MIKLang, MIKMemberTypes } from '../../../src/routes/members/models.ts'
+import { RegisterRequestSchema, calculateAge } from '@mik/contracts/auth'
+import { MIKLang, MIKMemberTypes } from '@mik/contracts/members'
 
 // Freeze to a stable mid-year date so tests never break on year/month boundaries.
 const FROZEN_DATE = new Date('2024-06-15T12:00:00Z')

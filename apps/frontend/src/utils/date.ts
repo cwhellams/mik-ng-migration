@@ -3,6 +3,7 @@ import utc from 'dayjs/plugin/utc'
 import tz from 'dayjs/plugin/timezone'
 import updateLocale from 'dayjs/plugin/updateLocale'
 import isoWeek from 'dayjs/plugin/isoWeek'
+import { HELSINKI_TIMEZONE, toHelsinki } from '@mik/contracts/date'
 import 'dayjs/locale/fi'
 import 'dayjs/locale/en'
 import 'dayjs/locale/sv'
@@ -58,16 +59,10 @@ export const formatTimeInTz = (
   })
 }
 
-// Helsinki timezone constant for schedule feature
-export const HELSINKI_TIMEZONE = 'Europe/Helsinki'
-
-/**
- * Parse UTC timestamp to Helsinki timezone.
- * Use this for displaying booking times in the schedule.
- */
-export const toHelsinki = (value: string | Date | Dayjs) => {
-  return dayjs(value).tz(HELSINKI_TIMEZONE)
-}
+// Both live in @mik/contracts/date, shared with the backend, which states every
+// booking and flight time in Helsinki wall-clock time. Re-exported here so the
+// ~29 call sites keep importing all their date helpers from one module.
+export { HELSINKI_TIMEZONE, toHelsinki }
 
 export const timezoneName = (tz: 'utc' | 'local' | 'helsinki') =>
   tz === 'utc' ? 'UTC' : tz === 'helsinki' ? HELSINKI_TIMEZONE : undefined

@@ -25,7 +25,7 @@ import { useEffect, useState } from 'react'
 import { mutate } from 'swr'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
-import { Upsert } from '@backend/types/schema'
+import { Upsert } from '@mik/contracts/schema'
 import {
   Booking,
   BookingListResponse,
@@ -35,7 +35,7 @@ import {
   CancellationReason,
   CancellationRequest,
   TransferBookingRequest,
-} from '@backend/routes/bookings/models'
+} from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { BookingTimeline } from './BookingTimeline'
@@ -44,11 +44,11 @@ import { FormTitle } from '../../../components/FormTitle'
 import { FormField } from '../../../components/FormField'
 import { useRoles } from '../../../hooks/useRoles'
 import { useAppConfig } from '../../../hooks/useAppConfig'
-import { AircraftListResponse } from '@backend/routes/aircrafts/models'
-import { MemberListResponse } from '@backend/routes/members/models'
+import { AircraftListResponse } from '@mik/contracts/aircrafts'
+import { MemberListResponse } from '@mik/contracts/members'
 import { BookingTable } from './BookingTable'
 import { SnackAlert } from '../../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
 import { DateTimeValidationError } from '@mui/x-date-pickers/models'
@@ -57,7 +57,8 @@ import {
   HELSINKI_TIMEZONE,
   getEffectiveMedicalExpiry,
 } from '../../../utils/date'
-import { generateGoogleCalendarLink, downloadIcs } from '../../../utils/calendarEvent'
+import { generateGoogleCalendarLink } from '@mik/contracts/calendar'
+import { downloadIcs } from '../../../utils/calendarEvent'
 import { SelectMember } from '../../../components/SelectMember'
 
 export type BookingFlags = {

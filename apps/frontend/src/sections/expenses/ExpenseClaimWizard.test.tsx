@@ -1,4 +1,4 @@
-import type { ExpenseCategory } from '@backend/routes/expenses/models'
+import type { ExpenseCategory } from '@mik/contracts/expenses'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'

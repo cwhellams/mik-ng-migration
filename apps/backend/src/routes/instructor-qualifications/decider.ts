@@ -4,7 +4,10 @@ import type {
   QualificationExpiryNotificationSent,
   QualificationProofUploaded,
 } from './events.ts'
-import type { InstructorQualificationUpsert, ProofDocumentCategory } from './models.ts'
+import type {
+  InstructorQualificationUpsert,
+  ProofDocumentCategory,
+} from '@mik/contracts/instructor-qualifications'
 
 export type InstructorQualificationState = {
   memberId: string | null

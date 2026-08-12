@@ -4,7 +4,7 @@ import {
   FlightLogStatus,
   FlightType,
   type FlightLogExportEntry,
-} from '../../../src/routes/flight-log/models.ts'
+} from '@mik/contracts/flight-log'
 
 // A dual training flight: the student sits in crew slot 1 (the `pic_*` columns)
 // and the instructor in crew2, so slot 1 describes neither the exporting pilot

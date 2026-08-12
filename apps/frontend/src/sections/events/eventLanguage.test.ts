@@ -1,4 +1,4 @@
-import type { ClubEvent } from '@backend/routes/events/models'
+import type { ClubEvent } from '@mik/contracts/events'
 import { describe, expect, it } from 'vitest'
 
 import { getEventDisplayText, resolveEventUiLanguage } from './eventLanguage'

@@ -20,8 +20,8 @@ import { useThemeMode } from '../../../theme/ThemeContext'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { formatHHMM } from '../../../utils/format'
 import { useNivoTheme } from '../useNivoTheme'
-import type { MyStatistics as MyStatisticsType } from '@backend/routes/stats/models'
-import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
+import type { MyStatistics as MyStatisticsType } from '@mik/contracts/stats'
+import type { AircraftListResponse } from '@mik/contracts/aircrafts'
 
 type RangeMode = 'ytd' | 'all'
 

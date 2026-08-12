@@ -1,8 +1,12 @@
 import { Router } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { getOutboxItems, resetOutboxItemToPending } from '../../db/outbox-simplbooks-queries.ts'
-import { OutboxFiltersSchema, type OutboxItem, type OutboxListResponse } from './models.ts'
+import {
+  OutboxFiltersSchema,
+  type OutboxItem,
+  type OutboxListResponse,
+} from '@mik/contracts/outbox'
 import { problem } from '../response.ts'
 
 export const router = Router()

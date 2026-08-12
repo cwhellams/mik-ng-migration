@@ -1,4 +1,4 @@
-import type { ClubEvent } from '@backend/routes/events/models'
+import type { ClubEvent } from '@mik/contracts/events'
 
 export function resolveEventUiLanguage(language: string): 'fi' | 'sv' | 'en' {
   if (language.startsWith('fi')) return 'fi'

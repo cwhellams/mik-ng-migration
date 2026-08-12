@@ -17,7 +17,7 @@ import {
   type FuelType,
   type TreasurerEditExpenseClaim,
   type UpdateExpenseClaim,
-} from '../routes/expenses/models.ts'
+} from '@mik/contracts/expenses'
 import {
   getCurrentMileageAllowance,
   getMileageLegsByClaimId,

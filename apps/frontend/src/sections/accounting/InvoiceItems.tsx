@@ -10,7 +10,7 @@ import {
   FormControlLabel,
 } from '@mui/material'
 import RefreshIcon from '@mui/icons-material/Refresh'
-import type { Item, ItemListResponse } from '@backend/routes/invoicing/models'
+import type { Item, ItemListResponse } from '@mik/contracts/invoicing'
 import useApi from '../../hooks/useApi'
 import { eurFormatter } from '../../utils/format'
 import { RemoteContent } from '../../components/RemoteContent'

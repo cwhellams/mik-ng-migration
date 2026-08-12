@@ -3,8 +3,11 @@ import type { Request, Response } from 'express'
 
 import { HttpStatusCode } from 'axios'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
-import { UpdateNotificationBannerSchema, type NotificationBanner } from './models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
+import {
+  UpdateNotificationBannerSchema,
+  type NotificationBanner,
+} from '@mik/contracts/notification-banner'
 import {
   getNotificationBanner,
   setNotificationBanner,

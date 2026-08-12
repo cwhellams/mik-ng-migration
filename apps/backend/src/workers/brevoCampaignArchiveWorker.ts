@@ -10,7 +10,7 @@ import {
   updateBrevoCampaignArchiveState,
   isCampaignAlreadyArchived,
 } from '../db/brevo-campaign-archive-queries.ts'
-import { DocumentCategory } from '../routes/documents/models.ts'
+import { DocumentCategory } from '@mik/contracts/documents'
 import type { BrevoCampaign } from '../services/brevo/models.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import logger from '../lib/logger.ts'

@@ -1,4 +1,4 @@
-import type { MemberPackage, PrepaidPackage } from '@backend/routes/prepaid-hours/models'
+import type { MemberPackage, PrepaidPackage } from '@mik/contracts/prepaid-hours'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'

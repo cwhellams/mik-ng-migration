@@ -1,4 +1,4 @@
-import { type Occurrence } from '../routes/occurrences/models.ts'
+import { type Occurrence } from '@mik/contracts/occurrences'
 import { getMembers } from '../db/member-queries.ts'
 import type { sendEmail } from '../lib/sendGmail.ts'
 import { occurrenceEmailVars } from './occurrenceEmailHelpers.ts'

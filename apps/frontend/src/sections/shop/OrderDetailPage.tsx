@@ -16,7 +16,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
-import type { Order } from '@backend/routes/shop/models'
+import type { Order } from '@mik/contracts/shop'
 import { useParams, Link } from 'react-router'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'

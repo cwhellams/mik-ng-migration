@@ -4,7 +4,7 @@ import { LoginLayout } from './LoginLayout'
 import { Box, CircularProgress, Typography, Button } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useAuth } from '../../hooks/useAuth'
-import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
+import { VerifyRequest, VerifyResponse } from '@mik/contracts/auth'
 import { useTranslation } from 'react-i18next'
 
 const RegistrationVerify = () => {

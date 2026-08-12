@@ -1,15 +1,15 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import {
   DocumentFiltersSchema,
   DocumentSchema,
-  validateDocumentId,
   type Document,
   type DocumentFilters,
   type DocumentListResponse,
   type DownloadDocument,
-} from './models.ts'
+} from '@mik/contracts/documents'
+import { validateDocumentId } from './documentId.ts'
 import {
   getAllDocuments,
   countDocuments,
@@ -19,7 +19,7 @@ import {
   removeDocument,
   getDocumentStorageKeyById,
 } from '../../db/document-queries.ts'
-import { UpsertSchema } from '../../types/schema.ts'
+import { UpsertSchema } from '@mik/contracts/schema'
 import { problem } from '../response.ts'
 import { storageService, type UploadResult } from '../../services/storage.ts'
 import logger from '../../lib/logger.ts'

@@ -1,7 +1,7 @@
 // Pure helpers for the expense claim forms. Extracted from expenseShared.tsx so
 // they can be unit tested without pulling in MUI or the API layer.
 
-import type { ExpenseLineItem } from '@backend/routes/expenses/models'
+import type { ExpenseLineItem } from '@mik/contracts/expenses'
 
 // ─── Unit defaults ────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 import { createAjlb, deleteAjlb, getAjlb, getAjlbs, updateAjlb } from '../../src/db/ajlb-queries.ts'
 import { db } from '../../src/db/connection.ts'
-import type { AjlbFilter } from '../../src/routes/ajlb/model.ts'
+import type { AjlbFilter } from '@mik/contracts/ajlb'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import { audit, maskAudit } from '../util/helpers.ts'
 

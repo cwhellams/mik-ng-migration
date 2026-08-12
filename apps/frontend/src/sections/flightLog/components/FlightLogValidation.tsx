@@ -2,13 +2,13 @@ import {
   FlightLogListEntry,
   FlightLogListResponse,
   FlightLogStatus,
-} from '@backend/routes/flight-log/models'
+} from '@mik/contracts/flight-log'
 import { Card, CardContent, Stack, Button, Typography } from '@mui/material'
 import { t } from 'i18next'
 import { FormField } from '../../../components/FormField'
 import { FormTitle } from '../../../components/FormTitle'
 import { Icon } from '@iconify/react'
-import { AircraftJourneyLogBook } from '@backend/routes/ajlb/model'
+import { AircraftJourneyLogBook } from '@mik/contracts/ajlb'
 import { useRoles } from '../../../hooks/useRoles'
 import { useTimezone } from '../../../hooks/useTimezone'
 

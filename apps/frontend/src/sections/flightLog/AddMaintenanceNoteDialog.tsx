@@ -22,11 +22,11 @@ import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import useApi from '../../hooks/useApi'
 import { useDefects } from '../../hooks/useDefects'
-import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
-import type { AircraftHil } from '@backend/routes/aircraft-hil/models'
+import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
+import type { AircraftHil } from '@mik/contracts/aircraft-hil'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
-import { Problem } from '@backend/routes/response'
+import { Problem } from '@mik/contracts/problem'
 import {
   MaintenanceNoteFormSchema,
   type MaintenanceNoteFormValues,

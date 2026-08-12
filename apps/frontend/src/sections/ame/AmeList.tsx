@@ -25,8 +25,8 @@ import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
-import type { AmeEntry, AmeListResponse } from '@backend/routes/ame/models'
-import { AME_MEDICAL_TYPES } from '@backend/routes/ame/models'
+import type { AmeEntry, AmeListResponse } from '@mik/contracts/ame'
+import { AME_MEDICAL_TYPES } from '@mik/contracts/ame'
 import { AmeRemovalRequestDialog } from './AmeRemovalRequestDialog'
 
 const MEDICAL_TYPE_LABELS: Record<string, string> = {

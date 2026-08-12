@@ -1,4 +1,4 @@
-import type { UsefulPhoneNumber } from '@backend/routes/useful-phone-numbers/models'
+import type { UsefulPhoneNumber } from '@mik/contracts/useful-phone-numbers'
 import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'

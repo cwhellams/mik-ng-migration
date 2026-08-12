@@ -4,7 +4,7 @@ import {
   type FlightLog,
   type FlightLogListEntry,
   type FlightLogListResponse,
-} from '@backend/routes/flight-log/models'
+} from '@mik/contracts/flight-log'
 
 import { AIRCRAFT_REGISTRATION, auditFields, INSTRUCTOR_MEMBER_ID, MEMBER_ID } from './cast'
 

@@ -1,4 +1,4 @@
-import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
+import { FlightLogUpsertRequest } from '@mik/contracts/flight-log'
 import { Box, Typography, ToggleButtonGroup, ToggleButton, FormHelperText } from '@mui/material'
 import { Control, Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'

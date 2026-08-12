@@ -1,6 +1,6 @@
 import 'dotenv/config'
-import { toLocal } from '../util/date.ts'
-import { OccurrenceStatus, type Occurrence } from '../routes/occurrences/models.ts'
+import { toHelsinki } from '@mik/contracts/date'
+import { OccurrenceStatus, type Occurrence } from '@mik/contracts/occurrences'
 import type { EmailTemplateVars } from './registry.ts'
 
 // Shared by every occurrence email (the safety-team notification and the CAMO
@@ -21,4 +21,4 @@ export const occurrenceEmailVars = (
   attachmentCount: occurrence.attachments.length,
 })
 
-const formatDate = (date: string) => toLocal(date).format('DD.MM.YYYY HH:mm')
+const formatDate = (date: string) => toHelsinki(date).format('DD.MM.YYYY HH:mm')

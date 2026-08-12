@@ -39,8 +39,8 @@ import {
   AircraftDocument,
   AircraftDocumentAuditable,
   AircraftDocumentType,
-} from '@backend/routes/aircraft-documents/models'
-import { DownloadDocument } from '@backend/routes/documents/models'
+} from '@mik/contracts/aircraft-documents'
+import { DownloadDocument } from '@mik/contracts/documents'
 import { DOCUMENT_CONSTANTS, getFileIcon, formatFileSize } from '../../../utils/documentHelpers'
 import { useTimezone } from '../../../hooks/useTimezone'
 

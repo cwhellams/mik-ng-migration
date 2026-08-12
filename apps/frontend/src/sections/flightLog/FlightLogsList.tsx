@@ -16,11 +16,7 @@ import useApi from '../../hooks/useApi'
 import { Icon } from '@iconify/react'
 import AirplaneTicketOutlinedIcon from '@mui/icons-material/AirplaneTicketOutlined'
 import { Link, useSearchParams } from 'react-router'
-import {
-  FlightLog,
-  FlightLogFilters,
-  FlightLogListResponse,
-} from '@backend/routes/flight-log/models'
+import { FlightLog, FlightLogFilters, FlightLogListResponse } from '@mik/contracts/flight-log'
 import { RemoteContent } from '../../components/RemoteContent'
 import { FlightLogQuery } from './components/FlightLogQuery'
 import { useRoles } from '../../hooks/useRoles'

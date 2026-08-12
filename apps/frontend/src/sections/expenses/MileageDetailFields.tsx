@@ -19,7 +19,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import type { RouteDistanceResponse } from '@backend/routes/mileage-geo/models'
+import type { RouteDistanceResponse } from '@mik/contracts/mileage-geo'
 import { api } from '../../hooks/useApi'
 import { AddressAutocomplete, type AddressValue } from './AddressAutocomplete'
 

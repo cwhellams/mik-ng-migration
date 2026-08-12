@@ -1,4 +1,4 @@
-import type { Category, Product } from '@backend/routes/shop/models'
+import type { Category, Product } from '@mik/contracts/shop'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'

@@ -1,5 +1,5 @@
 import { db } from './connection.ts'
-import type { Secret, SecretCreate, SecretUpdate } from '../routes/secrets/models.ts'
+import type { Secret, SecretCreate, SecretUpdate } from '@mik/contracts/secrets'
 import type { JWTUser } from '../routes/auth/token.ts'
 
 // Get all secrets ordered alphabetically by secret_key

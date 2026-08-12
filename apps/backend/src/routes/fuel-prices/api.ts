@@ -2,8 +2,12 @@ import { Router } from 'express'
 import type { Request, Response } from 'express'
 
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
-import { type FuelPrices, FuelPricesUpdateSchema, UpsertLocalFuelPriceSchema } from './models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
+import {
+  type FuelPrices,
+  FuelPricesUpdateSchema,
+  UpsertLocalFuelPriceSchema,
+} from '@mik/contracts/fuel-prices'
 import { getFuelPricesMarkdown, setFuelPricesMarkdown } from '../../db/fuel-prices-queries.ts'
 import { getLocalFuelPrices, createLocalFuelPrice } from '../../db/local-fuel-price-queries.ts'
 import { renderMarkdown } from '../../util/markdown.ts'

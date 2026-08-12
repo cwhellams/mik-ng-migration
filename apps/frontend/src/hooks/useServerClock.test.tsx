@@ -1,4 +1,4 @@
-import type { TimeResponse } from '@backend/routes/time/api'
+import type { TimeResponse } from '@mik/contracts/time'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'

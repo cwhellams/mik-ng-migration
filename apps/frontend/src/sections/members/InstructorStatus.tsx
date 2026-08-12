@@ -30,7 +30,7 @@ import type {
   InstructorStatusListResponse,
   InstructorStatusSummary,
   InstructorQualificationHistory,
-} from '@backend/routes/instructor-qualifications/models'
+} from '@mik/contracts/instructor-qualifications'
 import { useRoles } from '../../hooks/useRoles'
 import EasaLogo from '../../assets/easa-logo.png'
 

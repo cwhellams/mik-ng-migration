@@ -25,8 +25,8 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import { SnackAlert } from '../../components/SnackAlert'
 import { formatPhoneNumber } from '../../utils/format'
-import type { Problem } from '@backend/routes/response'
-import type { NonRenewalListResponse, NonRenewalMember } from '@backend/routes/members/models'
+import type { Problem } from '@mik/contracts/problem'
+import type { NonRenewalListResponse, NonRenewalMember } from '@mik/contracts/members'
 import { useTimezone } from '../../hooks/useTimezone'
 
 export default function NonRenewals() {

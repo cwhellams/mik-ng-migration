@@ -1,5 +1,5 @@
-import { BookingStatus, BookingType, type Booking } from '@backend/routes/bookings/models'
-import { MIKPermissions } from '@backend/routes/members/models'
+import { BookingStatus, BookingType, type Booking } from '@mik/contracts/bookings'
+import { MIKPermissions } from '@mik/contracts/members'
 import { screen } from '@testing-library/react'
 import dayjs from 'dayjs'
 import { http, HttpResponse } from 'msw'

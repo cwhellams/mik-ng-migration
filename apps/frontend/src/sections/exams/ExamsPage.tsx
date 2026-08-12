@@ -15,7 +15,7 @@ import { Link } from 'react-router'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
-import type { ExamWithVersion } from '@backend/routes/exams/models'
+import type { ExamWithVersion } from '@mik/contracts/exams'
 import { getPreferredExamLanguage } from './language'
 
 export default function ExamsPage() {

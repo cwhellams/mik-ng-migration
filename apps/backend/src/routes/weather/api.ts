@@ -2,9 +2,9 @@ import { Router } from 'express'
 import type { Request, Response } from 'express'
 import axios from 'axios'
 
-import { type WeatherResponse } from './models.ts'
+import { type WeatherResponse } from '@mik/contracts/weather'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { MIKPermissions } from '../members/models.ts'
+import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
 import logger from '../../lib/logger.ts'
 

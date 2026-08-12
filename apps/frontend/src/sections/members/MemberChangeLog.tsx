@@ -28,7 +28,7 @@ import {
   MIKMemberTypes,
   type MemberChangeLogEntry,
   type MemberChangeLogResponse,
-} from '@backend/routes/members/models'
+} from '@mik/contracts/members'
 import useApi from '../../hooks/useApi'
 import { dayjs } from '../../utils/date'
 import { RemoteContent } from '../../components/RemoteContent'

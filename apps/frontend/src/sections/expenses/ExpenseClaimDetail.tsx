@@ -15,8 +15,8 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import type { ExpenseClaim } from '@backend/routes/expenses/models'
-import { ExpenseClaimStatus } from '@backend/routes/expenses/models'
+import type { ExpenseClaim } from '@mik/contracts/expenses'
+import { ExpenseClaimStatus } from '@mik/contracts/expenses'
 import useApi, { sharedApi } from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'

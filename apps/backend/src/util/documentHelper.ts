@@ -6,7 +6,7 @@ import { storageService } from '../services/storage.ts'
 import { docUrlTtlSecs, generateQRCodeWithLogo } from '../services/tinyUrl.ts'
 import logger from '../lib/logger.ts'
 import multer from 'multer'
-import type { DownloadDocument } from '../routes/documents/models.ts'
+import type { DownloadDocument } from '@mik/contracts/documents'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { compressImageForUpload } from './imageUpload.ts'
 
