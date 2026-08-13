@@ -446,7 +446,13 @@ export const MemberProfileSchema = MemberSchema.pick({
 })
 
 export const MemberAdminPatchSchema = MemberSchema.omit({
+  createdAt: true,
+  createdBy: true,
+  updatedAt: true,
+  updatedBy: true,
+  memberId: true,
   mustUpdateProfile: true,
+  emailVerifiedAt: true,
 }).extend({
   email: z.string().email(),
 })

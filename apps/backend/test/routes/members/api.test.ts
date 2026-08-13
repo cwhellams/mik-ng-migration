@@ -946,6 +946,24 @@ describe('PATCH /members/id', () => {
     ])
   })
 
+  it('should reject emailVerifiedAt in admin member patch payload', async () => {
+    const response = await patch(
+      'Matti1',
+      { emailVerifiedAt: new Date().toISOString() },
+      adminToken,
+    )
+
+    expect(response.status).toBe(400)
+    expect(response.body.errors).toEqual([
+      {
+        code: 'unrecognized_keys',
+        keys: ['emailVerifiedAt'],
+        path: [],
+        message: 'Unrecognized key: "emailVerifiedAt"',
+      },
+    ])
+  })
+
   describe('canMakeReservations revocation cancels future bookings', () => {
     // Matti1 has canMakeReservations=true in test data (V30__MemberData.sql)
     const testMemberId = 'Matti1'
