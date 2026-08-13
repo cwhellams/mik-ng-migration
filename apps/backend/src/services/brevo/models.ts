@@ -77,24 +77,3 @@ export type BrevoSyncStatus = z.infer<typeof BrevoSyncStatusSchema>
 
 export const BrevoSyncStateStatusSchema = z.enum(['SUCCESS', 'FAILED', 'IN_PROGRESS'])
 export type BrevoSyncStateStatus = z.infer<typeof BrevoSyncStateStatusSchema>
-
-// Brevo Email Campaign (subset of fields we use — see
-// https://developers.brevo.com/reference/getemailcampaigns)
-export const BrevoCampaignSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  subject: z.string().nullable(),
-  status: z.string(),
-  sentDate: z.string().nullable(),
-  // Only present on the single-campaign GET, not the list endpoint
-  htmlContent: z.string().optional(),
-})
-
-export type BrevoCampaign = z.infer<typeof BrevoCampaignSchema>
-
-export const BrevoCampaignListResponseSchema = z.object({
-  campaigns: z.array(BrevoCampaignSchema),
-  count: z.number(),
-})
-
-export type BrevoCampaignListResponse = z.infer<typeof BrevoCampaignListResponseSchema>

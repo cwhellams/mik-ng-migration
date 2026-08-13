@@ -4,14 +4,6 @@ FROM node:26-alpine AS production
 # Install pnpm
 RUN npm install -g pnpm@11.10.0
 
-# Install Chromium for Puppeteer-based HTML-to-PDF rendering (Brevo newsletter
-# archiving). Puppeteer's bundled Chromium download doesn't run on Alpine's
-# musl libc, so we use puppeteer-core against this system install instead.
-# freetype-dev (headers) is intentionally omitted: nothing in this image
-# compiles against freetype at runtime.
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
 # Create app directory and non-root user
 RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
 

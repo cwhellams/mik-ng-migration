@@ -5,8 +5,6 @@ import type {
   BrevoCreateContactRequest,
   BrevoUpdateContactRequest,
   BrevoErrorResponse,
-  BrevoCampaign,
-  BrevoCampaignListResponse,
 } from './models.ts'
 
 // Initialize axios client
@@ -19,10 +17,6 @@ export const isBrevoConfigured = Boolean(apiKey)
 
 if (!apiKey && isBrevoSyncEnabled) {
   throw new Error('BREVO_API_KEY is not configured but Brevo sync worker is enabled')
-}
-
-if (!apiKey && process.env.BREVO_CAMPAIGN_ARCHIVE_ENABLED === 'true') {
-  throw new Error('BREVO_API_KEY is not configured but Brevo campaign archive worker is enabled')
 }
 
 export const brevoApiClient: AxiosInstance = axios.create({
@@ -246,59 +240,6 @@ export async function removeContactFromMailingList(
       return
     }
     throw handleError(error, `Failed to remove contact ${brevoContactId} from list ${listId}`)
-  }
-}
-
-const SENT_CAMPAIGNS_PAGE_SIZE = 50
-
-/**
- * Get sent email campaigns since a given date, oldest first. Paginates
- * through the full result set using the response's `count` field so
- * campaigns beyond the first page aren't silently skipped.
- * @param sinceDate - Only campaigns sent on or after this date are returned
- * @returns Sent campaigns (list view — no htmlContent; fetch via getCampaignById for that)
- */
-export async function getSentCampaigns(sinceDate: Date): Promise<BrevoCampaign[]> {
-  try {
-    const campaigns: BrevoCampaign[] = []
-    let offset = 0
-
-    for (;;) {
-      const response = await brevoApiClient.get<BrevoCampaignListResponse>('/emailCampaigns', {
-        params: {
-          status: 'sent',
-          startDate: sinceDate.toISOString().slice(0, 10),
-          sort: 'asc',
-          limit: SENT_CAMPAIGNS_PAGE_SIZE,
-          offset,
-        },
-      })
-
-      campaigns.push(...response.data.campaigns)
-      offset += SENT_CAMPAIGNS_PAGE_SIZE
-
-      const gotFullPage = response.data.campaigns.length === SENT_CAMPAIGNS_PAGE_SIZE
-      if (!gotFullPage || campaigns.length >= response.data.count) {
-        break
-      }
-    }
-
-    return campaigns
-  } catch (error) {
-    throw handleError(error, 'Failed to get sent Brevo campaigns')
-  }
-}
-
-/**
- * Get full details of a single email campaign, including htmlContent
- * @param campaignId - Numeric Brevo campaign ID
- */
-export async function getCampaignById(campaignId: number): Promise<BrevoCampaign> {
-  try {
-    const response = await brevoApiClient.get<BrevoCampaign>(`/emailCampaigns/${campaignId}`)
-    return response.data
-  } catch (error) {
-    throw handleError(error, `Failed to get Brevo campaign ${campaignId}`)
   }
 }
 

@@ -217,7 +217,6 @@
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.19.1",
     "pg": "^8.22.0",
-    "puppeteer-core": "^25.5.0",
     "qrcode": "^1.5.4",
     "rate-limiter-flexible": "^11.2.0",
     "sharp": "^0.35.3",

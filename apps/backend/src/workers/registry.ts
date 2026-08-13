@@ -6,7 +6,6 @@ import { startSimplbooksInvoicePaymentWorker } from './simplbooksInvoicePaymentW
 import { startOverdueInvoiceWorker } from './overdueInvoiceWorker.ts'
 import { startOccurrenceNotificationWorker } from './occurrenceNotifyWorker.ts'
 import { startBrevoSyncWorker } from './brevoSyncWorker.ts'
-import { startBrevoCampaignArchiveWorker } from './brevoCampaignArchiveWorker.ts'
 import { startSimplbooksSyncWorker } from './simplbooksMemberSyncWorker.ts'
 import { startBookingReminderWorker } from './bookingReminderWorker.ts'
 import { startJuniorMemberPromotionWorker } from './juniorMemberPromotionWorker.ts'
@@ -31,7 +30,6 @@ export const workerRegistry: Array<() => WorkerHandle> = [
   startOverdueInvoiceWorker,
   startOccurrenceNotificationWorker,
   startBrevoSyncWorker,
-  startBrevoCampaignArchiveWorker,
   startSimplbooksSyncWorker,
   startBookingReminderWorker,
   startJuniorMemberPromotionWorker,
