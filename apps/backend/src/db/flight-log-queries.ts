@@ -320,6 +320,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.is_billable_flight',
       'flight.logs.is_billed',
       'flight.logs.min_billable_exception_reason',
+      'flight.logs.min_billable_exception_approved_by_member_id',
       'flight.logs.night_flying_mins',
       'flight.logs.number_of_landings',
       'flight.logs.number_of_night_landings',
@@ -416,6 +417,8 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         isBilled: row.is_billed,
         isTrainingProgramPilot: null,
         minBillableExceptionReason: row.min_billable_exception_reason ?? null,
+        minBillableExceptionApprovedByMemberId:
+          row.min_billable_exception_approved_by_member_id ?? null,
         nightFlyingMins: row.night_flying_mins,
         numberOfLandings: row.number_of_landings,
         numberOfNightLandings: row.number_of_night_landings,
@@ -457,7 +460,7 @@ export async function getUnbilledFlightsForEstimation(
       'flight.logs.flight_mins',
       'flight.logs.departure_airport',
       'flight.logs.arrival_airport',
-      'flight.logs.min_billable_exception_reason',
+      'flight.logs.min_billable_exception_approved_by_member_id',
       'flight.logs.aircraft_registration',
       'flight.logs.takeoff_time_utc',
       'member.register.is_training_program_pilot',
@@ -478,7 +481,8 @@ export async function getUnbilledFlightsForEstimation(
     flightMins: row.flight_mins,
     departureAirport: row.departure_airport,
     arrivalAirport: row.arrival_airport,
-    minBillableExceptionReason: row.min_billable_exception_reason ?? null,
+    minBillableExceptionApprovedByMemberId:
+      row.min_billable_exception_approved_by_member_id ?? null,
     creditedMins: row.credited_mins ?? null,
     aircraftRegistration: row.aircraft_registration,
     takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
@@ -669,6 +673,7 @@ export async function getInvoicableFlights(
       'flight.flight_credits.note',
       'flight.logs.validation_remarks',
       'flight.logs.min_billable_exception_reason',
+      'flight.logs.min_billable_exception_approved_by_member_id',
     ])
     .orderBy('off_block_time_epoch', 'asc')
     .offset(pageSize * (page - 1))
@@ -707,6 +712,8 @@ export async function getInvoicableFlights(
         creditedNote: row.note ?? null,
         validationRemarks: row.validation_remarks ?? null,
         minBillableExceptionReason: row.min_billable_exception_reason ?? null,
+        minBillableExceptionApprovedByMemberId:
+          row.min_billable_exception_approved_by_member_id ?? null,
       }
       return res
     }),
@@ -949,7 +956,7 @@ export const updateFlightLog = async (
     min_billable_exception_approved_by_member_id:
       data.minBillableExceptionReason === undefined
         ? undefined
-        : data.minBillableExceptionReason
+        : data.minBillableExceptionReason !== null
           ? user.memberId
           : null,
     validation_remarks: data.validationRemarks,
@@ -1277,6 +1284,7 @@ export async function getFlightLogsForExport(
       'flight.logs.invoice_number',
       'flight.logs.is_billable_flight',
       'flight.logs.is_billed',
+      'flight.logs.min_billable_exception_approved_by_member_id',
       'flight.logs.night_flying_mins',
       'flight.logs.number_of_landings',
       'flight.logs.number_of_night_landings',
@@ -1335,6 +1343,8 @@ export async function getFlightLogsForExport(
       isBilled: row.is_billed,
       isTrainingProgramPilot: null,
       minBillableExceptionReason: null,
+      minBillableExceptionApprovedByMemberId:
+        row.min_billable_exception_approved_by_member_id ?? null,
       nightFlyingMins: row.night_flying_mins,
       numberOfLandings: row.number_of_landings,
       numberOfNightLandings: row.number_of_night_landings,

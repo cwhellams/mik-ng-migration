@@ -136,6 +136,7 @@ export const aFlightLogListEntry = (
     isBilled: log.isBilled,
     invoiceNumber: log.invoiceNumber,
     minBillableExceptionReason: log.minBillableExceptionReason,
+    minBillableExceptionApprovedByMemberId: log.minBillableExceptionApprovedByMemberId,
     nightFlyingMins: log.nightFlyingMins,
     numberOfLandings: log.numberOfLandings,
     numberOfNightLandings: log.numberOfNightLandings,

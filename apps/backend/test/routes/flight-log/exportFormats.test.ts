@@ -40,6 +40,7 @@ function dualFlight(overrides: Partial<FlightLogExportEntry> = {}): FlightLogExp
     isBilled: false,
     isTrainingProgramPilot: null,
     minBillableExceptionReason: null,
+    minBillableExceptionApprovedByMemberId: null,
     nightFlyingMins: 0,
     numberOfLandings: 1,
     numberOfNightLandings: 0,

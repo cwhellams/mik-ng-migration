@@ -21,7 +21,7 @@ export type FlightForEstimation = {
   flightMins: number
   departureAirport: string
   arrivalAirport: string
-  minBillableExceptionReason: string | null
+  minBillableExceptionApprovedByMemberId: string | null
   creditedMins: number | null
   aircraftRegistration: string
   takeoffTimeUtc: string
@@ -33,7 +33,8 @@ function getBillableMins(flight: FlightForEstimation): number {
 
 function computeTopUpMins(flight: FlightForEstimation, minBillableMins: number): number {
   if (!flight.isBillableFlight) return 0
-  if (flight.minBillableExceptionReason) return 0
+  // Exception granted by treasurer: bill only actual minutes (no top-up to 20 min minimum)
+  if (flight.minBillableExceptionApprovedByMemberId) return 0
   const billableMins = getBillableMins(flight)
   const isLocalFlight = flight.departureAirport === flight.arrivalAirport
   return isLocalFlight && billableMins < minBillableMins ? minBillableMins - billableMins : 0

@@ -453,6 +453,7 @@ describe('Flight Invoice Outbox Integration', () => {
       billingRemarks: null,
       nonBillingReason: null,
       minBillableExceptionReason: null,
+      minBillableExceptionApprovedByMemberId: null,
       partiallyBillableFlight: false,
       entryErrorFee: false,
       creditedMins: null,
@@ -1361,6 +1362,7 @@ describe('Flight Invoice Outbox Integration', () => {
         departureAirport: 'EFHK',
         arrivalAirport: 'EFHK',
         minBillableExceptionReason: 'Engine failure on runway',
+        minBillableExceptionApprovedByMemberId: TEST_MEMBER_ID,
         takeoffTimeUtc: new Date(BASE_TAKEOFF_EPOCH * 1000).toISOString(),
         landingTimeUtc: new Date(baseLandingEpoch(15) * 1000).toISOString(),
       })

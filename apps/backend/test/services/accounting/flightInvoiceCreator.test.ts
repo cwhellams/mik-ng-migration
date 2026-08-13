@@ -265,6 +265,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       billingRemarks: null,
       nonBillingReason: null,
       minBillableExceptionReason: null,
+      minBillableExceptionApprovedByMemberId: null,
       partiallyBillableFlight: false,
       entryErrorFee: false,
       creditedMins: null,
@@ -617,6 +618,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
         departureAirport: 'EFHK',
         arrivalAirport: 'EFHK',
         minBillableExceptionReason: 'Engine failure on runway',
+        minBillableExceptionApprovedByMemberId: testMemberId,
       })
       const payload = { flights: [flight] }
 
@@ -625,6 +627,25 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       // Exception granted: bill actual 15 mins, no top-up
       expect(invoice.Tasks).toHaveLength(1)
       expect(invoice.Tasks[0].Task.amount).toBe(15)
+    })
+
+    it('should bill actual minutes (no top-up) for a local flight with checkbox-only exception (no reason)', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      const flight = createTestFlight({
+        flightMins: 14,
+        blockMins: 16,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFHK',
+        minBillableExceptionReason: '', // Empty reason - checkbox checked but no text entered
+        minBillableExceptionApprovedByMemberId: testMemberId,
+      })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      // Exception granted via checkbox alone: bill actual 14 mins, no top-up
+      expect(invoice.Tasks).toHaveLength(1)
+      expect(invoice.Tasks[0].Task.amount).toBe(14)
     })
   })
 

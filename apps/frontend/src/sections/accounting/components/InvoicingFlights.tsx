@@ -89,27 +89,50 @@ export const InvoicingFlights = ({
   }
 
   const showExceptionField = (log: InvoicableFlight) =>
-    !!log.minBillableExceptionReason || log.flightId in editingExceptionReasons
+    !!log.minBillableExceptionApprovedByMemberId || log.flightId in editingExceptionReasons
 
   const getExceptionReasonValue = (log: InvoicableFlight) =>
     editingExceptionReasons[log.flightId] ?? log.minBillableExceptionReason ?? ''
 
+  const handleExceptionCheckboxChange = async (log: InvoicableFlight, checked: boolean) => {
+    if (checked) {
+      // Immediately save exception approval with empty reason
+      // User can optionally add a reason in the text field that appears
+      await updateEntry(log, {
+        minBillableExceptionReason: '',
+      })
+      setEditingExceptionReasons((prev) => ({
+        ...prev,
+        [log.flightId]: '',
+      }))
+    } else {
+      setEditingExceptionReasons((prev) => {
+        const next = { ...prev }
+        delete next[log.flightId]
+        return next
+      })
+      await updateEntry(log, {
+        minBillableExceptionReason: null,
+      })
+    }
+  }
+
   const handleExceptionReasonBlur = async (log: InvoicableFlight) => {
     const reason = getExceptionReasonValue(log)
-    if (!reason.trim()) {
-      // If the reason was cleared and there was a previously saved reason, clear it on the server
-      if (log.minBillableExceptionReason) {
-        await updateEntry(log, { minBillableExceptionReason: null })
-        setEditingExceptionReasons((prev) => {
-          const next = { ...prev }
-          delete next[log.flightId]
-          return next
-        })
-      }
+    // Skip API call if value hasn't changed
+    const currentValue = reason.trim() || ''
+    const persistedValue = log.minBillableExceptionReason ?? ''
+    if (currentValue === persistedValue) {
+      setEditingExceptionReasons((prev) => {
+        const next = { ...prev }
+        delete next[log.flightId]
+        return next
+      })
       return
     }
+
     const res = await updateEntry(log, {
-      minBillableExceptionReason: reason,
+      minBillableExceptionReason: currentValue,
     })
     if (!res.error) {
       setEditingExceptionReasons((prev) => {
@@ -223,21 +246,7 @@ export const InvoicingFlights = ({
                       }
                       onChange={async ({ target }) => {
                         if (isMinBillableStep) {
-                          if (target.checked) {
-                            setEditingExceptionReasons((prev) => ({
-                              ...prev,
-                              [log.flightId]: '',
-                            }))
-                          } else {
-                            setEditingExceptionReasons((prev) => {
-                              const next = { ...prev }
-                              delete next[log.flightId]
-                              return next
-                            })
-                            await updateEntry(log, {
-                              minBillableExceptionReason: null,
-                            })
-                          }
+                          await handleExceptionCheckboxChange(log, target.checked)
                         } else {
                           if (target.checked) {
                             // show the reason field locally; don't call API until reason is entered
@@ -320,21 +329,7 @@ export const InvoicingFlights = ({
                       }
                       onChange={async ({ target }) => {
                         if (isMinBillableStep) {
-                          if (target.checked) {
-                            setEditingExceptionReasons((prev) => ({
-                              ...prev,
-                              [log.flightId]: '',
-                            }))
-                          } else {
-                            setEditingExceptionReasons((prev) => {
-                              const next = { ...prev }
-                              delete next[log.flightId]
-                              return next
-                            })
-                            await updateEntry(log, {
-                              minBillableExceptionReason: null,
-                            })
-                          }
+                          await handleExceptionCheckboxChange(log, target.checked)
                         } else {
                           if (target.checked) {
                             setEditingReasons((prev) => ({
