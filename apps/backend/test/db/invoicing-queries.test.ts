@@ -1,7 +1,7 @@
 import {
   getInvoices,
   getInvoiceItems,
-  getAnnualEquipmmentFee,
+  getAnnualEquipmentFee,
   hasRequestedEquipmentFee,
   upsertInvoiceItems,
   deleteInvoiceItem,
@@ -156,9 +156,9 @@ describe('Invoicing Queries', () => {
     })
   })
 
-  describe('getAnnualEquipmmentFee', () => {
+  describe('getAnnualEquipmentFee', () => {
     it('should return equipment fee when it exists', async () => {
-      const equipmentFee = await getAnnualEquipmmentFee()
+      const equipmentFee = await getAnnualEquipmentFee()
 
       if (equipmentFee) {
         expect(equipmentFee).toHaveProperty('code')
@@ -173,7 +173,7 @@ describe('Invoicing Queries', () => {
       // Delete the equipment fee if it exists
       await db.deleteFrom('accts.items').where('code', '=', ART_EQUIP_FEE_CODE).execute()
 
-      const equipmentFee = await getAnnualEquipmmentFee()
+      const equipmentFee = await getAnnualEquipmentFee()
       expect(equipmentFee).toBeUndefined()
 
       // Restore the equipment fee for other tests

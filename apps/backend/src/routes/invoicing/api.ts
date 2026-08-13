@@ -3,7 +3,7 @@ import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '@mik/contracts/members'
 import {
-  getAnnualEquipmmentFee,
+  getAnnualEquipmentFee,
   getInvoiceItems,
   getInvoices,
   getRecurringFeesProcessing,
@@ -387,7 +387,7 @@ router.get(
 router.get(
   '/annualEquipmentFee',
   async (req: Request<Record<string, string>>, res: Response<EquipmentFee | undefined>) => {
-    const kalustomaksu = await getAnnualEquipmmentFee()
+    const kalustomaksu = await getAnnualEquipmentFee()
     res.status(HttpStatusCode.Ok).json(kalustomaksu)
   },
 )

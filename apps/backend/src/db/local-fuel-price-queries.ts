@@ -1,30 +1,33 @@
-import { db } from './connection.ts'
+import { camelDb, type CamelRow } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type { LocalFuelPrice, UpsertLocalFuelPrice } from '@mik/contracts/fuel-prices'
 import type { FuelType } from '@mik/contracts/expenses'
 
-const mapLocalFuelPrice = (row: {
-  id: number
-  fuel_type: string
-  price_eur_per_litre: unknown
-  valid_from: unknown
-  created_by: string
-  created_at: unknown
-}): LocalFuelPrice => ({
+// Typed from the generated schema rather than hand-declared: the old signature
+// spelled four of these columns `unknown` because the snake_case row shape had to
+// be written out by hand to keep the mapper compiling.
+type LocalFuelPriceRow = CamelRow<'accts.localFuelPrice'>
+
+// Barely a mapper now: the plugin does the renaming and the generated types give
+// real types instead of `unknown`, so the defensive String()/Number() wrappers the
+// old hand-written row shape needed are gone. That matters beyond tidiness —
+// `new Date(String(createdAt))` round-tripped through Date#toString(), which has no
+// millisecond field, so every createdAt was silently truncated to the second.
+const mapLocalFuelPrice = (row: LocalFuelPriceRow): LocalFuelPrice => ({
   id: row.id,
-  fuelType: row.fuel_type as FuelType,
-  priceEurPerLitre: Number(row.price_eur_per_litre),
-  validFrom: String(row.valid_from).substring(0, 10),
-  createdBy: row.created_by,
-  createdAt: new Date(String(row.created_at)).toISOString(),
+  fuelType: row.fuelType as FuelType,
+  priceEurPerLitre: row.priceEurPerLitre,
+  validFrom: row.validFrom.substring(0, 10),
+  createdBy: row.createdBy,
+  createdAt: row.createdAt.toISOString(),
 })
 
 export async function getLocalFuelPrices(): Promise<LocalFuelPrice[]> {
-  const rows = await db
-    .selectFrom('accts.local_fuel_price')
+  const rows = await camelDb
+    .selectFrom('accts.localFuelPrice')
     .selectAll()
-    .orderBy('fuel_type')
-    .orderBy('valid_from', 'desc')
+    .orderBy('fuelType')
+    .orderBy('validFrom', 'desc')
     .execute()
   return rows.map(mapLocalFuelPrice)
 }
@@ -39,19 +42,19 @@ export async function createLocalFuelPrice(
   data: UpsertLocalFuelPrice,
   user: JWTUser,
 ): Promise<LocalFuelPrice> {
-  const row = await db
-    .insertInto('accts.local_fuel_price')
+  const row = await camelDb
+    .insertInto('accts.localFuelPrice')
     .values({
-      fuel_type: data.fuelType,
-      price_eur_per_litre: data.priceEurPerLitre,
-      valid_from: data.validFrom,
-      created_by: user.memberId,
+      fuelType: data.fuelType,
+      priceEurPerLitre: data.priceEurPerLitre,
+      validFrom: data.validFrom,
+      createdBy: user.memberId,
     })
     .onConflict((oc) =>
-      oc.columns(['fuel_type', 'valid_from']).doUpdateSet({
-        price_eur_per_litre: data.priceEurPerLitre,
-        created_by: user.memberId,
-        created_at: new Date(),
+      oc.columns(['fuelType', 'validFrom']).doUpdateSet({
+        priceEurPerLitre: data.priceEurPerLitre,
+        createdBy: user.memberId,
+        createdAt: new Date(),
       }),
     )
     .returningAll()
@@ -68,12 +71,12 @@ export async function getEffectiveLocalFuelPrice(
   fuelType: FuelType,
   date: string,
 ): Promise<LocalFuelPrice | undefined> {
-  const row = await db
-    .selectFrom('accts.local_fuel_price')
+  const row = await camelDb
+    .selectFrom('accts.localFuelPrice')
     .selectAll()
-    .where('fuel_type', '=', fuelType)
-    .where('valid_from', '<=', date)
-    .orderBy('valid_from', 'desc')
+    .where('fuelType', '=', fuelType)
+    .where('validFrom', '<=', date)
+    .orderBy('validFrom', 'desc')
     .limit(1)
     .executeTakeFirst()
   return row ? mapLocalFuelPrice(row) : undefined

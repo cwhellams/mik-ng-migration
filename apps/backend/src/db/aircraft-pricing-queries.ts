@@ -1,3 +1,6 @@
+import type { Updateable } from 'kysely'
+
+import type { AcctsAircraftPricing } from './schema.camel.d.ts'
 import * as connection from './connection.ts'
 import type {
   AircraftPricing,
@@ -19,11 +22,11 @@ export const getAircraftPricing = async (
 ): Promise<AircraftPricing[]> => {
   const { registration, fromDate, toDate } = filters
 
-  let query = connection.db
-    .selectFrom('accts.aircraft_pricing')
+  let query = connection.camelDb
+    .selectFrom('accts.aircraftPricing')
     .selectAll()
     .orderBy('registration', 'asc')
-    .orderBy('valid_from', 'desc')
+    .orderBy('validFrom', 'desc')
 
   if (registration) {
     query = query.where('registration', '=', registration)
@@ -32,10 +35,10 @@ export const getAircraftPricing = async (
   if (fromDate) {
     // Get pricing that was/is valid on or after fromDate
     // Either the range starts on/after fromDate, or it ends on/after fromDate (or is still open)
-    query = query.where((eb: any) =>
+    query = query.where((eb) =>
       eb.or([
-        eb('valid_from', '>=', fromDate),
-        eb.or([eb('valid_to', 'is', null), eb('valid_to', '>=', fromDate)]),
+        eb('validFrom', '>=', fromDate),
+        eb.or([eb('validTo', 'is', null), eb('validTo', '>=', fromDate)]),
       ]),
     )
   }
@@ -43,20 +46,20 @@ export const getAircraftPricing = async (
   if (toDate) {
     // Get pricing that was valid on or before toDate
     // The range must have started on or before toDate
-    query = query.where('valid_from', '<=', toDate)
+    query = query.where('validFrom', '<=', toDate)
   }
 
   const results = await query.execute()
 
   return results.map((row) => ({
     registration: row.registration,
-    valid_from: row.valid_from,
-    valid_to: row.valid_to,
-    price_per_min: Number(row.price_per_min),
-    created_at: row.created_at.toISOString(),
-    created_by: row.created_by,
-    updated_at: row.updated_at ? row.updated_at.toISOString() : null,
-    updated_by: row.updated_by,
+    valid_from: row.validFrom,
+    valid_to: row.validTo,
+    price_per_min: Number(row.pricePerMin),
+    created_at: row.createdAt.toISOString(),
+    created_by: row.createdBy,
+    updated_at: row.updatedAt ? row.updatedAt.toISOString() : null,
+    updated_by: row.updatedBy,
     notes: row.notes,
   }))
 }
@@ -70,14 +73,14 @@ export const insertAircraftPricing = async (
   data: CreateAircraftPricing,
 ): Promise<AircraftPricing> => {
   try {
-    const result = await connection.db
-      .insertInto('accts.aircraft_pricing')
+    const result = await connection.camelDb
+      .insertInto('accts.aircraftPricing')
       .values({
         registration: data.registration,
-        valid_from: data.valid_from,
-        valid_to: data.valid_to ?? null,
-        price_per_min: data.price_per_min.toString(),
-        created_by: data.created_by ?? null,
+        validFrom: data.valid_from,
+        validTo: data.valid_to ?? null,
+        pricePerMin: data.price_per_min.toString(),
+        createdBy: data.created_by ?? null,
         notes: data.notes ?? null,
       })
       .returningAll()
@@ -85,13 +88,13 @@ export const insertAircraftPricing = async (
 
     return {
       registration: result.registration,
-      valid_from: result.valid_from,
-      valid_to: result.valid_to,
-      price_per_min: Number(result.price_per_min),
-      created_at: result.created_at.toISOString(),
-      created_by: result.created_by,
-      updated_at: result.updated_at ? result.updated_at.toISOString() : null,
-      updated_by: result.updated_by,
+      valid_from: result.validFrom,
+      valid_to: result.validTo,
+      price_per_min: Number(result.pricePerMin),
+      created_at: result.createdAt.toISOString(),
+      created_by: result.createdBy,
+      updated_at: result.updatedAt ? result.updatedAt.toISOString() : null,
+      updated_by: result.updatedBy,
       notes: result.notes,
     }
   } catch (error: any) {
@@ -123,28 +126,30 @@ export const updateAircraftPricing = async (
   data: UpdateAircraftPricing,
 ): Promise<AircraftPricing> => {
   try {
-    const updateData: any = {
-      updated_at: new Date().toISOString(),
+    // Updateable<> rather than `any`: the point of moving to camelDb is that the
+    // compiler checks column names, and an `any` update object opts straight back out.
+    const updateData: Updateable<AcctsAircraftPricing> = {
+      updatedAt: new Date().toISOString(),
     }
 
     if (data.valid_to !== undefined) {
-      updateData.valid_to = data.valid_to
+      updateData.validTo = data.valid_to
     }
     if (data.price_per_min !== undefined) {
-      updateData.price_per_min = data.price_per_min.toString()
+      updateData.pricePerMin = data.price_per_min.toString()
     }
     if (data.updated_by !== undefined) {
-      updateData.updated_by = data.updated_by
+      updateData.updatedBy = data.updated_by
     }
     if (data.notes !== undefined) {
       updateData.notes = data.notes
     }
 
-    const result = await connection.db
-      .updateTable('accts.aircraft_pricing')
+    const result = await connection.camelDb
+      .updateTable('accts.aircraftPricing')
       .set(updateData)
       .where('registration', '=', registration)
-      .where('valid_from', '=', validFrom)
+      .where('validFrom', '=', validFrom)
       .returningAll()
       .executeTakeFirst()
 
@@ -154,13 +159,13 @@ export const updateAircraftPricing = async (
 
     return {
       registration: result!.registration,
-      valid_from: result!.valid_from,
-      valid_to: result!.valid_to,
-      price_per_min: Number(result!.price_per_min),
-      created_at: result!.created_at.toISOString(),
-      created_by: result!.created_by,
-      updated_at: result!.updated_at ? result!.updated_at.toISOString() : null,
-      updated_by: result!.updated_by,
+      valid_from: result!.validFrom,
+      valid_to: result!.validTo,
+      price_per_min: Number(result!.pricePerMin),
+      created_at: result!.createdAt.toISOString(),
+      created_by: result!.createdBy,
+      updated_at: result!.updatedAt ? result!.updatedAt.toISOString() : null,
+      updated_by: result!.updatedBy,
       notes: result!.notes,
     }
   } catch (error: any) {
@@ -186,10 +191,10 @@ export const deleteAircraftPricing = async (
   registration: string,
   validFrom: string,
 ): Promise<void> => {
-  const result = await connection.db
-    .deleteFrom('accts.aircraft_pricing')
+  const result = await connection.camelDb
+    .deleteFrom('accts.aircraftPricing')
     .where('registration', '=', registration)
-    .where('valid_from', '=', validFrom)
+    .where('validFrom', '=', validFrom)
     .executeTakeFirst()
 
   if (result.numDeletedRows === 0n) {
@@ -203,22 +208,22 @@ export const deleteAircraftPricing = async (
 export const getAircraftPricingHistory = async (
   registration: string,
 ): Promise<AircraftPricing[]> => {
-  const results = await connection.db
-    .selectFrom('accts.aircraft_pricing')
+  const results = await connection.camelDb
+    .selectFrom('accts.aircraftPricing')
     .selectAll()
     .where('registration', '=', registration)
-    .orderBy('valid_from', 'desc')
+    .orderBy('validFrom', 'desc')
     .execute()
 
   return results.map((row) => ({
     registration: row.registration,
-    valid_from: row.valid_from,
-    valid_to: row.valid_to,
-    price_per_min: Number(row.price_per_min),
-    created_at: row.created_at.toISOString(),
-    created_by: row.created_by,
-    updated_at: row.updated_at ? row.updated_at.toISOString() : null,
-    updated_by: row.updated_by,
+    valid_from: row.validFrom,
+    valid_to: row.validTo,
+    price_per_min: Number(row.pricePerMin),
+    created_at: row.createdAt.toISOString(),
+    created_by: row.createdBy,
+    updated_at: row.updatedAt ? row.updatedAt.toISOString() : null,
+    updated_by: row.updatedBy,
     notes: row.notes,
   }))
 }
@@ -232,13 +237,13 @@ export const getAircraftPriceForDate = async (
   registration: string,
   date: string, // YYYY-MM-DD format
 ): Promise<number | null> => {
-  const result = await connection.db
-    .selectFrom('accts.aircraft_pricing')
-    .select('price_per_min')
+  const result = await connection.camelDb
+    .selectFrom('accts.aircraftPricing')
+    .select('pricePerMin')
     .where('registration', '=', registration)
-    .where('valid_from', '<=', date)
-    .where((eb: any) => eb.or([eb('valid_to', 'is', null), eb('valid_to', '>=', date)]))
+    .where('validFrom', '<=', date)
+    .where((eb) => eb.or([eb('validTo', 'is', null), eb('validTo', '>=', date)]))
     .executeTakeFirst()
 
-  return result ? Number(result.price_per_min) : null
+  return result ? Number(result.pricePerMin) : null
 }

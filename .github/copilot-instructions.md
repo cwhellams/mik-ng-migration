@@ -88,7 +88,8 @@ cd apps/frontend && pnpm dev
 pnpm format
 
 # Run tests - takes ~11 seconds. All tests pass with proper environment setup. NEVER CANCEL. Set timeout to 30+ seconds.
-# Note: Tests run successfully but may show teardown errors (safe to ignore)
+# Note: the old "Called end on pool more than once" teardown error is fixed — closeDb
+# used to end the pg pool and then let Kysely's driver end it again (#1115 phase 5).
 pnpm test
 
 # Lint code - KNOWN ISSUE: ESLint configuration has missing dependencies in backend
@@ -256,6 +257,31 @@ Rules:
 - `defaults` win over caller-supplied vars, so a payload spread from a domain object can never redirect a constant like `BILLING_EMAIL`.
 - Anything the registry can't express as data (building vars from a domain object, non-email text) belongs in a helper next to it — see `bookingEmailHelpers.ts`, `occurrenceEmailHelpers.ts` and `qualificationExpiryEmailTemplate.ts`. One helper per domain object, shared by every email that renders it.
 - `test/templates/email.test.ts` snapshots the rendered HTML of every template in all three languages. If a change to shared rendering updates those snapshots, that is a real change to what members receive — review it, don't just `-u`.
+
+## Database Layer: two Kysely instances
+
+`apps/backend/src/db/connection.ts` exports **two** Kysely instances over one pg pool:
+
+|           | columns    | types               | status                     |
+| --------- | ---------- | ------------------- | -------------------------- |
+| `db`      | snake_case | `schema.d.ts`       | original, being retired    |
+| `camelDb` | camelCase  | `schema.camel.d.ts` | target — `CamelCasePlugin` |
+
+`pnpm schema` regenerates both. Domains move from `db` to `camelDb` one at a time
+(issue #1115, phase 5); doing it in one commit is ~4,900 mechanical edits.
+
+**Read `apps/backend/src/db/DATA_LAYER.md` before migrating a domain.** It has the recipe
+and the three disqualifiers. The two that bite hardest:
+
+- **A transaction cannot span the two instances.** `camelDb.transaction()` and
+  `db.transaction()` are different connections and do not roll back together, so a module
+  whose functions take a `Transaction<DB>` must move in the same commit as its callers.
+- **`maintainNestedObjectKeys: true` is mandatory** on the plugin. Without it the keys
+  _inside_ JSONB values get rewritten too, which would corrupt the `*_audit` tables'
+  `to_jsonb(OLD)` row snapshots, `outbox.payload`, and Emmett's event-store columns.
+
+New code in an unmigrated domain should keep using `db` and match its neighbours; migrate
+the whole module or none of it.
 
 ## Database Schema Management
 

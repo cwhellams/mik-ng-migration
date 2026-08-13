@@ -1,4 +1,3 @@
-import type { Selectable } from 'kysely'
 import {
   type InvoiceItemQueryParams,
   type RecurringFeesProcessing,
@@ -18,8 +17,7 @@ import {
 import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import { FlightLogStatus } from '@mik/contracts/flight-log'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
-import { db } from './connection.ts'
-import type { AcctsInvoice, AcctsItems } from './schema.js'
+import { camelDb, type CamelRow } from './connection.ts'
 import {
   HALF_YEAR_DISCOUNT_PERCENT,
   isAfterEquipmentFeeDiscountDate,
@@ -48,16 +46,16 @@ export async function getInvoices(
     scope,
   } = filters || {}
 
-  let query = db.selectFrom('accts.invoice').selectAll()
+  let query = camelDb.selectFrom('accts.invoice').selectAll()
 
   if (!isAdmin || scope === 'personal') {
     // If not admin, or the caller explicitly asked for personal-only results
     // (e.g. the dashboard's own-invoices warning), always filter by memberId
     // regardless of admin status.
-    query = query.where('member_id', '=', memberId)
+    query = query.where('memberId', '=', memberId)
   } else if (filterMemberId) {
     // Admin can optionally filter by a specific member
-    query = query.where('member_id', '=', filterMemberId)
+    query = query.where('memberId', '=', filterMemberId)
   }
 
   if (id) {
@@ -65,53 +63,53 @@ export async function getInvoices(
   }
 
   if (startDate) {
-    query = query.where('sent_at', '>=', startDate)
+    query = query.where('sentAt', '>=', startDate)
   }
 
   if (endDate) {
-    query = query.where('sent_at', '<=', endDate)
+    query = query.where('sentAt', '<=', endDate)
   }
 
   if (status) {
-    query = query.where('is_paid', '=', status === 'paid')
+    query = query.where('isPaid', '=', status === 'paid')
   }
 
   if (type) {
-    query = query.where('invoice_type', '=', type)
+    query = query.where('invoiceType', '=', type)
   }
 
   if (pastDue) {
-    query = query.where('due_at', '<', overdueInvoiceCutoff()).where('is_paid', '=', false)
+    query = query.where('dueAt', '<', overdueInvoiceCutoff()).where('isPaid', '=', false)
   }
 
-  const rows = await query.orderBy('sent_at', 'desc').execute()
+  const rows = await query.orderBy('sentAt', 'desc').execute()
   return rows.map(toInvoice)
 }
 
-const toInvoice = (row: Selectable<AcctsInvoice>): Invoice => ({
+const toInvoice = (row: CamelRow<'accts.invoice'>): Invoice => ({
   id: String(row.id),
-  created_at: row.created_at.toISOString(),
-  created_by: row.created_by,
+  created_at: row.createdAt.toISOString(),
+  created_by: row.createdBy,
   currency: row.currency,
   description: row.description,
-  due_at: row.due_at,
-  invoice_type: row.invoice_type as MIKInvoiceType,
-  is_paid: row.is_paid,
-  member_id: row.member_id,
-  paid_at: row.paid_at,
-  pmt_ref: row.pmt_ref,
-  sent_at: row.sent_at,
-  total_sum: row.total_sum === null ? null : String(row.total_sum),
-  updated_at: row.updated_at.toISOString(),
-  updated_by: row.updated_by,
+  due_at: row.dueAt,
+  invoice_type: row.invoiceType as MIKInvoiceType,
+  is_paid: row.isPaid,
+  member_id: row.memberId,
+  paid_at: row.paidAt,
+  pmt_ref: row.pmtRef,
+  sent_at: row.sentAt,
+  total_sum: row.totalSum === null ? null : String(row.totalSum),
+  updated_at: row.updatedAt.toISOString(),
+  updated_by: row.updatedBy,
 })
 
-export async function getInvoiceItems(): Promise<Array<Selectable<AcctsItems>>> {
-  return await db.selectFrom('accts.items').selectAll().execute()
+export async function getInvoiceItems(): Promise<Array<CamelRow<'accts.items'>>> {
+  return await camelDb.selectFrom('accts.items').selectAll().execute()
 }
 
-export async function getAnnualEquipmmentFee(): Promise<EquipmentFee | undefined> {
-  const result = await db
+export async function getAnnualEquipmentFee(): Promise<EquipmentFee | undefined> {
+  const result = await camelDb
     .selectFrom('accts.items')
     .select('item')
     .where('code', '=', ART_EQUIP_FEE_CODE)
@@ -137,7 +135,7 @@ export async function getAnnualEquipmmentFee(): Promise<EquipmentFee | undefined
 }
 
 export async function getArticleFees(codes: string[]): Promise<ArticleFee[]> {
-  const results = await db
+  const results = await camelDb
     .selectFrom('accts.items')
     .select(['id', 'item', 'code', 'name'])
     .where('code', 'in', codes)
@@ -162,12 +160,12 @@ export async function getArticleFees(codes: string[]): Promise<ArticleFee[]> {
 }
 
 export async function hasRequestedEquipmentFee(year: number, memberId: string): Promise<boolean> {
-  const result = await db
-    .selectFrom('member.annual_fees')
-    .select('member_id')
-    .where('member_id', '=', memberId)
+  const result = await camelDb
+    .selectFrom('member.annualFees')
+    .select('memberId')
+    .where('memberId', '=', memberId)
     .where('year', '=', year)
-    .where('fee_type', '=', RecurringFeeType.EQUIPMENT_FEE)
+    .where('feeType', '=', RecurringFeeType.EQUIPMENT_FEE)
     .executeTakeFirst()
 
   return result !== undefined
@@ -188,7 +186,7 @@ export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void
     return
   }
 
-  await db
+  await camelDb
     .insertInto('accts.items')
     .values(validItems)
     .onConflict((oc) =>
@@ -202,7 +200,7 @@ export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void
 }
 
 export async function deleteInvoiceItem(id: number): Promise<void> {
-  const result = await db.deleteFrom('accts.items').where('id', '=', id).execute()
+  const result = await camelDb.deleteFrom('accts.items').where('id', '=', id).execute()
 
   if (result.length === 0) {
     throw new Error(`Failed to delete invoice item with id ${id}`)
@@ -213,27 +211,27 @@ export async function updateExpenseClaimItemFlag(
   id: number,
   expenseClaimItem: boolean,
 ): Promise<void> {
-  await updateItemBooleanFlag(id, 'expense_claim_item', expenseClaimItem)
+  await updateItemBooleanFlag(id, 'expenseClaimItem', expenseClaimItem)
 }
 
 export async function updateIsFuelItemFlag(id: number, isFuelItem: boolean): Promise<void> {
-  await updateItemBooleanFlag(id, 'is_fuel_item', isFuelItem)
+  await updateItemBooleanFlag(id, 'isFuelItem', isFuelItem)
 }
 
 export async function updateIsKmItemFlag(id: number, isKmItem: boolean): Promise<void> {
-  await updateItemBooleanFlag(id, 'is_km_item', isKmItem)
+  await updateItemBooleanFlag(id, 'isKmItem', isKmItem)
 }
 
 export async function updateIsOtherItemFlag(id: number, isOtherItem: boolean): Promise<void> {
-  await updateItemBooleanFlag(id, 'is_other_item', isOtherItem)
+  await updateItemBooleanFlag(id, 'isOtherItem', isOtherItem)
 }
 
 async function updateItemBooleanFlag(
   id: number,
-  column: 'expense_claim_item' | 'is_fuel_item' | 'is_km_item' | 'is_other_item',
+  column: 'expenseClaimItem' | 'isFuelItem' | 'isKmItem' | 'isOtherItem',
   value: boolean,
 ): Promise<void> {
-  const result = await db
+  const result = await camelDb
     .updateTable('accts.items')
     .set({ [column]: value })
     .where('id', '=', id)
@@ -253,7 +251,7 @@ export async function getArticleIdsByCode(codes: string[]): Promise<Map<string, 
     return new Map()
   }
 
-  const results = await db
+  const results = await camelDb
     .selectFrom('accts.items')
     .select(['code', 'id'])
     .where('code', 'in', codes)
@@ -265,21 +263,21 @@ export async function getArticleIdsByCode(codes: string[]): Promise<Map<string, 
 export async function getRecurringFeesProcessing(
   feeType: FeeType,
 ): Promise<RecurringFeesProcessing[]> {
-  const result = await db
-    .selectFrom('accts.recurring_fees_processing')
+  const result = await camelDb
+    .selectFrom('accts.recurringFeesProcessing')
     .selectAll()
-    .where('fee_type', '=', feeType)
+    .where('feeType', '=', feeType)
     .orderBy('year', 'desc')
     .execute()
 
   return result.map((row) => ({
-    fee_type: row.fee_type,
+    fee_type: row.feeType,
     status: row.status,
     year: row.year,
-    createdAt: row.created_at.toISOString(),
-    createdBy: row.created_by,
-    updatedAt: row.updated_at.toISOString(),
-    updatedBy: row.updated_by,
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy,
+    updatedAt: row.updatedAt.toISOString(),
+    updatedBy: row.updatedBy,
   }))
 }
 
@@ -289,12 +287,12 @@ export async function getRecurringFeesProcessing(
  * Note: `pmt_ref` stores the Simplbooks invoice reference, while `id` stores the Simplbooks invoice ID.
  */
 export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('accts.invoice')
     .selectAll()
-    .where('is_paid', '=', false)
-    .where('pmt_ref', '!=', '')
-    .orderBy('due_at', 'asc')
+    .where('isPaid', '=', false)
+    .where('pmtRef', '!=', '')
+    .orderBy('dueAt', 'asc')
     .execute()
 
   return rows.map(toInvoice)
@@ -305,13 +303,13 @@ export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
  */
 export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Promise<void> {
   const now = new Date().toISOString()
-  await db.transaction().execute(async (trx) => {
+  await camelDb.transaction().execute(async (trx) => {
     await trx
       .updateTable('accts.invoice')
       .set({
-        paid_at: paidAt,
-        updated_by: MIK_SIMPLBOOKS_MEMBER,
-        updated_at: now,
+        paidAt: paidAt,
+        updatedBy: MIK_SIMPLBOOKS_MEMBER,
+        updatedAt: now,
       })
       .where('id', '=', invoiceId)
       .execute()
@@ -320,10 +318,10 @@ export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Prom
       .updateTable('flight.logs')
       .set({
         status: FlightLogStatus.PAID,
-        updated_by: MIK_SIMPLBOOKS_MEMBER,
-        updated_at: now,
+        updatedBy: MIK_SIMPLBOOKS_MEMBER,
+        updatedAt: now,
       })
-      .where('invoice_number', '=', invoiceId)
+      .where('invoiceNumber', '=', invoiceId)
       .where('status', '=', FlightLogStatus.INVOICED)
       .execute()
   })
@@ -339,13 +337,13 @@ export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Prom
  * Grace period can be configured via OVERDUE_INVOICE_GRACE_PERIOD_DAYS env var (defaults to 0)
  */
 export async function getOverdueInvoicesWithoutReminder(): Promise<Invoice[]> {
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('accts.invoice')
     .selectAll()
-    .where('is_paid', '=', false)
-    .where('due_at', '<', overdueInvoiceCutoff())
-    .where('overdue_email_sent_at', 'is', null)
-    .orderBy('due_at', 'asc')
+    .where('isPaid', '=', false)
+    .where('dueAt', '<', overdueInvoiceCutoff())
+    .where('overdueEmailSentAt', 'is', null)
+    .orderBy('dueAt', 'asc')
     .execute()
 
   return rows.map(toInvoice)
@@ -355,12 +353,12 @@ export async function getOverdueInvoicesWithoutReminder(): Promise<Invoice[]> {
  * Mark that an overdue reminder email has been sent for an invoice
  */
 export async function markOverdueEmailSent(invoiceId: string): Promise<void> {
-  await db
+  await camelDb
     .updateTable('accts.invoice')
     .set({
-      overdue_email_sent_at: new Date().toISOString(),
-      updated_by: MIK_SIMPLBOOKS_MEMBER,
-      updated_at: new Date().toISOString(),
+      overdueEmailSentAt: new Date().toISOString(),
+      updatedBy: MIK_SIMPLBOOKS_MEMBER,
+      updatedAt: new Date().toISOString(),
     })
     .where('id', '=', invoiceId)
     .execute()
@@ -380,14 +378,14 @@ export async function getOverdueFlightInvoicesForMember(
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysOverdue)
 
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('accts.invoice')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .where('is_paid', '=', false)
-    .where('invoice_type', '=', 'FLIGHT')
-    .where('due_at', '<', cutoffDate.toISOString())
-    .orderBy('due_at', 'asc')
+    .where('memberId', '=', memberId)
+    .where('isPaid', '=', false)
+    .where('invoiceType', '=', 'FLIGHT')
+    .where('dueAt', '<', cutoffDate.toISOString())
+    .orderBy('dueAt', 'asc')
     .execute()
 
   return rows.map(toInvoice)
@@ -397,13 +395,13 @@ export async function getOverdueFlightInvoicesForMember(
  * Get all members with suspended reservations (can_make_reservations = false)
  */
 export async function getMembersWithSuspendedReservations(): Promise<string[]> {
-  const members = await db
+  const members = await camelDb
     .selectFrom('member.register')
-    .select('member_id')
-    .where('can_make_reservations', '=', false)
+    .select('memberId')
+    .where('canMakeReservations', '=', false)
     .execute()
 
-  return members.map((m) => m.member_id)
+  return members.map((m) => m.memberId)
 }
 
 /**
@@ -426,19 +424,19 @@ export async function getOverdueFlightInvoicesPastDays(daysOverdue: number): Pro
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysOverdue)
 
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('accts.invoice')
-    .select(['member_id', 'id', 'total_sum', 'due_at', 'currency'])
-    .where('is_paid', '=', false)
-    .where('invoice_type', '=', 'FLIGHT')
-    .where('due_at', '<', cutoffDate.toISOString())
+    .select(['memberId', 'id', 'totalSum', 'dueAt', 'currency'])
+    .where('isPaid', '=', false)
+    .where('invoiceType', '=', 'FLIGHT')
+    .where('dueAt', '<', cutoffDate.toISOString())
     .execute()
 
   return rows.map((row) => ({
-    member_id: row.member_id,
+    member_id: row.memberId,
     id: String(row.id),
-    total_sum: row.total_sum ? String(row.total_sum) : null,
-    due_at: row.due_at ? String(row.due_at) : null,
+    total_sum: row.totalSum ? String(row.totalSum) : null,
+    due_at: row.dueAt ? String(row.dueAt) : null,
     currency: row.currency ? String(row.currency) : null,
   }))
 }
@@ -451,56 +449,56 @@ export async function getOverdueFlightInvoicesPastDays(daysOverdue: number): Pro
 export async function getUnpaidOverdueInvoicesWithMemberInfo(): Promise<UnpaidOverdueInvoice[]> {
   const today = new Date().toISOString().split('T')[0]
 
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('accts.invoice as inv')
-    .innerJoin('member.register as m', 'm.member_id', 'inv.member_id')
+    .innerJoin('member.register as m', 'm.memberId', 'inv.memberId')
     .select([
       'inv.id',
-      'inv.created_at',
-      'inv.created_by',
+      'inv.createdAt',
+      'inv.createdBy',
       'inv.currency',
       'inv.description',
-      'inv.due_at',
-      'inv.invoice_type',
-      'inv.is_paid',
-      'inv.member_id',
-      'inv.paid_at',
-      'inv.pmt_ref',
-      'inv.sent_at',
-      'inv.total_sum',
-      'inv.updated_at',
-      'inv.updated_by',
-      'm.first_name',
-      'm.last_name',
+      'inv.dueAt',
+      'inv.invoiceType',
+      'inv.isPaid',
+      'inv.memberId',
+      'inv.paidAt',
+      'inv.pmtRef',
+      'inv.sentAt',
+      'inv.totalSum',
+      'inv.updatedAt',
+      'inv.updatedBy',
+      'm.firstName',
+      'm.lastName',
     ])
-    .where('inv.is_paid', '=', false)
-    .where('inv.due_at', '<', today)
-    .orderBy('inv.due_at', 'asc')
+    .where('inv.isPaid', '=', false)
+    .where('inv.dueAt', '<', today)
+    .orderBy('inv.dueAt', 'asc')
     .execute()
 
   return rows.map((row) => {
-    const dueDate = new Date(row.due_at as string)
+    const dueDate = new Date(row.dueAt as string)
     const now = new Date()
     const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
 
     return {
       id: String(row.id),
-      created_at: row.created_at.toISOString(),
-      created_by: row.created_by,
+      created_at: row.createdAt.toISOString(),
+      created_by: row.createdBy,
       currency: row.currency,
       description: row.description,
-      due_at: row.due_at as string,
-      invoice_type: row.invoice_type as MIKInvoiceType,
-      is_paid: row.is_paid,
-      member_id: row.member_id,
-      paid_at: row.paid_at,
-      pmt_ref: row.pmt_ref,
-      sent_at: row.sent_at,
-      total_sum: row.total_sum === null ? null : String(row.total_sum),
-      updated_at: row.updated_at.toISOString(),
-      updated_by: row.updated_by,
-      member_first_name: row.first_name,
-      member_last_name: row.last_name,
+      due_at: row.dueAt as string,
+      invoice_type: row.invoiceType as MIKInvoiceType,
+      is_paid: row.isPaid,
+      member_id: row.memberId,
+      paid_at: row.paidAt,
+      pmt_ref: row.pmtRef,
+      sent_at: row.sentAt,
+      total_sum: row.totalSum === null ? null : String(row.totalSum),
+      updated_at: row.updatedAt.toISOString(),
+      updated_by: row.updatedBy,
+      member_first_name: row.firstName,
+      member_last_name: row.lastName,
       days_overdue: daysOverdue,
     }
   })

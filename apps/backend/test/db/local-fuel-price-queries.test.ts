@@ -16,6 +16,26 @@ describe('local-fuel-price-queries', () => {
     await db.deleteFrom('accts.local_fuel_price').where('fuel_type', '=', 'JetA1').execute()
   })
 
+  // Regression: the mapper used to build createdAt as
+  // `new Date(String(row.created_at)).toISOString()`. Date#toString() has no
+  // millisecond field, so the round trip truncated every timestamp to the second.
+  // Compared against the stored value rather than a fixed string, which would be
+  // flaky whenever the true value happened to land on .000.
+  it('preserves millisecond precision on createdAt', async () => {
+    const created = await createLocalFuelPrice(
+      { fuelType: 'JetA1', priceEurPerLitre: 2.5, validFrom: '2026-01-01' },
+      user,
+    )
+
+    const stored = await db
+      .selectFrom('accts.local_fuel_price')
+      .select('created_at')
+      .where('fuel_type', '=', 'JetA1')
+      .executeTakeFirstOrThrow()
+
+    expect(created.createdAt).toBe(stored.created_at.toISOString())
+  })
+
   it('returns the most recent price effective on or before the given date', async () => {
     await createLocalFuelPrice(
       { fuelType: 'JetA1', priceEurPerLitre: 2.5, validFrom: '2026-01-01' },
