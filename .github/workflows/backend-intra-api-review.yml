@@ -93,13 +93,15 @@ jobs:
         run: pnpm install
 
       # @mik/contracts is new in this repo, so unlike the two apps it has no
-      # inherited backlog: any error fails the build.
-      - name: Lint, format-check and typecheck @mik/contracts
+      # inherited backlog: any error fails the build. Its own suite runs here
+      # rather than in either app's — both depend on it, so neither owns it.
+      - name: Lint, format-check, typecheck and test @mik/contracts
         working-directory: packages/contracts
         run: |
           npx eslint .
           pnpm format:check
           pnpm build
+          pnpm test
 
       - name: Run ESLint and check error count
         working-directory: apps/backend
@@ -130,7 +132,9 @@ jobs:
           # copies of an unawaited scheduledTask.stop() into one.
           # 83 -> 81: the models moved to packages/contracts (#1115 phase 4),
           # which is gated at zero errors by its own step above.
-          THRESHOLD=81
+          # 81 -> 80: the sanitizers test moved to packages/contracts with them,
+          # where zero tolerance forced its useless-escape to be fixed properly.
+          THRESHOLD=80
 
           # Check if error count exceeds threshold
           if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then
@@ -147,6 +151,40 @@ jobs:
       - name: Build backend
         working-directory: apps/backend
         run: pnpm build
+
+      # The production image is otherwise only ever built at release time
+      # (create-test-release-and-deploy-to-do.yml), so a Dockerfile mistake shows up
+      # after merge, in the deploy. Build it here instead.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: mik-ng-backend:pr-check
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # `docker build` on its own would still pass with a workspace package's src/
+      # left out of the image entirely — nothing executes at build time, and the
+      # failure only appears when the container starts. This starts it far enough
+      # to prove the packages/* the backend imports actually resolve in there.
+      - name: Verify workspace packages resolve inside the image
+        run: |
+          docker run --rm --entrypoint node mik-ng-backend:pr-check \
+            --import tsx -e "
+              Promise.all([
+                import('@mik/contracts/members'),
+                import('@mik/contracts/calendar'),
+                import('@mik/contracts/schema'),
+              ]).then(([members]) => {
+                if (!members.MIKPermissions) throw new Error('contracts loaded but empty')
+                console.log('@mik/contracts resolves inside the image')
+              }).catch((err) => { console.error(err); process.exit(1) })
+            "
 
       - name: Check for Security Vulnerabilities
         working-directory: apps/backend

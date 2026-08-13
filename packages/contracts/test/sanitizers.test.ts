@@ -1,11 +1,11 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 
 import {
   escapeHtml,
   sanitizeUrl,
   validateApiPath,
   validateInternalPath,
-} from '@mik/contracts/sanitizers'
+} from '../src/sanitizers.ts'
 
 describe('sanitizers', () => {
   describe('escapeHtml', () => {
@@ -98,7 +98,7 @@ describe('sanitizers', () => {
     it('returns / for external or unsafe path formats', () => {
       expect(validateInternalPath('https://example.com/redirect')).toBe('/')
       expect(validateInternalPath('//example.com/redirect')).toBe('/')
-      expect(validateInternalPath('\\evil\path')).toBe('/')
+      expect(validateInternalPath('\\evil\\path')).toBe('/')
       expect(validateInternalPath('javascript:alert(1)')).toBe('/')
       expect(validateInternalPath('data:text/html;base64,abcd')).toBe('/')
       expect(validateInternalPath('vbscript:msgbox(1)')).toBe('/')

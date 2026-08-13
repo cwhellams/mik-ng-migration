@@ -44,3 +44,28 @@ The package ships TypeScript source — there is no build step. The backend runs
 **Adding a domain:** create `src/<domain>.ts`, export the Zod schemas and inferred types,
 and import it as `@mik/contracts/<domain>`. No barrel file and no `index.ts` — subpath
 exports keep unrelated domains out of each other's dependency graph.
+
+## Tests
+
+```bash
+pnpm --filter @mik/contracts test
+```
+
+Vitest, in `test/`. The suite lives here rather than in either app because both depend on
+this code — the shared primitives are a single point of failure for the whole repo, which
+is exactly why `calendar`, `date`, `schema` and `sanitizers` are covered. CI runs it as
+part of the backend workflow.
+
+The ICS tests assert the **entire** payload rather than individual lines. That is
+deliberate: the builder replaced two hand-written copies, and the claim being defended is
+that the bytes did not change — field order included.
+
+Note the two tsconfigs. `tsconfig.json` covers `src/` only and deliberately has no Node
+types; `tsconfig.test.json` covers the tests, which do need them (the Vitest config sets
+`process.env.TZ`). They are separate because TypeScript applies ambient types per
+_program_: merging them back together brings Node's globals into `src/` and silently
+disables the guard. `eslint.config.js` bans `process`/`Buffer`/`__dirname` in `src/**` as
+well, so the boundary survives a future tsconfig edit.
+
+The suite runs under `TZ=UTC`, unlike the frontend's, so a dropped `.tz()` in the Helsinki
+helpers can't pass by accident.

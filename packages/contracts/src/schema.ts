@@ -23,7 +23,13 @@ export type Upsert<T extends Auditable> = Partial<
 > &
   Omit<T, 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>
 
-// audit fields are not used from incoming create or update requests.
+// audit fields are not accepted on incoming create or update requests.
+//
+// Note that AuditableSchema is .strict(), and .omit() preserves that: a request
+// body carrying createdAt/updatedBy/etc. is *rejected* with "Unrecognized keys",
+// not quietly stripped. That is deliberate — it means a client cannot believe it
+// set an audit field — but it does mean a naive read-modify-write that posts a
+// fetched entity straight back will 400. See test/schema.test.ts.
 //
 // The `as T` keeps the schema's TypeScript shape unchanged (so callers can
 // still chain .extend() or the flight-log-style .pick() to select fields),
@@ -31,7 +37,7 @@ export type Upsert<T extends Auditable> = Partial<
 // updatedBy are present. That's harmless for .extend()/.pick() — they only
 // add or select fields — but a further .omit() to drop fields beyond the
 // audit ones would inherit the same false belief and produce a type that
-// still requires the (already runtime-stripped) audit fields. Domains that
+// still requires the (already rejected) audit fields. Domains that
 // need to omit additional fields should omit everything — audit fields
 // included — in one call on the original schema instead of chaining off
 // UpsertSchema().

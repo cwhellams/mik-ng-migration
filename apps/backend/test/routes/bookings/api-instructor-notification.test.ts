@@ -75,7 +75,7 @@ const waitFor = async (predicate: () => boolean, timeoutMs = 2000) => {
 
 const callsTo = (email: string) => mockSendEmail.mock.calls.filter((args) => args[0] === email)
 
-// Mirrors formatIcsDate in src/lib/calendarEvent.ts, to assert which schedule
+// Mirrors formatIcsDate in @mik/contracts/calendar, to assert which schedule
 // a generated .ics attachment describes without depending on dayjs plugins.
 const icsDate = (unixSeconds: number): string =>
   new Date(unixSeconds * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'

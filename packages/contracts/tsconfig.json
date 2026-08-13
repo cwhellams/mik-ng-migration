@@ -19,5 +19,10 @@
     "noUnusedParameters": true,
     "skipLibCheck": true
   },
+  /* src/ ONLY. Do not add test/ or vitest.config.ts here: pulling Vitest's types
+     into this program brings Node's ambient globals with them, and `process.env`
+     in a contract would start typechecking again — which is the exact leak the
+     "types": [] above exists to catch. Tests are typechecked separately by
+     tsconfig.test.json. */
   "include": ["src/**/*.ts"]
 }

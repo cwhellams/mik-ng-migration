@@ -1,0 +1,12 @@
+{
+  /* A second, separate program for the test suite.
+     It exists because the tests need Node's globals (vitest.config.ts sets
+     process.env.TZ) while src/ must not have them — and TypeScript applies
+     ambient types per program, not per file. Merging the two back into one
+     tsconfig silently disables the isomorphism guard in tsconfig.json. */
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["test/**/*.ts", "vitest.config.ts"]
+}

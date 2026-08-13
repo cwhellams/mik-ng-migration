@@ -202,6 +202,13 @@ Rules:
 - Adding a file to `packages/contracts/src/` is all that's needed — the `exports` wildcard
   picks it up. Adding a **new** package under `packages/` also needs a `COPY` line in the
   `Dockerfile` if the backend depends on it at runtime.
+- **Tests live with the package**, in `packages/contracts/test/`, run with Vitest
+  (`pnpm --filter @mik/contracts test`). Both apps depend on this code, so neither app's
+  suite owns it. CI runs it in the backend workflow.
+- Two tsconfigs on purpose: `tsconfig.json` covers `src/` **only** and has no Node types
+  (that's the isomorphism guard); `tsconfig.test.json` covers the tests, which do need
+  them. Merging them silently disables the guard, so `eslint.config.js` also blocks
+  `process`/`Buffer`/`__dirname` in `src/**` as a second line of defence.
 - CI holds `packages/contracts` at **zero** ESLint errors (it has no inherited backlog,
   unlike the two apps' ratcheted thresholds).
 
@@ -327,6 +334,11 @@ The GitHub Actions workflows require:
 
 Both app workflows also trigger on `packages/**`, since a change to `@mik/contracts` can
 break either app.
+
+The backend workflow also builds the production Docker image and starts it far enough to
+confirm every `packages/*` the backend imports resolves inside it. **A new workspace package
+needs a `COPY` line in the `Dockerfile`** — its manifest before `pnpm install`, its `src/`
+after — or the image builds fine and then crashes on boot.
 
 Always run `pnpm format` and `pnpm build` before committing changes to ensure CI passes.
 

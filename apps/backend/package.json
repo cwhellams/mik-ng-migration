@@ -59,6 +59,7 @@
       ]
     },
     "testPathIgnorePatterns": [
+      "/node_modules/",
       "/integration_test/"
     ],
     "moduleFileExtensions": [

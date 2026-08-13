@@ -20,6 +20,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import type { RouteDistanceResponse } from '@mik/contracts/mileage-geo'
+import { DEFAULT_MILEAGE_MAX_KM } from '@mik/contracts/expenses-mileage'
 import { api } from '../../hooks/useApi'
 import { AddressAutocomplete, type AddressValue } from './AddressAutocomplete'
 
@@ -54,9 +55,10 @@ export function makeMileageLegForm(): MileageLegForm {
 const JUSTIFICATION_THRESHOLD = 1.2
 const ROUTE_DEBOUNCE_MS = 500
 
-// Mirrors the backend's MILEAGE_MAX_KM (apps/backend/src/routes/expenses/mileageModels.ts)
-// — this only gates the UI; the server enforces the same cap independently.
-export const MILEAGE_MAX_KM = Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100
+// This only gates the UI; the server enforces the same cap independently, from its own
+// MILEAGE_MAX_KM. The fallback is the shared DEFAULT_MILEAGE_MAX_KM rather than a second
+// hardcoded 100, so an unset VITE_MILEAGE_MAX_KM can't disagree with the server's default.
+export const MILEAGE_MAX_KM = Number(import.meta.env.VITE_MILEAGE_MAX_KM) || DEFAULT_MILEAGE_MAX_KM
 
 /**
  * Single source of truth for whether a mileage leg is ready to submit — previously
@@ -98,7 +100,7 @@ export function MileageDetailFields({
   onRemove,
   disabled,
   effectiveRatePerKm,
-  maxKm = 100,
+  maxKm = DEFAULT_MILEAGE_MAX_KM,
   showErrors,
 }: Props) {
   const { t } = useTranslation()
@@ -181,7 +183,7 @@ export function MileageDetailFields({
   // Nullish check, not falsy — directDistanceKm can legitimately be 0 (two very close
   // addresses geocoding to the same point), which should still be checked against km,
   // not treated the same as "OSRM unreachable, skip the check" (mirrors the backend's
-  // hasRequiredJustification in mileageModels.ts).
+  // hasRequiredJustification in @mik/contracts/expenses-mileage).
   const needsJustification =
     value.directDistanceKm != null && km > value.directDistanceKm * JUSTIFICATION_THRESHOLD
 

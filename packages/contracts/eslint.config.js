@@ -18,7 +18,23 @@ const SERVER_ONLY = [
 ]
 
 export default tseslint.config(
-  { ignores: ['node_modules'] },
+  { ignores: ['node_modules', 'coverage'] },
+  {
+    // The same no-Node-globals rule tsconfig.json enforces by omitting @types/node,
+    // repeated here on purpose. The tsconfig version is only as strong as the
+    // program's ambient types, and merely adding the test files to that program was
+    // enough to disable it once. This one holds regardless.
+    files: ['src/**/*.ts'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        ...['process', 'Buffer', '__dirname', '__filename', 'global'].map((name) => ({
+          name,
+          message: `${name} does not exist in the browser. Take it as a parameter from the backend instead — see createExpenseClaimSchema(maxMileageKm).`,
+        })),
+      ],
+    },
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.ts'],
@@ -27,7 +43,12 @@ export default tseslint.config(
       sourceType: 'module',
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        // ignoreRestSiblings allows the `const { dropped: _dropped, ...rest }`
+        // idiom for building a payload with a field deliberately absent.
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
       'no-restricted-imports': [
         'error',
         {
