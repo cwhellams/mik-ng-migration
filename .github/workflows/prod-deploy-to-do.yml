@@ -64,46 +64,56 @@ jobs:
 
       - name: Set environment variables
         run: |
+          # Environment Variable Scoping Pattern:
+          # Variables are scoped by GitHub environment (prod vs TEST) rather than name suffixes.
+          # This workflow runs in the 'prod' environment, so vars.FOO pulls from prod's FOO variable.
+          # Secrets with different values per environment use explicit _PROD suffixes for clarity.
+          # All other variables use the same name and are differentiated only by environment scope.
+
           # Backend envs
-          echo "DATABASE_URL=${{ secrets.POSTGRES_DO_URL_PRIVATE_PROD }}" >> $GITHUB_ENV          
+          # Database and secrets use environment-specific secret names due to different values
+          echo "DATABASE_URL=${{ secrets.POSTGRES_DO_URL_PRIVATE_PROD }}" >> $GITHUB_ENV
           echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD_PROD }}" >> $GITHUB_ENV
           echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET_PROD }}" >> $GITHUB_ENV
           echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET_PROD }}" >> $GITHUB_ENV
           echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET_PROD }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY_PROD }}" >> $GITHUB_ENV
+          echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY_PROD }}" >> $GITHUB_ENV
+
+          # Standard variables - same name in both environments, scoped by GitHub environment
           echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> $GITHUB_ENV
           echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV
-          echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN_PROD }}" >> $GITHUB_ENV
-          echo "PUBLIC_URL=${{ vars.PUBLIC_URL_PROD }}" >> $GITHUB_ENV
+          echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
+          echo "PUBLIC_URL=${{ vars.PUBLIC_URL }}" >> $GITHUB_ENV
           echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
           echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID_PROD }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI_PROD }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY_PROD }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP_PROD }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP_PROD }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS_PROD }}" >> $GITHUB_ENV
-          echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP }}" >> $GITHUB_ENV
+          echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED }}" >> $GITHUB_ENV
+          echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP }}" >> $GITHUB_ENV
+          echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS }}" >> $GITHUB_ENV
+          echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_KEY=${{ secrets.DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> $GITHUB_ENV
-          echo "EXPENSE_RECEIPT_BUCKET=${{ vars.EXPENSE_RECEIPT_BUCKET_PROD }}" >> $GITHUB_ENV
+          echo "EXPENSE_RECEIPT_BUCKET=${{ vars.EXPENSE_RECEIPT_BUCKET }}" >> $GITHUB_ENV
           echo "FIELD_ENCRYPTION_KEY=${{ secrets.FIELD_ENCRYPTION_KEY }}" >> $GITHUB_ENV
           echo "MILEAGE_MAX_KM=${{ vars.MILEAGE_MAX_KM }}" >> $GITHUB_ENV
           echo "BREVO_API_URL=https://api.brevo.com/v3" >> $GITHUB_ENV
-          echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY_PROD }}" >> $GITHUB_ENV
-          echo "AIRCRAFT_MAILING_LISTS=${{ vars.AIRCRAFT_MAILING_LISTS_PROD }}" >> $GITHUB_ENV
-          echo "BREVO_SYNC_WORKER_ENABLED=${{ vars.BREVO_SYNC_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
-          echo "BREVO_SYNC_WORKER_RUN_ON_STARTUP=${{ vars.BREVO_SYNC_WORKER_RUN_ON_STARTUP_PROD }}" >> $GITHUB_ENV
+          echo "AIRCRAFT_MAILING_LISTS=${{ vars.AIRCRAFT_MAILING_LISTS }}" >> $GITHUB_ENV
+          echo "BREVO_SYNC_WORKER_ENABLED=${{ vars.BREVO_SYNC_WORKER_ENABLED }}" >> $GITHUB_ENV
+          echo "BREVO_SYNC_WORKER_RUN_ON_STARTUP=${{ vars.BREVO_SYNC_WORKER_RUN_ON_STARTUP }}" >> $GITHUB_ENV
           echo "EQUIPMENT_FEE_DISCOUNT_PER_HOUR=${{ vars.EQUIPMENT_FEE_DISCOUNT_PER_HOUR }}" >> $GITHUB_ENV
-          echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_PROD }}" >> $GITHUB_ENV
+          echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}" >> $GITHUB_ENV
           echo "DO_MIK_VPC_UUID=${{ vars.DO_MIK_VPC_UUID }}" >> $GITHUB_ENV
           echo "WEATHER_API_BASE_URL=${{ vars.WEATHER_API_BASE_URL }}" >> $GITHUB_ENV
           echo "WEATHER_AUDIO_BASE_URL=${{ vars.WEATHER_AUDIO_BASE_URL }}" >> $GITHUB_ENV
           echo "SIMPLBOOKS_MEMBER_SYNC_ENABLED=${{ vars.SIMPLBOOKS_MEMBER_SYNC_ENABLED }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_MEMBER_SYNC_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_MEMBER_SYNC_RUN_ON_STARTUP }}" >> $GITHUB_ENV
           echo "OVERDUE_INVOICE_GRACE_PERIOD_DAYS=${{ vars.OVERDUE_INVOICE_GRACE_PERIOD_DAYS }}" >> "$GITHUB_ENV"
           echo "KALUSTO_EMAIL=${{ vars.KALUSTO_EMAIL }}" >> "$GITHUB_ENV"
           echo "AIRCRAFT_DOCUMENT_EXPIRY_WORKER_ENABLED=${{ vars.AIRCRAFT_DOCUMENT_EXPIRY_WORKER_ENABLED }}" >> "$GITHUB_ENV"
@@ -117,15 +127,45 @@ jobs:
           echo "VITE_TURNSTILE_SITE_KEY=${{ secrets.TURNSTILE_SITE_KEY }}" >> "$GITHUB_ENV"
           echo "TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }}" >> "$GITHUB_ENV"
           echo "DOCUMENT_URL_TTL_SECS=${{ vars.DOCUMENT_URL_TTL_SECS }}" >> "$GITHUB_ENV"
-          echo "TINY_URL_BASE_URL=${{ vars.TINY_URL_BASE_URL_PROD }}" >> "$GITHUB_ENV"
+          echo "TINY_URL_BASE_URL=${{ vars.TINY_URL_BASE_URL }}" >> "$GITHUB_ENV"
           echo "MIK_LOGO_PATH=/home/node/app/apps/backend/src/assets/mik-logo-blue.png" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID=${{ vars.SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID }}" >> "$GITHUB_ENV"
           echo "MEDICAL_CHECK_ENABLED=${{ vars.MEDICAL_CHECK_ENABLED }}" >> "$GITHUB_ENV"
-          echo "TINY_URL_CLEANUP_WORKER_ENABLED=${{ vars.TINY_URL_CLEANUP_WORKER_ENABLED_PROD }}" >> "$GITHUB_ENV"
-          echo "TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP=${{ vars.TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP_PROD }}" >> "$GITHUB_ENV"
-          echo "MAILBOX_CLEANUP_WORKER_ENABLED=${{ vars.MAILBOX_CLEANUP_WORKER_ENABLED_PROD }}" >> "$GITHUB_ENV"
-          echo "MAILBOX_CLEANUP_WORKER_RUN_ON_STARTUP=${{ vars.MAILBOX_CLEANUP_WORKER_RUN_ON_STARTUP_PROD }}" >> "$GITHUB_ENV"
+          echo "TINY_URL_CLEANUP_WORKER_ENABLED=${{ vars.TINY_URL_CLEANUP_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP=${{ vars.TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "MAILBOX_CLEANUP_WORKER_ENABLED=${{ vars.MAILBOX_CLEANUP_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "MAILBOX_CLEANUP_WORKER_RUN_ON_STARTUP=${{ vars.MAILBOX_CLEANUP_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "QUALIFICATION_EXPIRY_WORKER_ENABLED=${{ vars.QUALIFICATION_EXPIRY_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "QUALIFICATION_EXPIRY_WORKER_RUN_ON_STARTUP=${{ vars.QUALIFICATION_EXPIRY_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "QUALIFICATION_EXPIRY_REMINDER_DAYS=${{ vars.QUALIFICATION_EXPIRY_REMINDER_DAYS }}" >> "$GITHUB_ENV"
+          echo "MILEAGE_HETU_PURGE_WORKER_ENABLED=${{ vars.MILEAGE_HETU_PURGE_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "MILEAGE_HETU_PURGE_WORKER_RUN_ON_STARTUP=${{ vars.MILEAGE_HETU_PURGE_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "BOOKING_REMINDER_WORKER_ENABLED=${{ vars.BOOKING_REMINDER_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "BOOKING_REMINDER_HOURS_BEFORE=${{ vars.BOOKING_REMINDER_HOURS_BEFORE }}" >> "$GITHUB_ENV"
+          echo "JUNIOR_PROMOTION_WORKER_ENABLED=${{ vars.JUNIOR_PROMOTION_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "JUNIOR_PROMOTION_WORKER_RUN_ON_STARTUP=${{ vars.JUNIOR_PROMOTION_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "NOMINATIM_BASE_URL=${{ vars.NOMINATIM_BASE_URL }}" >> "$GITHUB_ENV"
+          echo "NOMINATIM_USER_AGENT=${{ vars.NOMINATIM_USER_AGENT }}" >> "$GITHUB_ENV"
+          echo "OSRM_BASE_URL=${{ vars.OSRM_BASE_URL }}" >> "$GITHUB_ENV"
           echo "ORDER_NOTIFICATION_EMAIL=${{ vars.ORDER_NOTIFICATION_EMAIL }}" >> "$GITHUB_ENV"
+
+      - name: Validate required environment-scoped variables
+        run: |
+          # Fail fast if a variable migrated from the _PROD suffix pattern to
+          # GitHub-environment scoping resolved empty — better than deploying
+          # with e.g. CORS rejecting every request or outbound email silently failing.
+          REQUIRED_VARS="SMTP_LOGIN PUBLIC_URL VITE_API_TARGET SIMPLBOOKS_OUTBOX_WORKER_ENABLED SIMPLBOOKS_COMPANY_ID SIMPLBOOKS_BASE_URI SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP OVERDUE_INVOICE_WORKER_ENABLED OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP OVERDUE_INVOICE_SUSPENSION_DAYS OCCURRENCE_NOTIFICATION_WORKER_ENABLED EXPENSE_RECEIPT_BUCKET AIRCRAFT_MAILING_LISTS BREVO_SYNC_WORKER_ENABLED BREVO_SYNC_WORKER_RUN_ON_STARTUP CORS_ALLOWED_ORIGINS TINY_URL_BASE_URL TINY_URL_CLEANUP_WORKER_ENABLED TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP MAILBOX_CLEANUP_WORKER_ENABLED MAILBOX_CLEANUP_WORKER_RUN_ON_STARTUP"
+          MISSING=""
+          for VAR_NAME in $REQUIRED_VARS; do
+            VALUE=$(grep "^${VAR_NAME}=" "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
+            if [ -z "$VALUE" ]; then
+              MISSING="$MISSING $VAR_NAME"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "::error::The following variables resolved empty — check the 'prod' GitHub Environment configuration:$MISSING"
+            exit 1
+          fi
 
       - name: Promote image to production
         run: |
@@ -175,7 +215,7 @@ jobs:
 
       - name: Replace placeholders in mik-intranet.yaml
         run: |
-          export DOMAIN=$(echo "${{ vars.PUBLIC_URL_PROD }}" | sed 's|https\?://||')
+          export DOMAIN=$(echo "${{ vars.PUBLIC_URL }}" | sed 's|https\?://||')
           export IMAGE_TAG="${{ github.event.client_payload.tag_name }}"
           envsubst < .do/mik-intranet-prod.yaml > .do/mik-intranet-prod.yaml.temp && mv .do/mik-intranet-prod.yaml.temp .do/mik-intranet-prod.yaml
 

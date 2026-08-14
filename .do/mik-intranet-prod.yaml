@@ -52,196 +52,235 @@ services:
           token: ${BETTERSTACK_API_TOKEN}
     envs:
       - key: DATABASE_URL
-        value: ${DATABASE_URL}
+        value: '${DATABASE_URL}'
         type: SECRET
       - key: SMTP_PASSWORD
-        value: ${SMTP_PASSWORD}
+        value: '${SMTP_PASSWORD}'
         type: SECRET
       - key: ACCESS_TOKEN_SECRET
-        value: ${ACCESS_TOKEN_SECRET}
+        value: '${ACCESS_TOKEN_SECRET}'
         type: SECRET
       - key: MAGIC_LINK_SECRET
-        value: ${MAGIC_LINK_SECRET}
+        value: '${MAGIC_LINK_SECRET}'
         type: SECRET
       - key: REFRESH_TOKEN_SECRET
-        value: ${REFRESH_TOKEN_SECRET}
+        value: '${REFRESH_TOKEN_SECRET}'
         type: SECRET
       - key: BETTERSTACK_API_TOKEN
-        value: ${BETTERSTACK_API_TOKEN}
+        value: '${BETTERSTACK_API_TOKEN}'
         type: SECRET
       - key: ACCESS_TOKEN_EXPIRATION
-        value: ${ACCESS_TOKEN_EXPIRATION}
+        value: '${ACCESS_TOKEN_EXPIRATION}'
         type: GENERAL
       - key: REFRESH_TOKEN_EXPIRATION
-        value: ${REFRESH_TOKEN_EXPIRATION}
+        value: '${REFRESH_TOKEN_EXPIRATION}'
         type: GENERAL
       - key: LOG_LEVEL
-        value: ${LOG_LEVEL}
+        value: '${LOG_LEVEL}'
         type: GENERAL
       - key: SMTP_LOGIN
-        value: ${SMTP_LOGIN}
+        value: '${SMTP_LOGIN}'
         type: GENERAL
       - key: PUBLIC_URL
-        value: ${PUBLIC_URL}
+        value: '${PUBLIC_URL}'
         type: GENERAL
       - key: DB_SSL
         value: 'true'
         type: GENERAL
       - key: SIMPLBOOKS_OUTBOX_WORKER_ENABLED
-        value: ${SIMPLBOOKS_OUTBOX_WORKER_ENABLED}
+        value: '${SIMPLBOOKS_OUTBOX_WORKER_ENABLED}'
         type: GENERAL
       - key: SIMPLBOOKS_COMPANY_ID
-        value: ${SIMPLBOOKS_COMPANY_ID}
+        value: '${SIMPLBOOKS_COMPANY_ID}'
         type: GENERAL
       - key: SIMPLBOOKS_BASE_URI
-        value: ${SIMPLBOOKS_BASE_URI}
+        value: '${SIMPLBOOKS_BASE_URI}'
         type: GENERAL
       - key: SIMPLBOOKS_API_KEY
-        value: ${SIMPLBOOKS_API_KEY}
+        value: '${SIMPLBOOKS_API_KEY}'
         type: SECRET
       - key: DIGITAL_OCEAN_SPACES_KEY
-        value: ${DIGITAL_OCEAN_SPACES_KEY}
+        value: '${DIGITAL_OCEAN_SPACES_KEY}'
         type: SECRET
       - key: DIGITAL_OCEAN_SPACES_SECRET
-        value: ${DIGITAL_OCEAN_SPACES_SECRET}
+        value: '${DIGITAL_OCEAN_SPACES_SECRET}'
         type: SECRET
       - key: DIGITAL_OCEAN_SPACES_REGION
-        value: ${DIGITAL_OCEAN_SPACES_REGION}
+        value: '${DIGITAL_OCEAN_SPACES_REGION}'
         type: GENERAL
       - key: DIGITAL_OCEAN_SPACES_ENDPOINT
-        value: ${DIGITAL_OCEAN_SPACES_ENDPOINT}
+        value: '${DIGITAL_OCEAN_SPACES_ENDPOINT}'
         type: GENERAL
       - key: EXPENSE_RECEIPT_BUCKET
-        value: ${EXPENSE_RECEIPT_BUCKET}
+        value: '${EXPENSE_RECEIPT_BUCKET}'
         type: GENERAL
       - key: FIELD_ENCRYPTION_KEY
-        value: ${FIELD_ENCRYPTION_KEY}
+        value: '${FIELD_ENCRYPTION_KEY}'
         type: SECRET
       - key: MILEAGE_MAX_KM
-        value: ${MILEAGE_MAX_KM}
+        value: '${MILEAGE_MAX_KM}'
         type: GENERAL
       - key: BREVO_API_URL
-        value: ${BREVO_API_URL}
+        value: '${BREVO_API_URL}'
         type: GENERAL
       - key: BREVO_API_KEY
-        value: ${BREVO_API_KEY}
+        value: '${BREVO_API_KEY}'
         type: SECRET
       - key: AIRCRAFT_MAILING_LISTS
-        value: ${AIRCRAFT_MAILING_LISTS}
+        value: '${AIRCRAFT_MAILING_LISTS}'
         type: GENERAL
       - key: KALUSTO_EMAIL
-        value: ${KALUSTO_EMAIL}
+        value: '${KALUSTO_EMAIL}'
         type: GENERAL
       - key: AIRCRAFT_DOCUMENT_EXPIRY_WORKER_ENABLED
-        value: ${AIRCRAFT_DOCUMENT_EXPIRY_WORKER_ENABLED}
+        value: '${AIRCRAFT_DOCUMENT_EXPIRY_WORKER_ENABLED}'
         type: GENERAL
       - key: AIRCRAFT_DOCUMENT_EXPIRY_WORKER_RUN_ON_STARTUP
-        value: ${AIRCRAFT_DOCUMENT_EXPIRY_WORKER_RUN_ON_STARTUP}
+        value: '${AIRCRAFT_DOCUMENT_EXPIRY_WORKER_RUN_ON_STARTUP}'
         type: GENERAL
       - key: AIRCRAFT_DOCUMENT_EXPIRY_REMINDER_DAYS
-        value: ${AIRCRAFT_DOCUMENT_EXPIRY_REMINDER_DAYS}
+        value: '${AIRCRAFT_DOCUMENT_EXPIRY_REMINDER_DAYS}'
         type: GENERAL
       - key: PUSH_NOTIFICATION_WORKER_ENABLED
-        value: ${PUSH_NOTIFICATION_WORKER_ENABLED}
+        value: '${PUSH_NOTIFICATION_WORKER_ENABLED}'
         type: GENERAL
       - key: PUSH_NOTIFICATION_HOURS_BEFORE
-        value: ${PUSH_NOTIFICATION_HOURS_BEFORE}
+        value: '${PUSH_NOTIFICATION_HOURS_BEFORE}'
         type: GENERAL
       - key: VAPID_PUBLIC_KEY
-        value: ${VAPID_PUBLIC_KEY}
+        value: '${VAPID_PUBLIC_KEY}'
         type: SECRET
       - key: VAPID_PRIVATE_KEY
-        value: ${VAPID_PRIVATE_KEY}
+        value: '${VAPID_PRIVATE_KEY}'
         type: SECRET
       - key: VAPID_SUBJECT
-        value: ${VAPID_SUBJECT}
+        value: '${VAPID_SUBJECT}'
         type: GENERAL
       - key: BREVO_SYNC_WORKER_ENABLED
-        value: ${BREVO_SYNC_WORKER_ENABLED}
+        value: '${BREVO_SYNC_WORKER_ENABLED}'
         type: GENERAL
       - key: BREVO_SYNC_WORKER_RUN_ON_STARTUP
-        value: ${BREVO_SYNC_WORKER_RUN_ON_STARTUP}
+        value: '${BREVO_SYNC_WORKER_RUN_ON_STARTUP}'
         type: GENERAL
       - key: EQUIPMENT_FEE_DISCOUNT_PER_HOUR
-        value: ${EQUIPMENT_FEE_DISCOUNT_PER_HOUR}
+        value: '${EQUIPMENT_FEE_DISCOUNT_PER_HOUR}'
         type: GENERAL
       - key: SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP
-        value: ${SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP}
+        value: '${SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP}'
         type: GENERAL
       - key: SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED
-        value: ${SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED}
+        value: '${SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED}'
         type: GENERAL
       - key: OVERDUE_INVOICE_WORKER_ENABLED
-        value: ${OVERDUE_INVOICE_WORKER_ENABLED}
+        value: '${OVERDUE_INVOICE_WORKER_ENABLED}'
         type: GENERAL
       - key: OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP
-        value: ${OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP}
+        value: '${OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP}'
         type: GENERAL
       - key: OVERDUE_INVOICE_SUSPENSION_DAYS
-        value: ${OVERDUE_INVOICE_SUSPENSION_DAYS}
+        value: '${OVERDUE_INVOICE_SUSPENSION_DAYS}'
         type: GENERAL
       - key: OCCURRENCE_NOTIFICATION_WORKER_ENABLED
-        value: ${OCCURRENCE_NOTIFICATION_WORKER_ENABLED}
+        value: '${OCCURRENCE_NOTIFICATION_WORKER_ENABLED}'
         type: GENERAL
       - key: CORS_ALLOWED_ORIGINS
-        value: ${CORS_ALLOWED_ORIGINS}
+        value: '${CORS_ALLOWED_ORIGINS}'
         type: SECRET
       - key: WEATHER_API_BASE_URL
-        value: ${WEATHER_API_BASE_URL}
+        value: '${WEATHER_API_BASE_URL}'
         type: GENERAL
       - key: WEATHER_AUDIO_BASE_URL
-        value: ${WEATHER_AUDIO_BASE_URL}
+        value: '${WEATHER_AUDIO_BASE_URL}'
         type: GENERAL
       - key: SIMPLBOOKS_MEMBER_SYNC_ENABLED
-        value: ${SIMPLBOOKS_MEMBER_SYNC_ENABLED}
+        value: '${SIMPLBOOKS_MEMBER_SYNC_ENABLED}'
         type: GENERAL
       - key: OVERDUE_INVOICE_GRACE_PERIOD_DAYS
-        value: ${OVERDUE_INVOICE_GRACE_PERIOD_DAYS}
+        value: '${OVERDUE_INVOICE_GRACE_PERIOD_DAYS}'
         type: GENERAL
       - key: VITE_TURNSTILE_SITE_KEY
-        value: ${VITE_TURNSTILE_SITE_KEY}
+        value: '${VITE_TURNSTILE_SITE_KEY}'
         type: GENERAL
       - key: TURNSTILE_SECRET_KEY
-        value: ${TURNSTILE_SECRET_KEY}
+        value: '${TURNSTILE_SECRET_KEY}'
         type: SECRET
       - key: TURNSTILE_ENABLED
         value: 'true'
         type: GENERAL
       - key: DOCUMENT_URL_TTL_SECS
-        value: ${DOCUMENT_URL_TTL_SECS}
+        value: '${DOCUMENT_URL_TTL_SECS}'
         type: GENERAL
       - key: TINY_URL_BASE_URL
-        value: ${TINY_URL_BASE_URL}
+        value: '${TINY_URL_BASE_URL}'
         type: GENERAL
       - key: MIK_LOGO_PATH
-        value: ${MIK_LOGO_PATH}
+        value: '${MIK_LOGO_PATH}'
         type: GENERAL
       - key: SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID
-        value: ${SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID}
+        value: '${SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID}'
         type: GENERAL
       - key: MEDICAL_CHECK_ENABLED
-        value: ${MEDICAL_CHECK_ENABLED}
+        value: '${MEDICAL_CHECK_ENABLED}'
         type: GENERAL
       - key: NODE_ENV
         value: 'production'
         type: GENERAL
       - key: TINY_URL_CLEANUP_WORKER_ENABLED
-        value: ${TINY_URL_CLEANUP_WORKER_ENABLED }
+        value: '${TINY_URL_CLEANUP_WORKER_ENABLED}'
         type: GENERAL
       - key: TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP
-        value: ${TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP  }
+        value: '${TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP}'
         type: GENERAL
       - key: MAILBOX_CLEANUP_WORKER_ENABLED
-        value: ${MAILBOX_CLEANUP_WORKER_ENABLED}
+        value: '${MAILBOX_CLEANUP_WORKER_ENABLED}'
         type: GENERAL
       - key: MAILBOX_CLEANUP_WORKER_RUN_ON_STARTUP
-        value: ${MAILBOX_CLEANUP_WORKER_RUN_ON_STARTUP}
+        value: '${MAILBOX_CLEANUP_WORKER_RUN_ON_STARTUP}'
+        type: GENERAL
+      - key: QUALIFICATION_EXPIRY_WORKER_ENABLED
+        value: '${QUALIFICATION_EXPIRY_WORKER_ENABLED}'
+        type: GENERAL
+      - key: QUALIFICATION_EXPIRY_WORKER_RUN_ON_STARTUP
+        value: '${QUALIFICATION_EXPIRY_WORKER_RUN_ON_STARTUP}'
+        type: GENERAL
+      - key: QUALIFICATION_EXPIRY_REMINDER_DAYS
+        value: '${QUALIFICATION_EXPIRY_REMINDER_DAYS}'
+        type: GENERAL
+      - key: MILEAGE_HETU_PURGE_WORKER_ENABLED
+        value: '${MILEAGE_HETU_PURGE_WORKER_ENABLED}'
+        type: GENERAL
+      - key: MILEAGE_HETU_PURGE_WORKER_RUN_ON_STARTUP
+        value: '${MILEAGE_HETU_PURGE_WORKER_RUN_ON_STARTUP}'
+        type: GENERAL
+      - key: BOOKING_REMINDER_WORKER_ENABLED
+        value: '${BOOKING_REMINDER_WORKER_ENABLED}'
+        type: GENERAL
+      - key: BOOKING_REMINDER_HOURS_BEFORE
+        value: '${BOOKING_REMINDER_HOURS_BEFORE}'
+        type: GENERAL
+      - key: JUNIOR_PROMOTION_WORKER_ENABLED
+        value: '${JUNIOR_PROMOTION_WORKER_ENABLED}'
+        type: GENERAL
+      - key: JUNIOR_PROMOTION_WORKER_RUN_ON_STARTUP
+        value: '${JUNIOR_PROMOTION_WORKER_RUN_ON_STARTUP}'
+        type: GENERAL
+      - key: SIMPLBOOKS_MEMBER_SYNC_RUN_ON_STARTUP
+        value: '${SIMPLBOOKS_MEMBER_SYNC_RUN_ON_STARTUP}'
+        type: GENERAL
+      - key: NOMINATIM_BASE_URL
+        value: '${NOMINATIM_BASE_URL}'
+        type: GENERAL
+      - key: NOMINATIM_USER_AGENT
+        value: '${NOMINATIM_USER_AGENT}'
+        type: GENERAL
+      - key: OSRM_BASE_URL
+        value: '${OSRM_BASE_URL}'
         type: GENERAL
       - key: APP_ENV
         value: 'production'
         type: GENERAL
       - key: ORDER_NOTIFICATION_EMAIL
-        value: ${ORDER_NOTIFICATION_EMAIL}
+        value: '${ORDER_NOTIFICATION_EMAIL}'
         type: GENERAL
 
     instance_count: 1
@@ -279,11 +318,11 @@ static_sites:
 
     envs:
       - key: VITE_API_TARGET
-        value: ${VITE_API_TARGET}
+        value: '${VITE_API_TARGET}'
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
       - key: VITE_TURNSTILE_SITE_KEY
-        value: ${VITE_TURNSTILE_SITE_KEY}
+        value: '${VITE_TURNSTILE_SITE_KEY}'
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
       - key: DEPLOY_TIMESTAMP

@@ -18,27 +18,27 @@ jobs:
     envs:
       - key: DO_POSTGRES_PRIVATE_URL
         type: GENERAL
-        value: ${DO_POSTGRES_PRIVATE_URL}
+        value: '${DO_POSTGRES_PRIVATE_URL}'
       - key: DO_POSTGRES_USER
         type: GENERAL
-        value: ${DO_POSTGRES_USER}
+        value: '${DO_POSTGRES_USER}'
       - key: DO_POSTGRES_PORT
         type: GENERAL
         value: '${DO_POSTGRES_PORT}'
       - key: DO_POSTGRES_PASSWORD
         type: SECRET
-        value: ${DO_POSTGRES_PASSWORD}
+        value: '${DO_POSTGRES_PASSWORD}'
       - key: CLOUDFLARE_R2_ACCESSKEY_ID
         type: SECRET
-        value: ${CLOUDFLARE_R2_ACCESSKEY_ID}
+        value: '${CLOUDFLARE_R2_ACCESSKEY_ID}'
       - key: CLOUDFLARE_R2_SECRET_ACCESSKEY
         type: SECRET
-        value: ${CLOUDFLARE_R2_SECRET_ACCESSKEY}
+        value: '${CLOUDFLARE_R2_SECRET_ACCESSKEY}'
       - key: CLOUDFLARE_R2_EU_ENDPOINT
-        value: ${CLOUDFLARE_R2_EU_ENDPOINT}
+        value: '${CLOUDFLARE_R2_EU_ENDPOINT}'
       - key: CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP
         type: GENERAL
-        value: ${CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP}
+        value: '${CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP}'
       - key: BACKUP_ENCRYPTION_PASSWORD
         type: SECRET
-        value: ${BACKUP_ENCRYPTION_PASSWORD}
+        value: '${BACKUP_ENCRYPTION_PASSWORD}'
