@@ -42,6 +42,24 @@ in one commit is ~4,900 mechanical edits across the whole backend.
 Steps 3–4 are mostly mechanical and the compiler finds what you miss: with the camelCase
 types in place, every stale reference is a `TS2551 … Did you mean 'createdAt'?`.
 
+Identifiers hide in more places than the obvious ones. A find-and-replace over
+`selectFrom`/`where`/`orderBy` will leave all of these behind, and `dto`/`exam` had every
+one of them:
+
+| Form                                     | Example                                                         |
+| ---------------------------------------- | --------------------------------------------------------------- |
+| Three-part refs                          | `'dto.syllabus_flight_attempts.member_syllabus_id'`             |
+| Aliased selects                          | `'exam.exam_versions.version_id as version_id'`                 |
+| Join-alias refs                          | `'v.first_name as verifier_first_name'`, `'aq.sort_order'`      |
+| CTE / subquery aliases                   | `'published_versions.version_number'`                           |
+| Output aliases                           | `.as('latest_published_version_number')`                        |
+| Keys inside a `.set()` callback          | `.set((eb) => ({ patch_version: eb('patchVersion', '+', 1) }))` |
+| Optional keys in a hand-written row type | `exam_id?: string \| null`                                      |
+
+A useful check when you think you're done: every string literal your diff changed should
+map to its own camelCase form. Anything else means a _value_ was rewritten, not an
+identifier — an enum member or a status string, which the compiler will not catch.
+
 What does **not** disappear is value coercion — `Number(...)`, `.toISOString()`,
 `String(x).substring(0, 10)`. The plugin renames keys; it does not convert types. Mappers
 shrink, they rarely vanish.
@@ -80,10 +98,10 @@ corrupted by it. `test/db/camel-case-plugin.test.ts` pins this.
 
 ## Progress
 
-Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`.
+Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`.
 
 Remaining, easiest first — all have db-level tests and no raw SQL:
-`cost-centre`, `brevo-sync`, `exam`, `dto`.
+`cost-centre`, `brevo-sync`.
 
 Then the ones needing care: `aircraft`, `aircraft-document`, `member`, `occurrence`,
 `expense`, `booking`, `tax-report`, `traficom-report`, `flight-log` (raw SQL and/or shared

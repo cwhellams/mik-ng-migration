@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb, type CamelRow } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
@@ -45,33 +45,33 @@ function fisherYatesShuffle<T>(arr: T[]): T[] {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getExams(): Promise<Exam[]> {
-  const rows = await db.selectFrom('exam.exams').selectAll().orderBy('name').execute()
+  const rows = await camelDb.selectFrom('exam.exams').selectAll().orderBy('name').execute()
   return rows.map((r) => ({
-    examId: r.exam_id,
-    examType: r.exam_type,
+    examId: r.examId,
+    examType: r.examType,
     name: r.name,
-    createdAt: toIso(r.created_at),
-    createdBy: r.created_by,
-    updatedAt: toIso(r.updated_at),
-    updatedBy: r.updated_by,
+    createdAt: toIso(r.createdAt),
+    createdBy: r.createdBy,
+    updatedAt: toIso(r.updatedAt),
+    updatedBy: r.updatedBy,
   }))
 }
 
 export async function getExamById(examId: string): Promise<Exam | undefined> {
-  const r = await db
+  const r = await camelDb
     .selectFrom('exam.exams')
     .selectAll()
-    .where('exam_id', '=', examId)
+    .where('examId', '=', examId)
     .executeTakeFirst()
   if (!r) return undefined
   return {
-    examId: r.exam_id,
-    examType: r.exam_type,
+    examId: r.examId,
+    examType: r.examType,
     name: r.name,
-    createdAt: toIso(r.created_at),
-    createdBy: r.created_by,
-    updatedAt: toIso(r.updated_at),
-    updatedBy: r.updated_by,
+    createdAt: toIso(r.createdAt),
+    createdBy: r.createdBy,
+    updatedAt: toIso(r.updatedAt),
+    updatedBy: r.updatedBy,
   }
 }
 
@@ -81,16 +81,16 @@ export async function getExamWithPublishedVersion(
   const exam = await getExamById(examId)
   if (!exam) return undefined
 
-  const publishedVersion = await db
-    .selectFrom('exam.exam_versions')
+  const publishedVersion = await camelDb
+    .selectFrom('exam.examVersions')
     .selectAll()
-    .where('exam_id', '=', examId)
+    .where('examId', '=', examId)
     .where('status', '=', 'PUBLISHED')
     .executeTakeFirst()
 
   if (!publishedVersion) return undefined
 
-  const detail = await getVersionDetail(publishedVersion.version_id)
+  const detail = await getVersionDetail(publishedVersion.versionId)
   if (!detail) return undefined
   return { ...exam, currentVersion: detail }
 }
@@ -102,14 +102,14 @@ export async function getExamsWithPublishedVersions(): Promise<ExamWithVersion[]
   const examIds = exams.map((e) => e.examId)
 
   // Single query to find all published versions for these exams
-  const publishedRows = await db
-    .selectFrom('exam.exam_versions')
-    .select(['exam_id', 'version_id'])
-    .where('exam_id', 'in', examIds)
+  const publishedRows = await camelDb
+    .selectFrom('exam.examVersions')
+    .select(['examId', 'versionId'])
+    .where('examId', 'in', examIds)
     .where('status', '=', 'PUBLISHED')
     .execute()
 
-  const publishedVersionByExam = new Map(publishedRows.map((r) => [r.exam_id, r.version_id]))
+  const publishedVersionByExam = new Map(publishedRows.map((r) => [r.examId, r.versionId]))
   const versionIds = [...new Set(publishedVersionByExam.values())]
 
   // Load all version details in parallel (each detail query is already batched)
@@ -133,16 +133,16 @@ export async function getExamsWithPublishedVersions(): Promise<ExamWithVersion[]
 export async function insertExam(data: ExamUpsert, user: JWTUser): Promise<Exam> {
   const id = data.examId ?? generateShortId()
   const now = new Date()
-  await db
+  await camelDb
     .insertInto('exam.exams')
     .values({
-      exam_id: id,
-      exam_type: data.examType ?? 'OTHER',
+      examId: id,
+      examType: data.examType ?? 'OTHER',
       name: data.name,
-      created_at: now,
-      created_by: user.memberId,
-      updated_at: now,
-      updated_by: user.memberId,
+      createdAt: now,
+      createdBy: user.memberId,
+      updatedAt: now,
+      updatedBy: user.memberId,
     })
     .execute()
   const created = await getExamById(id)
@@ -155,15 +155,15 @@ export async function updateExam(
   data: Partial<ExamUpsert>,
   user: JWTUser,
 ): Promise<Exam> {
-  await db
+  await camelDb
     .updateTable('exam.exams')
     .set({
       ...(data.name !== undefined && { name: data.name }),
-      ...(data.examType !== undefined && { exam_type: data.examType }),
-      updated_at: new Date(),
-      updated_by: user.memberId,
+      ...(data.examType !== undefined && { examType: data.examType }),
+      updatedAt: new Date(),
+      updatedBy: user.memberId,
     })
-    .where('exam_id', '=', examId)
+    .where('examId', '=', examId)
     .execute()
   const updated = await getExamById(examId)
   if (!updated) return problem({ status: 404, detail: 'Exam not found' })
@@ -171,7 +171,7 @@ export async function updateExam(
 }
 
 export async function deleteExam(examId: string): Promise<void> {
-  await db.deleteFrom('exam.exams').where('exam_id', '=', examId).execute()
+  await camelDb.deleteFrom('exam.exams').where('examId', '=', examId).execute()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -179,48 +179,48 @@ export async function deleteExam(examId: string): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getVersionsByExamId(examId: string): Promise<ExamVersion[]> {
-  const rows = await db
-    .selectFrom('exam.exam_versions')
+  const rows = await camelDb
+    .selectFrom('exam.examVersions')
     .selectAll()
-    .where('exam_id', '=', examId)
-    .orderBy('version_number', 'desc')
+    .where('examId', '=', examId)
+    .orderBy('versionNumber', 'desc')
     .execute()
   return rows.map((r) => ({
-    versionId: r.version_id,
-    examId: r.exam_id,
-    versionNumber: r.version_number,
+    versionId: r.versionId,
+    examId: r.examId,
+    versionNumber: r.versionNumber,
     status: r.status,
-    defaultLanguage: r.default_language,
-    supportedLanguages: r.supported_languages,
-    passPercent: Number(r.pass_percent),
-    questionCount: r.question_count ?? null,
-    createdAt: toIso(r.created_at),
-    createdBy: r.created_by,
-    updatedAt: toIso(r.updated_at),
-    updatedBy: r.updated_by,
+    defaultLanguage: r.defaultLanguage,
+    supportedLanguages: r.supportedLanguages,
+    passPercent: Number(r.passPercent),
+    questionCount: r.questionCount ?? null,
+    createdAt: toIso(r.createdAt),
+    createdBy: r.createdBy,
+    updatedAt: toIso(r.updatedAt),
+    updatedBy: r.updatedBy,
   }))
 }
 
 export async function getVersionById(versionId: string): Promise<ExamVersion | undefined> {
-  const r = await db
-    .selectFrom('exam.exam_versions')
+  const r = await camelDb
+    .selectFrom('exam.examVersions')
     .selectAll()
-    .where('version_id', '=', versionId)
+    .where('versionId', '=', versionId)
     .executeTakeFirst()
   if (!r) return undefined
   return {
-    versionId: r.version_id,
-    examId: r.exam_id,
-    versionNumber: r.version_number,
+    versionId: r.versionId,
+    examId: r.examId,
+    versionNumber: r.versionNumber,
     status: r.status,
-    defaultLanguage: r.default_language,
-    supportedLanguages: r.supported_languages,
-    passPercent: Number(r.pass_percent),
-    questionCount: r.question_count ?? null,
-    createdAt: toIso(r.created_at),
-    createdBy: r.created_by,
-    updatedAt: toIso(r.updated_at),
-    updatedBy: r.updated_by,
+    defaultLanguage: r.defaultLanguage,
+    supportedLanguages: r.supportedLanguages,
+    passPercent: Number(r.passPercent),
+    questionCount: r.questionCount ?? null,
+    createdAt: toIso(r.createdAt),
+    createdBy: r.createdBy,
+    updatedAt: toIso(r.updatedAt),
+    updatedBy: r.updatedBy,
   }
 }
 
@@ -229,10 +229,10 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
   if (!version) return undefined
 
   // translations
-  const tranRows = await db
-    .selectFrom('exam.exam_version_translations')
+  const tranRows = await camelDb
+    .selectFrom('exam.examVersionTranslations')
     .selectAll()
-    .where('version_id', '=', versionId)
+    .where('versionId', '=', versionId)
     .execute()
   const translations: ExamVersionDetail['translations'] = {}
   for (const t of tranRows) {
@@ -240,76 +240,76 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
   }
 
   // Batch: questions
-  const qRows = await db
+  const qRows = await camelDb
     .selectFrom('exam.questions')
     .selectAll()
-    .where('version_id', '=', versionId)
-    .orderBy('sort_order')
+    .where('versionId', '=', versionId)
+    .orderBy('sortOrder')
     .execute()
 
   if (qRows.length === 0) {
     return { ...version, translations, questions: [] }
   }
 
-  const questionIds = qRows.map((q) => q.question_id)
+  const questionIds = qRows.map((q) => q.questionId)
 
   // Batch: all question_translations for this version's questions
-  const qtRows = await db
-    .selectFrom('exam.question_translations')
+  const qtRows = await camelDb
+    .selectFrom('exam.questionTranslations')
     .selectAll()
-    .where('question_id', 'in', questionIds)
+    .where('questionId', 'in', questionIds)
     .execute()
 
   // Batch: all choices for this version's questions
-  const cRows = await db
+  const cRows = await camelDb
     .selectFrom('exam.choices')
     .selectAll()
-    .where('question_id', 'in', questionIds)
-    .orderBy('sort_order')
+    .where('questionId', 'in', questionIds)
+    .orderBy('sortOrder')
     .execute()
 
   // Batch: all choice_translations for fetched choices (skip if no choices)
-  const choiceIds = cRows.map((c) => c.choice_id)
+  const choiceIds = cRows.map((c) => c.choiceId)
   const ctRows =
     choiceIds.length > 0
-      ? await db
-          .selectFrom('exam.choice_translations')
+      ? await camelDb
+          .selectFrom('exam.choiceTranslations')
           .selectAll()
-          .where('choice_id', 'in', choiceIds)
+          .where('choiceId', 'in', choiceIds)
           .execute()
       : []
 
   // Assemble in memory
   const qtByQuestion = new Map<string, Question['translations']>()
   for (const qt of qtRows) {
-    if (!qtByQuestion.has(qt.question_id)) qtByQuestion.set(qt.question_id, {})
-    qtByQuestion.get(qt.question_id)![qt.language] = { prompt: qt.prompt, reasoning: qt.reasoning }
+    if (!qtByQuestion.has(qt.questionId)) qtByQuestion.set(qt.questionId, {})
+    qtByQuestion.get(qt.questionId)![qt.language] = { prompt: qt.prompt, reasoning: qt.reasoning }
   }
 
   const ctByChoice = new Map<string, Choice['translations']>()
   for (const ct of ctRows) {
-    if (!ctByChoice.has(ct.choice_id)) ctByChoice.set(ct.choice_id, {})
-    ctByChoice.get(ct.choice_id)![ct.language] = { text: ct.text }
+    if (!ctByChoice.has(ct.choiceId)) ctByChoice.set(ct.choiceId, {})
+    ctByChoice.get(ct.choiceId)![ct.language] = { text: ct.text }
   }
 
   const choicesByQuestion = new Map<string, Choice[]>()
   for (const c of cRows) {
-    if (!choicesByQuestion.has(c.question_id)) choicesByQuestion.set(c.question_id, [])
-    choicesByQuestion.get(c.question_id)!.push({
-      choiceId: c.choice_id,
-      questionId: c.question_id,
-      isCorrect: c.is_correct,
-      sortOrder: c.sort_order,
-      translations: ctByChoice.get(c.choice_id) ?? {},
+    if (!choicesByQuestion.has(c.questionId)) choicesByQuestion.set(c.questionId, [])
+    choicesByQuestion.get(c.questionId)!.push({
+      choiceId: c.choiceId,
+      questionId: c.questionId,
+      isCorrect: c.isCorrect,
+      sortOrder: c.sortOrder,
+      translations: ctByChoice.get(c.choiceId) ?? {},
     })
   }
 
   const questions: ExamVersionDetail['questions'] = qRows.map((q) => ({
-    questionId: q.question_id,
-    versionId: q.version_id,
-    sortOrder: q.sort_order,
-    translations: qtByQuestion.get(q.question_id) ?? {},
-    choices: choicesByQuestion.get(q.question_id) ?? [],
+    questionId: q.questionId,
+    versionId: q.versionId,
+    sortOrder: q.sortOrder,
+    translations: qtByQuestion.get(q.questionId) ?? {},
+    choices: choicesByQuestion.get(q.questionId) ?? [],
   }))
 
   return { ...version, translations, questions }
@@ -334,22 +334,22 @@ export async function createVersion(
     if (published) publishedVersionDetail = await getVersionDetail(published.versionId)
   }
 
-  await db.transaction().execute(async (trx) => {
+  await camelDb.transaction().execute(async (trx) => {
     await trx
-      .insertInto('exam.exam_versions')
+      .insertInto('exam.examVersions')
       .values({
-        version_id: id,
-        exam_id: examId,
-        version_number: nextNumber,
+        versionId: id,
+        examId: examId,
+        versionNumber: nextNumber,
         status: 'DRAFT',
-        default_language: data.defaultLanguage ?? 'en',
-        supported_languages: data.supportedLanguages ?? [],
-        pass_percent: data.passPercent ?? 75,
-        question_count: data.questionCount ?? null,
-        created_at: now,
-        created_by: user.memberId,
-        updated_at: now,
-        updated_by: user.memberId,
+        defaultLanguage: data.defaultLanguage ?? 'en',
+        supportedLanguages: data.supportedLanguages ?? [],
+        passPercent: data.passPercent ?? 75,
+        questionCount: data.questionCount ?? null,
+        createdAt: now,
+        createdBy: user.memberId,
+        updatedAt: now,
+        updatedBy: user.memberId,
       })
       .execute()
 
@@ -357,9 +357,9 @@ export async function createVersion(
       // clone translations
       for (const [lang, t] of Object.entries(publishedVersionDetail.translations)) {
         await trx
-          .insertInto('exam.exam_version_translations')
+          .insertInto('exam.examVersionTranslations')
           .values({
-            version_id: id,
+            versionId: id,
             language: lang,
             title: t.title,
             description: t.description ?? null,
@@ -371,13 +371,13 @@ export async function createVersion(
         const newQId = generateShortId()
         await trx
           .insertInto('exam.questions')
-          .values({ question_id: newQId, version_id: id, sort_order: q.sortOrder })
+          .values({ questionId: newQId, versionId: id, sortOrder: q.sortOrder })
           .execute()
         for (const [lang, qt] of Object.entries(q.translations)) {
           await trx
-            .insertInto('exam.question_translations')
+            .insertInto('exam.questionTranslations')
             .values({
-              question_id: newQId,
+              questionId: newQId,
               language: lang,
               prompt: qt.prompt,
               reasoning: qt.reasoning ?? null,
@@ -389,16 +389,16 @@ export async function createVersion(
           await trx
             .insertInto('exam.choices')
             .values({
-              choice_id: newCId,
-              question_id: newQId,
-              is_correct: c.isCorrect,
-              sort_order: c.sortOrder,
+              choiceId: newCId,
+              questionId: newQId,
+              isCorrect: c.isCorrect,
+              sortOrder: c.sortOrder,
             })
             .execute()
           for (const [lang, ct] of Object.entries(c.translations)) {
             await trx
-              .insertInto('exam.choice_translations')
-              .values({ choice_id: newCId, language: lang, text: ct.text })
+              .insertInto('exam.choiceTranslations')
+              .values({ choiceId: newCId, language: lang, text: ct.text })
               .execute()
           }
         }
@@ -416,19 +416,19 @@ export async function updateVersion(
   data: Partial<ExamVersionUpsert>,
   user: JWTUser,
 ): Promise<ExamVersion> {
-  await db
-    .updateTable('exam.exam_versions')
+  await camelDb
+    .updateTable('exam.examVersions')
     .set({
-      ...(data.defaultLanguage !== undefined && { default_language: data.defaultLanguage }),
+      ...(data.defaultLanguage !== undefined && { defaultLanguage: data.defaultLanguage }),
       ...(data.supportedLanguages !== undefined && {
-        supported_languages: data.supportedLanguages,
+        supportedLanguages: data.supportedLanguages,
       }),
-      ...(data.passPercent !== undefined && { pass_percent: data.passPercent }),
-      ...('questionCount' in data && { question_count: data.questionCount ?? null }),
-      updated_at: new Date(),
-      updated_by: user.memberId,
+      ...(data.passPercent !== undefined && { passPercent: data.passPercent }),
+      ...('questionCount' in data && { questionCount: data.questionCount ?? null }),
+      updatedAt: new Date(),
+      updatedBy: user.memberId,
     })
-    .where('version_id', '=', versionId)
+    .where('versionId', '=', versionId)
     .execute()
   const updated = await getVersionById(versionId)
   if (!updated) return problem({ status: 404, detail: 'Version not found' })
@@ -442,20 +442,20 @@ export async function publishVersion(versionId: string, user: JWTUser): Promise<
     return problem({ status: 409, detail: 'Only DRAFT versions can be published' })
 
   const now = new Date()
-  await db.transaction().execute(async (trx) => {
+  await camelDb.transaction().execute(async (trx) => {
     // Retire the currently published version (if any)
     await trx
-      .updateTable('exam.exam_versions')
-      .set({ status: 'RETIRED', updated_at: now, updated_by: user.memberId })
-      .where('exam_id', '=', version.examId)
+      .updateTable('exam.examVersions')
+      .set({ status: 'RETIRED', updatedAt: now, updatedBy: user.memberId })
+      .where('examId', '=', version.examId)
       .where('status', '=', 'PUBLISHED')
       .execute()
 
     // Publish this version
     await trx
-      .updateTable('exam.exam_versions')
-      .set({ status: 'PUBLISHED', updated_at: now, updated_by: user.memberId })
-      .where('version_id', '=', versionId)
+      .updateTable('exam.examVersions')
+      .set({ status: 'PUBLISHED', updatedAt: now, updatedBy: user.memberId })
+      .where('versionId', '=', versionId)
       .execute()
   })
 
@@ -465,7 +465,7 @@ export async function publishVersion(versionId: string, user: JWTUser): Promise<
 }
 
 export async function deleteVersion(versionId: string): Promise<void> {
-  await db.deleteFrom('exam.exam_versions').where('version_id', '=', versionId).execute()
+  await camelDb.deleteFrom('exam.examVersions').where('versionId', '=', versionId).execute()
 }
 
 export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamImportResult> {
@@ -473,43 +473,43 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
   const versionId = generateShortId()
   const now = new Date()
 
-  await db.transaction().execute(async (trx) => {
+  await camelDb.transaction().execute(async (trx) => {
     await trx
       .insertInto('exam.exams')
       .values({
-        exam_id: examId,
-        exam_type: data.examType ?? 'OTHER',
+        examId: examId,
+        examType: data.examType ?? 'OTHER',
         name: data.name,
-        created_at: now,
-        created_by: user.memberId,
-        updated_at: now,
-        updated_by: user.memberId,
+        createdAt: now,
+        createdBy: user.memberId,
+        updatedAt: now,
+        updatedBy: user.memberId,
       })
       .execute()
 
     await trx
-      .insertInto('exam.exam_versions')
+      .insertInto('exam.examVersions')
       .values({
-        version_id: versionId,
-        exam_id: examId,
-        version_number: 1,
+        versionId: versionId,
+        examId: examId,
+        versionNumber: 1,
         status: 'DRAFT',
-        default_language: data.version.defaultLanguage ?? 'fi',
-        supported_languages: data.version.supportedLanguages ?? [],
-        pass_percent: data.version.passPercent ?? 75,
-        question_count: null,
-        created_at: now,
-        created_by: user.memberId,
-        updated_at: now,
-        updated_by: user.memberId,
+        defaultLanguage: data.version.defaultLanguage ?? 'fi',
+        supportedLanguages: data.version.supportedLanguages ?? [],
+        passPercent: data.version.passPercent ?? 75,
+        questionCount: null,
+        createdAt: now,
+        createdBy: user.memberId,
+        updatedAt: now,
+        updatedBy: user.memberId,
       })
       .execute()
 
     for (const [lang, t] of Object.entries(data.version.translations)) {
       await trx
-        .insertInto('exam.exam_version_translations')
+        .insertInto('exam.examVersionTranslations')
         .values({
-          version_id: versionId,
+          versionId: versionId,
           language: lang,
           title: t.title,
           description: t.description ?? null,
@@ -521,14 +521,14 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
       const questionId = generateShortId()
       await trx
         .insertInto('exam.questions')
-        .values({ question_id: questionId, version_id: versionId, sort_order: q.sortOrder })
+        .values({ questionId: questionId, versionId: versionId, sortOrder: q.sortOrder })
         .execute()
 
       for (const [lang, qt] of Object.entries(q.translations)) {
         await trx
-          .insertInto('exam.question_translations')
+          .insertInto('exam.questionTranslations')
           .values({
-            question_id: questionId,
+            questionId: questionId,
             language: lang,
             prompt: qt.prompt,
             reasoning: qt.reasoning ?? null,
@@ -541,17 +541,17 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
         await trx
           .insertInto('exam.choices')
           .values({
-            choice_id: choiceId,
-            question_id: questionId,
-            is_correct: c.isCorrect,
-            sort_order: c.sortOrder,
+            choiceId: choiceId,
+            questionId: questionId,
+            isCorrect: c.isCorrect,
+            sortOrder: c.sortOrder,
           })
           .execute()
 
         for (const [lang, ct] of Object.entries(c.translations)) {
           await trx
-            .insertInto('exam.choice_translations')
-            .values({ choice_id: choiceId, language: lang, text: ct.text })
+            .insertInto('exam.choiceTranslations')
+            .values({ choiceId: choiceId, language: lang, text: ct.text })
             .execute()
         }
       }
@@ -562,75 +562,75 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
 }
 
 export async function getVersionByQuestionId(questionId: string): Promise<ExamVersion | undefined> {
-  const row = await db
+  const row = await camelDb
     .selectFrom('exam.questions')
-    .innerJoin('exam.exam_versions', 'exam.exam_versions.version_id', 'exam.questions.version_id')
+    .innerJoin('exam.examVersions', 'exam.examVersions.versionId', 'exam.questions.versionId')
     .select([
-      'exam.exam_versions.version_id as version_id',
-      'exam.exam_versions.exam_id as exam_id',
-      'exam.exam_versions.version_number as version_number',
-      'exam.exam_versions.status as status',
-      'exam.exam_versions.default_language as default_language',
-      'exam.exam_versions.supported_languages as supported_languages',
-      'exam.exam_versions.pass_percent as pass_percent',
-      'exam.exam_versions.created_at as created_at',
-      'exam.exam_versions.created_by as created_by',
-      'exam.exam_versions.updated_at as updated_at',
-      'exam.exam_versions.updated_by as updated_by',
+      'exam.examVersions.versionId as versionId',
+      'exam.examVersions.examId as examId',
+      'exam.examVersions.versionNumber as versionNumber',
+      'exam.examVersions.status as status',
+      'exam.examVersions.defaultLanguage as defaultLanguage',
+      'exam.examVersions.supportedLanguages as supportedLanguages',
+      'exam.examVersions.passPercent as passPercent',
+      'exam.examVersions.createdAt as createdAt',
+      'exam.examVersions.createdBy as createdBy',
+      'exam.examVersions.updatedAt as updatedAt',
+      'exam.examVersions.updatedBy as updatedBy',
     ])
-    .where('exam.questions.question_id', '=', questionId)
+    .where('exam.questions.questionId', '=', questionId)
     .executeTakeFirst()
 
   if (!row) return undefined
   return {
-    versionId: row.version_id,
-    examId: row.exam_id,
-    versionNumber: row.version_number,
+    versionId: row.versionId,
+    examId: row.examId,
+    versionNumber: row.versionNumber,
     status: row.status,
-    defaultLanguage: row.default_language,
-    supportedLanguages: row.supported_languages,
-    passPercent: Number(row.pass_percent),
-    createdAt: toIso(row.created_at),
-    createdBy: row.created_by,
-    updatedAt: toIso(row.updated_at),
-    updatedBy: row.updated_by,
+    defaultLanguage: row.defaultLanguage,
+    supportedLanguages: row.supportedLanguages,
+    passPercent: Number(row.passPercent),
+    createdAt: toIso(row.createdAt),
+    createdBy: row.createdBy,
+    updatedAt: toIso(row.updatedAt),
+    updatedBy: row.updatedBy,
   }
 }
 
 export async function getVersionByChoiceId(choiceId: string): Promise<ExamVersion | undefined> {
-  const row = await db
+  const row = await camelDb
     .selectFrom('exam.choices')
-    .innerJoin('exam.questions', 'exam.questions.question_id', 'exam.choices.question_id')
-    .innerJoin('exam.exam_versions', 'exam.exam_versions.version_id', 'exam.questions.version_id')
+    .innerJoin('exam.questions', 'exam.questions.questionId', 'exam.choices.questionId')
+    .innerJoin('exam.examVersions', 'exam.examVersions.versionId', 'exam.questions.versionId')
     .select([
-      'exam.exam_versions.version_id as version_id',
-      'exam.exam_versions.exam_id as exam_id',
-      'exam.exam_versions.version_number as version_number',
-      'exam.exam_versions.status as status',
-      'exam.exam_versions.default_language as default_language',
-      'exam.exam_versions.supported_languages as supported_languages',
-      'exam.exam_versions.pass_percent as pass_percent',
-      'exam.exam_versions.created_at as created_at',
-      'exam.exam_versions.created_by as created_by',
-      'exam.exam_versions.updated_at as updated_at',
-      'exam.exam_versions.updated_by as updated_by',
+      'exam.examVersions.versionId as versionId',
+      'exam.examVersions.examId as examId',
+      'exam.examVersions.versionNumber as versionNumber',
+      'exam.examVersions.status as status',
+      'exam.examVersions.defaultLanguage as defaultLanguage',
+      'exam.examVersions.supportedLanguages as supportedLanguages',
+      'exam.examVersions.passPercent as passPercent',
+      'exam.examVersions.createdAt as createdAt',
+      'exam.examVersions.createdBy as createdBy',
+      'exam.examVersions.updatedAt as updatedAt',
+      'exam.examVersions.updatedBy as updatedBy',
     ])
-    .where('exam.choices.choice_id', '=', choiceId)
+    .where('exam.choices.choiceId', '=', choiceId)
     .executeTakeFirst()
 
   if (!row) return undefined
   return {
-    versionId: row.version_id,
-    examId: row.exam_id,
-    versionNumber: row.version_number,
+    versionId: row.versionId,
+    examId: row.examId,
+    versionNumber: row.versionNumber,
     status: row.status,
-    defaultLanguage: row.default_language,
-    supportedLanguages: row.supported_languages,
-    passPercent: Number(row.pass_percent),
-    createdAt: toIso(row.created_at),
-    createdBy: row.created_by,
-    updatedAt: toIso(row.updated_at),
-    updatedBy: row.updated_by,
+    defaultLanguage: row.defaultLanguage,
+    supportedLanguages: row.supportedLanguages,
+    passPercent: Number(row.passPercent),
+    createdAt: toIso(row.createdAt),
+    createdBy: row.createdBy,
+    updatedAt: toIso(row.updatedAt),
+    updatedBy: row.updatedBy,
   }
 }
 
@@ -644,10 +644,10 @@ export async function upsertVersionTranslation(
   title: string,
   description: string | null,
 ): Promise<void> {
-  await db
-    .insertInto('exam.exam_version_translations')
-    .values({ version_id: versionId, language, title, description })
-    .onConflict((oc) => oc.columns(['version_id', 'language']).doUpdateSet({ title, description }))
+  await camelDb
+    .insertInto('exam.examVersionTranslations')
+    .values({ versionId: versionId, language, title, description })
+    .onConflict((oc) => oc.columns(['versionId', 'language']).doUpdateSet({ title, description }))
     .execute()
 }
 
@@ -659,42 +659,42 @@ export async function upsertQuestion(versionId: string, data: QuestionUpsert): P
   const id = data.questionId ?? generateShortId()
 
   if (data.questionId) {
-    await db
+    await camelDb
       .updateTable('exam.questions')
-      .set({ sort_order: data.sortOrder })
-      .where('question_id', '=', id)
+      .set({ sortOrder: data.sortOrder })
+      .where('questionId', '=', id)
       .execute()
   } else {
-    await db
+    await camelDb
       .insertInto('exam.questions')
-      .values({ question_id: id, version_id: versionId, sort_order: data.sortOrder })
+      .values({ questionId: id, versionId: versionId, sortOrder: data.sortOrder })
       .execute()
   }
 
   // upsert translations
   for (const [lang, t] of Object.entries(data.translations)) {
-    await db
-      .insertInto('exam.question_translations')
-      .values({ question_id: id, language: lang, prompt: t.prompt, reasoning: t.reasoning ?? null })
+    await camelDb
+      .insertInto('exam.questionTranslations')
+      .values({ questionId: id, language: lang, prompt: t.prompt, reasoning: t.reasoning ?? null })
       .onConflict((oc) =>
         oc
-          .columns(['question_id', 'language'])
+          .columns(['questionId', 'language'])
           .doUpdateSet({ prompt: t.prompt, reasoning: t.reasoning ?? null }),
       )
       .execute()
   }
 
-  const q = await db
+  const q = await camelDb
     .selectFrom('exam.questions')
     .selectAll()
-    .where('question_id', '=', id)
+    .where('questionId', '=', id)
     .executeTakeFirst()
   if (!q) return problem({ status: 500, detail: 'Failed to upsert question' })
 
-  const qtRows = await db
-    .selectFrom('exam.question_translations')
+  const qtRows = await camelDb
+    .selectFrom('exam.questionTranslations')
     .selectAll()
-    .where('question_id', '=', id)
+    .where('questionId', '=', id)
     .execute()
   const translations: Question['translations'] = {}
   for (const qt of qtRows) {
@@ -702,15 +702,15 @@ export async function upsertQuestion(versionId: string, data: QuestionUpsert): P
   }
 
   return {
-    questionId: q.question_id,
-    versionId: q.version_id,
-    sortOrder: q.sort_order,
+    questionId: q.questionId,
+    versionId: q.versionId,
+    sortOrder: q.sortOrder,
     translations,
   }
 }
 
 export async function deleteQuestion(questionId: string): Promise<void> {
-  await db.deleteFrom('exam.questions').where('question_id', '=', questionId).execute()
+  await camelDb.deleteFrom('exam.questions').where('questionId', '=', questionId).execute()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -720,33 +720,33 @@ export async function deleteQuestion(questionId: string): Promise<void> {
 export async function upsertChoice(questionId: string, data: ChoiceUpsert): Promise<Choice> {
   const id = data.choiceId ?? generateShortId()
 
-  await db.transaction().execute(async (trx) => {
+  await camelDb.transaction().execute(async (trx) => {
     // If marking this choice as correct, clear any existing correct choice for the question
     // to avoid violating the partial unique index on (question_id) WHERE is_correct = true
     if (data.isCorrect) {
       await trx
         .updateTable('exam.choices')
-        .set({ is_correct: false })
-        .where('question_id', '=', questionId)
-        .where('choice_id', '!=', id)
-        .where('is_correct', '=', true)
+        .set({ isCorrect: false })
+        .where('questionId', '=', questionId)
+        .where('choiceId', '!=', id)
+        .where('isCorrect', '=', true)
         .execute()
     }
 
     if (data.choiceId) {
       await trx
         .updateTable('exam.choices')
-        .set({ is_correct: data.isCorrect, sort_order: data.sortOrder })
-        .where('choice_id', '=', id)
+        .set({ isCorrect: data.isCorrect, sortOrder: data.sortOrder })
+        .where('choiceId', '=', id)
         .execute()
     } else {
       await trx
         .insertInto('exam.choices')
         .values({
-          choice_id: id,
-          question_id: questionId,
-          is_correct: data.isCorrect,
-          sort_order: data.sortOrder,
+          choiceId: id,
+          questionId: questionId,
+          isCorrect: data.isCorrect,
+          sortOrder: data.sortOrder,
         })
         .execute()
     }
@@ -754,24 +754,24 @@ export async function upsertChoice(questionId: string, data: ChoiceUpsert): Prom
 
   // upsert translations
   for (const [lang, t] of Object.entries(data.translations)) {
-    await db
-      .insertInto('exam.choice_translations')
-      .values({ choice_id: id, language: lang, text: t.text })
-      .onConflict((oc) => oc.columns(['choice_id', 'language']).doUpdateSet({ text: t.text }))
+    await camelDb
+      .insertInto('exam.choiceTranslations')
+      .values({ choiceId: id, language: lang, text: t.text })
+      .onConflict((oc) => oc.columns(['choiceId', 'language']).doUpdateSet({ text: t.text }))
       .execute()
   }
 
-  const c = await db
+  const c = await camelDb
     .selectFrom('exam.choices')
     .selectAll()
-    .where('choice_id', '=', id)
+    .where('choiceId', '=', id)
     .executeTakeFirst()
   if (!c) return problem({ status: 500, detail: 'Failed to upsert choice' })
 
-  const ctRows = await db
-    .selectFrom('exam.choice_translations')
+  const ctRows = await camelDb
+    .selectFrom('exam.choiceTranslations')
     .selectAll()
-    .where('choice_id', '=', id)
+    .where('choiceId', '=', id)
     .execute()
   const translations: Choice['translations'] = {}
   for (const ct of ctRows) {
@@ -779,81 +779,68 @@ export async function upsertChoice(questionId: string, data: ChoiceUpsert): Prom
   }
 
   return {
-    choiceId: c.choice_id,
-    questionId: c.question_id,
-    isCorrect: c.is_correct,
-    sortOrder: c.sort_order,
+    choiceId: c.choiceId,
+    questionId: c.questionId,
+    isCorrect: c.isCorrect,
+    sortOrder: c.sortOrder,
     translations,
   }
 }
 
 export async function deleteChoice(choiceId: string): Promise<void> {
-  await db.deleteFrom('exam.choices').where('choice_id', '=', choiceId).execute()
+  await camelDb.deleteFrom('exam.choices').where('choiceId', '=', choiceId).execute()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Attempts
 // ─────────────────────────────────────────────────────────────────────────────
 
-function rowToAttempt(r: {
-  attempt_id: string
-  version_id: string
-  exam_id?: string | null
-  name?: string | null
-  exam_type?: Attempt['examType']
-  version_number?: number | null
-  latest_published_version_number?: number | string | null
-  member_id: string
-  language: string
-  status: string
-  score_percent: number | string | null
-  correct_count: number | null
-  total_count: number | null
-  passed: boolean | null
-  submitted_at: Date | string | null
-  graded_at: Date | string | null
-  abandoned_at: Date | string | null
-  abandon_reason: string | null
-  created_at: Date | string
-  updated_at: Date | string
-}): Attempt {
+function rowToAttempt(
+  r: CamelRow<'exam.attempts'> & {
+    examId?: string | null
+    name?: string | null
+    examType?: Attempt['examType']
+    versionNumber?: number | null
+    latestPublishedVersionNumber?: number | string | null
+  },
+): Attempt {
   return {
-    attemptId: r.attempt_id,
-    versionId: r.version_id,
-    examId: r.exam_id ?? null,
+    attemptId: r.attemptId,
+    versionId: r.versionId,
+    examId: r.examId ?? null,
     examName: r.name ?? null,
-    examType: r.exam_type ?? null,
-    versionNumber: r.version_number ?? null,
+    examType: r.examType ?? null,
+    versionNumber: r.versionNumber ?? null,
     latestPublishedVersionNumber:
-      r.latest_published_version_number != null ? Number(r.latest_published_version_number) : null,
-    memberId: r.member_id,
+      r.latestPublishedVersionNumber != null ? Number(r.latestPublishedVersionNumber) : null,
+    memberId: r.memberId,
     language: r.language,
     status: r.status as Attempt['status'],
-    scorePercent: r.score_percent != null ? Number(r.score_percent) : null,
-    correctCount: r.correct_count,
-    totalCount: r.total_count,
+    scorePercent: r.scorePercent != null ? Number(r.scorePercent) : null,
+    correctCount: r.correctCount,
+    totalCount: r.totalCount,
     passed: r.passed,
-    submittedAt: r.submitted_at ? toIso(r.submitted_at) : null,
-    gradedAt: r.graded_at ? toIso(r.graded_at) : null,
-    abandonedAt: r.abandoned_at ? toIso(r.abandoned_at) : null,
-    abandonReason: r.abandon_reason,
-    createdAt: toIso(r.created_at),
-    updatedAt: toIso(r.updated_at),
+    submittedAt: r.submittedAt ? toIso(r.submittedAt) : null,
+    gradedAt: r.gradedAt ? toIso(r.gradedAt) : null,
+    abandonedAt: r.abandonedAt ? toIso(r.abandonedAt) : null,
+    abandonReason: r.abandonReason,
+    createdAt: toIso(r.createdAt),
+    updatedAt: toIso(r.updatedAt),
   }
 }
 
 export async function getAttempts(filters: AttemptFilters): Promise<AttemptListResponse> {
   const { page, pageSize } = filters
 
-  let q = db
+  let q = camelDb
     .selectFrom('exam.attempts as attempts')
-    .innerJoin('exam.exam_versions as versions', 'versions.version_id', 'attempts.version_id')
-    .innerJoin('exam.exams as exams', 'exams.exam_id', 'versions.exam_id')
-  if (filters.memberId) q = q.where('attempts.member_id', '=', filters.memberId)
+    .innerJoin('exam.examVersions as versions', 'versions.versionId', 'attempts.versionId')
+    .innerJoin('exam.exams as exams', 'exams.examId', 'versions.examId')
+  if (filters.memberId) q = q.where('attempts.memberId', '=', filters.memberId)
   if (filters.status) q = q.where('attempts.status', '=', filters.status)
 
   if (filters.examId) {
-    q = q.where('versions.exam_id', '=', filters.examId)
+    q = q.where('versions.examId', '=', filters.examId)
   }
 
   const countRow = await q.select((eb) => [eb.fn.countAll<number>().as('total')]).executeTakeFirst()
@@ -861,33 +848,33 @@ export async function getAttempts(filters: AttemptFilters): Promise<AttemptListR
 
   const rows = await q
     .select((eb) => [
-      'attempts.attempt_id',
-      'attempts.version_id',
-      'versions.exam_id',
+      'attempts.attemptId',
+      'attempts.versionId',
+      'versions.examId',
       'exams.name',
-      'exams.exam_type',
-      'versions.version_number',
-      'attempts.member_id',
+      'exams.examType',
+      'versions.versionNumber',
+      'attempts.memberId',
       'attempts.language',
       'attempts.status',
-      'attempts.score_percent',
-      'attempts.correct_count',
-      'attempts.total_count',
+      'attempts.scorePercent',
+      'attempts.correctCount',
+      'attempts.totalCount',
       'attempts.passed',
-      'attempts.submitted_at',
-      'attempts.graded_at',
-      'attempts.abandoned_at',
-      'attempts.abandon_reason',
-      'attempts.created_at',
-      'attempts.updated_at',
+      'attempts.submittedAt',
+      'attempts.gradedAt',
+      'attempts.abandonedAt',
+      'attempts.abandonReason',
+      'attempts.createdAt',
+      'attempts.updatedAt',
       eb
-        .selectFrom('exam.exam_versions as published_versions')
-        .select((eb2) => [eb2.fn.max<number>('published_versions.version_number').as('latest')])
-        .whereRef('published_versions.exam_id', '=', 'versions.exam_id')
-        .where('published_versions.status', '=', 'PUBLISHED')
-        .as('latest_published_version_number'),
+        .selectFrom('exam.examVersions as publishedVersions')
+        .select((eb2) => [eb2.fn.max<number>('publishedVersions.versionNumber').as('latest')])
+        .whereRef('publishedVersions.examId', '=', 'versions.examId')
+        .where('publishedVersions.status', '=', 'PUBLISHED')
+        .as('latestPublishedVersionNumber'),
     ])
-    .orderBy('attempts.created_at', 'desc')
+    .orderBy('attempts.createdAt', 'desc')
     .limit(pageSize)
     .offset((page - 1) * pageSize)
     .execute()
@@ -902,10 +889,10 @@ export async function getAttempts(filters: AttemptFilters): Promise<AttemptListR
 }
 
 export async function getAttemptById(attemptId: string): Promise<Attempt | undefined> {
-  const r = await db
+  const r = await camelDb
     .selectFrom('exam.attempts')
     .selectAll()
-    .where('attempt_id', '=', attemptId)
+    .where('attemptId', '=', attemptId)
     .executeTakeFirst()
   if (!r) return undefined
   return rowToAttempt(r)
@@ -922,36 +909,36 @@ export async function createAttempt(
   const version = await getVersionById(versionId)
   if (!version) return problem({ status: 404, detail: 'Exam version not found' })
 
-  const allQuestions = await db
+  const allQuestions = await camelDb
     .selectFrom('exam.questions')
-    .select('question_id')
-    .where('version_id', '=', versionId)
+    .select('questionId')
+    .where('versionId', '=', versionId)
     .execute()
 
-  const shuffled = fisherYatesShuffle(allQuestions.map((q) => q.question_id))
+  const shuffled = fisherYatesShuffle(allQuestions.map((q) => q.questionId))
   const selected =
     version.questionCount != null && version.questionCount < shuffled.length
       ? shuffled.slice(0, version.questionCount)
       : shuffled
 
-  await db.transaction().execute(async (trx) => {
+  await camelDb.transaction().execute(async (trx) => {
     await trx
       .insertInto('exam.attempts')
       .values({
-        attempt_id: id,
-        version_id: versionId,
-        member_id: memberId,
+        attemptId: id,
+        versionId: versionId,
+        memberId: memberId,
         language,
         status: 'IN_PROGRESS',
-        created_at: now,
-        updated_at: now,
+        createdAt: now,
+        updatedAt: now,
       })
       .execute()
 
     for (let i = 0; i < selected.length; i++) {
       await trx
-        .insertInto('exam.attempt_questions')
-        .values({ attempt_id: id, question_id: selected[i], sort_order: i })
+        .insertInto('exam.attemptQuestions')
+        .values({ attemptId: id, questionId: selected[i], sortOrder: i })
         .execute()
     }
   })
@@ -971,10 +958,10 @@ export async function getAttemptVersionDetail(
   if (!version) return undefined
 
   // translations
-  const tranRows = await db
-    .selectFrom('exam.exam_version_translations')
+  const tranRows = await camelDb
+    .selectFrom('exam.examVersionTranslations')
     .selectAll()
-    .where('version_id', '=', attempt.versionId)
+    .where('versionId', '=', attempt.versionId)
     .execute()
   const translations: ExamVersionDetail['translations'] = {}
   for (const t of tranRows) {
@@ -982,78 +969,73 @@ export async function getAttemptVersionDetail(
   }
 
   // Only the questions assigned to this attempt, in attempt order
-  const aqRows = await db
-    .selectFrom('exam.attempt_questions as aq')
-    .innerJoin('exam.questions as q', 'q.question_id', 'aq.question_id')
-    .select([
-      'q.question_id',
-      'q.version_id',
-      'q.sort_order',
-      'aq.sort_order as attempt_sort_order',
-    ])
-    .where('aq.attempt_id', '=', attemptId)
-    .orderBy('aq.sort_order')
+  const aqRows = await camelDb
+    .selectFrom('exam.attemptQuestions as aq')
+    .innerJoin('exam.questions as q', 'q.questionId', 'aq.questionId')
+    .select(['q.questionId', 'q.versionId', 'q.sortOrder', 'aq.sortOrder as attemptSortOrder'])
+    .where('aq.attemptId', '=', attemptId)
+    .orderBy('aq.sortOrder')
     .execute()
 
   if (aqRows.length === 0) {
     return { ...version, translations, questions: [] }
   }
 
-  const questionIds = aqRows.map((r) => r.question_id)
+  const questionIds = aqRows.map((r) => r.questionId)
 
-  const qtRows = await db
-    .selectFrom('exam.question_translations')
+  const qtRows = await camelDb
+    .selectFrom('exam.questionTranslations')
     .selectAll()
-    .where('question_id', 'in', questionIds)
+    .where('questionId', 'in', questionIds)
     .execute()
 
-  const cRows = await db
+  const cRows = await camelDb
     .selectFrom('exam.choices')
     .selectAll()
-    .where('question_id', 'in', questionIds)
-    .orderBy('sort_order')
+    .where('questionId', 'in', questionIds)
+    .orderBy('sortOrder')
     .execute()
 
-  const choiceIds = cRows.map((c) => c.choice_id)
+  const choiceIds = cRows.map((c) => c.choiceId)
   const ctRows =
     choiceIds.length > 0
-      ? await db
-          .selectFrom('exam.choice_translations')
+      ? await camelDb
+          .selectFrom('exam.choiceTranslations')
           .selectAll()
-          .where('choice_id', 'in', choiceIds)
+          .where('choiceId', 'in', choiceIds)
           .execute()
       : []
 
   const qtByQuestion = new Map<string, Question['translations']>()
   for (const qt of qtRows) {
-    if (!qtByQuestion.has(qt.question_id)) qtByQuestion.set(qt.question_id, {})
-    qtByQuestion.get(qt.question_id)![qt.language] = { prompt: qt.prompt, reasoning: qt.reasoning }
+    if (!qtByQuestion.has(qt.questionId)) qtByQuestion.set(qt.questionId, {})
+    qtByQuestion.get(qt.questionId)![qt.language] = { prompt: qt.prompt, reasoning: qt.reasoning }
   }
 
   const ctByChoice = new Map<string, Choice['translations']>()
   for (const ct of ctRows) {
-    if (!ctByChoice.has(ct.choice_id)) ctByChoice.set(ct.choice_id, {})
-    ctByChoice.get(ct.choice_id)![ct.language] = { text: ct.text }
+    if (!ctByChoice.has(ct.choiceId)) ctByChoice.set(ct.choiceId, {})
+    ctByChoice.get(ct.choiceId)![ct.language] = { text: ct.text }
   }
 
   const choicesByQuestion = new Map<string, Choice[]>()
   for (const c of cRows) {
-    if (!choicesByQuestion.has(c.question_id)) choicesByQuestion.set(c.question_id, [])
-    choicesByQuestion.get(c.question_id)!.push({
-      choiceId: c.choice_id,
-      questionId: c.question_id,
-      isCorrect: c.is_correct,
-      sortOrder: c.sort_order,
-      translations: ctByChoice.get(c.choice_id) ?? {},
+    if (!choicesByQuestion.has(c.questionId)) choicesByQuestion.set(c.questionId, [])
+    choicesByQuestion.get(c.questionId)!.push({
+      choiceId: c.choiceId,
+      questionId: c.questionId,
+      isCorrect: c.isCorrect,
+      sortOrder: c.sortOrder,
+      translations: ctByChoice.get(c.choiceId) ?? {},
     })
   }
 
   const questions: ExamVersionDetail['questions'] = aqRows.map((r) => ({
-    questionId: r.question_id,
-    versionId: r.version_id,
-    sortOrder: r.attempt_sort_order,
-    translations: qtByQuestion.get(r.question_id) ?? {},
-    choices: choicesByQuestion.get(r.question_id) ?? [],
+    questionId: r.questionId,
+    versionId: r.versionId,
+    sortOrder: r.attemptSortOrder,
+    translations: qtByQuestion.get(r.questionId) ?? {},
+    choices: choicesByQuestion.get(r.questionId) ?? [],
   }))
 
   return { ...version, translations, questions }
@@ -1065,21 +1047,21 @@ export async function validateAnswerInputs(
   choiceId?: string | null,
 ): Promise<{ valid: boolean; detail?: string }> {
   // Verify the question was assigned to this attempt
-  const aqRow = await db
-    .selectFrom('exam.attempt_questions')
-    .select('question_id')
-    .where('attempt_id', '=', attemptId)
-    .where('question_id', '=', questionId)
+  const aqRow = await camelDb
+    .selectFrom('exam.attemptQuestions')
+    .select('questionId')
+    .where('attemptId', '=', attemptId)
+    .where('questionId', '=', questionId)
     .executeTakeFirst()
 
   if (!aqRow) return { valid: false, detail: 'Question not part of this attempt' }
 
   if (choiceId) {
-    const choiceRow = await db
+    const choiceRow = await camelDb
       .selectFrom('exam.choices')
-      .select('choice_id')
-      .where('choice_id', '=', choiceId)
-      .where('question_id', '=', questionId)
+      .select('choiceId')
+      .where('choiceId', '=', choiceId)
+      .where('questionId', '=', questionId)
       .executeTakeFirst()
     if (!choiceRow) return { valid: false, detail: 'Choice does not belong to this question' }
   }
@@ -1092,48 +1074,48 @@ export async function upsertAttemptAnswer(
   data: AttemptAnswerUpsert,
 ): Promise<AttemptAnswer> {
   const now = new Date()
-  await db
-    .insertInto('exam.attempt_answers')
+  await camelDb
+    .insertInto('exam.attemptAnswers')
     .values({
-      attempt_id: attemptId,
-      question_id: data.questionId,
-      choice_id: data.choiceId ?? null,
-      created_at: now,
-      updated_at: now,
+      attemptId: attemptId,
+      questionId: data.questionId,
+      choiceId: data.choiceId ?? null,
+      createdAt: now,
+      updatedAt: now,
     })
     .onConflict((oc) =>
       oc
-        .columns(['attempt_id', 'question_id'])
-        .doUpdateSet({ choice_id: data.choiceId ?? null, updated_at: now }),
+        .columns(['attemptId', 'questionId'])
+        .doUpdateSet({ choiceId: data.choiceId ?? null, updatedAt: now }),
     )
     .execute()
 
-  const r = await db
-    .selectFrom('exam.attempt_answers')
+  const r = await camelDb
+    .selectFrom('exam.attemptAnswers')
     .selectAll()
-    .where('attempt_id', '=', attemptId)
-    .where('question_id', '=', data.questionId)
+    .where('attemptId', '=', attemptId)
+    .where('questionId', '=', data.questionId)
     .executeTakeFirst()
   if (!r) return problem({ status: 500, detail: 'Failed to upsert answer' })
   return {
-    attemptId: r.attempt_id,
-    questionId: r.question_id,
-    choiceId: r.choice_id,
-    updatedAt: toIso(r.updated_at),
+    attemptId: r.attemptId,
+    questionId: r.questionId,
+    choiceId: r.choiceId,
+    updatedAt: toIso(r.updatedAt),
   }
 }
 
 export async function getAttemptAnswers(attemptId: string): Promise<AttemptAnswer[]> {
-  const rows = await db
-    .selectFrom('exam.attempt_answers')
+  const rows = await camelDb
+    .selectFrom('exam.attemptAnswers')
     .selectAll()
-    .where('attempt_id', '=', attemptId)
+    .where('attemptId', '=', attemptId)
     .execute()
   return rows.map((r) => ({
-    attemptId: r.attempt_id,
-    questionId: r.question_id,
-    choiceId: r.choice_id,
-    updatedAt: toIso(r.updated_at),
+    attemptId: r.attemptId,
+    questionId: r.questionId,
+    choiceId: r.choiceId,
+    updatedAt: toIso(r.updatedAt),
   }))
 }
 
@@ -1164,19 +1146,19 @@ export async function submitAttempt(attemptId: string): Promise<Attempt> {
   const passed = scorePercent >= Number(detail.passPercent)
   const now = new Date()
 
-  await db
+  await camelDb
     .updateTable('exam.attempts')
     .set({
       status: 'GRADED',
-      score_percent: scorePercent,
-      correct_count: correctCount,
-      total_count: totalCount,
+      scorePercent: scorePercent,
+      correctCount: correctCount,
+      totalCount: totalCount,
       passed,
-      submitted_at: now,
-      graded_at: now,
-      updated_at: now,
+      submittedAt: now,
+      gradedAt: now,
+      updatedAt: now,
     })
-    .where('attempt_id', '=', attemptId)
+    .where('attemptId', '=', attemptId)
     .execute()
 
   const updated = await getAttemptById(attemptId)
@@ -1191,15 +1173,15 @@ export async function abandonAttempt(attemptId: string, reason?: string): Promis
     return problem({ status: 409, detail: 'Attempt is not in progress' })
 
   const now = new Date()
-  await db
+  await camelDb
     .updateTable('exam.attempts')
     .set({
       status: 'ABANDONED',
-      abandoned_at: now,
-      abandon_reason: reason ?? null,
-      updated_at: now,
+      abandonedAt: now,
+      abandonReason: reason ?? null,
+      updatedAt: now,
     })
-    .where('attempt_id', '=', attemptId)
+    .where('attemptId', '=', attemptId)
     .execute()
 
   const updated = await getAttemptById(attemptId)

@@ -1,4 +1,7 @@
-import { db } from './connection.ts'
+import type { Updateable } from 'kysely'
+
+import type { DtoSyllabus, DtoSyllabusFlights, DtoSyllabusFlightItems } from './schema.camel.d.ts'
+import { camelDb, type CamelRow } from './connection.ts'
 import { renderMarkdown } from '../util/markdown.ts'
 import type {
   TrainingProgram,
@@ -36,23 +39,15 @@ function renderMarkdownNullable(markdown: string | null): string | null {
   return renderMarkdown(markdown)
 }
 
-function mapProgram(r: {
-  program_id: string
-  name: string
-  description: string | null
-  created_at: Date | string
-  created_by: string
-  updated_at: Date | string
-  updated_by: string
-}): TrainingProgram {
+function mapProgram(r: CamelRow<'dto.trainingProgram'>): TrainingProgram {
   return {
-    programId: r.program_id,
+    programId: r.programId,
     name: r.name,
     description: r.description,
-    createdAt: toIso(r.created_at),
-    createdBy: r.created_by,
-    updatedAt: toIso(r.updated_at),
-    updatedBy: r.updated_by,
+    createdAt: toIso(r.createdAt),
+    createdBy: r.createdBy,
+    updatedAt: toIso(r.updatedAt),
+    updatedBy: r.updatedBy,
   }
 }
 
@@ -62,140 +57,87 @@ function mapProgram(r: {
  *   endpoints (e.g. getSyllabiByProgram) where the rendered HTML is never
  *   displayed, to avoid parsing markdown for every row in the list.
  */
-function mapSyllabus(
-  r: {
-    syllabus_id: string
-    program_id: string
-    major_version: number
-    minor_version: number
-    patch_version: number
-    version: string | null
-    description: string | null
-    requirements_experience_credit: string | null
-    general_information: string | null
-    min_block_time_mins: number | null
-    status: string
-    published_at: Date | string | null
-    submitted_for_approval_at: Date | string | null
-    approval_reference: string | null
-    created_at: Date | string
-    created_by: string
-    updated_at: Date | string
-    updated_by: string
-  },
-  includeHtml = true,
-): Syllabus {
+function mapSyllabus(r: CamelRow<'dto.syllabus'>, includeHtml = true): Syllabus {
   return {
-    syllabusId: r.syllabus_id,
-    programId: r.program_id,
-    majorVersion: r.major_version,
-    minorVersion: r.minor_version,
-    patchVersion: r.patch_version,
-    version: r.version ?? `${r.major_version}.${r.minor_version}.${r.patch_version}`,
+    syllabusId: r.syllabusId,
+    programId: r.programId,
+    majorVersion: r.majorVersion,
+    minorVersion: r.minorVersion,
+    patchVersion: r.patchVersion,
+    version: r.version ?? `${r.majorVersion}.${r.minorVersion}.${r.patchVersion}`,
     description: r.description,
     descriptionHtml: includeHtml ? renderMarkdownNullable(r.description) : null,
-    requirementsExperienceCredit: r.requirements_experience_credit,
+    requirementsExperienceCredit: r.requirementsExperienceCredit,
     requirementsExperienceCreditHtml: includeHtml
-      ? renderMarkdownNullable(r.requirements_experience_credit)
+      ? renderMarkdownNullable(r.requirementsExperienceCredit)
       : null,
-    generalInformation: r.general_information,
-    generalInformationHtml: includeHtml ? renderMarkdownNullable(r.general_information) : null,
-    minBlockTimeMins: r.min_block_time_mins,
+    generalInformation: r.generalInformation,
+    generalInformationHtml: includeHtml ? renderMarkdownNullable(r.generalInformation) : null,
+    minBlockTimeMins: r.minBlockTimeMins,
     status: r.status as Syllabus['status'],
-    publishedAt: toIsoNullable(r.published_at),
-    submittedForApprovalAt: toIsoNullable(r.submitted_for_approval_at),
-    approvalReference: r.approval_reference,
-    createdAt: toIso(r.created_at),
-    createdBy: r.created_by,
-    updatedAt: toIso(r.updated_at),
-    updatedBy: r.updated_by,
+    publishedAt: toIsoNullable(r.publishedAt),
+    submittedForApprovalAt: toIsoNullable(r.submittedForApprovalAt),
+    approvalReference: r.approvalReference,
+    createdAt: toIso(r.createdAt),
+    createdBy: r.createdBy,
+    updatedAt: toIso(r.updatedAt),
+    updatedBy: r.updatedBy,
   }
 }
 
-function mapFlight(r: {
-  flight_id: string
-  syllabus_id: string
-  sort_order: number
-  code: string
-  name: string
-  description: string | null
-  tags: string[]
-  is_interim_checkpoint: boolean
-  recommended_block_time_mins: number | null
-  flight_type: string | null
-  easa_fcl_reference: string | null
-  created_at: Date | string
-  updated_at: Date | string
-}): SyllabusFlight {
+function mapFlight(r: CamelRow<'dto.syllabusFlights'>): SyllabusFlight {
   return {
-    flightId: r.flight_id,
-    syllabusId: r.syllabus_id,
-    sortOrder: r.sort_order,
+    flightId: r.flightId,
+    syllabusId: r.syllabusId,
+    sortOrder: r.sortOrder,
     code: r.code,
     name: r.name,
     description: r.description,
     tags: r.tags,
-    isInterimCheckpoint: r.is_interim_checkpoint,
-    recommendedBlockTimeMins: r.recommended_block_time_mins,
-    flightType: r.flight_type as SyllabusFlight['flightType'],
-    easaFclReference: r.easa_fcl_reference,
-    createdAt: toIso(r.created_at),
-    updatedAt: toIso(r.updated_at),
+    isInterimCheckpoint: r.isInterimCheckpoint,
+    recommendedBlockTimeMins: r.recommendedBlockTimeMins,
+    flightType: r.flightType as SyllabusFlight['flightType'],
+    easaFclReference: r.easaFclReference,
+    createdAt: toIso(r.createdAt),
+    updatedAt: toIso(r.updatedAt),
   }
 }
 
-function mapItem(r: {
-  item_id: string
-  syllabus_flight_id: string
-  sort_order: number
-  name: string
-  description: string | null
-  mandatory: boolean
-}): SyllabusFlightItem {
+function mapItem(r: CamelRow<'dto.syllabusFlightItems'>): SyllabusFlightItem {
   return {
-    itemId: r.item_id,
-    syllabusFlightId: r.syllabus_flight_id,
-    sortOrder: r.sort_order,
+    itemId: r.itemId,
+    syllabusFlightId: r.syllabusFlightId,
+    sortOrder: r.sortOrder,
     name: r.name,
     description: r.description,
     mandatory: r.mandatory,
   }
 }
 
-function mapAttempt(r: {
-  attempt_id: string
-  flight_log_id: string
-  syllabus_flight_id: string
-  member_syllabus_id: string
-  instructor_member_id: string
-  instructor_comments: string | null
-  verification_result: string | null
-  verified_at: Date | string | null
-  verified_by: string | null
-  requires_reverification: boolean
-  verifier_first_name?: string | null
-  verifier_last_name?: string | null
-  created_at: Date | string
-  updated_at: Date | string
-}): SyllabusFlightAttempt {
+// The two verifier columns come from a join on the member table, so they are not
+// part of the generated row type.
+function mapAttempt(
+  r: CamelRow<'dto.syllabusFlightAttempts'> & {
+    verifierFirstName?: string | null
+    verifierLastName?: string | null
+  },
+): SyllabusFlightAttempt {
   const verifierName =
-    r.verifier_first_name != null
-      ? `${r.verifier_first_name} ${r.verifier_last_name ?? ''}`.trim()
-      : null
+    r.verifierFirstName != null ? `${r.verifierFirstName} ${r.verifierLastName ?? ''}`.trim() : null
   return {
-    attemptId: r.attempt_id,
-    flightLogId: r.flight_log_id,
-    syllabusFlightId: r.syllabus_flight_id,
-    memberSyllabusId: r.member_syllabus_id,
-    instructorMemberId: r.instructor_member_id,
-    instructorComments: r.instructor_comments,
-    verificationResult: r.verification_result as SyllabusFlightAttempt['verificationResult'],
-    verifiedAt: toIsoNullable(r.verified_at),
-    verifiedBy: r.verified_by,
+    attemptId: r.attemptId,
+    flightLogId: r.flightLogId,
+    syllabusFlightId: r.syllabusFlightId,
+    memberSyllabusId: r.memberSyllabusId,
+    instructorMemberId: r.instructorMemberId,
+    instructorComments: r.instructorComments,
+    verificationResult: r.verificationResult as SyllabusFlightAttempt['verificationResult'],
+    verifiedAt: toIsoNullable(r.verifiedAt),
+    verifiedBy: r.verifiedBy,
     verifierName,
-    requiresReverification: r.requires_reverification,
-    createdAt: toIso(r.created_at),
-    updatedAt: toIso(r.updated_at),
+    requiresReverification: r.requiresReverification,
+    createdAt: toIso(r.createdAt),
+    updatedAt: toIso(r.updatedAt),
   }
 }
 
@@ -203,17 +145,17 @@ function mapAttempt(r: {
 // Training Programs
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getTrainingPrograms(): Promise<TrainingProgram[]> {
-  const rows = await db.selectFrom('dto.training_program').selectAll().orderBy('name').execute()
+  const rows = await camelDb.selectFrom('dto.trainingProgram').selectAll().orderBy('name').execute()
   return rows.map(mapProgram)
 }
 
 export async function getTrainingProgramById(
   programId: string,
 ): Promise<TrainingProgram | undefined> {
-  const r = await db
-    .selectFrom('dto.training_program')
+  const r = await camelDb
+    .selectFrom('dto.trainingProgram')
     .selectAll()
-    .where('program_id', '=', programId)
+    .where('programId', '=', programId)
     .executeTakeFirst()
   return r ? mapProgram(r) : undefined
 }
@@ -222,13 +164,13 @@ export async function insertTrainingProgram(
   data: TrainingProgramUpsert,
   userId: string,
 ): Promise<TrainingProgram> {
-  const r = await db
-    .insertInto('dto.training_program')
+  const r = await camelDb
+    .insertInto('dto.trainingProgram')
     .values({
       name: data.name,
       description: data.description ?? null,
-      created_by: userId,
-      updated_by: userId,
+      createdBy: userId,
+      updatedBy: userId,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -240,15 +182,15 @@ export async function updateTrainingProgram(
   data: TrainingProgramUpsert,
   userId: string,
 ): Promise<TrainingProgram | undefined> {
-  const r = await db
-    .updateTable('dto.training_program')
+  const r = await camelDb
+    .updateTable('dto.trainingProgram')
     .set({
       name: data.name,
       description: data.description ?? null,
-      updated_by: userId,
-      updated_at: new Date(),
+      updatedBy: userId,
+      updatedAt: new Date(),
     })
-    .where('program_id', '=', programId)
+    .where('programId', '=', programId)
     .returningAll()
     .executeTakeFirst()
   return r ? mapProgram(r) : undefined
@@ -258,13 +200,13 @@ export async function updateTrainingProgram(
 // Syllabi
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getSyllabiByProgram(programId: string): Promise<Syllabus[]> {
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('dto.syllabus')
     .selectAll()
-    .where('program_id', '=', programId)
-    .orderBy('major_version', 'desc')
-    .orderBy('minor_version', 'desc')
-    .orderBy('patch_version', 'desc')
+    .where('programId', '=', programId)
+    .orderBy('majorVersion', 'desc')
+    .orderBy('minorVersion', 'desc')
+    .orderBy('patchVersion', 'desc')
     .execute()
   // List view only ever shows version/status/dates — skip markdown rendering
   // per row (mapSyllabus's `includeHtml=false`) rather than parsing markdown
@@ -273,10 +215,10 @@ export async function getSyllabiByProgram(programId: string): Promise<Syllabus[]
 }
 
 export async function getSyllabusById(syllabusId: string): Promise<Syllabus | undefined> {
-  const r = await db
+  const r = await camelDb
     .selectFrom('dto.syllabus')
     .selectAll()
-    .where('syllabus_id', '=', syllabusId)
+    .where('syllabusId', '=', syllabusId)
     .executeTakeFirst()
   return r ? mapSyllabus(r) : undefined
 }
@@ -287,50 +229,50 @@ export async function getSyllabusWithFlights(
   const syllabus = await getSyllabusById(syllabusId)
   if (!syllabus) return undefined
 
-  const flightRows = await db
-    .selectFrom('dto.syllabus_flights')
+  const flightRows = await camelDb
+    .selectFrom('dto.syllabusFlights')
     .selectAll()
-    .where('syllabus_id', '=', syllabusId)
-    .orderBy('sort_order')
+    .where('syllabusId', '=', syllabusId)
+    .orderBy('sortOrder')
     .execute()
 
   if (flightRows.length === 0) {
     return { ...syllabus, flights: [] }
   }
 
-  const flightIds = flightRows.map((f) => f.flight_id)
-  const itemRows = await db
-    .selectFrom('dto.syllabus_flight_items')
+  const flightIds = flightRows.map((f) => f.flightId)
+  const itemRows = await camelDb
+    .selectFrom('dto.syllabusFlightItems')
     .selectAll()
-    .where('syllabus_flight_id', 'in', flightIds)
-    .orderBy('syllabus_flight_id')
-    .orderBy('sort_order')
+    .where('syllabusFlightId', 'in', flightIds)
+    .orderBy('syllabusFlightId')
+    .orderBy('sortOrder')
     .execute()
 
   const itemsByFlight = new Map<string, SyllabusFlightItem[]>()
   for (const item of itemRows) {
-    const list = itemsByFlight.get(item.syllabus_flight_id) ?? []
+    const list = itemsByFlight.get(item.syllabusFlightId) ?? []
     list.push(mapItem(item))
-    itemsByFlight.set(item.syllabus_flight_id, list)
+    itemsByFlight.set(item.syllabusFlightId, list)
   }
 
   const flights: SyllabusFlight[] = flightRows.map((f) => ({
     ...mapFlight(f),
-    items: itemsByFlight.get(f.flight_id) ?? [],
+    items: itemsByFlight.get(f.flightId) ?? [],
   }))
 
   return { ...syllabus, flights }
 }
 
 export async function getLatestPublishedSyllabus(programId: string): Promise<Syllabus | undefined> {
-  const r = await db
+  const r = await camelDb
     .selectFrom('dto.syllabus')
     .selectAll()
-    .where('program_id', '=', programId)
+    .where('programId', '=', programId)
     .where('status', '=', 'PUBLISHED')
-    .orderBy('major_version', 'desc')
-    .orderBy('minor_version', 'desc')
-    .orderBy('patch_version', 'desc')
+    .orderBy('majorVersion', 'desc')
+    .orderBy('minorVersion', 'desc')
+    .orderBy('patchVersion', 'desc')
     .limit(1)
     .executeTakeFirst()
   return r ? mapSyllabus(r) : undefined
@@ -340,13 +282,13 @@ export async function getLatestPublishedSyllabus(programId: string): Promise<Syl
 async function nextMinorVersion(
   programId: string,
 ): Promise<{ majorVersion: number; minorVersion: number; patchVersion: number }> {
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('dto.syllabus')
-    .select(['major_version', 'minor_version', 'patch_version'])
-    .where('program_id', '=', programId)
-    .orderBy('major_version', 'desc')
-    .orderBy('minor_version', 'desc')
-    .orderBy('patch_version', 'desc')
+    .select(['majorVersion', 'minorVersion', 'patchVersion'])
+    .where('programId', '=', programId)
+    .orderBy('majorVersion', 'desc')
+    .orderBy('minorVersion', 'desc')
+    .orderBy('patchVersion', 'desc')
     .limit(1)
     .execute()
 
@@ -355,8 +297,8 @@ async function nextMinorVersion(
   }
   const latest = rows[0]
   return {
-    majorVersion: latest.major_version,
-    minorVersion: latest.minor_version + 1,
+    majorVersion: latest.majorVersion,
+    minorVersion: latest.minorVersion + 1,
     patchVersion: 0,
   }
 }
@@ -372,20 +314,20 @@ export async function insertSyllabus(
   userId: string,
 ): Promise<Syllabus> {
   const version = await nextMinorVersion(programId)
-  const r = await db
+  const r = await camelDb
     .insertInto('dto.syllabus')
     .values({
-      program_id: programId,
-      major_version: version.majorVersion,
-      minor_version: version.minorVersion,
-      patch_version: version.patchVersion,
+      programId: programId,
+      majorVersion: version.majorVersion,
+      minorVersion: version.minorVersion,
+      patchVersion: version.patchVersion,
       description: data.description ?? null,
-      requirements_experience_credit: data.requirementsExperienceCredit ?? null,
-      general_information: data.generalInformation ?? null,
-      min_block_time_mins: data.minBlockTimeMins ?? null,
+      requirementsExperienceCredit: data.requirementsExperienceCredit ?? null,
+      generalInformation: data.generalInformation ?? null,
+      minBlockTimeMins: data.minBlockTimeMins ?? null,
       status: 'DRAFT',
-      created_by: userId,
-      updated_by: userId,
+      createdBy: userId,
+      updatedBy: userId,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -402,22 +344,22 @@ export async function updateSyllabus(
   },
   userId: string,
 ): Promise<Syllabus | undefined> {
-  let q = db.updateTable('dto.syllabus').set({
+  let q = camelDb.updateTable('dto.syllabus').set({
     description: data.description ?? null,
-    updated_by: userId,
-    updated_at: new Date(),
+    updatedBy: userId,
+    updatedAt: new Date(),
   })
   if ('requirementsExperienceCredit' in data) {
-    q = q.set({ requirements_experience_credit: data.requirementsExperienceCredit ?? null })
+    q = q.set({ requirementsExperienceCredit: data.requirementsExperienceCredit ?? null })
   }
   if ('generalInformation' in data) {
-    q = q.set({ general_information: data.generalInformation ?? null })
+    q = q.set({ generalInformation: data.generalInformation ?? null })
   }
   if ('minBlockTimeMins' in data) {
-    q = q.set({ min_block_time_mins: data.minBlockTimeMins ?? null })
+    q = q.set({ minBlockTimeMins: data.minBlockTimeMins ?? null })
   }
   const r = await q
-    .where('syllabus_id', '=', syllabusId)
+    .where('syllabusId', '=', syllabusId)
     .where('status', '=', 'DRAFT')
     .returningAll()
     .executeTakeFirst()
@@ -429,15 +371,15 @@ export async function submitSyllabusForApproval(
   userId: string,
 ): Promise<Syllabus | undefined> {
   const now = new Date()
-  const r = await db
+  const r = await camelDb
     .updateTable('dto.syllabus')
     .set({
       status: 'WAITING_FOR_APPROVAL',
-      submitted_for_approval_at: now,
-      updated_by: userId,
-      updated_at: now,
+      submittedForApprovalAt: now,
+      updatedBy: userId,
+      updatedAt: now,
     })
-    .where('syllabus_id', '=', syllabusId)
+    .where('syllabusId', '=', syllabusId)
     .where('status', '=', 'DRAFT')
     .returningAll()
     .executeTakeFirst()
@@ -448,14 +390,14 @@ export async function withdrawSyllabusFromApproval(
   syllabusId: string,
   userId: string,
 ): Promise<Syllabus | undefined> {
-  const r = await db
+  const r = await camelDb
     .updateTable('dto.syllabus')
     .set({
       status: 'DRAFT',
-      updated_by: userId,
-      updated_at: new Date(),
+      updatedBy: userId,
+      updatedAt: new Date(),
     })
-    .where('syllabus_id', '=', syllabusId)
+    .where('syllabusId', '=', syllabusId)
     .where('status', '=', 'WAITING_FOR_APPROVAL')
     .returningAll()
     .executeTakeFirst()
@@ -469,17 +411,17 @@ export async function publishSyllabus(
 ): Promise<Syllabus | undefined> {
   const now = new Date()
 
-  const published = await db.transaction().execute(async (trx) => {
+  const published = await camelDb.transaction().execute(async (trx) => {
     const row = await trx
       .updateTable('dto.syllabus')
       .set({
         status: 'PUBLISHED',
-        published_at: now,
-        approval_reference: approvalReference ?? null,
-        updated_by: userId,
-        updated_at: now,
+        publishedAt: now,
+        approvalReference: approvalReference ?? null,
+        updatedBy: userId,
+        updatedAt: now,
       })
-      .where('syllabus_id', '=', syllabusId)
+      .where('syllabusId', '=', syllabusId)
       .where('status', '=', 'WAITING_FOR_APPROVAL')
       .returningAll()
       .executeTakeFirst()
@@ -491,9 +433,9 @@ export async function publishSyllabus(
     // archived row (see chk_dto_syllabus_published_at in V1370).
     await trx
       .updateTable('dto.syllabus')
-      .set({ status: 'ARCHIVED', updated_by: userId, updated_at: now })
-      .where('program_id', '=', row.program_id)
-      .where('syllabus_id', '!=', syllabusId)
+      .set({ status: 'ARCHIVED', updatedBy: userId, updatedAt: now })
+      .where('programId', '=', row.programId)
+      .where('syllabusId', '!=', syllabusId)
       .where('status', '=', 'PUBLISHED')
       .execute()
 
@@ -518,22 +460,25 @@ export async function patchSyllabusText(
 ): Promise<SyllabusWithFlights | undefined> {
   const now = new Date()
 
-  const patched = await db.transaction().execute(async (trx) => {
-    const syllabusPatch: Record<string, unknown> = { updated_by: userId, updated_at: now }
+  const patched = await camelDb.transaction().execute(async (trx) => {
+    // Updateable<> rather than Record<string, unknown>: an untyped patch object is
+    // the same trap as `any` — it hides column names from the compiler, and two of
+    // these were still snake_case after the migration.
+    const syllabusPatch: Updateable<DtoSyllabus> = { updatedBy: userId, updatedAt: now }
     if ('description' in data) syllabusPatch.description = data.description ?? null
     if ('requirementsExperienceCredit' in data) {
-      syllabusPatch.requirements_experience_credit = data.requirementsExperienceCredit ?? null
+      syllabusPatch.requirementsExperienceCredit = data.requirementsExperienceCredit ?? null
     }
     if ('generalInformation' in data) {
-      syllabusPatch.general_information = data.generalInformation ?? null
+      syllabusPatch.generalInformation = data.generalInformation ?? null
     }
 
     const row = await trx
       .updateTable('dto.syllabus')
-      .set((eb) => ({ ...syllabusPatch, patch_version: eb('patch_version', '+', 1) }))
-      .where('syllabus_id', '=', syllabusId)
+      .set((eb) => ({ ...syllabusPatch, patchVersion: eb('patchVersion', '+', 1) }))
+      .where('syllabusId', '=', syllabusId)
       .where('status', '=', 'PUBLISHED')
-      .returning('syllabus_id')
+      .returning('syllabusId')
       .executeTakeFirst()
 
     if (!row) return false
@@ -543,36 +488,36 @@ export async function patchSyllabusText(
     // to, even if the flight-level patch below is skipped (e.g. only item
     // text was submitted for that flight).
     const ownFlightRows = await trx
-      .selectFrom('dto.syllabus_flights')
-      .select('flight_id')
-      .where('syllabus_id', '=', syllabusId)
+      .selectFrom('dto.syllabusFlights')
+      .select('flightId')
+      .where('syllabusId', '=', syllabusId)
       .execute()
-    const ownFlightIds = new Set(ownFlightRows.map((r) => r.flight_id))
+    const ownFlightIds = new Set(ownFlightRows.map((r) => r.flightId))
 
     for (const f of data.flights ?? []) {
       if (!ownFlightIds.has(f.flightId)) continue
 
-      const flightPatch: Record<string, unknown> = {}
+      const flightPatch: Updateable<DtoSyllabusFlights> = {}
       if (f.name !== undefined) flightPatch.name = f.name
       if ('description' in f) flightPatch.description = f.description ?? null
       if (Object.keys(flightPatch).length > 0) {
         await trx
-          .updateTable('dto.syllabus_flights')
-          .set({ ...flightPatch, updated_at: now })
-          .where('flight_id', '=', f.flightId)
-          .where('syllabus_id', '=', syllabusId)
+          .updateTable('dto.syllabusFlights')
+          .set({ ...flightPatch, updatedAt: now })
+          .where('flightId', '=', f.flightId)
+          .where('syllabusId', '=', syllabusId)
           .execute()
       }
       for (const it of f.items ?? []) {
-        const itemPatch: Record<string, unknown> = {}
+        const itemPatch: Updateable<DtoSyllabusFlightItems> = {}
         if (it.name !== undefined) itemPatch.name = it.name
         if ('description' in it) itemPatch.description = it.description ?? null
         if (Object.keys(itemPatch).length > 0) {
           await trx
-            .updateTable('dto.syllabus_flight_items')
+            .updateTable('dto.syllabusFlightItems')
             .set(itemPatch)
-            .where('item_id', '=', it.itemId)
-            .where('syllabus_flight_id', '=', f.flightId)
+            .where('itemId', '=', it.itemId)
+            .where('syllabusFlightId', '=', f.flightId)
             .execute()
         }
       }
@@ -588,20 +533,20 @@ export async function patchSyllabusText(
 // Syllabus Flights
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getFlightsBySyllabus(syllabusId: string): Promise<SyllabusFlight[]> {
-  const rows = await db
-    .selectFrom('dto.syllabus_flights')
+  const rows = await camelDb
+    .selectFrom('dto.syllabusFlights')
     .selectAll()
-    .where('syllabus_id', '=', syllabusId)
-    .orderBy('sort_order')
+    .where('syllabusId', '=', syllabusId)
+    .orderBy('sortOrder')
     .execute()
   return rows.map(mapFlight)
 }
 
 export async function getSyllabusFlightById(flightId: string): Promise<SyllabusFlight | undefined> {
-  const r = await db
-    .selectFrom('dto.syllabus_flights')
+  const r = await camelDb
+    .selectFrom('dto.syllabusFlights')
     .selectAll()
-    .where('flight_id', '=', flightId)
+    .where('flightId', '=', flightId)
     .executeTakeFirst()
   return r ? mapFlight(r) : undefined
 }
@@ -609,18 +554,18 @@ export async function getSyllabusFlightById(flightId: string): Promise<SyllabusF
 export async function getSyllabusFlightWithItems(
   flightId: string,
 ): Promise<SyllabusFlight | undefined> {
-  const r = await db
-    .selectFrom('dto.syllabus_flights')
+  const r = await camelDb
+    .selectFrom('dto.syllabusFlights')
     .selectAll()
-    .where('flight_id', '=', flightId)
+    .where('flightId', '=', flightId)
     .executeTakeFirst()
   if (!r) return undefined
 
-  const itemRows = await db
-    .selectFrom('dto.syllabus_flight_items')
+  const itemRows = await camelDb
+    .selectFrom('dto.syllabusFlightItems')
     .selectAll()
-    .where('syllabus_flight_id', '=', flightId)
-    .orderBy('sort_order')
+    .where('syllabusFlightId', '=', flightId)
+    .orderBy('sortOrder')
     .execute()
 
   return { ...mapFlight(r), items: itemRows.map(mapItem) }
@@ -641,34 +586,34 @@ export async function upsertSyllabusFlights(
   }>,
 ): Promise<void> {
   // Delete all existing flights for this syllabus (cascades to items)
-  await db.deleteFrom('dto.syllabus_flights').where('syllabus_id', '=', syllabusId).execute()
+  await camelDb.deleteFrom('dto.syllabusFlights').where('syllabusId', '=', syllabusId).execute()
 
   for (let i = 0; i < flights.length; i++) {
     const f = flights[i]
-    const flightRow = await db
-      .insertInto('dto.syllabus_flights')
+    const flightRow = await camelDb
+      .insertInto('dto.syllabusFlights')
       .values({
-        syllabus_id: syllabusId,
-        sort_order: i + 1,
+        syllabusId: syllabusId,
+        sortOrder: i + 1,
         code: f.code,
         name: f.name,
         description: f.description ?? null,
         tags: f.tags ?? [],
-        is_interim_checkpoint: f.isInterimCheckpoint ?? false,
-        recommended_block_time_mins: f.recommendedBlockTimeMins ?? null,
-        flight_type: f.flightType ?? null,
-        easa_fcl_reference: f.easaFclReference ?? null,
+        isInterimCheckpoint: f.isInterimCheckpoint ?? false,
+        recommendedBlockTimeMins: f.recommendedBlockTimeMins ?? null,
+        flightType: f.flightType ?? null,
+        easaFclReference: f.easaFclReference ?? null,
       })
-      .returning('flight_id')
+      .returning('flightId')
       .executeTakeFirstOrThrow()
 
     if (f.items && f.items.length > 0) {
-      await db
-        .insertInto('dto.syllabus_flight_items')
+      await camelDb
+        .insertInto('dto.syllabusFlightItems')
         .values(
           f.items.map((item, j) => ({
-            syllabus_flight_id: flightRow.flight_id,
-            sort_order: j + 1,
+            syllabusFlightId: flightRow.flightId,
+            sortOrder: j + 1,
             name: item.name,
             description: item.description ?? null,
             mandatory: item.mandatory,
@@ -689,20 +634,20 @@ export async function importSyllabusFromJson(
 ): Promise<SyllabusWithFlights> {
   const version = await nextMinorVersion(programId)
 
-  const syllabusRow = await db
+  const syllabusRow = await camelDb
     .insertInto('dto.syllabus')
     .values({
-      program_id: programId,
-      major_version: version.majorVersion,
-      minor_version: version.minorVersion,
-      patch_version: version.patchVersion,
+      programId: programId,
+      majorVersion: version.majorVersion,
+      minorVersion: version.minorVersion,
+      patchVersion: version.patchVersion,
       description: importData.description ?? null,
-      requirements_experience_credit: importData.requirementsExperienceCredit ?? null,
-      general_information: importData.generalInformation ?? null,
-      min_block_time_mins: importData.minBlockTimeMins ?? null,
+      requirementsExperienceCredit: importData.requirementsExperienceCredit ?? null,
+      generalInformation: importData.generalInformation ?? null,
+      minBlockTimeMins: importData.minBlockTimeMins ?? null,
       status: 'DRAFT',
-      created_by: userId,
-      updated_by: userId,
+      createdBy: userId,
+      updatedBy: userId,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -734,21 +679,21 @@ export async function importSyllabusFromJson(
 export async function getActiveSyllabusForMember(
   memberId: string,
 ): Promise<MemberSyllabus | undefined> {
-  const r = await db
-    .selectFrom('dto.member_syllabus')
+  const r = await camelDb
+    .selectFrom('dto.memberSyllabus')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .where('is_active', '=', true)
+    .where('memberId', '=', memberId)
+    .where('isActive', '=', true)
     .executeTakeFirst()
   if (!r) return undefined
   return {
-    memberSyllabusId: r.member_syllabus_id,
-    memberId: r.member_id,
-    syllabusId: r.syllabus_id,
-    isActive: r.is_active,
-    assignedAt: toIso(r.assigned_at),
-    assignedBy: r.assigned_by,
-    deactivatedAt: toIsoNullable(r.deactivated_at),
+    memberSyllabusId: r.memberSyllabusId,
+    memberId: r.memberId,
+    syllabusId: r.syllabusId,
+    isActive: r.isActive,
+    assignedAt: toIso(r.assignedAt),
+    assignedBy: r.assignedBy,
+    deactivatedAt: toIsoNullable(r.deactivatedAt),
   }
 }
 
@@ -757,23 +702,23 @@ export async function assignSyllabusToMember(
   syllabusId: string,
   assignedBy: string,
 ): Promise<MemberSyllabus> {
-  const r = await db
-    .insertInto('dto.member_syllabus')
+  const r = await camelDb
+    .insertInto('dto.memberSyllabus')
     .values({
-      member_id: memberId,
-      syllabus_id: syllabusId,
-      assigned_by: assignedBy,
+      memberId: memberId,
+      syllabusId: syllabusId,
+      assignedBy: assignedBy,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
   return {
-    memberSyllabusId: r.member_syllabus_id,
-    memberId: r.member_id,
-    syllabusId: r.syllabus_id,
-    isActive: r.is_active,
-    assignedAt: toIso(r.assigned_at),
-    assignedBy: r.assigned_by,
-    deactivatedAt: toIsoNullable(r.deactivated_at),
+    memberSyllabusId: r.memberSyllabusId,
+    memberId: r.memberId,
+    syllabusId: r.syllabusId,
+    isActive: r.isActive,
+    assignedAt: toIso(r.assignedAt),
+    assignedBy: r.assignedBy,
+    deactivatedAt: toIsoNullable(r.deactivatedAt),
   }
 }
 
@@ -783,33 +728,33 @@ export async function getMemberSyllabusByIdWithFlights(
   | (MemberSyllabus & { memberName: string; syllabusDetail: SyllabusWithFlights | undefined })
   | undefined
 > {
-  const r = await db
-    .selectFrom('dto.member_syllabus')
-    .innerJoin('member.register', 'member.register.member_id', 'dto.member_syllabus.member_id')
+  const r = await camelDb
+    .selectFrom('dto.memberSyllabus')
+    .innerJoin('member.register', 'member.register.memberId', 'dto.memberSyllabus.memberId')
     .select([
-      'dto.member_syllabus.member_syllabus_id',
-      'dto.member_syllabus.member_id',
-      'dto.member_syllabus.syllabus_id',
-      'dto.member_syllabus.is_active',
-      'dto.member_syllabus.assigned_at',
-      'dto.member_syllabus.assigned_by',
-      'dto.member_syllabus.deactivated_at',
-      'member.register.first_name',
-      'member.register.last_name',
+      'dto.memberSyllabus.memberSyllabusId',
+      'dto.memberSyllabus.memberId',
+      'dto.memberSyllabus.syllabusId',
+      'dto.memberSyllabus.isActive',
+      'dto.memberSyllabus.assignedAt',
+      'dto.memberSyllabus.assignedBy',
+      'dto.memberSyllabus.deactivatedAt',
+      'member.register.firstName',
+      'member.register.lastName',
     ])
-    .where('dto.member_syllabus.member_syllabus_id', '=', memberSyllabusId)
+    .where('dto.memberSyllabus.memberSyllabusId', '=', memberSyllabusId)
     .executeTakeFirst()
   if (!r) return undefined
-  const syllabusDetail = await getSyllabusWithFlights(r.syllabus_id)
+  const syllabusDetail = await getSyllabusWithFlights(r.syllabusId)
   return {
-    memberSyllabusId: r.member_syllabus_id,
-    memberId: r.member_id,
-    syllabusId: r.syllabus_id,
-    isActive: r.is_active,
-    assignedAt: toIso(r.assigned_at),
-    assignedBy: r.assigned_by,
-    deactivatedAt: toIsoNullable(r.deactivated_at),
-    memberName: `${r.first_name} ${r.last_name}`,
+    memberSyllabusId: r.memberSyllabusId,
+    memberId: r.memberId,
+    syllabusId: r.syllabusId,
+    isActive: r.isActive,
+    assignedAt: toIso(r.assignedAt),
+    assignedBy: r.assignedBy,
+    deactivatedAt: toIsoNullable(r.deactivatedAt),
+    memberName: `${r.firstName} ${r.lastName}`,
     syllabusDetail,
   }
 }
@@ -817,12 +762,12 @@ export async function getMemberSyllabusByIdWithFlights(
 export async function getMemberSyllabusOwnerId(
   memberSyllabusId: string,
 ): Promise<string | undefined> {
-  const r = await db
-    .selectFrom('dto.member_syllabus')
-    .select('member_id')
-    .where('member_syllabus_id', '=', memberSyllabusId)
+  const r = await camelDb
+    .selectFrom('dto.memberSyllabus')
+    .select('memberId')
+    .where('memberSyllabusId', '=', memberSyllabusId)
     .executeTakeFirst()
-  return r?.member_id
+  return r?.memberId
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -831,10 +776,10 @@ export async function getMemberSyllabusOwnerId(
 export async function getAttemptByFlightLogId(
   flightLogId: string,
 ): Promise<SyllabusFlightAttempt | undefined> {
-  const r = await db
-    .selectFrom('dto.syllabus_flight_attempts')
+  const r = await camelDb
+    .selectFrom('dto.syllabusFlightAttempts')
     .selectAll()
-    .where('flight_log_id', '=', flightLogId)
+    .where('flightLogId', '=', flightLogId)
     .executeTakeFirst()
   return r ? mapAttempt(r) : undefined
 }
@@ -842,10 +787,10 @@ export async function getAttemptByFlightLogId(
 export async function getAttemptById(
   attemptId: string,
 ): Promise<SyllabusFlightAttempt | undefined> {
-  const r = await db
-    .selectFrom('dto.syllabus_flight_attempts')
+  const r = await camelDb
+    .selectFrom('dto.syllabusFlightAttempts')
     .selectAll()
-    .where('attempt_id', '=', attemptId)
+    .where('attemptId', '=', attemptId)
     .executeTakeFirst()
   return r ? mapAttempt(r) : undefined
 }
@@ -866,52 +811,52 @@ export type AttemptWithFlightData = SyllabusFlightAttempt & {
 export async function getAttemptByIdWithFlightData(
   attemptId: string,
 ): Promise<AttemptWithFlightData | undefined> {
-  const r = await db
-    .selectFrom('dto.syllabus_flight_attempts')
-    .innerJoin('flight.logs', 'flight.logs.flight_id', 'dto.syllabus_flight_attempts.flight_log_id')
-    .leftJoin('member.register as v', 'v.member_id', 'dto.syllabus_flight_attempts.verified_by')
+  const r = await camelDb
+    .selectFrom('dto.syllabusFlightAttempts')
+    .innerJoin('flight.logs', 'flight.logs.flightId', 'dto.syllabusFlightAttempts.flightLogId')
+    .leftJoin('member.register as v', 'v.memberId', 'dto.syllabusFlightAttempts.verifiedBy')
     .select([
-      'dto.syllabus_flight_attempts.attempt_id',
-      'dto.syllabus_flight_attempts.flight_log_id',
-      'dto.syllabus_flight_attempts.syllabus_flight_id',
-      'dto.syllabus_flight_attempts.member_syllabus_id',
-      'dto.syllabus_flight_attempts.instructor_member_id',
-      'dto.syllabus_flight_attempts.instructor_comments',
-      'dto.syllabus_flight_attempts.verification_result',
-      'dto.syllabus_flight_attempts.verified_at',
-      'dto.syllabus_flight_attempts.verified_by',
-      'dto.syllabus_flight_attempts.requires_reverification',
-      'dto.syllabus_flight_attempts.created_at',
-      'dto.syllabus_flight_attempts.updated_at',
-      'flight.logs.off_block_time_utc',
-      'flight.logs.on_block_time_utc',
-      'flight.logs.takeoff_time_utc',
-      'flight.logs.landing_time_utc',
-      'flight.logs.block_time',
-      'flight.logs.flight_time',
-      'flight.logs.departure_airport',
-      'flight.logs.arrival_airport',
-      'flight.logs.number_of_landings',
-      'v.first_name as verifier_first_name',
-      'v.last_name as verifier_last_name',
+      'dto.syllabusFlightAttempts.attemptId',
+      'dto.syllabusFlightAttempts.flightLogId',
+      'dto.syllabusFlightAttempts.syllabusFlightId',
+      'dto.syllabusFlightAttempts.memberSyllabusId',
+      'dto.syllabusFlightAttempts.instructorMemberId',
+      'dto.syllabusFlightAttempts.instructorComments',
+      'dto.syllabusFlightAttempts.verificationResult',
+      'dto.syllabusFlightAttempts.verifiedAt',
+      'dto.syllabusFlightAttempts.verifiedBy',
+      'dto.syllabusFlightAttempts.requiresReverification',
+      'dto.syllabusFlightAttempts.createdAt',
+      'dto.syllabusFlightAttempts.updatedAt',
+      'flight.logs.offBlockTimeUtc',
+      'flight.logs.onBlockTimeUtc',
+      'flight.logs.takeoffTimeUtc',
+      'flight.logs.landingTimeUtc',
+      'flight.logs.blockTime',
+      'flight.logs.flightTime',
+      'flight.logs.departureAirport',
+      'flight.logs.arrivalAirport',
+      'flight.logs.numberOfLandings',
+      'v.firstName as verifierFirstName',
+      'v.lastName as verifierLastName',
     ])
-    .where('dto.syllabus_flight_attempts.attempt_id', '=', attemptId)
+    .where('dto.syllabusFlightAttempts.attemptId', '=', attemptId)
     .executeTakeFirst()
 
   if (!r) return undefined
 
   return {
     ...mapAttempt(r),
-    flightDate: toIso(r.off_block_time_utc).substring(0, 10),
-    offBlockTimeUtc: toIso(r.off_block_time_utc),
-    onBlockTimeUtc: toIso(r.on_block_time_utc),
-    takeoffTimeUtc: toIso(r.takeoff_time_utc),
-    landingTimeUtc: toIso(r.landing_time_utc),
-    blockTime: r.block_time,
-    flightTime: r.flight_time,
-    departureAirport: r.departure_airport,
-    arrivalAirport: r.arrival_airport,
-    numberOfLandings: r.number_of_landings,
+    flightDate: toIso(r.offBlockTimeUtc).substring(0, 10),
+    offBlockTimeUtc: toIso(r.offBlockTimeUtc),
+    onBlockTimeUtc: toIso(r.onBlockTimeUtc),
+    takeoffTimeUtc: toIso(r.takeoffTimeUtc),
+    landingTimeUtc: toIso(r.landingTimeUtc),
+    blockTime: r.blockTime,
+    flightTime: r.flightTime,
+    departureAirport: r.departureAirport,
+    arrivalAirport: r.arrivalAirport,
+    numberOfLandings: r.numberOfLandings,
   }
 }
 
@@ -924,20 +869,20 @@ export async function copySyllabusAsDraft(
 
   const version = await nextMinorVersion(source.programId)
 
-  const newRow = await db
+  const newRow = await camelDb
     .insertInto('dto.syllabus')
     .values({
-      program_id: source.programId,
-      major_version: version.majorVersion,
-      minor_version: version.minorVersion,
-      patch_version: version.patchVersion,
+      programId: source.programId,
+      majorVersion: version.majorVersion,
+      minorVersion: version.minorVersion,
+      patchVersion: version.patchVersion,
       description: source.description ?? null,
-      requirements_experience_credit: source.requirementsExperienceCredit ?? null,
-      general_information: source.generalInformation ?? null,
-      min_block_time_mins: source.minBlockTimeMins ?? null,
+      requirementsExperienceCredit: source.requirementsExperienceCredit ?? null,
+      generalInformation: source.generalInformation ?? null,
+      minBlockTimeMins: source.minBlockTimeMins ?? null,
       status: 'DRAFT',
-      created_by: userId,
-      updated_by: userId,
+      createdBy: userId,
+      updatedBy: userId,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -969,11 +914,11 @@ export async function copySyllabusAsDraft(
 export async function getAttemptsByMemberSyllabus(
   memberSyllabusId: string,
 ): Promise<SyllabusFlightAttempt[]> {
-  const rows = await db
-    .selectFrom('dto.syllabus_flight_attempts')
+  const rows = await camelDb
+    .selectFrom('dto.syllabusFlightAttempts')
     .selectAll()
-    .where('member_syllabus_id', '=', memberSyllabusId)
-    .orderBy('created_at', 'desc')
+    .where('memberSyllabusId', '=', memberSyllabusId)
+    .orderBy('createdAt', 'desc')
     .execute()
   return rows.map(mapAttempt)
 }
@@ -989,38 +934,38 @@ export type AttemptWithFlightLogData = SyllabusFlightAttempt & {
 export async function getAttemptsByMemberSyllabusWithFlightLog(
   memberSyllabusId: string,
 ): Promise<AttemptWithFlightLogData[]> {
-  const rows = await db
-    .selectFrom('dto.syllabus_flight_attempts')
-    .innerJoin('flight.logs', 'flight.logs.flight_id', 'dto.syllabus_flight_attempts.flight_log_id')
+  const rows = await camelDb
+    .selectFrom('dto.syllabusFlightAttempts')
+    .innerJoin('flight.logs', 'flight.logs.flightId', 'dto.syllabusFlightAttempts.flightLogId')
     .select([
-      'dto.syllabus_flight_attempts.attempt_id',
-      'dto.syllabus_flight_attempts.flight_log_id',
-      'dto.syllabus_flight_attempts.syllabus_flight_id',
-      'dto.syllabus_flight_attempts.member_syllabus_id',
-      'dto.syllabus_flight_attempts.instructor_member_id',
-      'dto.syllabus_flight_attempts.instructor_comments',
-      'dto.syllabus_flight_attempts.verification_result',
-      'dto.syllabus_flight_attempts.verified_at',
-      'dto.syllabus_flight_attempts.verified_by',
-      'dto.syllabus_flight_attempts.requires_reverification',
-      'dto.syllabus_flight_attempts.created_at',
-      'dto.syllabus_flight_attempts.updated_at',
-      'flight.logs.off_block_time_utc',
-      'flight.logs.on_block_time_utc',
-      'flight.logs.block_time',
-      'flight.logs.flight_time',
+      'dto.syllabusFlightAttempts.attemptId',
+      'dto.syllabusFlightAttempts.flightLogId',
+      'dto.syllabusFlightAttempts.syllabusFlightId',
+      'dto.syllabusFlightAttempts.memberSyllabusId',
+      'dto.syllabusFlightAttempts.instructorMemberId',
+      'dto.syllabusFlightAttempts.instructorComments',
+      'dto.syllabusFlightAttempts.verificationResult',
+      'dto.syllabusFlightAttempts.verifiedAt',
+      'dto.syllabusFlightAttempts.verifiedBy',
+      'dto.syllabusFlightAttempts.requiresReverification',
+      'dto.syllabusFlightAttempts.createdAt',
+      'dto.syllabusFlightAttempts.updatedAt',
+      'flight.logs.offBlockTimeUtc',
+      'flight.logs.onBlockTimeUtc',
+      'flight.logs.blockTime',
+      'flight.logs.flightTime',
     ])
-    .where('dto.syllabus_flight_attempts.member_syllabus_id', '=', memberSyllabusId)
-    .orderBy('dto.syllabus_flight_attempts.created_at', 'desc')
+    .where('dto.syllabusFlightAttempts.memberSyllabusId', '=', memberSyllabusId)
+    .orderBy('dto.syllabusFlightAttempts.createdAt', 'desc')
     .execute()
 
   return rows.map((r) => ({
     ...mapAttempt(r),
-    flightDate: toIso(r.off_block_time_utc).substring(0, 10),
-    offBlockTimeUtc: toIso(r.off_block_time_utc),
-    onBlockTimeUtc: toIso(r.on_block_time_utc),
-    blockTime: r.block_time,
-    flightTime: r.flight_time,
+    flightDate: toIso(r.offBlockTimeUtc).substring(0, 10),
+    offBlockTimeUtc: toIso(r.offBlockTimeUtc),
+    onBlockTimeUtc: toIso(r.onBlockTimeUtc),
+    blockTime: r.blockTime,
+    flightTime: r.flightTime,
   }))
 }
 
@@ -1031,60 +976,60 @@ export type PendingVerificationItem = SyllabusFlightAttempt & {
 }
 
 export async function getPendingVerifications(): Promise<PendingVerificationItem[]> {
-  const rows = await db
-    .selectFrom('dto.syllabus_flight_attempts')
+  const rows = await camelDb
+    .selectFrom('dto.syllabusFlightAttempts')
     .innerJoin(
-      'dto.member_syllabus',
-      'dto.member_syllabus.member_syllabus_id',
-      'dto.syllabus_flight_attempts.member_syllabus_id',
+      'dto.memberSyllabus',
+      'dto.memberSyllabus.memberSyllabusId',
+      'dto.syllabusFlightAttempts.memberSyllabusId',
     )
-    .innerJoin('member.register', 'member.register.member_id', 'dto.member_syllabus.member_id')
+    .innerJoin('member.register', 'member.register.memberId', 'dto.memberSyllabus.memberId')
     .innerJoin(
-      'dto.syllabus_flights',
-      'dto.syllabus_flights.flight_id',
-      'dto.syllabus_flight_attempts.syllabus_flight_id',
+      'dto.syllabusFlights',
+      'dto.syllabusFlights.flightId',
+      'dto.syllabusFlightAttempts.syllabusFlightId',
     )
     .select([
-      'dto.syllabus_flight_attempts.attempt_id',
-      'dto.syllabus_flight_attempts.flight_log_id',
-      'dto.syllabus_flight_attempts.syllabus_flight_id',
-      'dto.syllabus_flight_attempts.member_syllabus_id',
-      'dto.syllabus_flight_attempts.instructor_member_id',
-      'dto.syllabus_flight_attempts.instructor_comments',
-      'dto.syllabus_flight_attempts.verification_result',
-      'dto.syllabus_flight_attempts.verified_at',
-      'dto.syllabus_flight_attempts.verified_by',
-      'dto.syllabus_flight_attempts.requires_reverification',
-      'dto.syllabus_flight_attempts.created_at',
-      'dto.syllabus_flight_attempts.updated_at',
-      'member.register.first_name',
-      'member.register.last_name',
-      'dto.syllabus_flights.code as flight_code',
-      'dto.syllabus_flights.name as flight_name',
+      'dto.syllabusFlightAttempts.attemptId',
+      'dto.syllabusFlightAttempts.flightLogId',
+      'dto.syllabusFlightAttempts.syllabusFlightId',
+      'dto.syllabusFlightAttempts.memberSyllabusId',
+      'dto.syllabusFlightAttempts.instructorMemberId',
+      'dto.syllabusFlightAttempts.instructorComments',
+      'dto.syllabusFlightAttempts.verificationResult',
+      'dto.syllabusFlightAttempts.verifiedAt',
+      'dto.syllabusFlightAttempts.verifiedBy',
+      'dto.syllabusFlightAttempts.requiresReverification',
+      'dto.syllabusFlightAttempts.createdAt',
+      'dto.syllabusFlightAttempts.updatedAt',
+      'member.register.firstName',
+      'member.register.lastName',
+      'dto.syllabusFlights.code as flightCode',
+      'dto.syllabusFlights.name as flightName',
     ])
     .where((eb) =>
       eb.or([
-        eb('dto.syllabus_flight_attempts.verification_result', 'is', null),
-        eb('dto.syllabus_flight_attempts.requires_reverification', '=', true),
+        eb('dto.syllabusFlightAttempts.verificationResult', 'is', null),
+        eb('dto.syllabusFlightAttempts.requiresReverification', '=', true),
       ]),
     )
-    .orderBy('dto.syllabus_flight_attempts.created_at')
+    .orderBy('dto.syllabusFlightAttempts.createdAt')
     .execute()
 
   return rows.map((r) => ({
     ...mapAttempt(r),
-    memberName: `${r.first_name} ${r.last_name}`,
-    syllabusFlightCode: r.flight_code,
-    syllabusFlightName: r.flight_name,
+    memberName: `${r.firstName} ${r.lastName}`,
+    syllabusFlightCode: r.flightCode,
+    syllabusFlightName: r.flightName,
   }))
 }
 
 export async function getPendingVerificationsCount(): Promise<number> {
-  const r = await db
-    .selectFrom('dto.syllabus_flight_attempts')
-    .select((eb) => eb.fn.count('attempt_id').as('count'))
+  const r = await camelDb
+    .selectFrom('dto.syllabusFlightAttempts')
+    .select((eb) => eb.fn.count('attemptId').as('count'))
     .where((eb) =>
-      eb.or([eb('verification_result', 'is', null), eb('requires_reverification', '=', true)]),
+      eb.or([eb('verificationResult', 'is', null), eb('requiresReverification', '=', true)]),
     )
     .executeTakeFirstOrThrow()
   return Number(r.count)
@@ -1096,22 +1041,22 @@ export async function insertAttempt(
   memberSyllabusId: string,
   instructorMemberId: string,
 ): Promise<SyllabusFlightAttempt> {
-  const r = await db
-    .insertInto('dto.syllabus_flight_attempts')
+  const r = await camelDb
+    .insertInto('dto.syllabusFlightAttempts')
     .values({
-      flight_log_id: flightLogId,
-      syllabus_flight_id: syllabusFlightId,
-      member_syllabus_id: memberSyllabusId,
-      instructor_member_id: instructorMemberId,
+      flightLogId: flightLogId,
+      syllabusFlightId: syllabusFlightId,
+      memberSyllabusId: memberSyllabusId,
+      instructorMemberId: instructorMemberId,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
 
   // Mark the flight log entry as a DTO training flight (used for invoicing)
-  await db
+  await camelDb
     .updateTable('flight.logs')
-    .set({ is_dto_training_flight: true })
-    .where('flight_id', '=', flightLogId)
+    .set({ isDtoTrainingFlight: true })
+    .where('flightId', '=', flightLogId)
     .execute()
 
   return mapAttempt(r)
@@ -1121,11 +1066,11 @@ export async function updateAttemptSyllabusFlight(
   flightLogId: string,
   syllabusFlightId: string,
 ): Promise<SyllabusFlightAttempt | undefined> {
-  const r = await db
-    .updateTable('dto.syllabus_flight_attempts')
-    .set({ syllabus_flight_id: syllabusFlightId, updated_at: new Date() })
-    .where('flight_log_id', '=', flightLogId)
-    .where('verification_result', 'is', null)
+  const r = await camelDb
+    .updateTable('dto.syllabusFlightAttempts')
+    .set({ syllabusFlightId: syllabusFlightId, updatedAt: new Date() })
+    .where('flightLogId', '=', flightLogId)
+    .where('verificationResult', 'is', null)
     .returningAll()
     .executeTakeFirst()
   return r ? mapAttempt(r) : undefined
@@ -1138,19 +1083,19 @@ export async function verifyAttempt(
 ): Promise<SyllabusFlightAttempt | undefined> {
   const now = new Date()
 
-  const r = await db
-    .updateTable('dto.syllabus_flight_attempts')
+  const r = await camelDb
+    .updateTable('dto.syllabusFlightAttempts')
     .set({
-      verification_result: data.result,
-      verified_at: now,
-      verified_by: verifiedBy,
-      instructor_comments: data.instructorComments ?? null,
-      requires_reverification: false,
-      updated_at: now,
+      verificationResult: data.result,
+      verifiedAt: now,
+      verifiedBy: verifiedBy,
+      instructorComments: data.instructorComments ?? null,
+      requiresReverification: false,
+      updatedAt: now,
     })
-    .where('attempt_id', '=', attemptId)
+    .where('attemptId', '=', attemptId)
     .where((eb) =>
-      eb.or([eb('verification_result', 'is', null), eb('requires_reverification', '=', true)]),
+      eb.or([eb('verificationResult', 'is', null), eb('requiresReverification', '=', true)]),
     )
     .returningAll()
     .executeTakeFirst()
@@ -1160,54 +1105,54 @@ export async function verifyAttempt(
   // Upsert item outcomes
   if (data.itemOutcomes && data.itemOutcomes.length > 0) {
     for (const o of data.itemOutcomes) {
-      await db
-        .insertInto('dto.flight_item_outcomes')
+      await camelDb
+        .insertInto('dto.flightItemOutcomes')
         .values({
-          attempt_id: attemptId,
-          item_id: o.itemId,
+          attemptId: attemptId,
+          itemId: o.itemId,
           outcome: o.outcome,
           remarks: o.remarks ?? null,
         })
         .onConflict((oc) =>
-          oc.columns(['attempt_id', 'item_id']).doUpdateSet({
+          oc.columns(['attemptId', 'itemId']).doUpdateSet({
             outcome: o.outcome,
             remarks: o.remarks ?? null,
-            updated_at: now,
+            updatedAt: now,
           }),
         )
         .execute()
 
       // If outcome is MOVED_TO_HIL, add to HIL queue (if not already open)
       if (o.outcome === 'MOVED_TO_HIL') {
-        const memberSyllabus = await db
-          .selectFrom('dto.syllabus_flight_attempts')
+        const memberSyllabus = await camelDb
+          .selectFrom('dto.syllabusFlightAttempts')
           .innerJoin(
-            'dto.member_syllabus',
-            'dto.member_syllabus.member_syllabus_id',
-            'dto.syllabus_flight_attempts.member_syllabus_id',
+            'dto.memberSyllabus',
+            'dto.memberSyllabus.memberSyllabusId',
+            'dto.syllabusFlightAttempts.memberSyllabusId',
           )
-          .select(['dto.member_syllabus.member_id', 'dto.member_syllabus.syllabus_id'])
-          .where('dto.syllabus_flight_attempts.attempt_id', '=', attemptId)
+          .select(['dto.memberSyllabus.memberId', 'dto.memberSyllabus.syllabusId'])
+          .where('dto.syllabusFlightAttempts.attemptId', '=', attemptId)
           .executeTakeFirst()
 
         if (memberSyllabus) {
           // Check if there's already an open HIL entry for this member+item
-          const existingHil = await db
-            .selectFrom('dto.hil_queue')
-            .select('hil_id')
-            .where('member_id', '=', memberSyllabus.member_id)
-            .where('item_id', '=', o.itemId)
-            .where('resolved_at', 'is', null)
+          const existingHil = await camelDb
+            .selectFrom('dto.hilQueue')
+            .select('hilId')
+            .where('memberId', '=', memberSyllabus.memberId)
+            .where('itemId', '=', o.itemId)
+            .where('resolvedAt', 'is', null)
             .executeTakeFirst()
 
           if (!existingHil) {
-            await db
-              .insertInto('dto.hil_queue')
+            await camelDb
+              .insertInto('dto.hilQueue')
               .values({
-                member_id: memberSyllabus.member_id,
-                syllabus_id: memberSyllabus.syllabus_id,
-                item_id: o.itemId,
-                opened_on_attempt_id: attemptId,
+                memberId: memberSyllabus.memberId,
+                syllabusId: memberSyllabus.syllabusId,
+                itemId: o.itemId,
+                openedOnAttemptId: attemptId,
               })
               .execute()
           }
@@ -1216,28 +1161,28 @@ export async function verifyAttempt(
 
       // If outcome resolves a HIL entry, close it
       if (o.outcome === 'COMPLETED' || o.outcome === 'FAILED') {
-        const memberSyllabus = await db
-          .selectFrom('dto.syllabus_flight_attempts')
+        const memberSyllabus = await camelDb
+          .selectFrom('dto.syllabusFlightAttempts')
           .innerJoin(
-            'dto.member_syllabus',
-            'dto.member_syllabus.member_syllabus_id',
-            'dto.syllabus_flight_attempts.member_syllabus_id',
+            'dto.memberSyllabus',
+            'dto.memberSyllabus.memberSyllabusId',
+            'dto.syllabusFlightAttempts.memberSyllabusId',
           )
-          .select('dto.member_syllabus.member_id')
-          .where('dto.syllabus_flight_attempts.attempt_id', '=', attemptId)
+          .select('dto.memberSyllabus.memberId')
+          .where('dto.syllabusFlightAttempts.attemptId', '=', attemptId)
           .executeTakeFirst()
 
         if (memberSyllabus) {
-          await db
-            .updateTable('dto.hil_queue')
+          await camelDb
+            .updateTable('dto.hilQueue')
             .set({
-              resolved_at: now,
-              resolved_on_attempt_id: attemptId,
-              resolution_outcome: o.outcome,
+              resolvedAt: now,
+              resolvedOnAttemptId: attemptId,
+              resolutionOutcome: o.outcome,
             })
-            .where('member_id', '=', memberSyllabus.member_id)
-            .where('item_id', '=', o.itemId)
-            .where('resolved_at', 'is', null)
+            .where('memberId', '=', memberSyllabus.memberId)
+            .where('itemId', '=', o.itemId)
+            .where('resolvedAt', 'is', null)
             .execute()
         }
       }
@@ -1250,11 +1195,11 @@ export async function verifyAttempt(
 // Sets requires_reverification=true on any verified attempt for this flight.
 // Called after a flight log is edited so instructors know to re-verify.
 export async function invalidateApprovedAttempt(flightLogId: string): Promise<void> {
-  await db
-    .updateTable('dto.syllabus_flight_attempts')
-    .set({ requires_reverification: true, updated_at: new Date() })
-    .where('flight_log_id', '=', flightLogId)
-    .where('verification_result', 'is not', null)
+  await camelDb
+    .updateTable('dto.syllabusFlightAttempts')
+    .set({ requiresReverification: true, updatedAt: new Date() })
+    .where('flightLogId', '=', flightLogId)
+    .where('verificationResult', 'is not', null)
     .execute()
 }
 
@@ -1262,18 +1207,18 @@ export async function invalidateApprovedAttempt(flightLogId: string): Promise<vo
 // Item Outcomes
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getItemOutcomesByAttempt(attemptId: string): Promise<FlightItemOutcome[]> {
-  const rows = await db
-    .selectFrom('dto.flight_item_outcomes')
+  const rows = await camelDb
+    .selectFrom('dto.flightItemOutcomes')
     .selectAll()
-    .where('attempt_id', '=', attemptId)
+    .where('attemptId', '=', attemptId)
     .execute()
   return rows.map((r) => ({
-    attemptId: r.attempt_id,
-    itemId: r.item_id,
+    attemptId: r.attemptId,
+    itemId: r.itemId,
     outcome: r.outcome as FlightItemOutcome['outcome'],
     remarks: r.remarks,
-    createdAt: toIso(r.created_at),
-    updatedAt: toIso(r.updated_at),
+    createdAt: toIso(r.createdAt),
+    updatedAt: toIso(r.updatedAt),
   }))
 }
 
@@ -1281,24 +1226,24 @@ export async function getItemOutcomesByAttempts(
   attemptIds: string[],
 ): Promise<Map<string, FlightItemOutcome[]>> {
   if (attemptIds.length === 0) return new Map()
-  const rows = await db
-    .selectFrom('dto.flight_item_outcomes')
+  const rows = await camelDb
+    .selectFrom('dto.flightItemOutcomes')
     .selectAll()
-    .where('attempt_id', 'in', attemptIds)
+    .where('attemptId', 'in', attemptIds)
     .execute()
   const grouped = new Map<string, FlightItemOutcome[]>()
   for (const r of rows) {
     const outcome: FlightItemOutcome = {
-      attemptId: r.attempt_id,
-      itemId: r.item_id,
+      attemptId: r.attemptId,
+      itemId: r.itemId,
       outcome: r.outcome as FlightItemOutcome['outcome'],
       remarks: r.remarks,
-      createdAt: toIso(r.created_at),
-      updatedAt: toIso(r.updated_at),
+      createdAt: toIso(r.createdAt),
+      updatedAt: toIso(r.updatedAt),
     }
-    const list = grouped.get(r.attempt_id) ?? []
+    const list = grouped.get(r.attemptId) ?? []
     list.push(outcome)
-    grouped.set(r.attempt_id, list)
+    grouped.set(r.attemptId, list)
   }
   return grouped
 }
@@ -1307,23 +1252,23 @@ export async function getItemOutcomesByAttempts(
 // HIL Queue
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getOpenHilForMember(memberId: string): Promise<HilEntry[]> {
-  const rows = await db
-    .selectFrom('dto.hil_queue')
+  const rows = await camelDb
+    .selectFrom('dto.hilQueue')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .where('resolved_at', 'is', null)
-    .orderBy('opened_at')
+    .where('memberId', '=', memberId)
+    .where('resolvedAt', 'is', null)
+    .orderBy('openedAt')
     .execute()
   return rows.map((r) => ({
-    hilId: r.hil_id,
-    memberId: r.member_id,
-    syllabusId: r.syllabus_id,
-    itemId: r.item_id,
-    openedOnAttemptId: r.opened_on_attempt_id,
-    openedAt: toIso(r.opened_at),
-    resolvedOnAttemptId: r.resolved_on_attempt_id,
-    resolvedAt: toIsoNullable(r.resolved_at),
-    resolutionOutcome: r.resolution_outcome as HilEntry['resolutionOutcome'],
+    hilId: r.hilId,
+    memberId: r.memberId,
+    syllabusId: r.syllabusId,
+    itemId: r.itemId,
+    openedOnAttemptId: r.openedOnAttemptId,
+    openedAt: toIso(r.openedAt),
+    resolvedOnAttemptId: r.resolvedOnAttemptId,
+    resolvedAt: toIsoNullable(r.resolvedAt),
+    resolutionOutcome: r.resolutionOutcome as HilEntry['resolutionOutcome'],
     notes: r.notes,
   }))
 }
@@ -1333,96 +1278,92 @@ export async function getOpenHilForMember(memberId: string): Promise<HilEntry[]>
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getStudentProgress(): Promise<StudentProgress[]> {
   // Get all active member syllabus assignments with member names and syllabus info
-  const rows = await db
-    .selectFrom('dto.member_syllabus')
-    .innerJoin('member.register', 'member.register.member_id', 'dto.member_syllabus.member_id')
-    .innerJoin('dto.syllabus', 'dto.syllabus.syllabus_id', 'dto.member_syllabus.syllabus_id')
-    .innerJoin('dto.training_program', 'dto.training_program.program_id', 'dto.syllabus.program_id')
+  const rows = await camelDb
+    .selectFrom('dto.memberSyllabus')
+    .innerJoin('member.register', 'member.register.memberId', 'dto.memberSyllabus.memberId')
+    .innerJoin('dto.syllabus', 'dto.syllabus.syllabusId', 'dto.memberSyllabus.syllabusId')
+    .innerJoin('dto.trainingProgram', 'dto.trainingProgram.programId', 'dto.syllabus.programId')
     .select([
-      'dto.member_syllabus.member_id',
-      'dto.member_syllabus.member_syllabus_id',
-      'dto.member_syllabus.syllabus_id',
-      'dto.training_program.name as program_name',
+      'dto.memberSyllabus.memberId',
+      'dto.memberSyllabus.memberSyllabusId',
+      'dto.memberSyllabus.syllabusId',
+      'dto.trainingProgram.name as programName',
       'dto.syllabus.version',
-      'dto.syllabus.min_block_time_mins',
-      'member.register.first_name',
-      'member.register.last_name',
+      'dto.syllabus.minBlockTimeMins',
+      'member.register.firstName',
+      'member.register.lastName',
     ])
-    .where('dto.member_syllabus.is_active', '=', true)
+    .where('dto.memberSyllabus.isActive', '=', true)
     .execute()
 
   const results: StudentProgress[] = []
 
   for (const row of rows) {
     // Get syllabus flights count
-    const flightCountRow = await db
-      .selectFrom('dto.syllabus_flights')
-      .select((eb) => eb.fn.count('flight_id').as('count'))
-      .where('syllabus_id', '=', row.syllabus_id)
+    const flightCountRow = await camelDb
+      .selectFrom('dto.syllabusFlights')
+      .select((eb) => eb.fn.count('flightId').as('count'))
+      .where('syllabusId', '=', row.syllabusId)
       .executeTakeFirstOrThrow()
     const totalFlights = Number(flightCountRow.count)
 
     // Get completed flight attempts for this member's syllabus
-    const completedRows = await db
-      .selectFrom('dto.syllabus_flight_attempts')
-      .select(['syllabus_flight_id', 'created_at'])
-      .where('member_syllabus_id', '=', row.member_syllabus_id)
-      .where('verification_result', '=', 'APPROVED')
+    const completedRows = await camelDb
+      .selectFrom('dto.syllabusFlightAttempts')
+      .select(['syllabusFlightId', 'createdAt'])
+      .where('memberSyllabusId', '=', row.memberSyllabusId)
+      .where('verificationResult', '=', 'APPROVED')
       .execute()
 
     // Count distinct syllabus flights that have been approved
-    const completedFlightIds = new Set(completedRows.map((r) => r.syllabus_flight_id))
+    const completedFlightIds = new Set(completedRows.map((r) => r.syllabusFlightId))
     const completedFlights = completedFlightIds.size
 
     // Sum block minutes from all approved attempts
-    const blockTimeSumRow = await db
-      .selectFrom('dto.syllabus_flight_attempts')
-      .innerJoin(
-        'flight.logs',
-        'flight.logs.flight_id',
-        'dto.syllabus_flight_attempts.flight_log_id',
-      )
-      .select((eb) => eb.fn.sum<number>('flight.logs.block_mins').as('total_block_mins'))
-      .where('dto.syllabus_flight_attempts.member_syllabus_id', '=', row.member_syllabus_id)
-      .where('dto.syllabus_flight_attempts.verification_result', '=', 'APPROVED')
+    const blockTimeSumRow = await camelDb
+      .selectFrom('dto.syllabusFlightAttempts')
+      .innerJoin('flight.logs', 'flight.logs.flightId', 'dto.syllabusFlightAttempts.flightLogId')
+      .select((eb) => eb.fn.sum<number>('flight.logs.blockMins').as('totalBlockMins'))
+      .where('dto.syllabusFlightAttempts.memberSyllabusId', '=', row.memberSyllabusId)
+      .where('dto.syllabusFlightAttempts.verificationResult', '=', 'APPROVED')
       .executeTakeFirst()
-    const totalBlockTimeMins = Number(blockTimeSumRow?.total_block_mins ?? 0)
+    const totalBlockTimeMins = Number(blockTimeSumRow?.totalBlockMins ?? 0)
 
     // Last DTO flight date
-    const lastAttemptRow = await db
-      .selectFrom('dto.syllabus_flight_attempts')
-      .select('created_at')
-      .where('member_syllabus_id', '=', row.member_syllabus_id)
-      .orderBy('created_at', 'desc')
+    const lastAttemptRow = await camelDb
+      .selectFrom('dto.syllabusFlightAttempts')
+      .select('createdAt')
+      .where('memberSyllabusId', '=', row.memberSyllabusId)
+      .orderBy('createdAt', 'desc')
       .limit(1)
       .executeTakeFirst()
 
     // Check interim checkpoint
-    const interimFlightRow = await db
-      .selectFrom('dto.syllabus_flights')
-      .select('flight_id')
-      .where('syllabus_id', '=', row.syllabus_id)
-      .where('is_interim_checkpoint', '=', true)
+    const interimFlightRow = await camelDb
+      .selectFrom('dto.syllabusFlights')
+      .select('flightId')
+      .where('syllabusId', '=', row.syllabusId)
+      .where('isInterimCheckpoint', '=', true)
       .executeTakeFirst()
 
     let interimCheckpointCompleted = false
     if (interimFlightRow) {
-      interimCheckpointCompleted = completedFlightIds.has(interimFlightRow.flight_id)
+      interimCheckpointCompleted = completedFlightIds.has(interimFlightRow.flightId)
     }
 
-    const minBlockTimeMins = row.min_block_time_mins ?? null
+    const minBlockTimeMins = row.minBlockTimeMins ?? null
     const meetsTimeRequirement = minBlockTimeMins === null || totalBlockTimeMins >= minBlockTimeMins
 
     results.push({
-      memberId: row.member_id,
-      memberName: `${row.first_name} ${row.last_name}`,
-      memberSyllabusId: row.member_syllabus_id,
-      syllabusId: row.syllabus_id,
-      syllabusTitle: row.program_name,
+      memberId: row.memberId,
+      memberName: `${row.firstName} ${row.lastName}`,
+      memberSyllabusId: row.memberSyllabusId,
+      syllabusId: row.syllabusId,
+      syllabusTitle: row.programName,
       syllabusVersion: row.version,
       totalFlights,
       completedFlights,
-      lastDtoFlightDate: lastAttemptRow ? toIso(lastAttemptRow.created_at) : null,
+      lastDtoFlightDate: lastAttemptRow ? toIso(lastAttemptRow.createdAt) : null,
       interimCheckpointCompleted,
       totalBlockTimeMins,
       minBlockTimeMins,
