@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'apps/**'
+      - 'apps/backend/**'
       - 'packages/**'
       - 'sql/schema/**'
       - '.github/workflows/**'
@@ -17,6 +17,11 @@ on:
       - 'packages/**'
       - 'sql/schema/**'
       - '.github/workflows/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: '--max-old-space-size=8192' # Increase memory limit for Node.js
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
