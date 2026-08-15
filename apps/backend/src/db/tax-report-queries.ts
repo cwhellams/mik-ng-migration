@@ -1,43 +1,43 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import { sql } from 'kysely'
 import type { TaxReportEntry, TaxReportFilters } from '@mik/contracts/tax-reports'
 
 export async function getTaxReport(filters: TaxReportFilters): Promise<TaxReportEntry[]> {
-  const result = await db
+  const result = await camelDb
     .selectFrom('flight.logs')
     .select([
       sql<string>`TO_CHAR(off_block_time_utc, 'YYYY-MM')`.as('month'),
-      'aircraft_registration',
+      'aircraftRegistration',
       sql<number>`SUM(CASE WHEN priv_or_com_flight = 'C' THEN block_mins ELSE 0 END)`.as(
-        'commercial_block_mins',
+        'commercialBlockMins',
       ),
       sql<number>`SUM(CASE WHEN priv_or_com_flight = 'C' THEN flight_mins ELSE 0 END)`.as(
-        'commercial_flight_mins',
+        'commercialFlightMins',
       ),
       sql<number>`SUM(CASE WHEN priv_or_com_flight = 'P' THEN block_mins ELSE 0 END)`.as(
-        'private_block_mins',
+        'privateBlockMins',
       ),
       sql<number>`SUM(CASE WHEN priv_or_com_flight = 'P' THEN flight_mins ELSE 0 END)`.as(
-        'private_flight_mins',
+        'privateFlightMins',
       ),
-      sql<number>`SUM(block_mins)`.as('total_block_mins'),
-      sql<number>`SUM(flight_mins)`.as('total_flight_mins'),
+      sql<number>`SUM(block_mins)`.as('totalBlockMins'),
+      sql<number>`SUM(flight_mins)`.as('totalFlightMins'),
     ])
     .where(sql`off_block_time_utc::date`, '>=', sql`${filters.startDate}::date`)
     .where(sql`off_block_time_utc::date`, '<=', sql`${filters.endDate}::date`)
-    .groupBy([sql`TO_CHAR(off_block_time_utc, 'YYYY-MM')`, 'aircraft_registration'])
+    .groupBy([sql`TO_CHAR(off_block_time_utc, 'YYYY-MM')`, 'aircraftRegistration'])
     .orderBy(sql`TO_CHAR(off_block_time_utc, 'YYYY-MM')`, 'asc')
-    .orderBy('aircraft_registration', 'asc')
+    .orderBy('aircraftRegistration', 'asc')
     .execute()
 
   return result.map((row) => ({
     month: row.month,
-    aircraftRegistration: row.aircraft_registration,
-    commercialBlockMins: Number(row.commercial_block_mins),
-    commercialFlightMins: Number(row.commercial_flight_mins),
-    privateBlockMins: Number(row.private_block_mins),
-    privateFlightMins: Number(row.private_flight_mins),
-    totalBlockMins: Number(row.total_block_mins),
-    totalFlightMins: Number(row.total_flight_mins),
+    aircraftRegistration: row.aircraftRegistration,
+    commercialBlockMins: Number(row.commercialBlockMins),
+    commercialFlightMins: Number(row.commercialFlightMins),
+    privateBlockMins: Number(row.privateBlockMins),
+    privateFlightMins: Number(row.privateFlightMins),
+    totalBlockMins: Number(row.totalBlockMins),
+    totalFlightMins: Number(row.totalFlightMins),
   }))
 }

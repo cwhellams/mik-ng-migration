@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import { sql } from 'kysely'
 import type {
   UpliftReportEntry,
@@ -10,48 +10,51 @@ export async function getUpliftReport(filters: UpliftReportFilters): Promise<{
   data: UpliftReportEntry[]
   summary: UpliftReportSummary
 }> {
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('flight.logs')
-    .leftJoin('member.register', 'flight.logs.pic_member_id', 'member.register.member_id')
+    .leftJoin('member.register', 'flight.logs.picMemberId', 'member.register.memberId')
     .select([
-      'flight.logs.flight_id',
-      'flight.logs.off_block_time_utc',
-      'member.register.first_name',
-      'flight.logs.pic_last_name',
-      'flight.logs.fuel_uplift_litres',
-      'flight.logs.oil_uplift_litres',
+      'flight.logs.flightId',
+      'flight.logs.offBlockTimeUtc',
+      'member.register.firstName',
+      'flight.logs.picLastName',
+      'flight.logs.fuelUpliftLitres',
+      'flight.logs.oilUpliftLitres',
     ])
-    .where('flight.logs.aircraft_registration', '=', filters.aircraftRegistration)
+    .where('flight.logs.aircraftRegistration', '=', filters.aircraftRegistration)
+    // Raw on both sides deliberately: the ::date casts are the comparison. A bare
+    // column ref would compare the timestamp, so this is one of the fragments that
+    // genuinely cannot move into the builder.
     .where(sql`flight.logs.off_block_time_utc::date`, '>=', sql`${filters.startDate}::date`)
     .where(sql`flight.logs.off_block_time_utc::date`, '<=', sql`${filters.endDate}::date`)
     .where((eb) =>
       eb.or([
-        eb('flight.logs.fuel_uplift_litres', 'is not', null),
-        eb('flight.logs.oil_uplift_litres', 'is not', null),
+        eb('flight.logs.fuelUpliftLitres', 'is not', null),
+        eb('flight.logs.oilUpliftLitres', 'is not', null),
       ]),
     )
-    .orderBy('flight.logs.off_block_time_utc', 'asc')
+    .orderBy('flight.logs.offBlockTimeUtc', 'asc')
     .execute()
 
   const data: UpliftReportEntry[] = rows.map((row) => ({
-    flightId: row.flight_id,
-    offBlockTimeUtc: row.off_block_time_utc.toISOString(),
-    picName: [row.first_name, row.pic_last_name].filter(Boolean).join(' '),
-    fuelUpliftLitres: row.fuel_uplift_litres != null ? Number(row.fuel_uplift_litres) : null,
-    oilUpliftLitres: row.oil_uplift_litres != null ? Number(row.oil_uplift_litres) : null,
+    flightId: row.flightId,
+    offBlockTimeUtc: row.offBlockTimeUtc.toISOString(),
+    picName: [row.firstName, row.picLastName].filter(Boolean).join(' '),
+    fuelUpliftLitres: row.fuelUpliftLitres != null ? Number(row.fuelUpliftLitres) : null,
+    oilUpliftLitres: row.oilUpliftLitres != null ? Number(row.oilUpliftLitres) : null,
   }))
 
   const totalFuelUpliftLitres = data.reduce((sum, e) => sum + (e.fuelUpliftLitres ?? 0), 0)
   const totalOilUpliftLitres = data.reduce((sum, e) => sum + (e.oilUpliftLitres ?? 0), 0)
 
   // Fetch fuel types for this aircraft
-  const aircraft = await db
+  const aircraft = await camelDb
     .selectFrom('flight.aircraft')
-    .select('fuel_types')
+    .select('fuelTypes')
     .where('registration', '=', filters.aircraftRegistration)
     .executeTakeFirst()
 
-  const fuelTypes: string[] = aircraft?.fuel_types ?? []
+  const fuelTypes: string[] = aircraft?.fuelTypes ?? []
 
   return {
     data,

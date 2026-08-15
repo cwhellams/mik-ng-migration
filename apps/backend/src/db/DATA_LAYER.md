@@ -132,7 +132,7 @@ corrupted by it. `test/db/camel-case-plugin.test.ts` pins this.
 
 ## Progress
 
-**28 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
+**34 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
 is done — what remains is exactly the set that needs a judgement call.
 
 Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
@@ -140,15 +140,17 @@ Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
 `events`, `fuel-prices`, `instructor-qualification`, `mailbox`, `notification-banner`,
 `passkey`, `prices`, `push`, `qualification-proof`, `secrets`, `simplbooks-sync`,
 `useful-phone-number`, `aircraft`, `aircraft-document`, `aircraft-navdata`,
-`fuel-report`, `instructor-worktime`.
+`fuel-report`, `instructor-worktime`, `tax-report`, `traficom-report`,
+`uplift-report`, `document`, `tiny-url`, `gdpr`.
 
 Remaining, grouped by what makes them awkward:
 
 - **Raw `sql` fragments** — audit each by hand, per
   [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment). What is left is the large
-  end of this group: `ame`, `booking`, `document`, `flight-log`, `gdpr`, `member`,
-  `prepaid-hours`, `shop`, `stats`, `tax-report`,
-  `tiny-url`, `traficom-report`, `uplift-report`.
+  end of this group: `ame`, `booking`, `flight-log`, `member`, `prepaid-hours`, `shop`,
+  `stats`. `stats` is the awkward one — its fragments are SQL _snippets composed into_ a
+  larger query (`` sql`AND takeoff_time_epoch >= …` ``) rather than whole expressions, so
+  the fragment table there does not classify them cleanly.
 - **Shared transactions — must move as one commit**, since a transaction cannot span the
   two instances. Two clusters:
   - `expense`, `expense-attachment`, `inventory`, `meeting`, `mileage`, `occurrence`,

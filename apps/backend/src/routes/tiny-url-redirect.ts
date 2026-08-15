@@ -31,7 +31,7 @@ router.get('/:code', async (req: Request<{ code: string }>, res: Response) => {
     return problem({ status: 404, detail: 'Tiny URL not found' })
   }
 
-  if (target.expires_at < new Date()) {
+  if (target.expiresAt < new Date()) {
     logger.warn('Tiny URL expired for short code: %s', code)
     return problem({ status: 410, detail: 'Tiny URL has expired' })
   }

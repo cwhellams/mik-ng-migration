@@ -14,58 +14,58 @@
  *    material used to encrypt push payloads, not personal data.
  */
 
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import { sql } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 // ─── Flight logs (all crew roles) ────────────────────────────────────────────
 
 export async function getGdprFlightLogs(memberId: string) {
-  return db
+  return camelDb
     .selectFrom('flight.logs')
     .selectAll()
     .where((eb) =>
       eb.or([
-        eb('billable_member_id', '=', memberId),
-        eb('pic_member_id', '=', memberId),
-        eb('crew2_member_id', '=', memberId),
-        eb('crew3_member_id', '=', memberId),
-        eb('crew4_member_id', '=', memberId),
+        eb('billableMemberId', '=', memberId),
+        eb('picMemberId', '=', memberId),
+        eb('crew2MemberId', '=', memberId),
+        eb('crew3MemberId', '=', memberId),
+        eb('crew4MemberId', '=', memberId),
       ]),
     )
-    .orderBy('off_block_time_epoch', 'desc')
+    .orderBy('offBlockTimeEpoch', 'desc')
     .execute()
 }
 
 // ─── Bookings ─────────────────────────────────────────────────────────────────
 
 export async function getGdprBookings(memberId: string) {
-  return db
+  return camelDb
     .selectFrom('schedule.bookings')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('start_time_epoch', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('startTimeEpoch', 'desc')
     .execute()
 }
 
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 export async function getGdprInvoices(memberId: string) {
-  return db
+  return camelDb
     .selectFrom('accts.invoice')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('sent_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('sentAt', 'desc')
     .execute()
 }
 
 // ─── Annual fees ──────────────────────────────────────────────────────────────
 
 export async function getGdprAnnualFees(memberId: string) {
-  return db
-    .selectFrom('member.annual_fees')
+  return camelDb
+    .selectFrom('member.annualFees')
     .selectAll()
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .orderBy('year', 'desc')
     .execute()
 }
@@ -73,65 +73,65 @@ export async function getGdprAnnualFees(memberId: string) {
 // ─── Shop orders (with items) ─────────────────────────────────────────────────
 
 export async function getGdprShopOrders(memberId: string) {
-  const orders = await db
+  const orders = await camelDb
     .selectFrom('shop.orders')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('created_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('createdAt', 'desc')
     .execute()
 
   if (orders.length === 0) return []
 
-  const orderIds = orders.map((o) => o.order_id)
-  const items = await db
-    .selectFrom('shop.order_items')
+  const orderIds = orders.map((o) => o.orderId)
+  const items = await camelDb
+    .selectFrom('shop.orderItems')
     .selectAll()
-    .where('order_id', 'in', orderIds)
+    .where('orderId', 'in', orderIds)
     .execute()
 
   const itemsByOrderId = new Map<string, typeof items>()
   for (const item of items) {
-    const list = itemsByOrderId.get(item.order_id) ?? []
+    const list = itemsByOrderId.get(item.orderId) ?? []
     list.push(item)
-    itemsByOrderId.set(item.order_id, list)
+    itemsByOrderId.set(item.orderId, list)
   }
 
   return orders.map((o) => ({
     ...o,
-    items: itemsByOrderId.get(o.order_id) ?? [],
+    items: itemsByOrderId.get(o.orderId) ?? [],
   }))
 }
 
 // ─── Prepaid packages (with usage log) ───────────────────────────────────────
 
 export async function getGdprPrepaidPackages(memberId: string) {
-  const packages = await db
-    .selectFrom('prepaid.member_packages')
+  const packages = await camelDb
+    .selectFrom('prepaid.memberPackages')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('created_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('createdAt', 'desc')
     .execute()
 
   if (packages.length === 0) return []
 
-  const packageIds = packages.map((p) => p.member_package_id)
-  const usageLogs = await db
-    .selectFrom('prepaid.usage_log')
+  const packageIds = packages.map((p) => p.memberPackageId)
+  const usageLogs = await camelDb
+    .selectFrom('prepaid.usageLog')
     .selectAll()
-    .where('member_package_id', 'in', packageIds)
-    .orderBy('applied_at', 'desc')
+    .where('memberPackageId', 'in', packageIds)
+    .orderBy('appliedAt', 'desc')
     .execute()
 
   const usageByPackageId = new Map<number, typeof usageLogs>()
   for (const log of usageLogs) {
-    const list = usageByPackageId.get(log.member_package_id) ?? []
+    const list = usageByPackageId.get(log.memberPackageId) ?? []
     list.push(log)
-    usageByPackageId.set(log.member_package_id, list)
+    usageByPackageId.set(log.memberPackageId, list)
   }
 
   return packages.map((p) => ({
     ...p,
-    usageLog: usageByPackageId.get(p.member_package_id) ?? [],
+    usageLog: usageByPackageId.get(p.memberPackageId) ?? [],
   }))
 }
 
@@ -139,17 +139,17 @@ export async function getGdprPrepaidPackages(memberId: string) {
 
 export async function getGdprTraining(memberId: string) {
   const [syllabi, hilQueue] = await Promise.all([
-    db
-      .selectFrom('dto.member_syllabus')
+    camelDb
+      .selectFrom('dto.memberSyllabus')
       .selectAll()
-      .where('member_id', '=', memberId)
-      .orderBy('assigned_at', 'desc')
+      .where('memberId', '=', memberId)
+      .orderBy('assignedAt', 'desc')
       .execute(),
-    db
-      .selectFrom('dto.hil_queue')
+    camelDb
+      .selectFrom('dto.hilQueue')
       .selectAll()
-      .where('member_id', '=', memberId)
-      .orderBy('opened_at', 'desc')
+      .where('memberId', '=', memberId)
+      .orderBy('openedAt', 'desc')
       .execute(),
   ])
   return { syllabi, hilQueue }
@@ -158,57 +158,57 @@ export async function getGdprTraining(memberId: string) {
 // ─── Exam attempts ────────────────────────────────────────────────────────────
 
 export async function getGdprExamAttempts(memberId: string) {
-  return db
+  return camelDb
     .selectFrom('exam.attempts')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('created_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('createdAt', 'desc')
     .execute()
 }
 
 // ─── Authentication / login events ───────────────────────────────────────────
 
 export async function getGdprLoginEvents(memberId: string) {
-  return db
-    .selectFrom('member.login_events')
+  return camelDb
+    .selectFrom('member.loginEvents')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('created_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('createdAt', 'desc')
     .execute()
 }
 
 // ─── Passkeys (without raw public key bytes) ──────────────────────────────────
 
 export async function getGdprPasskeys(memberId: string) {
-  return db
+  return camelDb
     .selectFrom('member.passkeys')
     .select([
       'id',
-      'member_id',
-      'credential_id',
+      'memberId',
+      'credentialId',
       'counter',
       'transports',
-      'device_type',
-      'backed_up',
+      'deviceType',
+      'backedUp',
       'name',
-      'last_used_at',
-      'created_at',
+      'lastUsedAt',
+      'createdAt',
       // public_key intentionally excluded – it is a raw cryptographic key,
       // not personal data, and would produce unreadable binary in JSON output.
     ])
-    .where('member_id', '=', memberId)
-    .orderBy('created_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('createdAt', 'desc')
     .execute()
 }
 
 // ─── Push subscriptions (without raw auth/p256dh key material) ───────────────
 
 export async function getGdprPushSubscriptions(memberId: string) {
-  return db
-    .selectFrom('member.push_subscriptions')
-    .select(['id', 'member_id', 'endpoint', 'user_agent', 'created_at'])
-    .where('member_id', '=', memberId)
-    .orderBy('created_at', 'desc')
+  return camelDb
+    .selectFrom('member.pushSubscriptions')
+    .select(['id', 'memberId', 'endpoint', 'userAgent', 'createdAt'])
+    .where('memberId', '=', memberId)
+    .orderBy('createdAt', 'desc')
     .execute()
 }
 
@@ -216,12 +216,12 @@ export async function getGdprPushSubscriptions(memberId: string) {
 
 export async function getGdprPendingEmailChanges(memberId: string) {
   return (
-    db
-      .selectFrom('member.pending_email_changes')
-      .select(['id', 'member_id', 'new_email', 'created_at', 'expires_at', 'used_at'])
+    camelDb
+      .selectFrom('member.pendingEmailChanges')
+      .select(['id', 'memberId', 'newEmail', 'createdAt', 'expiresAt', 'usedAt'])
       // token_hash intentionally excluded – it is a security credential
-      .where('member_id', '=', memberId)
-      .orderBy('created_at', 'desc')
+      .where('memberId', '=', memberId)
+      .orderBy('createdAt', 'desc')
       .execute()
   )
 }
@@ -229,7 +229,7 @@ export async function getGdprPendingEmailChanges(memberId: string) {
 // ─── Incident / occurrence reports ────────────────────────────────────────────
 
 export async function getGdprIncidentReports(memberId: string) {
-  return db
+  return camelDb
     .selectFrom('flight.occurrences as o')
     .selectAll('o')
     .select((eb) =>
@@ -237,55 +237,55 @@ export async function getGdprIncidentReports(memberId: string) {
         // includes attachments hidden by an SMS processor: this is the member's own
         // subject-access export, not the SMS-facing view, so nothing is withheld
         eb
-          .selectFrom('flight.occurrence_attachments as att')
+          .selectFrom('flight.occurrenceAttachments as att')
           .selectAll('att')
-          .whereRef('att.report_id', '=', 'o.report_id'),
+          .whereRef('att.reportId', '=', 'o.reportId'),
       ).as('attachments'),
     )
     .where((eb) =>
       eb.or([
-        eb('o.created_by', '=', memberId),
+        eb('o.createdBy', '=', memberId),
         eb.exists(
           eb
-            .selectFrom('flight.occurrence_access as a')
+            .selectFrom('flight.occurrenceAccess as a')
             .select(sql`1`.as('one'))
-            .whereRef('a.report_id', '=', 'o.report_id')
-            .where('a.member_id', '=', memberId),
+            .whereRef('a.reportId', '=', 'o.reportId')
+            .where('a.memberId', '=', memberId),
         ),
       ]),
     )
-    .distinctOn('o.report_id')
-    .orderBy('o.report_id')
+    .distinctOn('o.reportId')
+    .orderBy('o.reportId')
     .execute()
 }
 
 // ─── Profile audit trail ──────────────────────────────────────────────────────
 
 export async function getGdprProfileAuditTrail(memberId: string) {
-  return db
-    .selectFrom('member.register_audit')
+  return camelDb
+    .selectFrom('member.registerAudit')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('changed_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('changedAt', 'desc')
     .execute()
 }
 
 // ─── Flight-log audit trail (for flights the member was crew on) ──────────────
 
 export async function getGdprFlightLogAuditTrail(memberId: string) {
-  return db
-    .selectFrom('flight.logs_audit as la')
+  return camelDb
+    .selectFrom('flight.logsAudit as la')
     .selectAll('la')
-    .innerJoin('flight.logs as fl', 'la.flight_id', 'fl.flight_id')
+    .innerJoin('flight.logs as fl', 'la.flightId', 'fl.flightId')
     .where((eb) =>
       eb.or([
-        eb('fl.billable_member_id', '=', memberId),
-        eb('fl.pic_member_id', '=', memberId),
-        eb('fl.crew2_member_id', '=', memberId),
-        eb('fl.crew3_member_id', '=', memberId),
-        eb('fl.crew4_member_id', '=', memberId),
+        eb('fl.billableMemberId', '=', memberId),
+        eb('fl.picMemberId', '=', memberId),
+        eb('fl.crew2MemberId', '=', memberId),
+        eb('fl.crew3MemberId', '=', memberId),
+        eb('fl.crew4MemberId', '=', memberId),
       ]),
     )
-    .orderBy('la.changed_at', 'desc')
+    .orderBy('la.changedAt', 'desc')
     .execute()
 }

@@ -1,3 +1,6 @@
+import type { Updateable } from 'kysely'
+
+import type { MemberDocuments } from './schema.camel.d.ts'
 import * as connection from './connection.ts'
 import { sql } from 'kysely'
 import type { Document, DocumentFilters } from '@mik/contracts/documents'
@@ -12,13 +15,20 @@ export const getAllDocuments = async (
 ): Promise<Document[]> => {
   const { category, search, tags, showArchived = false, limit = 100, offset = 0 } = filters
 
-  let query = connection.db
+  let query = connection.camelDb
     .selectFrom('member.documents')
     .selectAll()
-    .where('is_public', '=', true)
-    .where('is_archived', '=', showArchived)
-    .orderBy('published_date', 'desc')
-    .orderBy('created_at', 'desc')
+    .where('isPublic', '=', true)
+    .orderBy('publishedDate', 'desc')
+    .orderBy('createdAt', 'desc')
+
+  // showArchived means "include archived as well", not "show only archived" — which
+  // is how countDocuments has always read it. The list used to filter
+  // `isArchived = showArchived`, so ticking the box on the documents page swapped it
+  // to archived-only while `total` still counted everything, and the two disagreed.
+  if (!showArchived) {
+    query = query.where('isArchived', '=', false)
+  }
 
   if (category) {
     const categoryArray = category
@@ -64,23 +74,23 @@ export const getAllDocuments = async (
 
   const records = await query.execute()
   return records.map((record) => ({
-    documentId: record.document_id,
+    documentId: record.documentId,
     title: record.title,
     description: record.description,
     category: record.category,
-    documentUrl: record.document_url,
-    publishedDate: record.published_date,
-    isPublic: record.is_public,
-    isArchived: record.is_archived,
+    documentUrl: record.documentUrl,
+    publishedDate: record.publishedDate,
+    isPublic: record.isPublic,
+    isArchived: record.isArchived,
     tags: record.tags ?? [],
-    fileName: record.file_name,
-    fileSize: record.file_size,
-    mimeType: record.mime_type,
-    storageKey: record.storage_key,
-    createdAt: record.created_at?.toISOString(),
-    updatedAt: record.updated_at?.toISOString(),
-    createdBy: record.created_by,
-    updatedBy: record.updated_by,
+    fileName: record.fileName,
+    fileSize: record.fileSize,
+    mimeType: record.mimeType,
+    storageKey: record.storageKey,
+    createdAt: record.createdAt?.toISOString(),
+    updatedAt: record.updatedAt?.toISOString(),
+    createdBy: record.createdBy,
+    updatedBy: record.updatedBy,
   }))
 }
 
@@ -89,14 +99,14 @@ export const countDocuments = async (
 ): Promise<number> => {
   const { category, search, tags, showArchived = false } = filters
 
-  let query = connection.db
+  let query = connection.camelDb
     .selectFrom('member.documents')
-    .select((eb) => eb.fn.count('document_id').as('count'))
-    .where('is_public', '=', true)
+    .select((eb) => eb.fn.count('documentId').as('count'))
+    .where('isPublic', '=', true)
 
   // Filter by archive status
   if (!showArchived) {
-    query = query.where('is_archived', '=', false)
+    query = query.where('isArchived', '=', false)
   }
 
   if (category) {
@@ -144,70 +154,70 @@ export const countDocuments = async (
 }
 
 export const getDocumentStorageKeyById = async (documentId: number): Promise<string | null> => {
-  const record = await connection.db
+  const record = await connection.camelDb
     .selectFrom('member.documents')
-    .select(['storage_key'])
-    .where('document_id', '=', documentId)
+    .select(['storageKey'])
+    .where('documentId', '=', documentId)
     .executeTakeFirst()
 
-  return record ? record.storage_key : null
+  return record ? record.storageKey : null
 }
 
 export const getDocumentById = async (documentId: number): Promise<Document | null> => {
-  const record = await connection.db
+  const record = await connection.camelDb
     .selectFrom('member.documents')
     .selectAll()
-    .where('document_id', '=', documentId)
-    .where('is_public', '=', true)
+    .where('documentId', '=', documentId)
+    .where('isPublic', '=', true)
     .executeTakeFirst()
 
   if (!record) return null
 
   return {
-    documentId: record.document_id,
+    documentId: record.documentId,
     title: record.title,
     description: record.description,
     category: record.category,
-    documentUrl: record.document_url,
-    publishedDate: record.published_date,
-    isPublic: record.is_public,
-    isArchived: record.is_archived,
+    documentUrl: record.documentUrl,
+    publishedDate: record.publishedDate,
+    isPublic: record.isPublic,
+    isArchived: record.isArchived,
     tags: record.tags ?? [],
-    fileName: record.file_name,
-    fileSize: record.file_size,
-    mimeType: record.mime_type,
-    storageKey: record.storage_key,
-    createdAt: record.created_at?.toISOString(),
-    updatedAt: record.updated_at?.toISOString(),
-    createdBy: record.created_by,
-    updatedBy: record.updated_by,
+    fileName: record.fileName,
+    fileSize: record.fileSize,
+    mimeType: record.mimeType,
+    storageKey: record.storageKey,
+    createdAt: record.createdAt?.toISOString(),
+    updatedAt: record.updatedAt?.toISOString(),
+    createdBy: record.createdBy,
+    updatedBy: record.updatedBy,
   }
 }
 
 export const addDocument = async (document: Upsert<Document>, jwt: JWTUser): Promise<Document> => {
   const now = new Date()
 
-  const result = await connection.db
+  const result = await connection.camelDb
     .insertInto('member.documents')
     .values({
       title: document.title,
       description: document.description,
       category: document.category,
-      document_url: document.documentUrl,
-      published_date: document.publishedDate,
-      is_public: document.isPublic ?? true,
-      is_archived: document.isArchived ?? false,
+      documentUrl: document.documentUrl,
+      publishedDate: document.publishedDate,
+      isPublic: document.isPublic ?? true,
+      isArchived: document.isArchived ?? false,
       tags: document.tags ?? [],
-      file_name: document.fileName,
-      file_size: document.fileSize,
-      mime_type: document.mimeType,
-      storage_key: document.storageKey,
-      created_at: now,
-      created_by: jwt.memberId,
-      updated_at: now,
-      updated_by: jwt.memberId,
+      fileName: document.fileName,
+      fileSize: document.fileSize,
+      mimeType: document.mimeType,
+      storageKey: document.storageKey,
+      createdAt: now,
+      createdBy: jwt.memberId,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
     })
-    .returning('document_id')
+    .returning('documentId')
     .executeTakeFirst()
 
   if (!result) {
@@ -216,7 +226,7 @@ export const addDocument = async (document: Upsert<Document>, jwt: JWTUser): Pro
 
   return {
     ...document,
-    documentId: result.document_id,
+    documentId: result.documentId,
     isPublic: document.isPublic ?? true,
     isArchived: document.isArchived ?? false,
     tags: document.tags ?? [],
@@ -234,37 +244,37 @@ export const updateDocument = async (
 ): Promise<boolean> => {
   const now = new Date()
 
-  const updateData: any = {
-    updated_at: now,
-    updated_by: jwt.memberId,
+  const updateData: Updateable<MemberDocuments> = {
+    updatedAt: now,
+    updatedBy: jwt.memberId,
   }
 
   if (patch.title !== undefined) updateData.title = patch.title
   if (patch.description !== undefined) updateData.description = patch.description
   if (patch.category !== undefined) updateData.category = patch.category
-  if (patch.documentUrl !== undefined) updateData.document_url = patch.documentUrl
-  if (patch.publishedDate !== undefined) updateData.published_date = patch.publishedDate
-  if (patch.isPublic !== undefined) updateData.is_public = patch.isPublic
-  if (patch.isArchived !== undefined) updateData.is_archived = patch.isArchived
+  if (patch.documentUrl !== undefined) updateData.documentUrl = patch.documentUrl
+  if (patch.publishedDate !== undefined) updateData.publishedDate = patch.publishedDate
+  if (patch.isPublic !== undefined) updateData.isPublic = patch.isPublic
+  if (patch.isArchived !== undefined) updateData.isArchived = patch.isArchived
   if (patch.tags !== undefined) updateData.tags = patch.tags
-  if (patch.fileName !== undefined) updateData.file_name = patch.fileName
-  if (patch.fileSize !== undefined) updateData.file_size = patch.fileSize
-  if (patch.mimeType !== undefined) updateData.mime_type = patch.mimeType
-  if (patch.storageKey !== undefined) updateData.storage_key = patch.storageKey
+  if (patch.fileName !== undefined) updateData.fileName = patch.fileName
+  if (patch.fileSize !== undefined) updateData.fileSize = patch.fileSize
+  if (patch.mimeType !== undefined) updateData.mimeType = patch.mimeType
+  if (patch.storageKey !== undefined) updateData.storageKey = patch.storageKey
 
-  const result = await connection.db
+  const result = await connection.camelDb
     .updateTable('member.documents')
     .set(updateData)
-    .where('document_id', '=', documentId)
+    .where('documentId', '=', documentId)
     .executeTakeFirst()
 
   return result.numUpdatedRows == BigInt(1)
 }
 
 export const removeDocument = async (documentId: number): Promise<boolean> => {
-  const result = await connection.db
+  const result = await connection.camelDb
     .deleteFrom('member.documents')
-    .where('document_id', '=', documentId)
+    .where('documentId', '=', documentId)
     .executeTakeFirst()
 
   return result.numDeletedRows == BigInt(1)

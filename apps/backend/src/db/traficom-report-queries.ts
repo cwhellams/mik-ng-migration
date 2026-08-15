@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import { sql } from 'kysely'
 import {
   TraficomReportFilter,
@@ -44,10 +44,10 @@ export async function getTraficomReport(
   const yearStart = `${filters.year}-01-01`
   const yearEnd = `${filters.year}-12-31`
 
-  const result = await db
+  const result = await camelDb
     .selectFrom('flight.logs')
     .select([
-      'aircraft_registration',
+      'aircraftRegistration',
       // Filtered, selected year
       sql<number>`COUNT(*) FILTER (
         WHERE ${cond}
@@ -64,37 +64,37 @@ export async function getTraficomReport(
           AND arrival_airport = 'ZZZZ'
           AND off_block_time_utc::date >= ${yearStart}::date
           AND off_block_time_utc::date <= ${yearEnd}::date
-      ), 0)`.as('zzzz_landings'),
+      ), 0)`.as('zzzzLandings'),
       // Selected year totals (with filter)
       sql<number>`COALESCE(SUM(flight_mins) FILTER (
         WHERE ${cond}
           AND off_block_time_utc::date >= ${yearStart}::date
           AND off_block_time_utc::date <= ${yearEnd}::date
-      ), 0)`.as('year_total_flight_mins'),
+      ), 0)`.as('yearTotalFlightMins'),
       // Selected year totals (no filter, all flight types)
       sql<number>`COALESCE(SUM(number_of_landings) FILTER (
         WHERE off_block_time_utc::date >= ${yearStart}::date
           AND off_block_time_utc::date <= ${yearEnd}::date
-      ), 0)`.as('year_total_landings'),
+      ), 0)`.as('yearTotalLandings'),
       // Lifetime totals (no filter, all dates)
-      sql<number>`COALESCE(SUM(flight_mins), 0)`.as('lifetime_total_flight_mins'),
-      sql<number>`COALESCE(SUM(number_of_landings), 0)`.as('lifetime_total_landings'),
+      sql<number>`COALESCE(SUM(flight_mins), 0)`.as('lifetimeTotalFlightMins'),
+      sql<number>`COALESCE(SUM(number_of_landings), 0)`.as('lifetimeTotalLandings'),
     ])
-    .groupBy('aircraft_registration')
-    .orderBy('aircraft_registration', 'asc')
+    .groupBy('aircraftRegistration')
+    .orderBy('aircraftRegistration', 'asc')
     .execute()
 
   return (
     result
       .map((row) => ({
-        aircraftRegistration: row.aircraft_registration,
+        aircraftRegistration: row.aircraftRegistration,
         flights: Number(row.flights),
         landings: Number(row.landings),
-        zzzzLandings: Number(row.zzzz_landings),
-        yearTotalFlightMins: Number(row.year_total_flight_mins),
-        yearTotalLandings: Number(row.year_total_landings),
-        lifetimeTotalFlightMins: Number(row.lifetime_total_flight_mins),
-        lifetimeTotalLandings: Number(row.lifetime_total_landings),
+        zzzzLandings: Number(row.zzzzLandings),
+        yearTotalFlightMins: Number(row.yearTotalFlightMins),
+        yearTotalLandings: Number(row.yearTotalLandings),
+        lifetimeTotalFlightMins: Number(row.lifetimeTotalFlightMins),
+        lifetimeTotalLandings: Number(row.lifetimeTotalLandings),
       }))
       // Only include aircraft that have activity matching the selected filter
       // in the selected year. Aircraft with no flights/landings for the chosen

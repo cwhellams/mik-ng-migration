@@ -3,7 +3,6 @@
  */
 
 import * as connection from './connection.ts'
-import { sql } from 'kysely'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { calculateExpiration } from '../services/tinyUrl.ts'
 import { generateTinyUrlId } from '../util/nanoId.ts'
@@ -37,16 +36,16 @@ export async function createTinyUrl(params: CreateTinyUrlParams, jwt: JWTUser): 
   const shortCode = generateTinyUrlId()
   const expiresAt = calculateExpiration()
 
-  const result = await connection.db
-    .insertInto('member.document_tiny_urls')
+  const result = await connection.camelDb
+    .insertInto('member.documentTinyUrls')
     .values({
-      short_code: shortCode,
-      document_id: params.documentId ?? null,
-      aircraft_document_id: params.aircraftDocumentId ?? null,
+      shortCode: shortCode,
+      documentId: params.documentId ?? null,
+      aircraftDocumentId: params.aircraftDocumentId ?? null,
       url: params.presignedUrl,
-      document_type: documentType,
-      expires_at: expiresAt,
-      created_by: jwt.memberId,
+      documentType: documentType,
+      expiresAt: expiresAt,
+      createdBy: jwt.memberId,
     })
     .execute()
 
@@ -65,20 +64,20 @@ export async function createTinyUrl(params: CreateTinyUrlParams, jwt: JWTUser): 
  */
 export async function getUrlByShortCode(
   shortCode: string,
-): Promise<{ url: string; expires_at: Date } | null> {
-  await connection.db
-    .updateTable('member.document_tiny_urls')
-    .set({
-      access_count: sql`access_count + 1`,
-      last_accessed_at: new Date(),
-    })
-    .where('short_code', '=', shortCode)
+): Promise<{ url: string; expiresAt: Date } | null> {
+  await connection.camelDb
+    .updateTable('member.documentTinyUrls')
+    .set((eb) => ({
+      accessCount: eb('accessCount', '+', 1),
+      lastAccessedAt: new Date(),
+    }))
+    .where('shortCode', '=', shortCode)
     .execute()
 
-  const record = await connection.db
-    .selectFrom('member.document_tiny_urls')
-    .select(['url', 'expires_at'])
-    .where('short_code', '=', shortCode)
+  const record = await connection.camelDb
+    .selectFrom('member.documentTinyUrls')
+    .select(['url', 'expiresAt'])
+    .where('shortCode', '=', shortCode)
     .executeTakeFirst()
 
   if (!record) {
@@ -95,9 +94,9 @@ export async function getUrlByShortCode(
  * @returns Number of deleted records
  */
 export async function deleteExpiredTinyUrls(): Promise<number> {
-  const result = await connection.db
-    .deleteFrom('member.document_tiny_urls')
-    .where('expires_at', '<', new Date())
+  const result = await connection.camelDb
+    .deleteFrom('member.documentTinyUrls')
+    .where('expiresAt', '<', new Date())
     .executeTakeFirst()
 
   return Number(result.numDeletedRows ?? 0)
