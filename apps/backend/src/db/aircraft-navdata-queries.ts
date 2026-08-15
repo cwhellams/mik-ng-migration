@@ -1,3 +1,4 @@
+import type { CamelRow } from './connection.ts'
 import * as connection from './connection.ts'
 import { sql } from 'kysely'
 import type { Navdata, NavdataCreate, NavdataFilters } from '@mik/contracts/aircraft-navdata'
@@ -7,66 +8,66 @@ import { problem } from '../routes/response.ts'
 export const getAllNavdata = async (filters: Partial<NavdataFilters> = {}): Promise<Navdata[]> => {
   const { aircraftRegistration, limit = 100, offset = 0 } = filters
 
-  let query = connection.db
-    .selectFrom('flight.aircraft_navdata as nd')
-    .leftJoin('member.register as m', 'm.member_id', 'nd.updater_member_id')
+  let query = connection.camelDb
+    .selectFrom('flight.aircraftNavdata as nd')
+    .leftJoin('member.register as m', 'm.memberId', 'nd.updaterMemberId')
     .select([
-      'nd.navdata_id',
-      'nd.aircraft_registration',
-      'nd.updater_member_id',
-      sql<string>`trim(concat(m.first_name, ' ', m.last_name))`.as('updater_name'),
-      'nd.update_date',
+      'nd.navdataId',
+      'nd.aircraftRegistration',
+      'nd.updaterMemberId',
+      sql<string>`trim(concat(m.first_name, ' ', m.last_name))`.as('updaterName'),
+      'nd.updateDate',
       'nd.cycle',
       'nd.expires',
-      'nd.created_at',
-      'nd.created_by',
+      'nd.createdAt',
+      'nd.createdBy',
     ])
-    .orderBy('nd.update_date', 'desc')
-    .orderBy('nd.navdata_id', 'desc')
+    .orderBy('nd.updateDate', 'desc')
+    .orderBy('nd.navdataId', 'desc')
 
   if (aircraftRegistration) {
-    query = query.where('nd.aircraft_registration', '=', aircraftRegistration)
+    query = query.where('nd.aircraftRegistration', '=', aircraftRegistration)
   }
 
   query = query.limit(limit).offset(offset)
 
   const records = await query.execute()
-  return records.map((r: any) => mapRecord(r))
+  return records.map(mapRecord)
 }
 
 export const countNavdata = async (filters: Partial<NavdataFilters> = {}): Promise<number> => {
   const { aircraftRegistration } = filters
 
-  let query = connection.db
-    .selectFrom('flight.aircraft_navdata')
-    .select((eb: any) => eb.fn.count('navdata_id').as('count'))
+  let query = connection.camelDb
+    .selectFrom('flight.aircraftNavdata')
+    .select((eb) => eb.fn.count('navdataId').as('count'))
 
   if (aircraftRegistration) {
-    query = query.where('aircraft_registration', '=', aircraftRegistration)
+    query = query.where('aircraftRegistration', '=', aircraftRegistration)
   }
 
   const result = await query.executeTakeFirst()
-  return Number((result as any)?.count || 0)
+  return Number(result?.count ?? 0)
 }
 
 export const getLatestNavdata = async (aircraftRegistration: string): Promise<Navdata | null> => {
-  const record = await connection.db
-    .selectFrom('flight.aircraft_navdata as nd')
-    .leftJoin('member.register as m', 'm.member_id', 'nd.updater_member_id')
+  const record = await connection.camelDb
+    .selectFrom('flight.aircraftNavdata as nd')
+    .leftJoin('member.register as m', 'm.memberId', 'nd.updaterMemberId')
     .select([
-      'nd.navdata_id',
-      'nd.aircraft_registration',
-      'nd.updater_member_id',
-      sql<string>`trim(concat(m.first_name, ' ', m.last_name))`.as('updater_name'),
-      'nd.update_date',
+      'nd.navdataId',
+      'nd.aircraftRegistration',
+      'nd.updaterMemberId',
+      sql<string>`trim(concat(m.first_name, ' ', m.last_name))`.as('updaterName'),
+      'nd.updateDate',
       'nd.cycle',
       'nd.expires',
-      'nd.created_at',
-      'nd.created_by',
+      'nd.createdAt',
+      'nd.createdBy',
     ])
-    .where('nd.aircraft_registration', '=', aircraftRegistration)
-    .orderBy('nd.update_date', 'desc')
-    .orderBy('nd.navdata_id', 'desc')
+    .where('nd.aircraftRegistration', '=', aircraftRegistration)
+    .orderBy('nd.updateDate', 'desc')
+    .orderBy('nd.navdataId', 'desc')
     .limit(1)
     .executeTakeFirst()
 
@@ -77,25 +78,25 @@ export const getLatestNavdata = async (aircraftRegistration: string): Promise<Na
 export const addNavdata = async (data: NavdataCreate, jwt: JWTUser): Promise<Navdata> => {
   const now = new Date()
 
-  const result = await connection.db
-    .insertInto('flight.aircraft_navdata')
+  const result = await connection.camelDb
+    .insertInto('flight.aircraftNavdata')
     .values({
-      aircraft_registration: data.aircraftRegistration,
-      updater_member_id: data.updaterMemberId,
-      update_date: data.updateDate,
+      aircraftRegistration: data.aircraftRegistration,
+      updaterMemberId: data.updaterMemberId,
+      updateDate: data.updateDate,
       cycle: data.cycle,
       expires: data.expires,
-      created_at: now,
-      created_by: jwt.memberId,
+      createdAt: now,
+      createdBy: jwt.memberId,
     })
-    .returning('navdata_id')
+    .returning('navdataId')
     .executeTakeFirst()
 
   if (!result) {
     return problem({ status: 500, detail: 'Navdata insert failed' })
   }
 
-  const inserted = await getNavdataById(result.navdata_id)
+  const inserted = await getNavdataById(result.navdataId)
   if (!inserted) {
     return problem({ status: 500, detail: 'Navdata not found after insert' })
   }
@@ -103,21 +104,21 @@ export const addNavdata = async (data: NavdataCreate, jwt: JWTUser): Promise<Nav
 }
 
 export const getNavdataById = async (navdataId: string): Promise<Navdata | null> => {
-  const record = await connection.db
-    .selectFrom('flight.aircraft_navdata as nd')
-    .leftJoin('member.register as m', 'm.member_id', 'nd.updater_member_id')
+  const record = await connection.camelDb
+    .selectFrom('flight.aircraftNavdata as nd')
+    .leftJoin('member.register as m', 'm.memberId', 'nd.updaterMemberId')
     .select([
-      'nd.navdata_id',
-      'nd.aircraft_registration',
-      'nd.updater_member_id',
-      sql<string>`trim(concat(m.first_name, ' ', m.last_name))`.as('updater_name'),
-      'nd.update_date',
+      'nd.navdataId',
+      'nd.aircraftRegistration',
+      'nd.updaterMemberId',
+      sql<string>`trim(concat(m.first_name, ' ', m.last_name))`.as('updaterName'),
+      'nd.updateDate',
       'nd.cycle',
       'nd.expires',
-      'nd.created_at',
-      'nd.created_by',
+      'nd.createdAt',
+      'nd.createdBy',
     ])
-    .where('nd.navdata_id', '=', navdataId)
+    .where('nd.navdataId', '=', navdataId)
     .executeTakeFirst()
 
   if (!record) return null
@@ -125,22 +126,25 @@ export const getNavdataById = async (navdataId: string): Promise<Navdata | null>
 }
 
 export const removeNavdata = async (navdataId: string): Promise<boolean> => {
-  const result = await connection.db
-    .deleteFrom('flight.aircraft_navdata')
-    .where('navdata_id', '=', navdataId)
+  const result = await connection.camelDb
+    .deleteFrom('flight.aircraftNavdata')
+    .where('navdataId', '=', navdataId)
     .executeTakeFirst()
 
   return result.numDeletedRows === 1n
 }
 
-const mapRecord = (record: any): Navdata => ({
-  navdataId: record.navdata_id,
-  aircraftRegistration: record.aircraft_registration,
-  updaterMemberId: record.updater_member_id,
-  updaterName: record.updater_name ?? record.updater_member_id,
-  updateDate: record.update_date,
+// updaterName is the raw-sql concat alias, not a column on the table.
+const mapRecord = (
+  record: CamelRow<'flight.aircraftNavdata'> & { updaterName?: string | null },
+): Navdata => ({
+  navdataId: record.navdataId,
+  aircraftRegistration: record.aircraftRegistration,
+  updaterMemberId: record.updaterMemberId,
+  updaterName: record.updaterName ?? record.updaterMemberId,
+  updateDate: record.updateDate,
   cycle: record.cycle,
   expires: record.expires,
-  createdAt: record.created_at?.toISOString(),
-  createdBy: record.created_by,
+  createdAt: record.createdAt?.toISOString(),
+  createdBy: record.createdBy,
 })

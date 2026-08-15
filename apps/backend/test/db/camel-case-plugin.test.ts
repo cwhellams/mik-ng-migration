@@ -2,6 +2,8 @@ import 'dotenv/config'
 
 import { afterAll, describe, expect, it } from '@jest/globals'
 
+import { sql } from 'kysely'
+
 import { camelDb, db } from '../../src/db/connection.ts'
 
 /**
@@ -79,6 +81,29 @@ describe('CamelCasePlugin (camelDb)', () => {
     expect(Object.keys(snapshot).some((k) => k.includes('_'))).toBe(true)
     expect(snapshot).toHaveProperty('note_id')
     expect(snapshot).not.toHaveProperty('noteId')
+  })
+
+  // The trap for every module that still has raw sql. transformResult renames the
+  // keys of *any* row the instance returns, including one produced by a hand-written
+  // fragment the identifier transformer never touched — so a `sql<{ total_mins: number }>`
+  // type annotation becomes a lie, and row.total_mins is undefined at runtime with
+  // nothing failing to compile.
+  it('camelCases the result keys of raw sql too, not just built queries', async () => {
+    const result = await sql<{
+      totalCount: number
+    }>`select count(*)::int as total_count from accts.cost_centre`.execute(camelDb)
+
+    expect(result.rows[0]).toHaveProperty('totalCount')
+    expect(result.rows[0]).not.toHaveProperty('total_count')
+  })
+
+  it('leaves raw sql result keys alone on the original instance', async () => {
+    const result = await sql<{
+      total_count: number
+    }>`select count(*)::int as total_count from accts.cost_centre`.execute(db)
+
+    expect(result.rows[0]).toHaveProperty('total_count')
+    expect(result.rows[0]).not.toHaveProperty('totalCount')
   })
 
   it('does not change what the original snake_case instance returns', async () => {

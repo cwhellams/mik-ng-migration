@@ -1,3 +1,7 @@
+import type { Updateable } from 'kysely'
+
+import type { FlightAircraftDocumentsFiles, FlightAircraftDocumentType } from './schema.camel.d.ts'
+import type { CamelRow } from './connection.ts'
 import { sql } from 'kysely'
 import * as connection from './connection.ts'
 import type {
@@ -20,32 +24,32 @@ export const getAllAircraftDocuments = async (
     offset = 0,
   } = filters
 
-  let query = connection.db
-    .selectFrom('flight.aircraft_documents_files')
+  let query = connection.camelDb
+    .selectFrom('flight.aircraftDocumentsFiles')
     .selectAll()
-    .where('is_active', '=', true)
-    .orderBy('document_type', 'asc')
-    .orderBy('valid_to', 'desc')
-    .orderBy('created_at', 'desc')
+    .where('isActive', '=', true)
+    .orderBy('documentType', 'asc')
+    .orderBy('validTo', 'desc')
+    .orderBy('createdAt', 'desc')
 
   if (documentId) {
-    query = query.where('document_id', '=', documentId)
+    query = query.where('documentId', '=', documentId)
   }
 
   if (aircraftRegistration) {
-    query = query.where('aircraft_registration', '=', aircraftRegistration)
+    query = query.where('aircraftRegistration', '=', aircraftRegistration)
   }
 
   if (documentType) {
-    query = query.where('document_type', '=', documentType as any)
+    query = query.where('documentType', '=', documentType as FlightAircraftDocumentType)
   }
 
   if (validOnly) {
     const now = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
-    query = query.where((eb: any) =>
+    query = query.where((eb) =>
       eb.and([
-        eb.or([eb('valid_from', 'is', null), eb('valid_from', '<=', now)]),
-        eb.or([eb('valid_to', 'is', null), eb('valid_to', '>=', now)]),
+        eb.or([eb('validFrom', 'is', null), eb('validFrom', '<=', now)]),
+        eb.or([eb('validTo', 'is', null), eb('validTo', '>=', now)]),
       ]),
     )
   }
@@ -53,24 +57,24 @@ export const getAllAircraftDocuments = async (
   query = query.limit(limit).offset(offset)
 
   const records = await query.execute()
-  return records.map((record: any) => ({
-    documentId: record.document_id,
-    aircraftRegistration: record.aircraft_registration,
-    documentType: record.document_type,
+  return records.map((record: CamelRow<'flight.aircraftDocumentsFiles'>) => ({
+    documentId: record.documentId,
+    aircraftRegistration: record.aircraftRegistration,
+    documentType: record.documentType,
     title: record.title,
     description: record.description,
-    documentUrl: record.document_url,
-    validFrom: record.valid_from || null,
-    validTo: record.valid_to || null,
-    isActive: record.is_active,
-    fileName: record.file_name,
-    fileSize: record.file_size,
-    mimeType: record.mime_type,
-    storageKey: record.storage_key,
-    createdAt: record.created_at?.toISOString(),
-    updatedAt: record.updated_at?.toISOString(),
-    createdBy: record.created_by,
-    updatedBy: record.updated_by,
+    documentUrl: record.documentUrl,
+    validFrom: record.validFrom || null,
+    validTo: record.validTo || null,
+    isActive: record.isActive,
+    fileName: record.fileName,
+    fileSize: record.fileSize,
+    mimeType: record.mimeType,
+    storageKey: record.storageKey,
+    createdAt: record.createdAt?.toISOString(),
+    updatedAt: record.updatedAt?.toISOString(),
+    createdBy: record.createdBy,
+    updatedBy: record.updatedBy,
   }))
 }
 
@@ -79,63 +83,63 @@ export const countAircraftDocuments = async (
 ): Promise<number> => {
   const { aircraftRegistration, documentType, validOnly = false } = filters
 
-  let query = connection.db
-    .selectFrom('flight.aircraft_documents_files')
-    .select((eb: any) => eb.fn.count('document_id').as('count'))
-    .where('is_active', '=', true)
+  let query = connection.camelDb
+    .selectFrom('flight.aircraftDocumentsFiles')
+    .select((eb) => eb.fn.count('documentId').as('count'))
+    .where('isActive', '=', true)
 
   if (aircraftRegistration) {
-    query = query.where('aircraft_registration', '=', aircraftRegistration)
+    query = query.where('aircraftRegistration', '=', aircraftRegistration)
   }
 
   if (documentType) {
-    query = query.where('document_type', '=', documentType as any)
+    query = query.where('documentType', '=', documentType as FlightAircraftDocumentType)
   }
 
   if (validOnly) {
     const now = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
-    query = query.where((eb: any) =>
+    query = query.where((eb) =>
       eb.and([
-        eb.or([eb('valid_from', 'is', null), eb('valid_from', '<=', now)]),
-        eb.or([eb('valid_to', 'is', null), eb('valid_to', '>=', now)]),
+        eb.or([eb('validFrom', 'is', null), eb('validFrom', '<=', now)]),
+        eb.or([eb('validTo', 'is', null), eb('validTo', '>=', now)]),
       ]),
     )
   }
 
   const result = await query.executeTakeFirst()
-  return Number((result as any)?.count || 0)
+  return Number(result?.count ?? 0)
 }
 
 export const getAircraftDocumentById = async (
   documentId: number,
 ): Promise<AircraftDocumentAuditable | null> => {
-  const record = await connection.db
-    .selectFrom('flight.aircraft_documents_files')
+  const record = await connection.camelDb
+    .selectFrom('flight.aircraftDocumentsFiles')
     .selectAll()
-    .where('document_id', '=', documentId)
-    .where('is_active', '=', true)
+    .where('documentId', '=', documentId)
+    .where('isActive', '=', true)
     .executeTakeFirst()
 
   if (!record) return null
 
   return {
-    documentId: record.document_id,
-    aircraftRegistration: record.aircraft_registration,
-    documentType: record.document_type as any,
+    documentId: record.documentId,
+    aircraftRegistration: record.aircraftRegistration,
+    documentType: record.documentType as AircraftDocument['documentType'],
     title: record.title,
     description: record.description,
-    documentUrl: record.document_url,
-    validFrom: record.valid_from || null,
-    validTo: record.valid_to || null,
-    isActive: record.is_active,
-    fileName: record.file_name,
-    fileSize: record.file_size,
-    mimeType: record.mime_type,
-    storageKey: record.storage_key,
-    createdAt: record.created_at?.toISOString(),
-    updatedAt: record.updated_at?.toISOString(),
-    createdBy: record.created_by,
-    updatedBy: record.updated_by,
+    documentUrl: record.documentUrl,
+    validFrom: record.validFrom || null,
+    validTo: record.validTo || null,
+    isActive: record.isActive,
+    fileName: record.fileName,
+    fileSize: record.fileSize,
+    mimeType: record.mimeType,
+    storageKey: record.storageKey,
+    createdAt: record.createdAt?.toISOString(),
+    updatedAt: record.updatedAt?.toISOString(),
+    createdBy: record.createdBy,
+    updatedBy: record.updatedBy,
   }
 }
 
@@ -145,27 +149,27 @@ export const addAircraftDocument = async (
 ): Promise<AircraftDocumentAuditable> => {
   const now = new Date()
 
-  const result = await connection.db
-    .insertInto('flight.aircraft_documents_files')
+  const result = await connection.camelDb
+    .insertInto('flight.aircraftDocumentsFiles')
     .values({
-      aircraft_registration: document.aircraftRegistration,
-      document_type: document.documentType as any,
+      aircraftRegistration: document.aircraftRegistration,
+      documentType: document.documentType as FlightAircraftDocumentType,
       title: document.title,
       description: document.description || null,
-      document_url: document.documentUrl || '',
-      valid_from: document.validFrom || null,
-      valid_to: document.validTo || null,
-      is_active: document.isActive ?? true,
-      file_name: document.fileName,
-      file_size: document.fileSize || null,
-      mime_type: document.mimeType || null,
-      storage_key: document.storageKey || null,
-      created_at: now,
-      created_by: jwt.memberId,
-      updated_at: now,
-      updated_by: jwt.memberId,
+      documentUrl: document.documentUrl || '',
+      validFrom: document.validFrom || null,
+      validTo: document.validTo || null,
+      isActive: document.isActive ?? true,
+      fileName: document.fileName,
+      fileSize: document.fileSize || null,
+      mimeType: document.mimeType || null,
+      storageKey: document.storageKey || null,
+      createdAt: now,
+      createdBy: jwt.memberId,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
     })
-    .returning('document_id')
+    .returning('documentId')
     .executeTakeFirst()
 
   if (!result) {
@@ -174,7 +178,7 @@ export const addAircraftDocument = async (
 
   return {
     ...document,
-    documentId: result.document_id,
+    documentId: result.documentId,
     isActive: document.isActive ?? true,
     createdAt: now.toISOString(),
     createdBy: jwt.memberId,
@@ -190,50 +194,50 @@ export const updateAircraftDocument = async (
 ): Promise<boolean> => {
   const now = new Date()
 
-  const updateData: any = {
-    updated_at: now,
-    updated_by: jwt.memberId,
+  const updateData: Updateable<FlightAircraftDocumentsFiles> = {
+    updatedAt: now,
+    updatedBy: jwt.memberId,
   }
 
   if (patch.title !== undefined) updateData.title = patch.title
   if (patch.description !== undefined) updateData.description = patch.description
-  if (patch.documentType !== undefined) updateData.document_type = patch.documentType
-  if (patch.documentUrl !== undefined) updateData.document_url = patch.documentUrl
-  if (patch.validFrom !== undefined) updateData.valid_from = patch.validFrom
-  if (patch.validTo !== undefined) updateData.valid_to = patch.validTo
-  if (patch.isActive !== undefined) updateData.is_active = patch.isActive
-  if (patch.fileName !== undefined) updateData.file_name = patch.fileName
-  if (patch.fileSize !== undefined) updateData.file_size = patch.fileSize
-  if (patch.mimeType !== undefined) updateData.mime_type = patch.mimeType
-  if (patch.storageKey !== undefined) updateData.storage_key = patch.storageKey
+  if (patch.documentType !== undefined) updateData.documentType = patch.documentType
+  if (patch.documentUrl !== undefined) updateData.documentUrl = patch.documentUrl
+  if (patch.validFrom !== undefined) updateData.validFrom = patch.validFrom
+  if (patch.validTo !== undefined) updateData.validTo = patch.validTo
+  if (patch.isActive !== undefined) updateData.isActive = patch.isActive
+  if (patch.fileName !== undefined) updateData.fileName = patch.fileName
+  if (patch.fileSize !== undefined) updateData.fileSize = patch.fileSize
+  if (patch.mimeType !== undefined) updateData.mimeType = patch.mimeType
+  if (patch.storageKey !== undefined) updateData.storageKey = patch.storageKey
 
-  const result = await connection.db
-    .updateTable('flight.aircraft_documents_files')
+  const result = await connection.camelDb
+    .updateTable('flight.aircraftDocumentsFiles')
     .set(updateData)
-    .where('document_id', '=', documentId)
+    .where('documentId', '=', documentId)
     .executeTakeFirst()
 
   return result.numUpdatedRows == BigInt(1)
 }
 
 export const removeAircraftDocument = async (documentId: number): Promise<boolean> => {
-  const result = await connection.db
-    .deleteFrom('flight.aircraft_documents_files')
-    .where('document_id', '=', documentId)
+  const result = await connection.camelDb
+    .deleteFrom('flight.aircraftDocumentsFiles')
+    .where('documentId', '=', documentId)
     .executeTakeFirst()
 
   return result.numDeletedRows == BigInt(1)
 }
 
 export const getAircraftRegistrations = async (): Promise<string[]> => {
-  const records = await connection.db
+  const records = await connection.camelDb
     .selectFrom('flight.aircraft')
     .select('registration')
     .where('active', '=', true)
     .orderBy('registration', 'asc')
     .execute()
 
-  return records.map((record: any) => record.registration)
+  return records.map((record) => record.registration)
 }
 
 export interface ExpiringAircraftDocument {
@@ -251,39 +255,35 @@ export interface ExpiringAircraftDocument {
 export const getAircraftDocumentsExpiringOn = async (
   targetDate: string,
 ): Promise<ExpiringAircraftDocument[]> => {
-  const records = await connection.db
-    .selectFrom('flight.aircraft_documents_files as d')
-    .select([
-      'd.document_id',
-      'd.aircraft_registration',
-      'd.document_type',
-      'd.title',
-      'd.valid_to',
-    ])
-    .where('d.is_active', '=', true)
-    .where('d.valid_to', '=', targetDate)
+  const records = await connection.camelDb
+    .selectFrom('flight.aircraftDocumentsFiles as d')
+    .select(['d.documentId', 'd.aircraftRegistration', 'd.documentType', 'd.title', 'd.validTo'])
+    .where('d.isActive', '=', true)
+    .where('d.validTo', '=', targetDate)
     .where((eb) =>
       eb.not(
         eb.exists(
           eb
-            .selectFrom('flight.aircraft_documents_files as newer')
+            .selectFrom('flight.aircraftDocumentsFiles as newer')
             .select(sql`1`.as('one'))
-            .where('newer.aircraft_registration', '=', eb.ref('d.aircraft_registration'))
-            .where('newer.document_type', '=', eb.ref('d.document_type') as any)
-            .where('newer.is_active', '=', true)
-            .where('newer.document_id', '!=', eb.ref('d.document_id'))
-            .where(sql`newer.valid_from`, '>', sql`d.valid_to`),
+            .where('newer.aircraftRegistration', '=', eb.ref('d.aircraftRegistration'))
+            .where('newer.documentType', '=', eb.ref('d.documentType'))
+            .where('newer.isActive', '=', true)
+            .where('newer.documentId', '!=', eb.ref('d.documentId'))
+            .whereRef('newer.validFrom', '>', 'd.validTo'),
         ),
       ),
     )
     .execute()
 
-  return records.map((r: any) => ({
-    documentId: r.document_id,
-    aircraftRegistration: r.aircraft_registration,
-    documentType: r.document_type,
+  return records.map((r) => ({
+    documentId: r.documentId,
+    aircraftRegistration: r.aircraftRegistration,
+    documentType: r.documentType,
     title: r.title,
-    validTo: r.valid_to,
+    // Non-null by construction: the query matches validTo against a non-null
+    // targetDate. The column type is nullable, which `r: any` used to paper over.
+    validTo: r.validTo!,
   }))
 }
 
@@ -292,12 +292,12 @@ export const hasAircraftDocumentNotificationBeenSent = async (
   notificationType: 'REMINDER' | 'EXPIRED',
   daysThreshold: number = 0,
 ): Promise<boolean> => {
-  const result = await connection.db
-    .selectFrom('flight.aircraft_document_expiry_notifications')
+  const result = await connection.camelDb
+    .selectFrom('flight.aircraftDocumentExpiryNotifications')
     .select('id')
-    .where('document_id', '=', documentId)
-    .where('notification_type', '=', notificationType)
-    .where('days_threshold', '=', daysThreshold)
+    .where('documentId', '=', documentId)
+    .where('notificationType', '=', notificationType)
+    .where('daysThreshold', '=', daysThreshold)
     .executeTakeFirst()
 
   return result != null
@@ -308,15 +308,13 @@ export const recordAircraftDocumentNotificationSent = async (
   notificationType: 'REMINDER' | 'EXPIRED',
   daysThreshold: number = 0,
 ): Promise<void> => {
-  await connection.db
-    .insertInto('flight.aircraft_document_expiry_notifications')
+  await connection.camelDb
+    .insertInto('flight.aircraftDocumentExpiryNotifications')
     .values({
-      document_id: documentId,
-      notification_type: notificationType,
-      days_threshold: daysThreshold,
+      documentId: documentId,
+      notificationType: notificationType,
+      daysThreshold: daysThreshold,
     })
-    .onConflict((oc) =>
-      oc.columns(['document_id', 'notification_type', 'days_threshold']).doNothing(),
-    )
+    .onConflict((oc) => oc.columns(['documentId', 'notificationType', 'daysThreshold']).doNothing())
     .execute()
 }

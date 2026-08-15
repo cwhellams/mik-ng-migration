@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import { sql } from 'kysely'
 import type {
   InstructorWorktimeEntry,
@@ -18,15 +18,15 @@ import type {
 export async function getInstructorWorktime(
   filters: InstructorWorktimeFilters,
 ): Promise<InstructorWorktimeEntry[]> {
-  const timeColumn = filters.timeType === 'air' ? sql.ref('flight_mins') : sql.ref('block_mins')
+  const timeColumn = filters.timeType === 'air' ? sql.ref('flightMins') : sql.ref('blockMins')
 
   const result = await sql<{
-    instructor_member_id: string
-    instructor_name: string
+    instructorMemberId: string
+    instructorName: string
     date: string
-    flight_count: number
-    total_time_mins: number
-    work_time_mins: number
+    flightCount: number
+    totalTimeMins: number
+    workTimeMins: number
   }>`
     SELECT
       instructor_flights.instructor_member_id,
@@ -73,14 +73,14 @@ export async function getInstructorWorktime(
       mr.last_name,
       instructor_flights.off_block_time_utc::date
     ORDER BY date ASC, instructor_name ASC
-  `.execute(db)
+  `.execute(camelDb)
 
   return result.rows.map((row) => ({
-    instructorMemberId: row.instructor_member_id,
-    instructorName: row.instructor_name,
+    instructorMemberId: row.instructorMemberId,
+    instructorName: row.instructorName,
     date: row.date,
-    flightCount: Number(row.flight_count),
-    totalTimeMins: Number(row.total_time_mins),
-    workTimeMins: Number(row.work_time_mins),
+    flightCount: Number(row.flightCount),
+    totalTimeMins: Number(row.totalTimeMins),
+    workTimeMins: Number(row.workTimeMins),
   }))
 }

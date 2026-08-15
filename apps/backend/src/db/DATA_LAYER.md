@@ -80,11 +80,40 @@ Check all three before starting:
   `inventory`, `meeting` — has to move in the same commit as its callers.
   `maintenance-note` is the smallest example: it opens a transaction and passes it into
   `defect-queries`.
-- **It uses raw `sql` fragments.** Identifiers inside a raw fragment are not rewritten
-  (they stay valid snake_case SQL), but the _result_ keys are still camelCased by the
-  plugin, and nothing typechecks that. Every raw fragment needs reading.
+- **It uses raw `sql` fragments.** These are migratable, but only by hand — see
+  "Auditing a raw sql fragment" below. Nothing about them is compiler-checked.
 - **It uses `pool.query()` directly**, bypassing Kysely entirely — `ajlb` does. Those
   results are not transformed at all, so the module ends up half-and-half.
+
+## Auditing a raw sql fragment
+
+`transformResult` renames the keys of **every** row the instance returns, including rows
+produced by a fragment the identifier transformer never touched. So a hand-written type
+annotation silently becomes a lie:
+
+```ts
+// runtime gives you { totalMins }, the type promises { total_mins },
+// and row.total_mins is undefined with nothing failing to compile
+await sql<{ total_mins: number }>`… as total_mins`.execute(camelDb)
+```
+
+`test/db/camel-case-plugin.test.ts` pins this in both directions. Classify each fragment:
+
+| Fragment                                                | Action                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sql<Scalar>` in an expression position                 | Safe — no keys                                                                                                                                                                                                                                                                                                         |
+| `sql<boolean>` as a predicate                           | Safe                                                                                                                                                                                                                                                                                                                   |
+| Column refs inside the SQL text (`` sql`d.valid_to` ``) | **First ask whether they need to be raw at all.** A bare column ref belongs in the builder (`'d.validTo'`), and a column-to-column comparison is `whereRef('a.x', '>', 'b.y')` — both compile to the same SQL, with the identifier checked. Only genuinely un-expressible SQL stays raw, and there it keeps snake_case |
+| `.as('some_alias')` on any expression                   | **Rename to camelCase.** The result key is renamed regardless, so the alias in the type must match                                                                                                                                                                                                                     |
+| `sql<{ … }>` raw query                                  | **Rewrite the declared keys as camelCase**, and switch `.execute(db)` to `.execute(camelDb)`                                                                                                                                                                                                                           |
+
+The SQL text itself never changes. Only the TypeScript around it does.
+
+Do audit whether a fragment needs to be raw in the first place. Two in this batch did not
+— `` sql`li.fuel_date` `` as a `where` operand, and `` sql`newer.valid_from` `` compared to
+`` sql`d.valid_to` `` — and both compile to identical SQL through the builder while gaining
+compile-time checking. A raw fragment that could have been a builder call is a snake_case
+identifier the compiler cannot see, which is the same trap as `any`.
 
 ## Why `maintainNestedObjectKeys: true` is not optional
 
@@ -103,26 +132,30 @@ corrupted by it. `test/db/camel-case-plugin.test.ts` pins this.
 
 ## Progress
 
-**23 of 53 query modules migrated.** Everything with no raw SQL and no shared transaction
+**28 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
 is done — what remains is exactly the set that needs a judgement call.
 
 Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
 `aircraft-card`, `airfields`, `auth`, `brevo-sync`, `cost-centre`, `email-change`,
 `events`, `fuel-prices`, `instructor-qualification`, `mailbox`, `notification-banner`,
 `passkey`, `prices`, `push`, `qualification-proof`, `secrets`, `simplbooks-sync`,
-`useful-phone-number`.
+`useful-phone-number`, `aircraft`, `aircraft-document`, `aircraft-navdata`,
+`fuel-report`, `instructor-worktime`.
 
 Remaining, grouped by what makes them awkward:
 
-- **Raw `sql` fragments** — audit each fragment's result keys by hand:
-  `aircraft`, `aircraft-document`, `aircraft-hil`, `aircraft-navdata`, `ame`, `booking`,
-  `brevo-campaign-archive`, `defect`, `document`, `flight-log`, `fuel-report`, `gdpr`,
-  `instructor-worktime`, `member`, `prepaid-hours`, `shop`, `stats`, `tax-report`,
+- **Raw `sql` fragments** — audit each by hand, per
+  [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment). What is left is the large
+  end of this group: `ame`, `booking`, `document`, `flight-log`, `gdpr`, `member`,
+  `prepaid-hours`, `shop`, `stats`, `tax-report`,
   `tiny-url`, `traficom-report`, `uplift-report`.
 - **Shared transactions — must move as one commit**, since a transaction cannot span the
-  two instances: `expense`, `expense-attachment`, `inventory`, `meeting`, `mileage`,
-  `occurrence`, `outbox-simplbooks`. `maintenance-note` and `defect` are a second such
-  pair: `maintenance-note` opens a transaction and passes it into `defect-queries`.
+  two instances. Two clusters:
+  - `expense`, `expense-attachment`, `inventory`, `meeting`, `mileage`, `occurrence`,
+    `outbox-simplbooks`;
+  - `aircraft-hil` + `defect` + `maintenance-note` — `routes/aircraft-hil/api.ts` opens a
+    transaction and passes it into both `aircraft-hil-queries` and `defect-queries`, and
+    `maintenance-note` passes its own into `defect-queries`.
 - **Raw `pool.query`**, bypassing Kysely entirely, so the plugin never applies:
   `ajlb`. Those functions stay snake_case until they are rewritten as Kysely queries.
 

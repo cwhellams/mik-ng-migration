@@ -1,7 +1,8 @@
+import type { Updateable } from 'kysely'
 import { sql, type Selectable } from 'kysely'
 
 import * as connection from './connection.ts'
-import type { FlightAircraft } from './schema.js'
+import type { FlightAircraft } from './schema.camel.d.ts'
 import type { Aircraft, AircraftNote, FuelTypeEntry } from '@mik/contracts/aircrafts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
@@ -14,12 +15,12 @@ export const getAllAircraft = async (
   onlyActive: boolean,
   visibleOnly: boolean,
 ): Promise<Aircraft[]> => {
-  const rows = await connection.db
+  const rows = await connection.camelDb
     .selectFrom('flight.aircraft')
     .selectAll()
     .$if(onlyActive, (qb) => qb.where('active', '=', true))
     .$if(visibleOnly, (qb) => qb.where('hidden', '=', false))
-    .orderBy('display_name')
+    .orderBy('displayName')
     .execute()
 
   return Promise.all(
@@ -38,7 +39,7 @@ export const getAircraftByRegistration = async (
   onlyActive: boolean,
   visibleOnly: boolean = false,
 ): Promise<Aircraft | undefined> => {
-  const row = await connection.db
+  const row = await connection.camelDb
     .selectFrom('flight.aircraft')
     .selectAll()
     .where('registration', '=', registration)
@@ -60,81 +61,81 @@ const toAircraft = (
   documents: AircraftDocument[],
 ): Aircraft => ({
   registration: aircraft.registration,
-  displayName: aircraft.display_name,
+  displayName: aircraft.displayName,
   model: aircraft.model,
   manufacturer: aircraft.manufacturer,
-  yearOfManufacture: aircraft.year_of_manufacture,
+  yearOfManufacture: aircraft.yearOfManufacture,
   seats: aircraft.seats,
-  usableFuelLitres: aircraft.usable_fuel_litres,
-  fuelTypes: aircraft.fuel_types ?? [],
-  preferredFuelType: aircraft.preferred_fuel_type ?? null,
+  usableFuelLitres: aircraft.usableFuelLitres,
+  fuelTypes: aircraft.fuelTypes ?? [],
+  preferredFuelType: aircraft.preferredFuelType ?? null,
   active: aircraft.active,
   hidden: aircraft.hidden,
 
   documents: documents,
   maintenance: {
-    maintenanceCycle: aircraft.maintenance_cycle,
-    lastMaintenanceDate: aircraft.last_maintenance_date,
-    lastMaintenanceType: aircraft.last_maintenance_type,
-    lastMaintenanceMins: aircraft.last_maintenance_mins,
-    nextMaintenanceDate: aircraft.next_maintenance_date,
-    nextMaintenanceType: aircraft.next_maintenance_type,
-    nextMaintenanceMins: aircraft.next_maintenance_mins,
+    maintenanceCycle: aircraft.maintenanceCycle,
+    lastMaintenanceDate: aircraft.lastMaintenanceDate,
+    lastMaintenanceType: aircraft.lastMaintenanceType,
+    lastMaintenanceMins: aircraft.lastMaintenanceMins,
+    nextMaintenanceDate: aircraft.nextMaintenanceDate,
+    nextMaintenanceType: aircraft.nextMaintenanceType,
+    nextMaintenanceMins: aircraft.nextMaintenanceMins,
 
-    totalPercentageHours: aircraft.total_percentage_hours,
-    reservedHours: aircraft.reserved_hours,
+    totalPercentageHours: aircraft.totalPercentageHours,
+    reservedHours: aircraft.reservedHours,
   },
 
   notes: aircraft.notes as AircraftNote[],
 
   location: aircraft.location,
   equipment: aircraft.equipment,
-  imageUrl: aircraft.image_url,
-  createdAt: aircraft.created_at?.toISOString(),
-  updatedAt: aircraft.updated_at?.toISOString(),
-  createdBy: aircraft.created_by,
-  updatedBy: aircraft.updated_by,
+  imageUrl: aircraft.imageUrl,
+  createdAt: aircraft.createdAt?.toISOString(),
+  updatedAt: aircraft.updatedAt?.toISOString(),
+  createdBy: aircraft.createdBy,
+  updatedBy: aircraft.updatedBy,
 })
 
 export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Promise<Aircraft> {
   const now = new Date()
 
-  const result = await connection.db
+  const result = await connection.camelDb
     .insertInto('flight.aircraft')
     .values({
       registration: aircraft.registration,
-      display_name: aircraft.displayName,
+      displayName: aircraft.displayName,
       model: aircraft.model,
       manufacturer: aircraft.manufacturer,
-      year_of_manufacture: aircraft.yearOfManufacture,
+      yearOfManufacture: aircraft.yearOfManufacture,
       seats: aircraft.seats,
-      usable_fuel_litres: aircraft.usableFuelLitres,
-      fuel_types: aircraft.fuelTypes,
-      preferred_fuel_type: aircraft.preferredFuelType ?? null,
+      usableFuelLitres: aircraft.usableFuelLitres,
+      fuelTypes: aircraft.fuelTypes,
+      preferredFuelType: aircraft.preferredFuelType ?? null,
       active: aircraft.active,
       hidden: aircraft.hidden,
 
-      maintenance_cycle: aircraft.maintenance.maintenanceCycle,
-      last_maintenance_date: aircraft.maintenance.lastMaintenanceDate,
-      last_maintenance_type: aircraft.maintenance.lastMaintenanceType,
-      last_maintenance_mins: aircraft.maintenance.lastMaintenanceMins,
-      next_maintenance_date: aircraft.maintenance.nextMaintenanceDate,
-      next_maintenance_type: aircraft.maintenance.nextMaintenanceType,
-      next_maintenance_mins: aircraft.maintenance.nextMaintenanceMins,
+      maintenanceCycle: aircraft.maintenance.maintenanceCycle,
+      lastMaintenanceDate: aircraft.maintenance.lastMaintenanceDate,
+      lastMaintenanceType: aircraft.maintenance.lastMaintenanceType,
+      lastMaintenanceMins: aircraft.maintenance.lastMaintenanceMins,
+      nextMaintenanceDate: aircraft.maintenance.nextMaintenanceDate,
+      nextMaintenanceType: aircraft.maintenance.nextMaintenanceType,
+      nextMaintenanceMins: aircraft.maintenance.nextMaintenanceMins,
 
-      total_percentage_hours: aircraft.maintenance.totalPercentageHours,
-      reserved_hours: aircraft.maintenance.reservedHours,
+      totalPercentageHours: aircraft.maintenance.totalPercentageHours,
+      reservedHours: aircraft.maintenance.reservedHours,
 
       notes: JSON.stringify(aircraft.notes),
 
       location: aircraft.location,
       equipment: aircraft.equipment,
-      image_url: aircraft.imageUrl,
+      imageUrl: aircraft.imageUrl,
 
-      created_at: now,
-      created_by: jwt.memberId,
-      updated_at: now,
-      updated_by: jwt.memberId,
+      createdAt: now,
+      createdBy: jwt.memberId,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
     })
     .executeTakeFirst()
   if (!result.numInsertedOrUpdatedRows) {
@@ -159,6 +160,8 @@ export async function updateAircraft(
   // When fuelTypes changes but preferredFuelType is not explicitly provided,
   // preserve the existing preferred_fuel_type only if it is still contained
   // in the new fuel_types array; otherwise clear it to NULL.
+  type UpdateAircraftPreferredFuelType = Updateable<FlightAircraft>['preferredFuelType']
+
   let preferredFuelType: string | null | undefined | ReturnType<typeof sql<string | null>> =
     patch.preferredFuelType
   if (patch.fuelTypes && preferredFuelType === undefined) {
@@ -167,39 +170,42 @@ export async function updateAircraft(
     >`CASE WHEN preferred_fuel_type = ANY(${patch.fuelTypes}) THEN preferred_fuel_type ELSE NULL END`
   }
 
-  const result = await connection.db
+  const result = await connection.camelDb
     .updateTable('flight.aircraft')
     .set({
       registration: patch.registration,
-      display_name: patch.displayName,
+      displayName: patch.displayName,
       model: patch.model,
       manufacturer: patch.manufacturer,
-      year_of_manufacture: patch.yearOfManufacture,
+      yearOfManufacture: patch.yearOfManufacture,
       seats: patch.seats,
-      usable_fuel_litres: patch.usableFuelLitres,
-      fuel_types: patch.fuelTypes,
-      preferred_fuel_type: preferredFuelType as any,
+      usableFuelLitres: patch.usableFuelLitres,
+      fuelTypes: patch.fuelTypes,
+      // Either a plain value or the raw CASE expression above; the union of the
+      // two is wider than .set() accepts, so the cast is to the column type rather
+      // than to any.
+      preferredFuelType: preferredFuelType as UpdateAircraftPreferredFuelType,
       active: patch.active,
       hidden: patch.hidden,
 
       notes: patch.notes ? JSON.stringify(patch.notes) : undefined,
       location: patch.location,
       equipment: patch.equipment,
-      image_url: patch.imageUrl,
-      updated_at: now,
-      updated_by: jwt.memberId,
+      imageUrl: patch.imageUrl,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
     })
     .$if(!!patch.maintenance, (qb) =>
       qb.set({
-        maintenance_cycle: patch.maintenance!.maintenanceCycle,
-        last_maintenance_date: patch.maintenance!.lastMaintenanceDate,
-        last_maintenance_type: patch.maintenance!.lastMaintenanceType,
-        last_maintenance_mins: patch.maintenance!.lastMaintenanceMins,
-        next_maintenance_date: patch.maintenance!.nextMaintenanceDate,
-        next_maintenance_type: patch.maintenance!.nextMaintenanceType,
-        next_maintenance_mins: patch.maintenance!.nextMaintenanceMins,
-        total_percentage_hours: patch.maintenance?.totalPercentageHours,
-        reserved_hours: patch.maintenance?.reservedHours,
+        maintenanceCycle: patch.maintenance!.maintenanceCycle,
+        lastMaintenanceDate: patch.maintenance!.lastMaintenanceDate,
+        lastMaintenanceType: patch.maintenance!.lastMaintenanceType,
+        lastMaintenanceMins: patch.maintenance!.lastMaintenanceMins,
+        nextMaintenanceDate: patch.maintenance!.nextMaintenanceDate,
+        nextMaintenanceType: patch.maintenance!.nextMaintenanceType,
+        nextMaintenanceMins: patch.maintenance!.nextMaintenanceMins,
+        totalPercentageHours: patch.maintenance?.totalPercentageHours,
+        reservedHours: patch.maintenance?.reservedHours,
       }),
     )
     .where('registration', '=', registration)
@@ -208,7 +214,7 @@ export async function updateAircraft(
 }
 
 export async function removeAircraft(registration: string): Promise<boolean> {
-  const result = await connection.db
+  const result = await connection.camelDb
     .deleteFrom('flight.aircraft')
     .where('registration', '=', registration)
     .executeTakeFirstOrThrow()
@@ -216,10 +222,10 @@ export async function removeAircraft(registration: string): Promise<boolean> {
 }
 
 export async function getAllFuelTypes(): Promise<FuelTypeEntry[]> {
-  const rows = await connection.db
-    .selectFrom('flight.fuel_types')
+  const rows = await connection.camelDb
+    .selectFrom('flight.fuelTypes')
     .selectAll()
-    .orderBy('sort_order')
+    .orderBy('sortOrder')
     .execute()
-  return rows.map((row) => ({ name: row.name, sortOrder: row.sort_order }))
+  return rows.map((row) => ({ name: row.name, sortOrder: row.sortOrder }))
 }
