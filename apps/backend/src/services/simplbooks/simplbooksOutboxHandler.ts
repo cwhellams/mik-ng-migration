@@ -371,10 +371,10 @@ async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks)
 
 const ShopOrderRowSchema = z
   .object({
-    order_id: z.string(),
-    member_id: z.string(),
-    invoice_id: z.string().nullable(),
-    billing_id: z.string().nullable(),
+    orderId: z.string(),
+    memberId: z.string(),
+    invoiceId: z.string().nullable(),
+    billingId: z.string().nullable(),
   })
   .strict()
 
@@ -459,26 +459,26 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     throw new Error(`Shop order ${payload.orderId} not found`)
   }
 
-  if (order.invoice_id) {
+  if (order.invoiceId) {
     await camelDb.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
         SimplbooksStatus.SKIPPED,
-        `Order ${payload.orderId} already has invoice ${order.invoice_id}`,
+        `Order ${payload.orderId} already has invoice ${order.invoiceId}`,
       )
     })
     return
   }
 
-  if (!order.billing_id) {
+  if (!order.billingId) {
     throw new Error(`Cannot invoice order ${payload.orderId}: member has no billing ID`)
   }
 
-  const clientId = Number.parseInt(order.billing_id, 10)
+  const clientId = Number.parseInt(order.billingId, 10)
   if (Number.isNaN(clientId)) {
     throw new TypeError(
-      `Invalid member billing ID '${order.billing_id}' for order ${payload.orderId}`,
+      `Invalid member billing ID '${order.billingId}' for order ${payload.orderId}`,
     )
   }
 
@@ -529,7 +529,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
 
   await camelDb.transaction().execute(async (txn) => {
     const invoiceId = await createInvoice(
-      order.member_id,
+      order.memberId,
       outboxMsg.id,
       MIKInvoiceType.SHOP_ORDER,
       invoicePayload,
@@ -548,7 +548,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
       .execute()
 
     logger.info(
-      `Created SimplBooks invoice ${invoiceId} for shop order ${payload.orderId} and member ${order.member_id}`,
+      `Created SimplBooks invoice ${invoiceId} for shop order ${payload.orderId} and member ${order.memberId}`,
     )
   })
 }

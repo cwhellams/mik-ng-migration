@@ -159,6 +159,26 @@ The remaining cluster is `expense`, `expense-attachment`, `inventory`, `meeting`
 `mileage`, `occurrence`, `outbox-simplbooks` — seven modules in one commit, which is the
 one place in this migration where "one domain per PR" cannot hold.
 
+## Never rewrite the inside of a raw `sql` template
+
+Raw SQL text is emitted verbatim; the identifier transformer never sees it. Column names
+in there must stay snake_case, or Postgres rejects the query outright — `column
+r.firstname does not exist`. Only the _result keys_ are camelCased, which is why the
+mapper still reads `row.firstName`.
+
+This is easy to get wrong with an automated pass and impossible to catch by eye at scale,
+so scan for it before opening a PR:
+
+```
+grep -n 'sql`' -A20 src/db/*.ts | grep -E '\b[a-z]+[A-Z][a-zA-Z]*\b'
+```
+
+Anything camelCase inside a template is a bug unless it is a `${jsVariable}` or a SQL
+comment. `meeting-queries` shipped this to CI green because the only two raw-SQL
+functions in it were **mocked** in the route tests — the SQL never ran. If a module's
+raw queries are not exercised against a real database anywhere, add a db-level test
+before migrating it.
+
 ## Two things the compiler cannot catch
 
 Both of these were found by tests, not by `tsc`, after a conversion that typechecked

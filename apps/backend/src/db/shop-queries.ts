@@ -1,3 +1,6 @@
+import type { Updateable } from 'kysely'
+
+import type { ShopCategories, ShopDiscountCodes, ShopProducts } from './schema.camel.d.ts'
 import { camelDb } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
@@ -18,7 +21,7 @@ import type {
   OrderFilters,
 } from '@mik/contracts/shop'
 import { sql } from 'kysely'
-import type { Json } from './schema.camel.d.ts'
+import type { Json, JsonValue } from './schema.camel.d.ts'
 import { insertOutboxItem } from './outbox-simplbooks-queries.ts'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
 import { problem } from '../routes/response.ts'
@@ -90,11 +93,14 @@ export async function updateCategory(
   data: Partial<CategoryUpsert>,
   user: JWTUser,
 ): Promise<Category> {
-  const update: Record<string, unknown> = { updatedBy: user.memberId, updatedAt: new Date() }
-  if (data.name !== undefined) update.name = data.name as object
-  if (data.description !== undefined) update.description = data.description as object
-  if (data.isActive !== undefined) update.is_active = data.isActive
-  if (data.sortOrder !== undefined) update.sort_order = data.sortOrder
+  const update: Updateable<ShopCategories> = {
+    updatedBy: user.memberId,
+    updatedAt: new Date(),
+  }
+  if (data.name !== undefined) update.name = data.name as JsonValue
+  if (data.description !== undefined) update.description = data.description as JsonValue
+  if (data.isActive !== undefined) update.isActive = data.isActive
+  if (data.sortOrder !== undefined) update.sortOrder = data.sortOrder
   await camelDb.updateTable('shop.categories').set(update).where('categoryId', '=', id).execute()
   return getCategoryById(id) as Promise<Category>
 }
@@ -274,22 +280,25 @@ export async function updateProduct(
   data: Partial<ProductUpsert>,
   user: JWTUser,
 ): Promise<Product> {
-  const update: Record<string, unknown> = { updatedBy: user.memberId, updatedAt: new Date() }
+  const update: Updateable<ShopProducts> = {
+    updatedBy: user.memberId,
+    updatedAt: new Date(),
+  }
   if (data.categoryId !== undefined) update.categoryId = data.categoryId
-  if (data.simplbooksItemId !== undefined) update.simplbooks_item_id = data.simplbooksItemId
-  if (data.productType !== undefined) update.product_type = data.productType
-  if (data.name !== undefined) update.name = data.name as object
-  if (data.description !== undefined) update.description = data.description as object
+  if (data.simplbooksItemId !== undefined) update.simplbooksItemId = data.simplbooksItemId
+  if (data.productType !== undefined) update.productType = data.productType
+  if (data.name !== undefined) update.name = data.name as JsonValue
+  if (data.description !== undefined) update.description = data.description as JsonValue
   if (data.price !== undefined) update.price = data.price
-  if (data.vatPercent !== undefined) update.vat_percent = data.vatPercent
-  if (data.stockQuantity !== undefined) update.stock_quantity = data.stockQuantity
-  if (data.lowStockThreshold !== undefined) update.low_stock_threshold = data.lowStockThreshold
-  if (data.maxOrderQuantity !== undefined) update.max_order_quantity = data.maxOrderQuantity
-  if (data.isActive !== undefined) update.is_active = data.isActive
-  if (data.isPublished !== undefined) update.is_published = data.isPublished
+  if (data.vatPercent !== undefined) update.vatPercent = data.vatPercent
+  if (data.stockQuantity !== undefined) update.stockQuantity = data.stockQuantity
+  if (data.lowStockThreshold !== undefined) update.lowStockThreshold = data.lowStockThreshold
+  if (data.maxOrderQuantity !== undefined) update.maxOrderQuantity = data.maxOrderQuantity
+  if (data.isActive !== undefined) update.isActive = data.isActive
+  if (data.isPublished !== undefined) update.isPublished = data.isPublished
   if (data.tags !== undefined) update.tags = data.tags as unknown as string[]
-  if (data.metadata !== undefined) update.metadata = data.metadata as object
-  if (data.imageUrl !== undefined) update.image_url = data.imageUrl
+  if (data.metadata !== undefined) update.metadata = data.metadata as JsonValue
+  if (data.imageUrl !== undefined) update.imageUrl = data.imageUrl
   await camelDb.updateTable('shop.products').set(update).where('productId', '=', id).execute()
   return getProductById(id) as Promise<Product>
 }
@@ -662,16 +671,19 @@ export async function updateDiscountCode(
   data: Partial<DiscountCodeUpsert>,
   user: JWTUser,
 ): Promise<DiscountCode> {
-  const update: Record<string, unknown> = { updatedBy: user.memberId, updatedAt: new Date() }
+  const update: Updateable<ShopDiscountCodes> = {
+    updatedBy: user.memberId,
+    updatedAt: new Date(),
+  }
   if (data.code !== undefined) update.code = data.code
   if (data.description !== undefined) update.description = data.description
-  if (data.discountType !== undefined) update.discount_type = data.discountType
-  if (data.discountValue !== undefined) update.discount_value = data.discountValue
-  if (data.minOrderAmount !== undefined) update.min_order_amount = data.minOrderAmount
-  if (data.maxUses !== undefined) update.max_uses = data.maxUses
-  if (data.validFrom !== undefined) update.valid_from = data.validFrom
-  if (data.validUntil !== undefined) update.valid_until = data.validUntil
-  if (data.isActive !== undefined) update.is_active = data.isActive
+  if (data.discountType !== undefined) update.discountType = data.discountType
+  if (data.discountValue !== undefined) update.discountValue = data.discountValue
+  if (data.minOrderAmount !== undefined) update.minOrderAmount = data.minOrderAmount
+  if (data.maxUses !== undefined) update.maxUses = data.maxUses
+  if (data.validFrom !== undefined) update.validFrom = data.validFrom
+  if (data.validUntil !== undefined) update.validUntil = data.validUntil
+  if (data.isActive !== undefined) update.isActive = data.isActive
   await camelDb.updateTable('shop.discountCodes').set(update).where('codeId', '=', id).execute()
 
   if (data.categoryIds !== undefined) {

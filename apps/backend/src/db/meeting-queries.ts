@@ -401,7 +401,7 @@ export const updateMeeting = async (
   const { rows } = await sql<{ meetingId: string }>`
     UPDATE member.meeting
     SET
-      -- title, description, documentSearchFilter: DRAFT only
+      -- title, description, document_search_filter: DRAFT only
       title = CASE
         WHEN status = 'DRAFT' AND ${data.title !== undefined}
           THEN ${data.title ?? ''}
@@ -536,14 +536,14 @@ export const getMeetingAttendees = async (meetingId: string): Promise<MeetingAtt
   const { rows } = await sql<MeetingAttendeeRow>`
     SELECT
       ma.member_id,
-      r.firstName,
-      r.lastName,
+      r.first_name,
+      r.last_name,
       r.email,
       ma.joined_at
     FROM member.meeting_attendance ma
-    INNER JOIN member.register r ON r.memberId = ma.member_id
+    INNER JOIN member.register r ON r.member_id = ma.member_id
     WHERE ma.meeting_id = ${meetingId}::uuid
-    ORDER BY r.firstName ASC, r.lastName ASC
+    ORDER BY r.first_name ASC, r.last_name ASC
   `.execute(camelDb)
 
   return rows.map((row) => ({
@@ -559,15 +559,15 @@ export const getVoteCounters = async (meetingId: string): Promise<VoteCounter[]>
   const { rows } = await sql<VoteCounterRow>`
     SELECT
       mvc.member_id,
-      r.firstName,
-      r.lastName,
+      r.first_name,
+      r.last_name,
       r.email,
       mvc.assigned_at,
       mvc.assigned_by
     FROM member.meeting_vote_counter mvc
-    INNER JOIN member.register r ON r.memberId = mvc.member_id
+    INNER JOIN member.register r ON r.member_id = mvc.member_id
     WHERE mvc.meeting_id = ${meetingId}::uuid
-    ORDER BY r.firstName ASC, r.lastName ASC
+    ORDER BY r.first_name ASC, r.last_name ASC
   `.execute(camelDb)
 
   return rows.map((row) => ({
