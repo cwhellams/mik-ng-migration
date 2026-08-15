@@ -1,47 +1,27 @@
 import { sql, type Kysely } from 'kysely'
 
 import * as connection from './connection.ts'
-import type { DB } from './schema.d.ts'
-import type {
-  Defect,
-  DefectStatus,
-  CreateDefectRequest,
-  UpdateDefectRequest,
-} from '@mik/contracts/defects'
+import type { CamelRow } from './connection.ts'
+import type { DB as CamelDB } from './schema.camel.d.ts'
+import type { Defect, CreateDefectRequest, UpdateDefectRequest } from '@mik/contracts/defects'
 
-function mapRowToDefect(row: {
-  defect_id: string
-  aircraft_registration: string
-  ajlb_seq_no: number
-  flight_id: string | null
-  description: string
-  flight_mins: number
-  rows: number
-  blank_rows_after: number
-  status: DefectStatus
-  hil_id: string | null
-  resolved_note_id: string | null
-  created_at: Date
-  created_by: string
-  updated_at: Date
-  updated_by: string
-}): Defect {
+function mapRowToDefect(row: CamelRow<'flight.defect'>): Defect {
   return {
-    defectId: row.defect_id,
-    aircraftRegistration: row.aircraft_registration,
-    ajlbSeqNo: row.ajlb_seq_no,
-    flightId: row.flight_id,
+    defectId: row.defectId,
+    aircraftRegistration: row.aircraftRegistration,
+    ajlbSeqNo: row.ajlbSeqNo,
+    flightId: row.flightId,
     description: row.description,
-    flightMins: row.flight_mins,
+    flightMins: row.flightMins,
     rows: row.rows,
-    blankRowsAfter: row.blank_rows_after,
+    blankRowsAfter: row.blankRowsAfter,
     status: row.status,
-    hilId: row.hil_id,
-    resolvedNoteId: row.resolved_note_id,
-    createdAt: row.created_at.toISOString(),
-    createdBy: row.created_by,
-    updatedAt: row.updated_at.toISOString(),
-    updatedBy: row.updated_by,
+    hilId: row.hilId,
+    resolvedNoteId: row.resolvedNoteId,
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy,
+    updatedAt: row.updatedAt.toISOString(),
+    updatedBy: row.updatedBy,
   }
 }
 
@@ -49,22 +29,22 @@ export async function getDefects(
   aircraftRegistration: string,
   ajlbSeqNo?: number,
 ): Promise<Defect[]> {
-  const rows = await connection.db
+  const rows = await connection.camelDb
     .selectFrom('flight.defect')
     .selectAll()
-    .where('aircraft_registration', '=', aircraftRegistration)
-    .$if(ajlbSeqNo !== undefined, (qb) => qb.where('ajlb_seq_no', '=', ajlbSeqNo!))
-    .orderBy('flight_mins', 'asc')
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .$if(ajlbSeqNo !== undefined, (qb) => qb.where('ajlbSeqNo', '=', ajlbSeqNo!))
+    .orderBy('flightMins', 'asc')
     .execute()
 
   return rows.map(mapRowToDefect)
 }
 
 export async function getDefect(defectId: string): Promise<Defect | undefined> {
-  const row = await connection.db
+  const row = await connection.camelDb
     .selectFrom('flight.defect')
     .selectAll()
-    .where('defect_id', '=', defectId)
+    .where('defectId', '=', defectId)
     .executeTakeFirst()
 
   return row ? mapRowToDefect(row) : undefined
@@ -72,23 +52,23 @@ export async function getDefect(defectId: string): Promise<Defect | undefined> {
 
 export async function createDefect(data: CreateDefectRequest, createdBy: string): Promise<Defect> {
   const now = new Date()
-  const row = await connection.db
+  const row = await connection.camelDb
     .insertInto('flight.defect')
     .values({
-      aircraft_registration: data.aircraftRegistration,
-      ajlb_seq_no: data.ajlbSeqNo,
-      flight_id: data.flightId ?? null,
+      aircraftRegistration: data.aircraftRegistration,
+      ajlbSeqNo: data.ajlbSeqNo,
+      flightId: data.flightId ?? null,
       description: data.description,
-      flight_mins: data.flightMins,
+      flightMins: data.flightMins,
       rows: data.rows,
-      blank_rows_after: data.blankRowsAfter,
+      blankRowsAfter: data.blankRowsAfter,
       status: 'ACTIVE',
-      hil_id: null,
-      resolved_note_id: null,
-      created_at: now,
-      created_by: createdBy,
-      updated_at: now,
-      updated_by: createdBy,
+      hilId: null,
+      resolvedNoteId: null,
+      createdAt: now,
+      createdBy,
+      updatedAt: now,
+      updatedBy: createdBy,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -102,35 +82,35 @@ export async function updateDefect(
   updatedBy: string,
   createdByFilter?: string,
 ): Promise<Defect | undefined> {
-  let query = connection.db
+  let query = connection.camelDb
     .updateTable('flight.defect')
     .set({
       ...(data.description !== undefined && { description: data.description }),
       ...(data.rows !== undefined && { rows: data.rows }),
-      ...(data.blankRowsAfter !== undefined && { blank_rows_after: data.blankRowsAfter }),
+      ...(data.blankRowsAfter !== undefined && { blankRowsAfter: data.blankRowsAfter }),
       ...(data.hilId !== undefined && {
-        hil_id: data.hilId,
+        hilId: data.hilId,
         status: data.hilId !== null ? 'MOVED_TO_HIL' : 'ACTIVE',
       }),
       ...(data.resolvedNoteId !== undefined && {
-        resolved_note_id: data.resolvedNoteId,
+        resolvedNoteId: data.resolvedNoteId,
         // Un-resolving (resolvedNoteId: null) should only land back on
         // MOVED_TO_HIL if the defect is actually linked to a hold item —
         // otherwise it belongs back on ACTIVE.
         status:
           data.resolvedNoteId !== null
             ? ('RESOLVED' as const)
-            : (sql<
+            : sql<
                 'ACTIVE' | 'MOVED_TO_HIL'
-              >`CASE WHEN hil_id IS NOT NULL THEN 'MOVED_TO_HIL' ELSE 'ACTIVE' END` as any),
+              >`CASE WHEN hil_id IS NOT NULL THEN 'MOVED_TO_HIL' ELSE 'ACTIVE' END`,
       }),
-      updated_at: new Date(),
-      updated_by: updatedBy,
+      updatedAt: new Date(),
+      updatedBy,
     })
-    .where('defect_id', '=', defectId)
+    .where('defectId', '=', defectId)
 
   if (createdByFilter !== undefined) {
-    query = query.where('created_by', '=', createdByFilter)
+    query = query.where('createdBy', '=', createdByFilter)
   }
 
   const row = await query.returningAll().executeTakeFirst()
@@ -142,18 +122,18 @@ export async function resolveDefectsByHil(
   aircraftRegistration: string,
   resolvedNoteId: string,
   updatedBy: string,
-  executor: Kysely<DB> = connection.db,
+  executor: Kysely<CamelDB> = connection.camelDb,
 ): Promise<void> {
   await executor
     .updateTable('flight.defect')
     .set({
       status: 'RESOLVED',
-      resolved_note_id: resolvedNoteId,
-      updated_at: new Date(),
-      updated_by: updatedBy,
+      resolvedNoteId,
+      updatedAt: new Date(),
+      updatedBy,
     })
-    .where('hil_id', '=', hilId)
-    .where('aircraft_registration', '=', aircraftRegistration)
+    .where('hilId', '=', hilId)
+    .where('aircraftRegistration', '=', aircraftRegistration)
     .where('status', '!=', 'RESOLVED')
     .execute()
 }
@@ -173,7 +153,7 @@ export async function setDefectsForHil(
   aircraftRegistration: string,
   defectIds: string[],
   updatedBy: string,
-  executor: Kysely<DB> = connection.db,
+  executor: Kysely<CamelDB> = connection.camelDb,
 ): Promise<boolean> {
   const now = new Date()
 
@@ -183,11 +163,11 @@ export async function setDefectsForHil(
   const currentIds = (
     await executor
       .selectFrom('flight.defect')
-      .select('defect_id')
-      .where('hil_id', '=', hilId)
+      .select('defectId')
+      .where('hilId', '=', hilId)
       .where('status', '!=', 'RESOLVED')
       .execute()
-  ).map((row) => row.defect_id)
+  ).map((row) => row.defectId)
 
   const removed = currentIds.filter((id) => !defectIds.includes(id))
   const added = defectIds.filter((id) => !currentIds.includes(id))
@@ -198,13 +178,13 @@ export async function setDefectsForHil(
     await executor
       .updateTable('flight.defect')
       .set({
-        hil_id: null,
+        hilId: null,
         status: 'ACTIVE',
-        updated_at: now,
-        updated_by: updatedBy,
+        updatedAt: now,
+        updatedBy,
       })
-      .where('defect_id', 'in', removed)
-      .where('hil_id', '=', hilId)
+      .where('defectId', 'in', removed)
+      .where('hilId', '=', hilId)
       .where('status', '=', 'MOVED_TO_HIL')
       .execute()
   }
@@ -213,13 +193,13 @@ export async function setDefectsForHil(
     const result = await executor
       .updateTable('flight.defect')
       .set({
-        hil_id: hilId,
+        hilId,
         status: 'MOVED_TO_HIL',
-        updated_at: now,
-        updated_by: updatedBy,
+        updatedAt: now,
+        updatedBy,
       })
-      .where('defect_id', 'in', added)
-      .where('aircraft_registration', '=', aircraftRegistration)
+      .where('defectId', 'in', added)
+      .where('aircraftRegistration', '=', aircraftRegistration)
       .where('status', '=', 'ACTIVE')
       .executeTakeFirst()
 
@@ -239,18 +219,18 @@ export async function resolveDefects(
   aircraftRegistration: string,
   resolvedNoteId: string,
   updatedBy: string,
-  executor: Kysely<DB> = connection.db,
+  executor: Kysely<CamelDB> = connection.camelDb,
 ): Promise<void> {
   await executor
     .updateTable('flight.defect')
     .set({
       status: 'RESOLVED',
-      resolved_note_id: resolvedNoteId,
-      updated_at: new Date(),
-      updated_by: updatedBy,
+      resolvedNoteId,
+      updatedAt: new Date(),
+      updatedBy,
     })
-    .where('defect_id', 'in', defectIds)
-    .where('aircraft_registration', '=', aircraftRegistration)
+    .where('defectId', 'in', defectIds)
+    .where('aircraftRegistration', '=', aircraftRegistration)
     .where('status', '=', 'ACTIVE')
     .execute()
 }

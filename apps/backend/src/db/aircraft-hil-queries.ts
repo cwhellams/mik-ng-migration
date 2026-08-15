@@ -1,7 +1,8 @@
 import { sql, type Kysely } from 'kysely'
 
 import * as connection from './connection.ts'
-import type { DB } from './schema.d.ts'
+import type { CamelRow } from './connection.ts'
+import type { DB as CamelDB } from './schema.camel.d.ts'
 import type {
   AircraftHil,
   AircraftHilAuditEntry,
@@ -16,78 +17,56 @@ import type {
 import type { DefectStatus } from '@mik/contracts/defects'
 import { problem } from '../routes/response.ts'
 
-function mapRowToHil(row: {
-  hil_id: string
-  aircraft_registration: string
-  hil_number: number
-  source_ref: string | null
-  defect_cat: string | null
-  description: string
-  restrictions: string | null
-  open_date: Date
-  name: string
-  due_date: Date | null
-  resolved_note_id: string | null
-  created_at: Date
-  created_by: string
-  updated_at: Date
-  updated_by: string
-}): AircraftHil {
+function mapRowToHil(row: CamelRow<'flight.aircraftHil'> & { name: string }): AircraftHil {
   return {
-    hilId: row.hil_id,
-    aircraftRegistration: row.aircraft_registration,
-    hilNumber: row.hil_number,
-    sourceRef: row.source_ref,
-    defectCat: row.defect_cat,
+    hilId: row.hilId,
+    aircraftRegistration: row.aircraftRegistration,
+    hilNumber: row.hilNumber,
+    sourceRef: row.sourceRef,
+    defectCat: row.defectCat,
     description: row.description,
     restrictions: row.restrictions,
-    openDate: row.open_date.toISOString(),
+    openDate: row.openDate.toISOString(),
     name: row.name,
-    dueDate: row.due_date?.toISOString() ?? null,
-    resolvedNoteId: row.resolved_note_id,
-    createdAt: row.created_at.toISOString(),
-    createdBy: row.created_by,
-    updatedAt: row.updated_at.toISOString(),
-    updatedBy: row.updated_by,
+    dueDate: row.dueDate?.toISOString() ?? null,
+    resolvedNoteId: row.resolvedNoteId,
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy,
+    updatedAt: row.updatedAt.toISOString(),
+    updatedBy: row.updatedBy,
   }
 }
 
-function mapRowToExtension(row: {
-  extension_id: string
-  hil_id: string
-  extension_date: Date
-  name: string
-  extension_due: Date
-  created_at: Date
-  created_by: string
-}): AircraftHilExtension {
+function mapRowToExtension(
+  row: CamelRow<'flight.aircraftHilExtension'> & { name: string },
+): AircraftHilExtension {
   return {
-    extensionId: row.extension_id,
-    hilId: row.hil_id,
-    extensionDate: row.extension_date.toISOString(),
+    extensionId: row.extensionId,
+    hilId: row.hilId,
+    extensionDate: row.extensionDate.toISOString(),
     name: row.name,
-    extensionDue: row.extension_due.toISOString(),
-    createdAt: row.created_at.toISOString(),
-    createdBy: row.created_by,
+    extensionDue: row.extensionDue.toISOString(),
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy,
   }
 }
 
 export async function getAircraftHilEntries(aircraftRegistration: string): Promise<AircraftHil[]> {
-  const rows = await connection.db
-    .selectFrom('flight.aircraft_hil')
+  const rows = await connection.camelDb
+    .selectFrom('flight.aircraftHil')
     .selectAll()
-    .where('aircraft_registration', '=', aircraftRegistration)
-    .orderBy('hil_number', 'asc')
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .orderBy('hilNumber', 'asc')
     .execute()
 
   return rows.map(mapRowToHil)
 }
 
 export async function getAircraftHilEntry(hilId: string): Promise<AircraftHil | undefined> {
-  const row = await connection.db
-    .selectFrom('flight.aircraft_hil')
+  const row = await connection.camelDb
+    .selectFrom('flight.aircraftHil')
     .selectAll()
-    .where('hil_id', '=', hilId)
+    .where('hilId', '=', hilId)
     .executeTakeFirst()
 
   return row ? mapRowToHil(row) : undefined
@@ -106,24 +85,24 @@ export async function createAircraftHilEntry(
     sql<number>`(SELECT COALESCE(MAX(hil_number), 0) + 1 FROM flight.aircraft_hil WHERE aircraft_registration = ${data.aircraftRegistration})`
 
   try {
-    return await connection.db.transaction().execute(async (trx) => {
+    return await connection.camelDb.transaction().execute(async (trx) => {
       const row = await trx
-        .insertInto('flight.aircraft_hil')
+        .insertInto('flight.aircraftHil')
         .values({
-          aircraft_registration: data.aircraftRegistration,
-          hil_number: hilNumber,
-          source_ref: data.sourceRef ?? null,
-          defect_cat: data.defectCat ?? null,
+          aircraftRegistration: data.aircraftRegistration,
+          hilNumber,
+          sourceRef: data.sourceRef ?? null,
+          defectCat: data.defectCat ?? null,
           description: data.description,
           restrictions: data.restrictions ?? null,
-          open_date: new Date(data.openDate),
+          openDate: new Date(data.openDate),
           name: data.name,
-          due_date: data.dueDate ? new Date(data.dueDate) : null,
-          resolved_note_id: null,
-          created_at: now,
-          created_by: createdBy,
-          updated_at: now,
-          updated_by: createdBy,
+          dueDate: data.dueDate ? new Date(data.dueDate) : null,
+          resolvedNoteId: null,
+          createdAt: now,
+          createdBy,
+          updatedAt: now,
+          updatedBy: createdBy,
         })
         .returningAll()
         .executeTakeFirstOrThrow()
@@ -139,13 +118,13 @@ export async function createAircraftHilEntry(
         const updateResult = await trx
           .updateTable('flight.defect')
           .set({
-            hil_id: row.hil_id,
+            hilId: row.hilId,
             status: 'MOVED_TO_HIL',
-            updated_at: now,
-            updated_by: createdBy,
+            updatedAt: now,
+            updatedBy: createdBy,
           })
-          .where('defect_id', '=', data.defectId)
-          .where('aircraft_registration', '=', data.aircraftRegistration)
+          .where('defectId', '=', data.defectId)
+          .where('aircraftRegistration', '=', data.aircraftRegistration)
           .where('status', '=', 'ACTIVE')
           .executeTakeFirst()
 
@@ -171,27 +150,27 @@ export async function updateAircraftHilEntry(
   hilId: string,
   data: UpdateAircraftHilRequest,
   updatedBy: string,
-  executor: Kysely<DB> = connection.db,
+  executor: Kysely<CamelDB> = connection.camelDb,
 ): Promise<AircraftHil | undefined> {
   try {
     const row = await executor
-      .updateTable('flight.aircraft_hil')
+      .updateTable('flight.aircraftHil')
       .set({
-        ...(data.hilNumber !== undefined && { hil_number: data.hilNumber }),
-        ...(data.sourceRef !== undefined && { source_ref: data.sourceRef }),
-        ...(data.defectCat !== undefined && { defect_cat: data.defectCat }),
+        ...(data.hilNumber !== undefined && { hilNumber: data.hilNumber }),
+        ...(data.sourceRef !== undefined && { sourceRef: data.sourceRef }),
+        ...(data.defectCat !== undefined && { defectCat: data.defectCat }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.restrictions !== undefined && { restrictions: data.restrictions }),
-        ...(data.openDate !== undefined && { open_date: new Date(data.openDate) }),
+        ...(data.openDate !== undefined && { openDate: new Date(data.openDate) }),
         ...(data.name !== undefined && { name: data.name }),
         ...(data.dueDate !== undefined && {
-          due_date: data.dueDate ? new Date(data.dueDate) : null,
+          dueDate: data.dueDate ? new Date(data.dueDate) : null,
         }),
-        ...(data.resolvedNoteId !== undefined && { resolved_note_id: data.resolvedNoteId }),
-        updated_at: new Date(),
-        updated_by: updatedBy,
+        ...(data.resolvedNoteId !== undefined && { resolvedNoteId: data.resolvedNoteId }),
+        updatedAt: new Date(),
+        updatedBy,
       })
-      .where('hil_id', '=', hilId)
+      .where('hilId', '=', hilId)
       .returningAll()
       .executeTakeFirst()
 
@@ -205,11 +184,11 @@ export async function updateAircraftHilEntry(
 }
 
 export async function getAircraftHilExtensions(hilId: string): Promise<AircraftHilExtension[]> {
-  const rows = await connection.db
-    .selectFrom('flight.aircraft_hil_extension')
+  const rows = await connection.camelDb
+    .selectFrom('flight.aircraftHilExtension')
     .selectAll()
-    .where('hil_id', '=', hilId)
-    .orderBy('extension_date', 'asc')
+    .where('hilId', '=', hilId)
+    .orderBy('extensionDate', 'asc')
     .execute()
 
   return rows.map(mapRowToExtension)
@@ -220,15 +199,15 @@ export async function createAircraftHilExtension(
   data: CreateAircraftHilExtensionRequest,
   createdBy: string,
 ): Promise<AircraftHilExtension> {
-  const row = await connection.db
-    .insertInto('flight.aircraft_hil_extension')
+  const row = await connection.camelDb
+    .insertInto('flight.aircraftHilExtension')
     .values({
-      hil_id: hilId,
-      extension_date: new Date(data.extensionDate),
+      hilId,
+      extensionDate: new Date(data.extensionDate),
       name: data.name,
-      extension_due: new Date(data.extensionDue),
-      created_at: new Date(),
-      created_by: createdBy,
+      extensionDue: new Date(data.extensionDue),
+      createdAt: new Date(),
+      createdBy,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -237,50 +216,50 @@ export async function createAircraftHilExtension(
 }
 
 export async function getAircraftHilAudit(hilId: string): Promise<AircraftHilAuditEntry[]> {
-  const hilRows = await connection.db
-    .selectFrom('flight.aircraft_hil_audit')
+  const hilRows = await connection.camelDb
+    .selectFrom('flight.aircraftHilAudit')
     .selectAll()
-    .where('hil_id', '=', hilId)
+    .where('hilId', '=', hilId)
     .execute()
 
   // Extensions are audited in their own table; surface them here too so the
   // "change history" for a hold item shows when its due date was extended.
-  const extensionRows = await connection.db
-    .selectFrom('flight.aircraft_hil_extension_audit')
+  const extensionRows = await connection.camelDb
+    .selectFrom('flight.aircraftHilExtensionAudit')
     .innerJoin(
-      'flight.aircraft_hil_extension',
-      'flight.aircraft_hil_extension.extension_id',
-      'flight.aircraft_hil_extension_audit.extension_id',
+      'flight.aircraftHilExtension',
+      'flight.aircraftHilExtension.extensionId',
+      'flight.aircraftHilExtensionAudit.extensionId',
     )
     .select([
-      'flight.aircraft_hil_extension_audit.audit_id',
-      'flight.aircraft_hil_extension_audit.operation_type',
-      'flight.aircraft_hil_extension_audit.changed_data',
-      'flight.aircraft_hil_extension_audit.new_data',
-      'flight.aircraft_hil_extension_audit.changed_by',
-      'flight.aircraft_hil_extension_audit.changed_at',
+      'flight.aircraftHilExtensionAudit.auditId',
+      'flight.aircraftHilExtensionAudit.operationType',
+      'flight.aircraftHilExtensionAudit.changedData',
+      'flight.aircraftHilExtensionAudit.newData',
+      'flight.aircraftHilExtensionAudit.changedBy',
+      'flight.aircraftHilExtensionAudit.changedAt',
     ])
-    .where('flight.aircraft_hil_extension.hil_id', '=', hilId)
+    .where('flight.aircraftHilExtension.hilId', '=', hilId)
     .execute()
 
   const entries: AircraftHilAuditEntry[] = [
     ...hilRows.map((row) => ({
-      auditId: row.audit_id,
-      hilId: row.hil_id,
-      operationType: row.operation_type,
-      changedData: row.changed_data ?? null,
-      newData: row.new_data ?? null,
-      changedBy: row.changed_by,
-      changedAt: row.changed_at.toISOString(),
+      auditId: row.auditId,
+      hilId: row.hilId,
+      operationType: row.operationType,
+      changedData: row.changedData ?? null,
+      newData: row.newData ?? null,
+      changedBy: row.changedBy,
+      changedAt: row.changedAt.toISOString(),
     })),
     ...extensionRows.map((row) => ({
-      auditId: row.audit_id,
+      auditId: row.auditId,
       hilId,
-      operationType: `EXTENSION_${row.operation_type}`,
-      changedData: row.changed_data ?? null,
-      newData: row.new_data ?? null,
-      changedBy: row.changed_by,
-      changedAt: row.changed_at.toISOString(),
+      operationType: `EXTENSION_${row.operationType}`,
+      changedData: row.changedData ?? null,
+      newData: row.newData ?? null,
+      changedBy: row.changedBy,
+      changedAt: row.changedAt.toISOString(),
     })),
   ]
 
@@ -296,89 +275,89 @@ export async function getAircraftHilOverview(
   aircraftRegistration?: string,
   includeResolved = false,
 ): Promise<AircraftHilOverview[]> {
-  const hilRows = await connection.db
-    .selectFrom('flight.aircraft_hil')
+  const hilRows = await connection.camelDb
+    .selectFrom('flight.aircraftHil')
     .selectAll()
     .$if(aircraftRegistration !== undefined, (qb) =>
-      qb.where('aircraft_registration', '=', aircraftRegistration!),
+      qb.where('aircraftRegistration', '=', aircraftRegistration!),
     )
-    .$if(!includeResolved, (qb) => qb.where('resolved_note_id', 'is', null))
-    .orderBy('aircraft_registration', 'asc')
-    .orderBy('hil_number', 'asc')
+    .$if(!includeResolved, (qb) => qb.where('resolvedNoteId', 'is', null))
+    .orderBy('aircraftRegistration', 'asc')
+    .orderBy('hilNumber', 'asc')
     .execute()
 
-  const hilIds = hilRows.map((row) => row.hil_id)
+  const hilIds = hilRows.map((row) => row.hilId)
 
   // None of these three depend on each other's result, only on hilIds above.
   const [extensionRows, defectRows, openDefectRows] = await Promise.all([
     hilIds.length
-      ? connection.db
-          .selectFrom('flight.aircraft_hil_extension')
+      ? connection.camelDb
+          .selectFrom('flight.aircraftHilExtension')
           .selectAll()
-          .where('hil_id', 'in', hilIds)
-          .orderBy('extension_date', 'asc')
-          .orderBy('created_at', 'asc')
+          .where('hilId', 'in', hilIds)
+          .orderBy('extensionDate', 'asc')
+          .orderBy('createdAt', 'asc')
           .execute()
       : Promise.resolve([]),
 
     hilIds.length
-      ? connection.db
+      ? connection.camelDb
           .selectFrom('flight.defect')
           .select([
-            'defect_id',
-            'hil_id',
-            'ajlb_seq_no',
-            'flight_id',
+            'defectId',
+            'hilId',
+            'ajlbSeqNo',
+            'flightId',
             'description',
             'status',
-            'flight_mins',
+            'flightMins',
           ])
-          .where('hil_id', 'in', hilIds)
-          .orderBy('ajlb_seq_no', 'asc')
+          .where('hilId', 'in', hilIds)
+          .orderBy('ajlbSeqNo', 'asc')
           .execute()
       : Promise.resolve([]),
 
     // A defect is ACTIVE only while it has neither a HIL deferral nor a
     // maintenance release, which is exactly when the aircraft is grounded by it.
-    connection.db
+    connection.camelDb
       .selectFrom('flight.defect')
       .select([
-        'defect_id',
-        'aircraft_registration',
-        'ajlb_seq_no',
-        'flight_id',
+        'defectId',
+        'aircraftRegistration',
+        'ajlbSeqNo',
+        'flightId',
         'description',
         'status',
-        'flight_mins',
+        'flightMins',
       ])
       .where('status', '=', 'ACTIVE')
       .$if(aircraftRegistration !== undefined, (qb) =>
-        qb.where('aircraft_registration', '=', aircraftRegistration!),
+        qb.where('aircraftRegistration', '=', aircraftRegistration!),
       )
-      .orderBy('ajlb_seq_no', 'asc')
+      .orderBy('ajlbSeqNo', 'asc')
       .execute(),
   ])
 
   const extensionsByHil = new Map<string, AircraftHilExtension[]>()
   for (const row of extensionRows) {
-    const list = extensionsByHil.get(row.hil_id) ?? []
+    const list = extensionsByHil.get(row.hilId) ?? []
     list.push(mapRowToExtension(row))
-    extensionsByHil.set(row.hil_id, list)
+    extensionsByHil.set(row.hilId, list)
   }
 
   const defectsByHil = new Map<string, HilLinkedDefect[]>()
   for (const row of defectRows) {
-    if (!row.hil_id) continue
-    const list = defectsByHil.get(row.hil_id) ?? []
+    if (!row.hilId) continue
+    const list = defectsByHil.get(row.hilId) ?? []
     list.push({
-      defectId: row.defect_id,
-      ajlbSeqNo: row.ajlb_seq_no,
-      flightId: row.flight_id,
+      defectId: row.defectId,
+      ajlbSeqNo: row.ajlbSeqNo,
+      flightId: row.flightId,
       description: row.description,
       status: row.status as DefectStatus,
-      flightMins: row.flight_mins,
+      flightMins: row.flightMins,
     })
-    defectsByHil.set(row.hil_id, list)
+    defectsByHil.set(row.hilId, list)
   }
 
   const now = Date.now()
@@ -431,14 +410,14 @@ export async function getAircraftHilOverview(
   }
 
   for (const row of openDefectRows) {
-    const overview = overviewFor(row.aircraft_registration)
+    const overview = overviewFor(row.aircraftRegistration)
     overview.openDefects.push({
-      defectId: row.defect_id,
-      ajlbSeqNo: row.ajlb_seq_no,
-      flightId: row.flight_id,
+      defectId: row.defectId,
+      ajlbSeqNo: row.ajlbSeqNo,
+      flightId: row.flightId,
       description: row.description,
       status: row.status as DefectStatus,
-      flightMins: row.flight_mins,
+      flightMins: row.flightMins,
     })
     overview.openDefectCount += 1
   }

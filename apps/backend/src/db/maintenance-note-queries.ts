@@ -1,4 +1,5 @@
 import * as connection from './connection.ts'
+import type { CamelRow } from './connection.ts'
 import { resolveDefectsByHil, resolveDefects } from './defect-queries.ts'
 import type {
   MaintenanceNote,
@@ -6,31 +7,18 @@ import type {
   UpdateMaintenanceNoteRequest,
 } from '@mik/contracts/maintenance-notes'
 
-function mapRowToNote(row: {
-  note_id: string
-  aircraft_registration: string
-  ajlb_seq_no: number
-  description: string
-  performed_by: string
-  flight_mins: number
-  rows: number
-  blank_rows_after: number
-  created_at: Date
-  created_by: string
-  updated_at?: Date
-  updated_by?: string
-}): MaintenanceNote {
+function mapRowToNote(row: CamelRow<'flight.maintenanceNote'>): MaintenanceNote {
   return {
-    noteId: row.note_id,
-    aircraftRegistration: row.aircraft_registration,
-    ajlbSeqNo: row.ajlb_seq_no,
+    noteId: row.noteId,
+    aircraftRegistration: row.aircraftRegistration,
+    ajlbSeqNo: row.ajlbSeqNo,
     description: row.description,
-    performedBy: row.performed_by,
-    flightMins: row.flight_mins,
+    performedBy: row.performedBy,
+    flightMins: row.flightMins,
     rows: row.rows,
-    blankRowsAfter: row.blank_rows_after,
-    createdAt: row.created_at.toISOString(),
-    createdBy: row.created_by,
+    blankRowsAfter: row.blankRowsAfter,
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy,
   }
 }
 
@@ -38,12 +26,12 @@ export async function getMaintenanceNotes(
   aircraftRegistration: string,
   ajlbSeqNo?: number,
 ): Promise<MaintenanceNote[]> {
-  const rows = await connection.db
-    .selectFrom('flight.maintenance_note')
+  const rows = await connection.camelDb
+    .selectFrom('flight.maintenanceNote')
     .selectAll()
-    .where('aircraft_registration', '=', aircraftRegistration)
-    .$if(ajlbSeqNo !== undefined, (qb) => qb.where('ajlb_seq_no', '=', ajlbSeqNo!))
-    .orderBy('flight_mins', 'asc')
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .$if(ajlbSeqNo !== undefined, (qb) => qb.where('ajlbSeqNo', '=', ajlbSeqNo!))
+    .orderBy('flightMins', 'asc')
     .execute()
 
   return rows.map(mapRowToNote)
@@ -55,21 +43,21 @@ export async function createMaintenanceNote(
 ): Promise<MaintenanceNote> {
   const now = new Date()
 
-  return connection.db.transaction().execute(async (trx) => {
+  return connection.camelDb.transaction().execute(async (trx) => {
     const row = await trx
-      .insertInto('flight.maintenance_note')
+      .insertInto('flight.maintenanceNote')
       .values({
-        aircraft_registration: data.aircraftRegistration,
-        ajlb_seq_no: data.ajlbSeqNo,
+        aircraftRegistration: data.aircraftRegistration,
+        ajlbSeqNo: data.ajlbSeqNo,
         description: data.description,
-        performed_by: data.performedBy,
-        flight_mins: data.flightMins,
+        performedBy: data.performedBy,
+        flightMins: data.flightMins,
         rows: data.rows,
-        blank_rows_after: data.blankRowsAfter,
-        created_at: now,
-        created_by: createdBy,
-        updated_at: now,
-        updated_by: createdBy,
+        blankRowsAfter: data.blankRowsAfter,
+        createdAt: now,
+        createdBy,
+        updatedAt: now,
+        updatedBy: createdBy,
       })
       .returningAll()
       .executeTakeFirstOrThrow()
@@ -77,25 +65,25 @@ export async function createMaintenanceNote(
     // Close the hold items this note resolves, cascading to their defects
     if (data.hilIds?.length) {
       await trx
-        .updateTable('flight.aircraft_hil')
+        .updateTable('flight.aircraftHil')
         .set({
-          resolved_note_id: row.note_id,
-          updated_at: now,
-          updated_by: createdBy,
+          resolvedNoteId: row.noteId,
+          updatedAt: now,
+          updatedBy: createdBy,
         })
-        .where('hil_id', 'in', data.hilIds)
-        .where('aircraft_registration', '=', data.aircraftRegistration)
-        .where('resolved_note_id', 'is', null)
+        .where('hilId', 'in', data.hilIds)
+        .where('aircraftRegistration', '=', data.aircraftRegistration)
+        .where('resolvedNoteId', 'is', null)
         .execute()
 
       for (const hilId of data.hilIds) {
-        await resolveDefectsByHil(hilId, data.aircraftRegistration, row.note_id, createdBy, trx)
+        await resolveDefectsByHil(hilId, data.aircraftRegistration, row.noteId, createdBy, trx)
       }
     }
 
     // Resolve any open defects this note closes directly, without a hold item
     if (data.defectIds?.length) {
-      await resolveDefects(data.defectIds, data.aircraftRegistration, row.note_id, createdBy, trx)
+      await resolveDefects(data.defectIds, data.aircraftRegistration, row.noteId, createdBy, trx)
     }
 
     return mapRowToNote(row)
@@ -108,34 +96,37 @@ export async function updateMaintenanceNote(
   updatedBy: string,
   createdByFilter?: string,
 ): Promise<MaintenanceNote | undefined> {
-  let query = connection.db
-    .updateTable('flight.maintenance_note')
+  let query = connection.camelDb
+    .updateTable('flight.maintenanceNote')
     .set({
       ...(data.description !== undefined && { description: data.description }),
-      ...(data.performedBy !== undefined && { performed_by: data.performedBy }),
-      ...(data.flightMins !== undefined && { flight_mins: data.flightMins }),
+      ...(data.performedBy !== undefined && { performedBy: data.performedBy }),
+      ...(data.flightMins !== undefined && { flightMins: data.flightMins }),
       ...(data.rows !== undefined && { rows: data.rows }),
-      ...(data.blankRowsAfter !== undefined && { blank_rows_after: data.blankRowsAfter }),
-      updated_at: new Date(),
-      updated_by: updatedBy,
+      ...(data.blankRowsAfter !== undefined && { blankRowsAfter: data.blankRowsAfter }),
+      updatedAt: new Date(),
+      updatedBy,
     })
-    .where('note_id', '=', noteId)
+    .where('noteId', '=', noteId)
   if (createdByFilter !== undefined) {
-    query = query.where('created_by', '=', createdByFilter)
+    query = query.where('createdBy', '=', createdByFilter)
   }
   const row = await query.returningAll().executeTakeFirst()
   return row ? mapRowToNote(row) : undefined
 }
 
 export async function deleteMaintenanceNote(noteId: string): Promise<void> {
-  await connection.db.deleteFrom('flight.maintenance_note').where('note_id', '=', noteId).execute()
+  await connection.camelDb
+    .deleteFrom('flight.maintenanceNote')
+    .where('noteId', '=', noteId)
+    .execute()
 }
 
 export async function getMaintenanceNote(noteId: string): Promise<MaintenanceNote | undefined> {
-  const row = await connection.db
-    .selectFrom('flight.maintenance_note')
+  const row = await connection.camelDb
+    .selectFrom('flight.maintenanceNote')
     .selectAll()
-    .where('note_id', '=', noteId)
+    .where('noteId', '=', noteId)
     .executeTakeFirst()
 
   return row ? mapRowToNote(row) : undefined

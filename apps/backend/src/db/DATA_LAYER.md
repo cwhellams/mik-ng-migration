@@ -17,7 +17,7 @@ in one commit is ~4,900 mechanical edits across the whole backend.
 
 ## The recipe
 
-1. **Check the domain qualifies.** See "When a domain does not qualify" below.
+1. **Check the domain qualifies.** See [When a domain does not qualify](#when-a-domain-does-not-qualify).
 2. Swap the import: `db` → `camelDb`.
 3. camelCase every identifier string — tables (`'flight.maintenance_note'` →
    `'flight.maintenanceNote'`), columns, joins, `orderBy`, `values({...})` keys.
@@ -81,7 +81,8 @@ Check all three before starting:
   `maintenance-note` is the smallest example: it opens a transaction and passes it into
   `defect-queries`.
 - **It uses raw `sql` fragments.** These are migratable, but only by hand — see
-  "Auditing a raw sql fragment" below. Nothing about them is compiler-checked.
+  [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment). Nothing about them is
+  compiler-checked.
 - **It uses `pool.query()` directly**, bypassing Kysely entirely — `ajlb` does. Those
   results are not transformed at all, so the module ends up half-and-half.
 
@@ -115,6 +116,49 @@ Do audit whether a fragment needs to be raw in the first place. Two in this batc
 compile-time checking. A raw fragment that could have been a builder call is a snake_case
 identifier the compiler cannot see, which is the same trap as `any`.
 
+## Migrating a transaction cluster
+
+Modules that share a transaction have to move in a single commit. A transaction belongs
+to one Kysely instance, so a `db.transaction()` handed to a function that queries
+`camelDb` runs on a _different connection_: its writes commit independently and survive
+the rollback. Nothing about that is visible in a passing test suite — the data is simply
+wrong afterwards.
+
+The cluster is held together by the executor parameter these modules take:
+
+```ts
+executor: Kysely<CamelDB> = connection.camelDb // was Kysely<DB> = connection.db
+```
+
+Changing that type is what makes the compiler enforce the rule. With the cluster
+migrated, leaving `routes/aircraft-hil/api.ts` on `db.transaction()` fails to build with
+one error per call that takes the executor:
+
+```
+TS2345: Argument of type 'Transaction<DB>' is not assignable to parameter of
+        type 'Kysely<DB>'
+```
+
+Move the route's `db.transaction()` to `camelDb.transaction()` and it clears. Do not go
+looking for a specific error code while a migration is half-done: part-way through this
+one, with some modules converted and others not, the same mistake surfaced as `TS2590:
+Expression produces a union type that is too complex to represent` instead. Both are the
+same refusal to pass a snake-typed transaction into a camel-typed executor; only the
+end state reports it cleanly.
+
+Steps:
+
+1. Migrate every module in the cluster **and** every route or worker that opens a
+   transaction spanning them, in one commit.
+2. Change each `executor: Kysely<DB> = connection.db` to `Kysely<CamelDB> = connection.camelDb`.
+3. Add a rollback test. `test/db/transaction-cluster.test.ts` is the template: write
+   through the cluster inside a transaction, throw, and assert nothing was committed. It
+   fails if any one module is moved back — verified by simulating exactly that.
+
+The remaining cluster is `expense`, `expense-attachment`, `inventory`, `meeting`,
+`mileage`, `occurrence`, `outbox-simplbooks` — seven modules in one commit, which is the
+one place in this migration where "one domain per PR" cannot hold.
+
 ## Why `maintainNestedObjectKeys: true` is not optional
 
 `CamelCasePlugin` recurses into arrays and plain objects by default, so it rewrites the
@@ -132,7 +176,7 @@ corrupted by it. `test/db/camel-case-plugin.test.ts` pins this.
 
 ## Progress
 
-**34 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
+**37 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
 is done — what remains is exactly the set that needs a judgement call.
 
 Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
@@ -141,7 +185,8 @@ Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
 `passkey`, `prices`, `push`, `qualification-proof`, `secrets`, `simplbooks-sync`,
 `useful-phone-number`, `aircraft`, `aircraft-document`, `aircraft-navdata`,
 `fuel-report`, `instructor-worktime`, `tax-report`, `traficom-report`,
-`uplift-report`, `document`, `tiny-url`, `gdpr`.
+`uplift-report`, `document`, `tiny-url`, `gdpr`, `aircraft-hil`, `defect`,
+`maintenance-note`.
 
 Remaining, grouped by what makes them awkward:
 
@@ -150,14 +195,14 @@ Remaining, grouped by what makes them awkward:
   end of this group: `ame`, `booking`, `flight-log`, `member`, `prepaid-hours`, `shop`,
   `stats`. `stats` is the awkward one — its fragments are SQL _snippets composed into_ a
   larger query (`` sql`AND takeoff_time_epoch >= …` ``) rather than whole expressions, so
-  the fragment table there does not classify them cleanly.
+  the fragment table in [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment) does
+  not classify them cleanly.
 - **Shared transactions — must move as one commit**, since a transaction cannot span the
   two instances. Two clusters:
   - `expense`, `expense-attachment`, `inventory`, `meeting`, `mileage`, `occurrence`,
     `outbox-simplbooks`;
-  - `aircraft-hil` + `defect` + `maintenance-note` — `routes/aircraft-hil/api.ts` opens a
-    transaction and passes it into both `aircraft-hil-queries` and `defect-queries`, and
-    `maintenance-note` passes its own into `defect-queries`.
+  - ~~`aircraft-hil` + `defect` + `maintenance-note`~~ — done, and worth copying. See
+    [Migrating a transaction cluster](#migrating-a-transaction-cluster).
 - **Raw `pool.query`**, bypassing Kysely entirely, so the plugin never applies:
   `ajlb`. Those functions stay snake_case until they are rewritten as Kysely queries.
 
