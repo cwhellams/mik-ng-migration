@@ -5,9 +5,11 @@ import { getNextCreditNoteSequenceNumber } from '../../src/db/outbox-simplbooks-
 describe('Outbox Simplbooks queries', () => {
   it('getNextCreditNoteSequenceNumber should return sequence number as string', async () => {
     const executeTakeFirstOrThrow = jest
-      .fn<() => Promise<{ next_sequence_number: bigint | number }>>()
-      .mockResolvedValueOnce({ next_sequence_number: 12345 })
-      .mockResolvedValueOnce({ next_sequence_number: BigInt(12346) })
+      // camelDb's plugin camelCases result keys, so this is the shape the real
+      // executor now returns
+      .fn<() => Promise<{ nextSequenceNumber: bigint | number }>>()
+      .mockResolvedValueOnce({ nextSequenceNumber: 12345 })
+      .mockResolvedValueOnce({ nextSequenceNumber: BigInt(12346) })
 
     const selectNoFrom = jest.fn().mockReturnValue({
       executeTakeFirstOrThrow,

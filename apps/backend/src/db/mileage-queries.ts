@@ -1,6 +1,6 @@
 import { sql, type Kysely, type Transaction } from 'kysely'
-import { db } from './connection.ts'
-import type { DB } from './schema.js'
+import { camelDb } from './connection.ts'
+import type { DB as CamelDB } from './schema.camel.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   MileageAllowance,
@@ -15,32 +15,32 @@ import {
 } from '@mik/contracts/expenses'
 import { decryptField } from '../lib/fieldEncryption.ts'
 
-type Executor = Kysely<DB> | Transaction<DB>
+type Executor = Kysely<CamelDB> | Transaction<CamelDB>
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 function mapAllowance(row: {
   id: number
-  tax_year: number
-  rate_per_km: unknown
-  discount_pct: unknown
-  created_at: unknown
-  created_by: string
-  updated_at: unknown
-  updated_by: string
+  taxYear: number
+  ratePerKm: unknown
+  discountPct: unknown
+  createdAt: unknown
+  createdBy: string
+  updatedAt: unknown
+  updatedBy: string
 }): MileageAllowance {
-  const rate = Number(row.rate_per_km)
-  const discount = Number(row.discount_pct)
+  const rate = Number(row.ratePerKm)
+  const discount = Number(row.discountPct)
   return {
     id: row.id,
-    taxYear: row.tax_year,
+    taxYear: row.taxYear,
     ratePerKm: rate,
     discountPct: discount,
     effectiveRatePerKm: +(rate * (1 - discount / 100)).toFixed(4),
-    createdAt: new Date(String(row.created_at)).toISOString(),
-    createdBy: row.created_by,
-    updatedAt: new Date(String(row.updated_at)).toISOString(),
-    updatedBy: row.updated_by,
+    createdAt: new Date(String(row.createdAt)).toISOString(),
+    createdBy: row.createdBy,
+    updatedAt: new Date(String(row.updatedAt)).toISOString(),
+    updatedBy: row.updatedBy,
   }
 }
 
@@ -52,10 +52,10 @@ export function maskHetu(plain: string): string {
 // ─── Mileage allowance CRUD ───────────────────────────────────────────────────
 
 export async function getMileageAllowances(): Promise<MileageAllowance[]> {
-  const rows = await db
-    .selectFrom('accts.mileage_allowance')
+  const rows = await camelDb
+    .selectFrom('accts.mileageAllowance')
     .selectAll()
-    .orderBy('tax_year', 'desc')
+    .orderBy('taxYear', 'desc')
     .execute()
   return rows.map(mapAllowance)
 }
@@ -63,10 +63,10 @@ export async function getMileageAllowances(): Promise<MileageAllowance[]> {
 export async function getMileageAllowanceByYear(
   taxYear: number,
 ): Promise<MileageAllowance | undefined> {
-  const row = await db
-    .selectFrom('accts.mileage_allowance')
+  const row = await camelDb
+    .selectFrom('accts.mileageAllowance')
     .selectAll()
-    .where('tax_year', '=', taxYear)
+    .where('taxYear', '=', taxYear)
     .executeTakeFirst()
   return row ? mapAllowance(row) : undefined
 }
@@ -74,11 +74,11 @@ export async function getMileageAllowanceByYear(
 export async function getCurrentMileageAllowance(): Promise<MileageAllowance | undefined> {
   const year = new Date().getFullYear()
   // Try current year; fall back to most recent past year
-  const row = await db
-    .selectFrom('accts.mileage_allowance')
+  const row = await camelDb
+    .selectFrom('accts.mileageAllowance')
     .selectAll()
-    .where('tax_year', '<=', year)
-    .orderBy('tax_year', 'desc')
+    .where('taxYear', '<=', year)
+    .orderBy('taxYear', 'desc')
     .limit(1)
     .executeTakeFirst()
   return row ? mapAllowance(row) : undefined
@@ -89,23 +89,23 @@ export async function upsertMileageAllowance(
   user: JWTUser,
 ): Promise<MileageAllowance> {
   const now = new Date()
-  const row = await db
-    .insertInto('accts.mileage_allowance')
+  const row = await camelDb
+    .insertInto('accts.mileageAllowance')
     .values({
-      tax_year: data.taxYear,
-      rate_per_km: data.ratePerKm,
-      discount_pct: data.discountPct,
-      created_by: user.memberId,
-      updated_by: user.memberId,
-      created_at: now,
-      updated_at: now,
+      taxYear: data.taxYear,
+      ratePerKm: data.ratePerKm,
+      discountPct: data.discountPct,
+      createdBy: user.memberId,
+      updatedBy: user.memberId,
+      createdAt: now,
+      updatedAt: now,
     })
     .onConflict((oc) =>
-      oc.column('tax_year').doUpdateSet({
-        rate_per_km: data.ratePerKm,
-        discount_pct: data.discountPct,
-        updated_by: user.memberId,
-        updated_at: now,
+      oc.column('taxYear').doUpdateSet({
+        ratePerKm: data.ratePerKm,
+        discountPct: data.discountPct,
+        updatedBy: user.memberId,
+        updatedAt: now,
       }),
     )
     .returningAll()
@@ -117,39 +117,39 @@ export async function upsertMileageAllowance(
 
 function mapMileageLegRow(row: {
   id: number
-  claim_id: string
+  claimId: string
   route: string | null
-  start_address: string | null
-  start_lat: unknown
-  start_lon: unknown
-  end_address: string | null
-  end_lat: unknown
-  end_lon: unknown
+  startAddress: string | null
+  startLat: unknown
+  startLon: unknown
+  endAddress: string | null
+  endLat: unknown
+  endLon: unknown
   waypoints: unknown
-  journey_date: unknown
-  distance_km: unknown
-  direct_distance_km: unknown
-  justification_note: string | null
-  board_approved: boolean | null
-  rate_per_km: unknown
+  journeyDate: unknown
+  distanceKm: unknown
+  directDistanceKm: unknown
+  justificationNote: string | null
+  boardApproved: boolean | null
+  ratePerKm: unknown
 }): MileageLeg {
   return {
     id: row.id,
-    claimId: row.claim_id,
+    claimId: row.claimId,
     route: row.route ?? undefined,
-    startAddress: row.start_address ?? '',
-    startLat: row.start_lat != null ? Number(row.start_lat) : undefined,
-    startLon: row.start_lon != null ? Number(row.start_lon) : undefined,
-    endAddress: row.end_address ?? '',
-    endLat: row.end_lat != null ? Number(row.end_lat) : undefined,
-    endLon: row.end_lon != null ? Number(row.end_lon) : undefined,
+    startAddress: row.startAddress ?? '',
+    startLat: row.startLat != null ? Number(row.startLat) : undefined,
+    startLon: row.startLon != null ? Number(row.startLon) : undefined,
+    endAddress: row.endAddress ?? '',
+    endLat: row.endLat != null ? Number(row.endLat) : undefined,
+    endLon: row.endLon != null ? Number(row.endLon) : undefined,
     waypoints: (row.waypoints as MileageLeg['waypoints']) ?? [],
-    journeyDate: String(row.journey_date).substring(0, 10),
-    distanceKm: Number(row.distance_km),
-    directDistanceKm: row.direct_distance_km != null ? Number(row.direct_distance_km) : undefined,
-    justificationNote: row.justification_note ?? undefined,
-    boardApproved: row.board_approved ?? false,
-    ratePerKm: Number(row.rate_per_km),
+    journeyDate: String(row.journeyDate).substring(0, 10),
+    distanceKm: Number(row.distanceKm),
+    directDistanceKm: row.directDistanceKm != null ? Number(row.directDistanceKm) : undefined,
+    justificationNote: row.justificationNote ?? undefined,
+    boardApproved: row.boardApproved ?? false,
+    ratePerKm: Number(row.ratePerKm),
   }
 }
 
@@ -160,44 +160,41 @@ export async function replaceMileageLegs(
   legs: CreateMileageLeg[],
   ratePerKm: number,
 ): Promise<void> {
-  await executor
-    .deleteFrom('accts.expense_mileage_detail')
-    .where('claim_id', '=', claimId)
-    .execute()
+  await executor.deleteFrom('accts.expenseMileageDetail').where('claimId', '=', claimId).execute()
 
   if (!legs.length) return
 
   const now = new Date()
   await executor
-    .insertInto('accts.expense_mileage_detail')
+    .insertInto('accts.expenseMileageDetail')
     .values(
       legs.map((leg) => ({
-        claim_id: claimId,
-        start_address: leg.startAddress,
-        start_lat: leg.startLat ?? null,
-        start_lon: leg.startLon ?? null,
-        end_address: leg.endAddress,
-        end_lat: leg.endLat ?? null,
-        end_lon: leg.endLon ?? null,
+        claimId: claimId,
+        startAddress: leg.startAddress,
+        startLat: leg.startLat ?? null,
+        startLon: leg.startLon ?? null,
+        endAddress: leg.endAddress,
+        endLat: leg.endLat ?? null,
+        endLon: leg.endLon ?? null,
         waypoints: JSON.stringify(leg.waypoints),
-        journey_date: leg.journeyDate,
-        distance_km: leg.distanceKm,
-        direct_distance_km: leg.directDistanceKm ?? null,
-        justification_note: leg.justificationNote ?? null,
-        board_approved: leg.boardApproved,
-        rate_per_km: ratePerKm,
-        created_at: now,
-        updated_at: now,
+        journeyDate: leg.journeyDate,
+        distanceKm: leg.distanceKm,
+        directDistanceKm: leg.directDistanceKm ?? null,
+        justificationNote: leg.justificationNote ?? null,
+        boardApproved: leg.boardApproved,
+        ratePerKm: ratePerKm,
+        createdAt: now,
+        updatedAt: now,
       })),
     )
     .execute()
 }
 
 export async function getMileageLegsByClaimId(claimId: string): Promise<MileageLeg[]> {
-  const rows = await db
-    .selectFrom('accts.expense_mileage_detail')
+  const rows = await camelDb
+    .selectFrom('accts.expenseMileageDetail')
     .selectAll()
-    .where('claim_id', '=', claimId)
+    .where('claimId', '=', claimId)
     .orderBy('id')
     .execute()
   return rows.map(mapMileageLegRow)
@@ -211,20 +208,20 @@ export async function getMileageLegsByClaimId(claimId: string): Promise<MileageL
 
 /** Decrypted, unmasked HETU for a claim. Callers must be permission-gated and audit-log the access. */
 export async function getClaimHetuFull(claimId: string): Promise<string | undefined> {
-  const row = await db
-    .selectFrom('accts.expense_claim')
-    .select('hetu_encrypted')
+  const row = await camelDb
+    .selectFrom('accts.expenseClaim')
+    .select('hetuEncrypted')
     .where('id', '=', claimId)
     .executeTakeFirst()
-  return row?.hetu_encrypted ? decryptField(row.hetu_encrypted) : undefined
+  return row?.hetuEncrypted ? decryptField(row.hetuEncrypted) : undefined
 }
 
 export async function recordMileageHetuAccess(claimId: string, accessedBy: string): Promise<void> {
-  await db
-    .insertInto('accts.mileage_hetu_access_audit')
+  await camelDb
+    .insertInto('accts.mileageHetuAccessAudit')
     .values({
-      claim_id: claimId,
-      accessed_by: accessedBy,
+      claimId: claimId,
+      accessedBy: accessedBy,
       context: 'CLAIM_REVEAL',
     })
     .execute()
@@ -239,22 +236,22 @@ export type MileageHetuAccessLogEntry = {
 export async function getMileageHetuAccessLog(
   claimId: string,
 ): Promise<MileageHetuAccessLogEntry[]> {
-  const rows = await db
-    .selectFrom('accts.mileage_hetu_access_audit as audit')
-    .leftJoin('member.register as member', 'member.member_id', 'audit.accessed_by')
-    .where('audit.claim_id', '=', claimId)
+  const rows = await camelDb
+    .selectFrom('accts.mileageHetuAccessAudit as audit')
+    .leftJoin('member.register as member', 'member.memberId', 'audit.accessedBy')
+    .where('audit.claimId', '=', claimId)
     .select([
-      'audit.accessed_at',
+      'audit.accessedAt',
       sql<string>`trim(concat(coalesce(member.first_name, ''), ' ', coalesce(member.last_name, '')))`.as(
-        'accessed_by_name',
+        'accessedByName',
       ),
     ])
-    .orderBy('audit.accessed_at', 'desc')
+    .orderBy('audit.accessedAt', 'desc')
     .execute()
 
   return rows.map((row) => ({
-    accessedAt: new Date(String(row.accessed_at)).toISOString(),
-    accessedByName: row.accessed_by_name || 'Unknown',
+    accessedAt: new Date(String(row.accessedAt)).toISOString(),
+    accessedByName: row.accessedByName || 'Unknown',
   }))
 }
 
@@ -266,45 +263,45 @@ export async function getMileageHetuAccessLog(
 export async function getMileageReportRows(
   filters: MileageReportFilters,
 ): Promise<MileageReportRow[]> {
-  const rows = await db
-    .selectFrom('accts.expense_claim as claim')
-    .innerJoin('accts.expense_mileage_detail as detail', 'detail.claim_id', 'claim.id')
-    .innerJoin('accts.expense_category as category', 'category.id', 'claim.category_id')
-    .leftJoin('member.register as member', 'member.member_id', 'claim.member_id')
+  const rows = await camelDb
+    .selectFrom('accts.expenseClaim as claim')
+    .innerJoin('accts.expenseMileageDetail as detail', 'detail.claimId', 'claim.id')
+    .innerJoin('accts.expenseCategory as category', 'category.id', 'claim.categoryId')
+    .leftJoin('member.register as member', 'member.memberId', 'claim.memberId')
     .where('category.code', '=', 'mileage')
     .where('claim.status', '=', ExpenseClaimStatus.APPROVED)
-    .where('detail.journey_date', '>=', filters.startDate)
-    .where('detail.journey_date', '<=', filters.endDate)
+    .where('detail.journeyDate', '>=', filters.startDate)
+    .where('detail.journeyDate', '<=', filters.endDate)
     .select([
-      'claim.id as claim_id',
-      'claim.member_id',
-      'claim.approved_at',
+      'claim.id as claimId',
+      'claim.memberId',
+      'claim.approvedAt',
       'detail.route',
-      'detail.start_address',
-      'detail.end_address',
-      'detail.journey_date',
-      'detail.distance_km',
-      'detail.rate_per_km',
-      sql<number>`round((detail.distance_km * detail.rate_per_km)::numeric, 2)`.as('total_amount'),
+      'detail.startAddress',
+      'detail.endAddress',
+      'detail.journeyDate',
+      'detail.distanceKm',
+      'detail.ratePerKm',
+      sql<number>`round((detail.distance_km * detail.rate_per_km)::numeric, 2)`.as('totalAmount'),
       sql<string>`trim(concat(coalesce(member.first_name, ''), ' ', coalesce(member.last_name, '')))`.as(
-        'member_name',
+        'memberName',
       ),
     ])
-    .orderBy('detail.journey_date', 'asc')
+    .orderBy('detail.journeyDate', 'asc')
     .execute()
 
   return rows.map((row) => ({
-    claimId: row.claim_id,
-    memberId: row.member_id,
-    memberName: row.member_name,
-    journeyDate: String(row.journey_date).substring(0, 10),
+    claimId: row.claimId,
+    memberId: row.memberId,
+    memberName: row.memberName,
+    journeyDate: String(row.journeyDate).substring(0, 10),
     route: row.route,
-    startAddress: row.start_address,
-    endAddress: row.end_address,
-    distanceKm: Number(row.distance_km),
-    ratePerKm: Number(row.rate_per_km),
-    totalAmount: Number(row.total_amount),
-    approvedAt: row.approved_at ? new Date(String(row.approved_at)).toISOString() : null,
+    startAddress: row.startAddress,
+    endAddress: row.endAddress,
+    distanceKm: Number(row.distanceKm),
+    ratePerKm: Number(row.ratePerKm),
+    totalAmount: Number(row.totalAmount),
+    approvedAt: row.approvedAt ? new Date(String(row.approvedAt)).toISOString() : null,
   }))
 }
 
@@ -317,24 +314,24 @@ export async function purgeExpiredHetu(): Promise<number> {
   // Bounded to a 7-37 day window (instead of an open-ended "older than 7 days"
   // scan) so this daily job's cost stays flat as expense_claim grows over the
   // years.
-  const eligibleClaims = await db
-    .selectFrom('accts.expense_claim as claim')
-    .innerJoin('accts.expense_category as category', 'category.id', 'claim.category_id')
+  const eligibleClaims = await camelDb
+    .selectFrom('accts.expenseClaim as claim')
+    .innerJoin('accts.expenseCategory as category', 'category.id', 'claim.categoryId')
     .select('claim.id')
     .where('category.code', '=', 'mileage')
     .where('claim.status', '=', ExpenseClaimStatus.APPROVED)
-    .where('claim.hetu_encrypted', 'is not', null)
-    .where('claim.approved_at', '<', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-    .where('claim.approved_at', '>=', new Date(Date.now() - 37 * 24 * 60 * 60 * 1000))
+    .where('claim.hetuEncrypted', 'is not', null)
+    .where('claim.approvedAt', '<', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    .where('claim.approvedAt', '>=', new Date(Date.now() - 37 * 24 * 60 * 60 * 1000))
     .execute()
 
   const claimIds = eligibleClaims.map((row) => row.id)
   if (claimIds.length === 0) return 0
 
-  const result = await db
-    .updateTable('accts.expense_claim')
-    .set({ hetu_encrypted: null, updated_at: new Date() })
-    .where('hetu_encrypted', 'is not', null)
+  const result = await camelDb
+    .updateTable('accts.expenseClaim')
+    .set({ hetuEncrypted: null, updatedAt: new Date() })
+    .where('hetuEncrypted', 'is not', null)
     .where('id', 'in', claimIds)
     .executeTakeFirst()
 

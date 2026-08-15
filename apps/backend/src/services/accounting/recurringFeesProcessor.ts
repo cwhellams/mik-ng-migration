@@ -74,13 +74,13 @@ const validateFeeProcessingNotInProgressOrAlreadyRun = async (
 
   if (existingProcess.status === FeeProcessingStatus.PROCESSED) {
     throw new FeeProcessingError(
-      `Annual fees for year ${year} have already been processed on ${existingProcess.updated_at}`,
+      `Annual fees for year ${year} have already been processed on ${existingProcess.updatedAt}`,
     )
   }
 
   if (existingProcess.status === FeeProcessingStatus.IN_PROGRESS) {
     throw new FeeProcessingError(
-      `Annual fees for year ${year} are currently being processed (started at ${existingProcess.created_at})`,
+      `Annual fees for year ${year} are currently being processed (started at ${existingProcess.createdAt})`,
     )
   }
 }

@@ -1,7 +1,7 @@
 import { sql, type Kysely, type Transaction } from 'kysely'
 
-import { db } from './connection.ts'
-import type { DB } from './schema.d.ts'
+import { camelDb } from './connection.ts'
+import type { DB as CamelDB } from './schema.camel.d.ts'
 import {
   type CreateMeeting,
   type CreateVote,
@@ -14,74 +14,74 @@ import {
 } from '@mik/contracts/meetings'
 import { problem } from '../routes/response.ts'
 
-type Executor = Kysely<DB> | Transaction<DB>
+type Executor = Kysely<CamelDB> | Transaction<CamelDB>
 
 type MeetingRow = {
-  meeting_id: string
+  meetingId: string
   title: string
   description: string | null
-  document_search_filter: string | null
-  meeting_url: string | null
+  documentSearchFilter: string | null
+  meetingUrl: string | null
   status: 'DRAFT' | 'ONGOING' | 'PENDING_NOTES' | 'ENDED'
-  created_by: string | null
-  created_at: unknown
-  started_at: unknown
-  ended_at: unknown
-  meeting_notes_document_id: number | null
-  attendance_count: number
-  is_attending: boolean
-  is_vote_counter: boolean
+  createdBy: string | null
+  createdAt: unknown
+  startedAt: unknown
+  endedAt: unknown
+  meetingNotesDocumentId: number | null
+  attendanceCount: number
+  isAttending: boolean
+  isVoteCounter: boolean
 }
 
 type MeetingVoteRow = {
-  vote_id: string
-  meeting_id: string
+  voteId: string
+  meetingId: string
   topic: string
   description: string | null
-  is_multi_select: boolean
-  max_selections: number | null
+  isMultiSelect: boolean
+  maxSelections: number | null
   status: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED'
-  created_at: unknown
-  created_by: string | null
-  closed_at: unknown
-  closed_by: string | null
-  display_order: number
-  total_votes: number
-  has_voted: boolean
+  createdAt: unknown
+  createdBy: string | null
+  closedAt: unknown
+  closedBy: string | null
+  displayOrder: number
+  totalVotes: number
+  hasVoted: boolean
 }
 
 type VoteOptionRow = {
-  option_id: string
-  vote_id: string
-  option_text: string
-  display_order: number
-  vote_count: number
+  optionId: string
+  voteId: string
+  optionText: string
+  displayOrder: number
+  voteCount: number
 }
 
 type MeetingAttendeeRow = {
-  member_id: string
-  first_name: string
-  last_name: string
+  memberId: string
+  firstName: string
+  lastName: string
   email: string | null
-  joined_at: unknown
+  joinedAt: unknown
 }
 
 type VoteCounterRow = {
-  member_id: string
-  first_name: string
-  last_name: string
+  memberId: string
+  firstName: string
+  lastName: string
   email: string | null
-  assigned_at: unknown
-  assigned_by: string | null
+  assignedAt: unknown
+  assignedBy: string | null
 }
 
 type VoteMetaRow = {
-  vote_id: string
-  meeting_id: string
-  meeting_status: 'DRAFT' | 'ONGOING' | 'PENDING_NOTES' | 'ENDED'
-  vote_status: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED'
-  is_multi_select: boolean
-  max_selections: number | null
+  voteId: string
+  meetingId: string
+  meetingStatus: 'DRAFT' | 'ONGOING' | 'PENDING_NOTES' | 'ENDED'
+  voteStatus: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED'
+  isMultiSelect: boolean
+  maxSelections: number | null
 }
 
 const toIsoString = (value: unknown): string => {
@@ -101,20 +101,20 @@ const toNullableIsoString = (value: unknown): string | null => {
 }
 
 const mapMeeting = (row: MeetingRow): Meeting => ({
-  meetingId: row.meeting_id,
+  meetingId: row.meetingId,
   title: row.title,
   description: row.description,
-  documentSearchFilter: row.document_search_filter,
-  meetingUrl: row.meeting_url,
+  documentSearchFilter: row.documentSearchFilter,
+  meetingUrl: row.meetingUrl,
   status: row.status,
-  createdBy: row.created_by,
-  createdAt: toIsoString(row.created_at),
-  startedAt: toNullableIsoString(row.started_at),
-  endedAt: toNullableIsoString(row.ended_at),
-  meetingNotesDocumentId: row.meeting_notes_document_id,
-  attendanceCount: Number(row.attendance_count ?? 0),
-  isAttending: Boolean(row.is_attending),
-  isVoteCounter: Boolean(row.is_vote_counter),
+  createdBy: row.createdBy,
+  createdAt: toIsoString(row.createdAt),
+  startedAt: toNullableIsoString(row.startedAt),
+  endedAt: toNullableIsoString(row.endedAt),
+  meetingNotesDocumentId: row.meetingNotesDocumentId,
+  attendanceCount: Number(row.attendanceCount ?? 0),
+  isAttending: Boolean(row.isAttending),
+  isVoteCounter: Boolean(row.isVoteCounter),
 })
 
 const mapVoteOption = (
@@ -122,12 +122,12 @@ const mapVoteOption = (
   includeResults: boolean,
   voteStatus: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED',
 ): VoteOption => ({
-  optionId: row.option_id,
-  voteId: row.vote_id,
-  optionText: row.option_text,
-  displayOrder: Number(row.display_order ?? 0),
+  optionId: row.optionId,
+  voteId: row.voteId,
+  optionText: row.optionText,
+  displayOrder: Number(row.displayOrder ?? 0),
   // Results are only revealed once the vote is closed
-  voteCount: includeResults && voteStatus === 'CLOSED' ? Number(row.vote_count ?? 0) : null,
+  voteCount: includeResults && voteStatus === 'CLOSED' ? Number(row.voteCount ?? 0) : null,
 })
 
 const mapMeetingVote = (
@@ -135,21 +135,21 @@ const mapMeetingVote = (
   options: VoteOption[],
   includeResults: boolean,
 ): MeetingVote => ({
-  voteId: row.vote_id,
-  meetingId: row.meeting_id,
+  voteId: row.voteId,
+  meetingId: row.meetingId,
   topic: row.topic,
   description: row.description,
-  isMultiSelect: row.is_multi_select,
-  maxSelections: row.max_selections,
+  isMultiSelect: row.isMultiSelect,
+  maxSelections: row.maxSelections,
   status: row.status,
-  createdAt: toIsoString(row.created_at),
-  createdBy: row.created_by,
-  closedAt: toNullableIsoString(row.closed_at),
-  closedBy: row.closed_by,
-  displayOrder: Number(row.display_order ?? 0),
+  createdAt: toIsoString(row.createdAt),
+  createdBy: row.createdBy,
+  closedAt: toNullableIsoString(row.closedAt),
+  closedBy: row.closedBy,
+  displayOrder: Number(row.displayOrder ?? 0),
   // Results are only revealed once the vote is closed
-  totalVotes: includeResults && row.status === 'CLOSED' ? Number(row.total_votes ?? 0) : null,
-  hasVoted: Boolean(row.has_voted),
+  totalVotes: includeResults && row.status === 'CLOSED' ? Number(row.totalVotes ?? 0) : null,
+  hasVoted: Boolean(row.hasVoted),
   options,
 })
 
@@ -258,20 +258,20 @@ const getVoteRows = async (
       FROM member.vote_selection
       GROUP BY option_id
     ) sel ON sel.option_id = o.option_id
-    WHERE o.vote_id IN (${sql.join(voteRows.map((row) => sql`${row.vote_id}::uuid`))})
+    WHERE o.vote_id IN (${sql.join(voteRows.map((row) => sql`${row.voteId}::uuid`))})
     ORDER BY o.vote_id ASC, o.display_order ASC, o.option_text ASC
   `.execute(executor)
 
   const optionsByVote = new Map<string, VoteOption[]>()
   for (const optionRow of optionRows) {
-    const voteRow = voteRows.find((r) => r.vote_id === optionRow.vote_id)
-    const options = optionsByVote.get(optionRow.vote_id) ?? []
+    const voteRow = voteRows.find((r) => r.voteId === optionRow.voteId)
+    const options = optionsByVote.get(optionRow.voteId) ?? []
     options.push(mapVoteOption(optionRow, includeResults, voteRow?.status ?? 'OPEN'))
-    optionsByVote.set(optionRow.vote_id, options)
+    optionsByVote.set(optionRow.voteId, options)
   }
 
   return voteRows.map((row) =>
-    mapMeetingVote(row, optionsByVote.get(row.vote_id) ?? [], includeResults),
+    mapMeetingVote(row, optionsByVote.get(row.voteId) ?? [], includeResults),
   )
 }
 
@@ -297,7 +297,7 @@ const getVoteMeta = async (
 }
 
 export const getMeetings = async (memberId?: string): Promise<Meeting[]> => {
-  const rows = await getMeetingRows(db, memberId)
+  const rows = await getMeetingRows(camelDb, memberId)
   return rows.map(mapMeeting)
 }
 
@@ -305,7 +305,7 @@ export const getMeetingById = async (
   meetingId: string,
   memberId?: string,
 ): Promise<Meeting | undefined> => {
-  const rows = await getMeetingRows(db, memberId, meetingId)
+  const rows = await getMeetingRows(camelDb, memberId, meetingId)
   return rows[0] ? mapMeeting(rows[0]) : undefined
 }
 
@@ -356,13 +356,13 @@ export const getActiveMeeting = async (memberId: string): Promise<Meeting | unde
        )
     ORDER BY m.started_at DESC
     LIMIT 1
-  `.execute(db)
+  `.execute(camelDb)
 
   return rows[0] ? mapMeeting(rows[0]) : undefined
 }
 
 export const createMeeting = async (data: CreateMeeting, createdBy: string): Promise<Meeting> => {
-  const { rows } = await sql<{ meeting_id: string }>`
+  const { rows } = await sql<{ meetingId: string }>`
     INSERT INTO member.meeting (
       title,
       description,
@@ -378,9 +378,9 @@ export const createMeeting = async (data: CreateMeeting, createdBy: string): Pro
       ${createdBy}
     )
     RETURNING meeting_id
-  `.execute(db)
+  `.execute(camelDb)
 
-  const meetingId = rows[0]?.meeting_id
+  const meetingId = rows[0]?.meetingId
   if (!meetingId) {
     return problem({ status: 500, detail: 'Failed to create meeting' })
   }
@@ -398,10 +398,10 @@ export const updateMeeting = async (
   data: UpdateMeeting,
   memberId?: string,
 ): Promise<Meeting | undefined> => {
-  const { rows } = await sql<{ meeting_id: string }>`
+  const { rows } = await sql<{ meetingId: string }>`
     UPDATE member.meeting
     SET
-      -- title, description, document_search_filter: DRAFT only
+      -- title, description, documentSearchFilter: DRAFT only
       title = CASE
         WHEN status = 'DRAFT' AND ${data.title !== undefined}
           THEN ${data.title ?? ''}
@@ -426,7 +426,7 @@ export const updateMeeting = async (
     WHERE meeting_id = ${meetingId}::uuid
       AND status != 'ENDED'
     RETURNING meeting_id
-  `.execute(db)
+  `.execute(camelDb)
 
   return rows[0] ? getMeetingById(meetingId, memberId) : undefined
 }
@@ -437,7 +437,7 @@ export const deleteMeeting = async (meetingId: string): Promise<boolean> => {
     WHERE meeting_id = ${meetingId}::uuid
       AND status = 'DRAFT'
     RETURNING TRUE AS deleted
-  `.execute(db)
+  `.execute(camelDb)
 
   return Boolean(rows[0]?.deleted)
 }
@@ -447,20 +447,20 @@ export const startMeeting = async (
   _startedBy: string,
   memberId?: string,
 ): Promise<Meeting | undefined> => {
-  const { rows: activeRows } = await sql<{ meeting_id: string }>`
+  const { rows: activeRows } = await sql<{ meetingId: string }>`
     SELECT meeting_id
     FROM member.meeting
     WHERE status IN ('ONGOING', 'PENDING_NOTES')
       AND meeting_id <> ${meetingId}::uuid
     LIMIT 1
-  `.execute(db)
+  `.execute(camelDb)
 
   if (activeRows[0]) {
     return problem({ status: 409, detail: 'Another meeting is already ongoing' })
   }
 
   try {
-    const { rows } = await sql<{ meeting_id: string }>`
+    const { rows } = await sql<{ meetingId: string }>`
       UPDATE member.meeting
       SET
         status = 'ONGOING',
@@ -468,7 +468,7 @@ export const startMeeting = async (
       WHERE meeting_id = ${meetingId}::uuid
         AND status = 'DRAFT'
       RETURNING meeting_id
-    `.execute(db)
+    `.execute(camelDb)
 
     return rows[0] ? getMeetingById(meetingId, memberId ?? _startedBy) : undefined
   } catch (error: any) {
@@ -484,13 +484,13 @@ export const pendingNotesMeeting = async (
   meetingId: string,
   memberId?: string,
 ): Promise<Meeting | undefined> => {
-  const { rows } = await sql<{ meeting_id: string }>`
+  const { rows } = await sql<{ meetingId: string }>`
     UPDATE member.meeting
     SET status = 'PENDING_NOTES'
     WHERE meeting_id = ${meetingId}::uuid
       AND status = 'ONGOING'
     RETURNING meeting_id
-  `.execute(db)
+  `.execute(camelDb)
 
   return rows[0] ? getMeetingById(meetingId, memberId) : undefined
 }
@@ -501,7 +501,7 @@ export const endMeeting = async (
   meetingNotesDocumentId: number,
   memberId?: string,
 ): Promise<Meeting | undefined> => {
-  const { rows } = await sql<{ meeting_id: string }>`
+  const { rows } = await sql<{ meetingId: string }>`
     UPDATE member.meeting
     SET
       status = 'ENDED',
@@ -510,7 +510,7 @@ export const endMeeting = async (
     WHERE meeting_id = ${meetingId}::uuid
       AND status = 'PENDING_NOTES'
     RETURNING meeting_id
-  `.execute(db)
+  `.execute(camelDb)
 
   return rows[0] ? getMeetingById(meetingId, memberId ?? _endedBy) : undefined
 }
@@ -529,29 +529,29 @@ export const registerAttendance = async (meetingId: string, memberId: string): P
     INSERT INTO member.meeting_attendance (meeting_id, member_id)
     VALUES (${meetingId}::uuid, ${memberId})
     ON CONFLICT (meeting_id, member_id) DO NOTHING
-  `.execute(db)
+  `.execute(camelDb)
 }
 
 export const getMeetingAttendees = async (meetingId: string): Promise<MeetingAttendee[]> => {
   const { rows } = await sql<MeetingAttendeeRow>`
     SELECT
       ma.member_id,
-      r.first_name,
-      r.last_name,
+      r.firstName,
+      r.lastName,
       r.email,
       ma.joined_at
     FROM member.meeting_attendance ma
-    INNER JOIN member.register r ON r.member_id = ma.member_id
+    INNER JOIN member.register r ON r.memberId = ma.member_id
     WHERE ma.meeting_id = ${meetingId}::uuid
-    ORDER BY r.first_name ASC, r.last_name ASC
-  `.execute(db)
+    ORDER BY r.firstName ASC, r.lastName ASC
+  `.execute(camelDb)
 
   return rows.map((row) => ({
-    memberId: row.member_id,
-    firstName: row.first_name,
-    lastName: row.last_name,
+    memberId: row.memberId,
+    firstName: row.firstName,
+    lastName: row.lastName,
     email: row.email,
-    joinedAt: toIsoString(row.joined_at),
+    joinedAt: toIsoString(row.joinedAt),
   }))
 }
 
@@ -559,24 +559,24 @@ export const getVoteCounters = async (meetingId: string): Promise<VoteCounter[]>
   const { rows } = await sql<VoteCounterRow>`
     SELECT
       mvc.member_id,
-      r.first_name,
-      r.last_name,
+      r.firstName,
+      r.lastName,
       r.email,
       mvc.assigned_at,
       mvc.assigned_by
     FROM member.meeting_vote_counter mvc
-    INNER JOIN member.register r ON r.member_id = mvc.member_id
+    INNER JOIN member.register r ON r.memberId = mvc.member_id
     WHERE mvc.meeting_id = ${meetingId}::uuid
-    ORDER BY r.first_name ASC, r.last_name ASC
-  `.execute(db)
+    ORDER BY r.firstName ASC, r.lastName ASC
+  `.execute(camelDb)
 
   return rows.map((row) => ({
-    memberId: row.member_id,
-    firstName: row.first_name,
-    lastName: row.last_name,
+    memberId: row.memberId,
+    firstName: row.firstName,
+    lastName: row.lastName,
     email: row.email,
-    assignedAt: toIsoString(row.assigned_at),
-    assignedBy: row.assigned_by,
+    assignedAt: toIsoString(row.assignedAt),
+    assignedBy: row.assignedBy,
   }))
 }
 
@@ -589,7 +589,7 @@ export const addVoteCounter = async (
     INSERT INTO member.meeting_vote_counter (meeting_id, member_id, assigned_by)
     VALUES (${meetingId}::uuid, ${memberId}, ${assignedBy})
     ON CONFLICT (meeting_id, member_id) DO NOTHING
-  `.execute(db)
+  `.execute(camelDb)
 }
 
 export const removeVoteCounter = async (meetingId: string, memberId: string): Promise<boolean> => {
@@ -598,7 +598,7 @@ export const removeVoteCounter = async (meetingId: string, memberId: string): Pr
     WHERE meeting_id = ${meetingId}::uuid
       AND member_id = ${memberId}
     RETURNING TRUE AS deleted
-  `.execute(db)
+  `.execute(camelDb)
 
   return Boolean(rows[0]?.deleted)
 }
@@ -608,7 +608,7 @@ export const createVote = async (
   data: CreateVote,
   createdBy: string,
 ): Promise<MeetingVote> => {
-  const voteId = await db.transaction().execute(async (trx) => {
+  const voteId = await camelDb.transaction().execute(async (trx) => {
     const meeting = await getMeetingById(meetingId, createdBy)
     if (!meeting) {
       return problem({ status: 404, detail: 'Meeting not found' })
@@ -618,13 +618,13 @@ export const createVote = async (
       return problem({ status: 409, detail: 'Cannot add votes to an ended meeting' })
     }
 
-    const { rows: orderRows } = await sql<{ next_order: number }>`
+    const { rows: orderRows } = await sql<{ nextOrder: number }>`
       SELECT COALESCE(MAX(display_order), -10) + 10 AS next_order
       FROM member.meeting_vote
       WHERE meeting_id = ${meetingId}::uuid
     `.execute(trx)
 
-    const { rows } = await sql<{ vote_id: string }>`
+    const { rows } = await sql<{ voteId: string }>`
       INSERT INTO member.meeting_vote (
         meeting_id,
         topic,
@@ -641,12 +641,12 @@ export const createVote = async (
         ${data.isMultiSelect},
         ${data.isMultiSelect ? (data.maxSelections ?? null) : null},
         ${createdBy},
-        ${Number(orderRows[0]?.next_order ?? 0)}
+        ${Number(orderRows[0]?.nextOrder ?? 0)}
       )
       RETURNING vote_id
     `.execute(trx)
 
-    const newVoteId = rows[0]?.vote_id
+    const newVoteId = rows[0]?.voteId
     if (!newVoteId) {
       return problem({ status: 500, detail: 'Failed to create vote' })
     }
@@ -682,31 +682,31 @@ export const openVote = async (
   _openedBy: string,
   memberId?: string,
 ): Promise<MeetingVote | undefined> => {
-  return db.transaction().execute(async (trx) => {
+  return camelDb.transaction().execute(async (trx) => {
     const meta = await getVoteMeta(trx, voteId)
     if (!meta) {
       return undefined
     }
 
-    if (meta.meeting_status !== 'ONGOING') {
+    if (meta.meetingStatus !== 'ONGOING') {
       return problem({ status: 409, detail: 'Voting can only be opened during an ongoing meeting' })
     }
 
-    if (meta.vote_status === 'CLOSED' || meta.vote_status === 'ABANDONED') {
+    if (meta.voteStatus === 'CLOSED' || meta.voteStatus === 'ABANDONED') {
       return problem({ status: 409, detail: 'Closed or abandoned votes cannot be reopened' })
     }
 
     await sql`
       SELECT meeting_id
       FROM member.meeting
-      WHERE meeting_id = ${meta.meeting_id}::uuid
+      WHERE meeting_id = ${meta.meetingId}::uuid
       FOR UPDATE
     `.execute(trx)
 
-    const { rows: conflicting } = await sql<{ vote_id: string }>`
+    const { rows: conflicting } = await sql<{ voteId: string }>`
       SELECT vote_id
       FROM member.meeting_vote
-      WHERE meeting_id = ${meta.meeting_id}::uuid
+      WHERE meeting_id = ${meta.meetingId}::uuid
         AND status = 'OPEN'
         AND vote_id <> ${voteId}::uuid
       LIMIT 1
@@ -731,7 +731,7 @@ export const closeVote = async (
   closedBy: string,
   memberId?: string,
 ): Promise<MeetingVote | undefined> => {
-  const { rows } = await sql<{ vote_id: string }>`
+  const { rows } = await sql<{ voteId: string }>`
     UPDATE member.meeting_vote
     SET
       status = 'CLOSED',
@@ -740,7 +740,7 @@ export const closeVote = async (
     WHERE vote_id = ${voteId}::uuid
       AND status = 'OPEN'
     RETURNING vote_id
-  `.execute(db)
+  `.execute(camelDb)
 
   return rows[0] ? getMeetingVoteById(voteId, true, memberId ?? closedBy) : undefined
 }
@@ -750,7 +750,7 @@ export const abandonVote = async (
   abandonedBy: string,
   memberId?: string,
 ): Promise<MeetingVote | undefined> => {
-  const { rows } = await sql<{ vote_id: string }>`
+  const { rows } = await sql<{ voteId: string }>`
     UPDATE member.meeting_vote
     SET
       status = 'ABANDONED',
@@ -759,7 +759,7 @@ export const abandonVote = async (
     WHERE vote_id = ${voteId}::uuid
       AND status = 'OPEN'
     RETURNING vote_id
-  `.execute(db)
+  `.execute(camelDb)
 
   return rows[0] ? getMeetingVoteById(voteId, true, memberId ?? abandonedBy) : undefined
 }
@@ -768,33 +768,33 @@ export const getMeetingVotes = async (
   meetingId: string,
   includeResults: boolean,
   memberId?: string,
-): Promise<MeetingVote[]> => getVoteRows(db, meetingId, includeResults, memberId)
+): Promise<MeetingVote[]> => getVoteRows(camelDb, meetingId, includeResults, memberId)
 
 export const getMeetingVoteById = async (
   voteId: string,
   includeResults: boolean,
   memberId?: string,
 ): Promise<MeetingVote | undefined> => {
-  const meta = await getVoteMeta(db, voteId)
+  const meta = await getVoteMeta(camelDb, voteId)
   if (!meta) {
     return undefined
   }
 
-  const votes = await getVoteRows(db, meta.meeting_id, includeResults, memberId, voteId)
+  const votes = await getVoteRows(camelDb, meta.meetingId, includeResults, memberId, voteId)
   return votes[0]
 }
 
 export const hasVoted = async (voteId: string, memberId: string): Promise<boolean> => {
-  const { rows } = await sql<{ has_voted: boolean }>`
+  const { rows } = await sql<{ hasVoted: boolean }>`
     SELECT EXISTS (
       SELECT 1
       FROM member.vote_cast
       WHERE vote_id = ${voteId}::uuid
         AND member_id = ${memberId}
     ) AS has_voted
-  `.execute(db)
+  `.execute(camelDb)
 
-  return Boolean(rows[0]?.has_voted)
+  return Boolean(rows[0]?.hasVoted)
 }
 
 export const submitVote = async (
@@ -802,52 +802,48 @@ export const submitVote = async (
   memberId: string,
   optionIds: string[],
 ): Promise<void> => {
-  await db.transaction().execute(async (trx) => {
+  await camelDb.transaction().execute(async (trx) => {
     const meta = await getVoteMeta(trx, voteId)
     if (!meta) {
       return problem({ status: 404, detail: 'Vote not found' })
     }
 
-    if (meta.meeting_status !== 'ONGOING') {
+    if (meta.meetingStatus !== 'ONGOING') {
       return problem({ status: 409, detail: 'Meeting is not ongoing' })
     }
 
-    if (meta.vote_status !== 'OPEN') {
+    if (meta.voteStatus !== 'OPEN') {
       return problem({ status: 409, detail: 'Vote is not open' })
     }
 
-    if (!meta.is_multi_select && optionIds.length !== 1) {
+    if (!meta.isMultiSelect && optionIds.length !== 1) {
       return problem({ status: 400, detail: 'Exactly one option must be selected' })
     }
 
-    if (
-      meta.is_multi_select &&
-      meta.max_selections != null &&
-      optionIds.length > meta.max_selections
-    ) {
+    if (meta.isMultiSelect && meta.maxSelections != null && optionIds.length > meta.maxSelections) {
       return problem({ status: 400, detail: 'Too many options selected' })
     }
 
-    const { rows: optionRows } = await sql<{ option_id: string }>`
+    const { rows: optionRows } = await sql<{ optionId: string }>`
       SELECT option_id
       FROM member.vote_option
       WHERE vote_id = ${voteId}::uuid
     `.execute(trx)
 
-    const validOptionIds = new Set(optionRows.map((row) => row.option_id))
+    const validOptionIds = new Set(optionRows.map((row) => row.optionId))
     const allValid = optionIds.every((optionId) => validOptionIds.has(optionId))
     if (!allValid) {
       return problem({ status: 400, detail: 'One or more selected options are invalid' })
     }
 
-    const { rows: castRows } = await sql<{ cast_id: string }>`
+    const { rows: castRows } = await sql<{ castId: string }>`
       INSERT INTO member.vote_cast (vote_id, member_id)
       VALUES (${voteId}::uuid, ${memberId})
       ON CONFLICT (vote_id, member_id) DO NOTHING
       RETURNING cast_id
     `.execute(trx)
 
-    if (!castRows[0]?.cast_id) {
+    if (!castRows[0]?.castId) {
       return problem({ status: 409, detail: 'Vote has already been submitted' })
     }
 
@@ -861,27 +857,27 @@ export const submitVote = async (
 }
 
 export const isAttendee = async (meetingId: string, memberId: string): Promise<boolean> => {
-  const { rows } = await sql<{ is_attendee: boolean }>`
+  const { rows } = await sql<{ isAttendee: boolean }>`
     SELECT EXISTS (
       SELECT 1
       FROM member.meeting_attendance
       WHERE meeting_id = ${meetingId}::uuid
         AND member_id = ${memberId}
     ) AS is_attendee
-  `.execute(db)
+  `.execute(camelDb)
 
-  return Boolean(rows[0]?.is_attendee)
+  return Boolean(rows[0]?.isAttendee)
 }
 
 export const isVoteCounter = async (meetingId: string, memberId: string): Promise<boolean> => {
-  const { rows } = await sql<{ is_vote_counter: boolean }>`
+  const { rows } = await sql<{ isVoteCounter: boolean }>`
     SELECT EXISTS (
       SELECT 1
       FROM member.meeting_vote_counter
       WHERE meeting_id = ${meetingId}::uuid
         AND member_id = ${memberId}
     ) AS is_vote_counter
-  `.execute(db)
+  `.execute(camelDb)
 
-  return Boolean(rows[0]?.is_vote_counter)
+  return Boolean(rows[0]?.isVoteCounter)
 }

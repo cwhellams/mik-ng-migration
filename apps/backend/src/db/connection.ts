@@ -107,6 +107,30 @@ export const camelDb = new Kysely<CamelDB>({
  */
 export type CamelRow<T extends keyof CamelDB> = Selectable<CamelDB[T]>
 
+/**
+ * Repairs the one place where `maintainNestedObjectKeys` above works against us.
+ *
+ * `jsonArrayFrom`/`jsonObjectFrom` build their JSON inside Postgres, from the raw
+ * column names in the emitted SQL — so the objects *inside* the array come back
+ * snake_case. The plugin is told not to touch nested keys (it must not, or it would
+ * rewrite the audit tables' row snapshots), so they stay that way. Kysely's inferred
+ * type, meanwhile, is derived from the camelCase schema and says `updatedAt`.
+ *
+ * The type and the runtime value therefore disagree, silently, with nothing to catch
+ * it: `row.updatedAt` is `undefined` and typechecks. Call this on the result of any
+ * nested subquery to make the runtime match the type it already claims to have.
+ */
+export const camelCaseNestedRows = <T>(rows: T[]): T[] =>
+  rows.map(
+    (row) =>
+      Object.fromEntries(
+        Object.entries(row as Record<string, unknown>).map(([key, value]) => [
+          key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase()),
+          value,
+        ]),
+      ) as T,
+  )
+
 // Test database connection
 export const testConnection = async (): Promise<void> => {
   try {

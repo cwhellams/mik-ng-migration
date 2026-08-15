@@ -1,36 +1,36 @@
 import type { Kysely, Transaction } from 'kysely'
-import { db } from './connection.ts'
-import type { DB } from './schema.d.ts'
+import { camelDb } from './connection.ts'
+import type { DB as CamelDB } from './schema.camel.d.ts'
 import type { ExpenseClaimAttachment } from '@mik/contracts/expenses'
 
-type Executor = Kysely<DB> | Transaction<DB>
+type Executor = Kysely<CamelDB> | Transaction<CamelDB>
 
 const mapAttachment = (row: {
   id: number
-  claim_id: string
-  storage_key: string
-  file_name: string
-  file_size: unknown
-  mime_type: string
-  sort_order: number
-  uploaded_at: unknown
+  claimId: string
+  storageKey: string
+  fileName: string
+  fileSize: unknown
+  mimeType: string
+  sortOrder: number
+  uploadedAt: unknown
 }): ExpenseClaimAttachment => ({
   id: row.id,
-  claimId: row.claim_id,
-  storageKey: row.storage_key,
-  fileName: row.file_name,
-  fileSize: Number(row.file_size),
-  mimeType: row.mime_type,
-  sortOrder: row.sort_order,
-  uploadedAt: new Date(String(row.uploaded_at)).toISOString(),
+  claimId: row.claimId,
+  storageKey: row.storageKey,
+  fileName: row.fileName,
+  fileSize: Number(row.fileSize),
+  mimeType: row.mimeType,
+  sortOrder: row.sortOrder,
+  uploadedAt: new Date(String(row.uploadedAt)).toISOString(),
 })
 
 export async function getExpenseAttachments(claimId: string): Promise<ExpenseClaimAttachment[]> {
-  const rows = await db
-    .selectFrom('accts.expense_claim_attachment')
+  const rows = await camelDb
+    .selectFrom('accts.expenseClaimAttachment')
     .selectAll()
-    .where('claim_id', '=', claimId)
-    .orderBy('sort_order')
+    .where('claimId', '=', claimId)
+    .orderBy('sortOrder')
     .orderBy('id')
     .execute()
   return rows.map(mapAttachment)
@@ -39,23 +39,23 @@ export async function getExpenseAttachments(claimId: string): Promise<ExpenseCla
 export async function addExpenseAttachment(
   claimId: string,
   file: { storageKey: string; fileName: string; fileSize: number; mimeType: string },
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<ExpenseClaimAttachment> {
   const { sortOrder } = await executor
-    .selectFrom('accts.expense_claim_attachment')
-    .select((eb) => eb.fn.max('sort_order').as('sortOrder'))
-    .where('claim_id', '=', claimId)
+    .selectFrom('accts.expenseClaimAttachment')
+    .select((eb) => eb.fn.max('sortOrder').as('sortOrder'))
+    .where('claimId', '=', claimId)
     .executeTakeFirstOrThrow()
 
   const row = await executor
-    .insertInto('accts.expense_claim_attachment')
+    .insertInto('accts.expenseClaimAttachment')
     .values({
-      claim_id: claimId,
-      storage_key: file.storageKey,
-      file_name: file.fileName,
-      file_size: file.fileSize,
-      mime_type: file.mimeType,
-      sort_order: (sortOrder ?? -1) + 1,
+      claimId: claimId,
+      storageKey: file.storageKey,
+      fileName: file.fileName,
+      fileSize: file.fileSize,
+      mimeType: file.mimeType,
+      sortOrder: (sortOrder ?? -1) + 1,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -66,10 +66,10 @@ export async function getExpenseAttachment(
   claimId: string,
   attachmentId: number,
 ): Promise<ExpenseClaimAttachment | undefined> {
-  const row = await db
-    .selectFrom('accts.expense_claim_attachment')
+  const row = await camelDb
+    .selectFrom('accts.expenseClaimAttachment')
     .selectAll()
-    .where('claim_id', '=', claimId)
+    .where('claimId', '=', claimId)
     .where('id', '=', attachmentId)
     .executeTakeFirst()
   return row ? mapAttachment(row) : undefined
@@ -79,9 +79,9 @@ export async function deleteExpenseAttachment(
   claimId: string,
   attachmentId: number,
 ): Promise<boolean> {
-  const result = await db
-    .deleteFrom('accts.expense_claim_attachment')
-    .where('claim_id', '=', claimId)
+  const result = await camelDb
+    .deleteFrom('accts.expenseClaimAttachment')
+    .where('claimId', '=', claimId)
     .where('id', '=', attachmentId)
     .executeTakeFirstOrThrow()
   return result.numDeletedRows > BigInt(0)

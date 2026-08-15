@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import { db } from '../db/connection.ts'
+import { camelDb } from '../db/connection.ts'
 import { SimplbooksStatus, type AcctsOutboxSimplbooks } from '../services/simplbooks/models.ts'
 
 import logger from '../lib/logger.ts'
@@ -37,14 +37,14 @@ async function processOutbox(): Promise<number> {
   try {
     logger.info('Outbox worker iteration started')
 
-    const taskRow = await db.transaction().execute(async (txn) => {
+    const taskRow = await camelDb.transaction().execute(async (txn) => {
       const nextRow = (await txn
-        .selectFrom('accts.outbox_simplbooks')
+        .selectFrom('accts.outboxSimplbooks')
         .selectAll()
         .where('status', '=', SimplbooksStatus.PENDING)
         .forUpdate()
         .skipLocked()
-        .orderBy('created_at_utc', 'asc')
+        .orderBy('createdAtUtc', 'asc')
         .limit(1)
         .executeTakeFirst()) as AcctsOutboxSimplbooks | undefined
 
@@ -53,7 +53,7 @@ async function processOutbox(): Promise<number> {
       }
 
       await txn
-        .updateTable('accts.outbox_simplbooks')
+        .updateTable('accts.outboxSimplbooks')
         .set({ status: SimplbooksStatus.PROCESSING })
         .where('id', '=', nextRow.id)
         .execute()
@@ -75,12 +75,12 @@ async function processOutbox(): Promise<number> {
 
       logger.error(`Failed to process outbox item : ${taskRow.id}. Error: ${errorMessage}`)
 
-      await db
-        .updateTable('accts.outbox_simplbooks')
+      await camelDb
+        .updateTable('accts.outboxSimplbooks')
         .set({
           status: SimplbooksStatus.FAILED,
-          error_message: errorMessage,
-          updated_at_utc: new Date(),
+          errorMessage: errorMessage,
+          updatedAtUtc: new Date(),
         })
         .where('id', '=', taskRow.id)
         .execute()

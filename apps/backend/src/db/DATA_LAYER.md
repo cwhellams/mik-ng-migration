@@ -159,6 +159,44 @@ The remaining cluster is `expense`, `expense-attachment`, `inventory`, `meeting`
 `mileage`, `occurrence`, `outbox-simplbooks` — seven modules in one commit, which is the
 one place in this migration where "one domain per PR" cannot hold.
 
+## Two things the compiler cannot catch
+
+Both of these were found by tests, not by `tsc`, after a conversion that typechecked
+cleanly. Check for them by hand.
+
+**A string that looks like an identifier but is a value.** `outbox-simplbooks` had
+
+```ts
+eb.fn('nextval', [eb.val('accts.credit_note_number_seq')])
+```
+
+The argument is a _sequence name passed as a string_, not a table reference. Renaming it
+to `accts.creditNoteNumberSeq` typechecks perfectly and makes `nextval()` fail at
+runtime. Anything inside `eb.val(...)`, or any string handed to a SQL function, is data.
+
+**A contract's field names living in a db module.** `getOutboxItems` takes a filter
+object whose keys come straight from `@mik/contracts/outbox` — `event_type`,
+`created_from`. They are query parameters, not columns. Camel-casing them left
+`filters.event_type` undefined, so every filter silently stopped applying and the
+endpoint returned unfiltered rows. It still compiled, because the type was renamed to
+match. Only the route test caught it.
+
+The general rule: **rename identifiers, never data.** The audit that compares changed
+string literals cannot tell the two apart — it sees a valid camelCase counterpart in
+both cases.
+
+## `jsonArrayFrom` needs `camelCaseNestedRows`
+
+`jsonArrayFrom`/`jsonObjectFrom` build their JSON inside Postgres from the raw column
+names, so the objects _inside_ the array come back snake_case — and
+`maintainNestedObjectKeys` (below) tells the plugin to leave nested keys alone. Kysely's
+inferred type is derived from the camelCase schema and says otherwise, so the type and
+the runtime value disagree with nothing to catch it: `row.updatedAt` is `undefined` and
+typechecks.
+
+Wrap any nested subquery result in `camelCaseNestedRows` from `connection.ts`. Grep for
+`jsonArrayFrom` before declaring a module done — `member-queries` still has one.
+
 ## Why `maintainNestedObjectKeys: true` is not optional
 
 `CamelCasePlugin` recurses into arrays and plain objects by default, so it rewrites the
@@ -176,7 +214,7 @@ corrupted by it. `test/db/camel-case-plugin.test.ts` pins this.
 
 ## Progress
 
-**37 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
+**45 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
 is done — what remains is exactly the set that needs a judgement call.
 
 Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
