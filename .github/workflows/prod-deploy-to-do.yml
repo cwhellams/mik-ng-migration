@@ -217,7 +217,16 @@ jobs:
         run: |
           export DOMAIN=$(echo "${{ vars.PUBLIC_URL }}" | sed 's|https\?://||')
           export IMAGE_TAG="${{ github.event.client_payload.tag_name }}"
-          envsubst < .do/mik-intranet-prod.yaml > .do/mik-intranet-prod.yaml.temp && mv .do/mik-intranet-prod.yaml.temp .do/mik-intranet-prod.yaml
+          # envsubst does raw text substitution with no awareness of YAML quoting,
+          # so a secret containing a literal ' breaks the single-quoted `value: '${VAR}'`
+          # entries and doctl fails with "did not find expected key". Substitute with
+          # perl instead, doubling any ' in the substituted value per YAML's
+          # single-quote escaping rule so the result always parses.
+          perl -pe 's/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/my $v = $ENV{$1} \/\/ ""; $v =~ s{\x27}{\x27\x27}g; $v/ge' .do/mik-intranet-prod.yaml > .do/mik-intranet-prod.yaml.temp
+          mv .do/mik-intranet-prod.yaml.temp .do/mik-intranet-prod.yaml
+
+      - name: Validate substituted DO app spec
+        run: ruby scripts/validate_do_spec.rb .do/mik-intranet-prod.yaml
 
       - name: Update app on DigitalOcean
         run: doctl apps update ${{ vars.DO_BACKEND_APP_ID_PROD }} --spec .do/mik-intranet-prod.yaml --wait
