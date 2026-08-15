@@ -121,15 +121,18 @@ export type CamelRow<T extends keyof CamelDB> = Selectable<CamelDB[T]>
  * nested subquery to make the runtime match the type it already claims to have.
  */
 export const camelCaseNestedRows = <T>(rows: T[]): T[] =>
-  rows.map(
-    (row) =>
-      Object.fromEntries(
-        Object.entries(row as Record<string, unknown>).map(([key, value]) => [
-          key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase()),
-          value,
-        ]),
-      ) as T,
-  )
+  rows.map((row) => {
+    const mapped: Record<string, unknown> = {}
+    for (const key in row as Record<string, unknown>) {
+      // Only pay for the regex on keys that actually contain an underscore; nested
+      // rows from selectAll() are mostly already single-word.
+      const camel = key.includes('_')
+        ? key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase())
+        : key
+      mapped[camel] = (row as Record<string, unknown>)[key]
+    }
+    return mapped as T
+  })
 
 // Test database connection
 export const testConnection = async (): Promise<void> => {

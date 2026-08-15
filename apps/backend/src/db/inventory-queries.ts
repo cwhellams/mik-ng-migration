@@ -1,3 +1,4 @@
+import type { Updateable } from 'kysely'
 import { camelDb } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
@@ -11,7 +12,7 @@ import type {
   InventoryFilters,
   InventoryAuditLogEntry,
 } from '@mik/contracts/inventory'
-import type { Json } from './schema.camel.d.ts'
+import type { Json, InventoryCategories, InventoryLocations } from './schema.camel.d.ts'
 import type { DB as CamelDB } from './schema.camel.d.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
 
@@ -76,19 +77,19 @@ export async function upsertLocation(
   user: JWTUser,
 ): Promise<InventoryLocation> {
   if (data.locationId) {
-    const update: Record<string, unknown> = {
+    const update: Updateable<InventoryLocations> = {
       updatedBy: user.memberId,
       updatedAt: new Date(),
     }
     if (data.name !== undefined) update.name = data.name as unknown as Json
     if (data.description !== undefined)
       update.description = (data.description as unknown as Json) ?? null
-    if (data.isActive !== undefined) update.is_active = data.isActive
-    if (data.sortOrder !== undefined) update.sort_order = data.sortOrder
+    if (data.isActive !== undefined) update.isActive = data.isActive
+    if (data.sortOrder !== undefined) update.sortOrder = data.sortOrder
 
     await camelDb
       .updateTable('inventory.locations')
-      .set(update as any)
+      .set(update)
       .where('locationId', '=', data.locationId)
       .execute()
     return getLocationById(data.locationId) as Promise<InventoryLocation>
@@ -161,19 +162,19 @@ export async function upsertCategory(
   user: JWTUser,
 ): Promise<InventoryCategory> {
   if (data.categoryId) {
-    const update: Record<string, unknown> = {
+    const update: Updateable<InventoryCategories> = {
       updatedBy: user.memberId,
       updatedAt: new Date(),
     }
     if (data.name !== undefined) update.name = data.name as unknown as Json
     if (data.description !== undefined)
       update.description = (data.description as unknown as Json) ?? null
-    if (data.isActive !== undefined) update.is_active = data.isActive
-    if (data.sortOrder !== undefined) update.sort_order = data.sortOrder
+    if (data.isActive !== undefined) update.isActive = data.isActive
+    if (data.sortOrder !== undefined) update.sortOrder = data.sortOrder
 
     await camelDb
       .updateTable('inventory.categories')
-      .set(update as any)
+      .set(update)
       .where('categoryId', '=', data.categoryId)
       .execute()
     return getCategoryById(data.categoryId) as Promise<InventoryCategory>

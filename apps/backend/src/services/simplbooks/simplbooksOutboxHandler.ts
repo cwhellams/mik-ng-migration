@@ -383,9 +383,9 @@ type ShopOrderRow = z.infer<typeof ShopOrderRowSchema>
 const ShopOrderItemRowSchema = z
   .object({
     quantity: z.number().int().positive(),
-    unit_price: z.union([z.string(), z.number()]),
-    product_snapshot: z.unknown(),
-    simplbooks_item_id: z.string().nullable(),
+    unitPrice: z.union([z.string(), z.number()]),
+    productSnapshot: z.unknown(),
+    simplbooksItemId: z.string().nullable(),
   })
   .strict()
 
@@ -423,8 +423,8 @@ function parseProductSnapshot(value: unknown): {
 }
 
 async function resolveArticleId(item: ShopOrderItemRow): Promise<number> {
-  const snapshot = parseProductSnapshot(item.product_snapshot)
-  const simplbooksRef = (item.simplbooks_item_id ?? snapshot.simplbooksItemId ?? '').trim()
+  const snapshot = parseProductSnapshot(item.productSnapshot)
+  const simplbooksRef = (item.simplbooksItemId ?? snapshot.simplbooksItemId ?? '').trim()
 
   if (!simplbooksRef) {
     throw new Error('Order item has no SimplBooks item reference')
@@ -497,7 +497,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
 
   const tasks = await Promise.all(
     items.map(async (item) => {
-      const snapshot = parseProductSnapshot(item.product_snapshot)
+      const snapshot = parseProductSnapshot(item.productSnapshot)
       const namePart = snapshot.name ?? `Shop order ${payload.orderId}`
       const contents = snapshot.description ? `${namePart}\n${snapshot.description}` : namePart
 
@@ -505,7 +505,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
         Task: {
           article_id: await resolveArticleId(item),
           amount: item.quantity,
-          price_per_unit: Number(item.unit_price),
+          price_per_unit: Number(item.unitPrice),
           contents,
         },
         Projects: [],

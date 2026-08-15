@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals'
 
 import { camelDb, db } from '../../src/db/connection.ts'
 import { addExpenseAttachment } from '../../src/db/expense-attachment-queries.ts'
@@ -27,7 +27,36 @@ import { SimplbooksEventType } from '../../src/services/simplbooks/models.ts'
  */
 describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => {
   const storageKey = `ut-cluster-a-${Date.now()}`
-  let claimId: string | undefined
+  let claimId: string
+
+  // Seeded rather than borrowed from whatever happens to be in the database. An
+  // earlier version looked up any existing claim and returned early if it found none,
+  // which meant that on a pruned dataset both tests passed having asserted nothing —
+  // a rollback guard that silently stops guarding.
+  beforeAll(async () => {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .limit(1)
+      .executeTakeFirstOrThrow()
+
+    const claim = await db
+      .insertInto('accts.expense_claim')
+      .values({
+        member_id: 'Matti1',
+        category_id: category.id,
+        title: 'transaction cluster A fixture',
+        ccy: 'EUR',
+        status: 'DRAFT',
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+    claimId = claim.id
+  })
+
+  afterAll(async () => {
+    await db.deleteFrom('accts.expense_claim').where('id', '=', claimId).execute()
+  })
 
   afterEach(async () => {
     await db
@@ -40,11 +69,6 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
       .execute()
       .catch(() => undefined)
   })
-
-  const anyClaimId = async (): Promise<string | undefined> => {
-    const row = await db.selectFrom('accts.expense_claim').select('id').limit(1).executeTakeFirst()
-    return row?.id
-  }
 
   const attachmentCount = async () =>
     Number(
@@ -69,12 +93,9 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
     )
 
   it('commits both modules together', async () => {
-    claimId = await anyClaimId()
-    if (!claimId) return // no seeded expense claims in this environment
-
     await camelDb.transaction().execute(async (trx) => {
       await addExpenseAttachment(
-        claimId!,
+        claimId,
         { storageKey, fileName: 'cluster-a.pdf', fileSize: 1, mimeType: 'application/pdf' },
         trx,
       )
@@ -90,13 +111,10 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
   // rollback — leaving, in the real shop-order path, an invoicing event for an order
   // that never existed.
   it('rolls both modules back when the transaction fails', async () => {
-    claimId = await anyClaimId()
-    if (!claimId) return
-
     await expect(
       camelDb.transaction().execute(async (trx) => {
         await addExpenseAttachment(
-          claimId!,
+          claimId,
           { storageKey, fileName: 'cluster-a.pdf', fileSize: 1, mimeType: 'application/pdf' },
           trx,
         )

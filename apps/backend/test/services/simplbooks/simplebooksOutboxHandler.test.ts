@@ -90,6 +90,16 @@ const obMsgMembershipFeeInvoice: AcctsOutboxSimplbooks = {
   status: SimplbooksStatus.PENDING,
 }
 
+// ORD000001 is seeded with two order items and no invoice_id, and its member has a
+// billing id — everything createShopOrderInvoice needs.
+const obMsgShopOrderInvoice: AcctsOutboxSimplbooks = {
+  created_at_utc: new Date(),
+  event_type: SimplbooksEventType.SHOP_ORDER_INVOICE,
+  id: randomUUID(),
+  payload: { orderId: 'ORD000001' },
+  status: SimplbooksStatus.PENDING,
+}
+
 const obMsgNewMembershipFeeInvoice: AcctsOutboxSimplbooks = {
   created_at_utc: new Date(),
   event_type: SimplbooksEventType.NEW_MEMBER_FEES,
@@ -203,6 +213,32 @@ describe('Simplbooks Outbox Handler tests', () => {
 
     await revertBillingIdChanges(newMemberId, 'BILL004')
     await deleteCreatedInvoice(MIKInvoiceType.JOINING_FEE)
+  })
+
+  // Nothing exercised createShopOrderInvoice until this, which is how two separate
+  // snake_case row schemas (ShopOrderRowSchema, then ShopOrderItemRowSchema) survived
+  // the camelDb migration. Both are .strict(), so a mismatch throws on every real
+  // shop order rather than degrading quietly.
+  it('creates an invoice for a shop order, parsing both the order and its items', async () => {
+    await expect(dispatchOutboxMsg(obMsgShopOrderInvoice)).resolves.not.toThrow()
+
+    const order = await db
+      .selectFrom('shop.orders')
+      .select('invoice_id')
+      .where('order_id', '=', 'ORD000001')
+      .executeTakeFirstOrThrow()
+    expect(order.invoice_id).not.toBeNull()
+
+    // deleteCreatedInvoice() only ever removes Anna1's rows, and this order belongs to
+    // Matti1. accts.invoice.id is unique across members and the mock always returns the
+    // same inserted_id, so leaving the row behind makes every later suite that creates an
+    // invoice fail on pk_accts_invoice. Clean up by the id this test actually produced.
+    await db
+      .updateTable('shop.orders')
+      .set({ invoice_id: null })
+      .where('order_id', '=', 'ORD000001')
+      .execute()
+    await db.deleteFrom('accts.invoice').where('id', '=', order.invoice_id!).execute()
   })
 
   it('checks and clears stuck outbox messages ', async () => {
