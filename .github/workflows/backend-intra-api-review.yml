@@ -20,7 +20,12 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Only cancel superseded PR runs. Never cancel a push-to-main run: it's the
+  # only automated check that ever validates the exact commit landing on
+  # main (issue #1184), so if two merges land in quick succession both must
+  # still run to completion, not have the first silently cancelled by the
+  # second.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: '--max-old-space-size=8192' # Increase memory limit for Node.js
