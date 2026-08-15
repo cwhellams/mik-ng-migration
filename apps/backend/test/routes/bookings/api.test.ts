@@ -201,7 +201,10 @@ describe('GET /bookings/bookingId', () => {
     expect(otherRes.status).toBe(403)
 
     // Cleanup
-    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${userToken}`)
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.OTHER })
   })
 
   it('should return 403 for the user without booking privileges', async () => {
@@ -274,11 +277,11 @@ describe('POST /bookings', () => {
 
     // Cleanup
     const delResponse = await request(app)
-      .delete(`/bookings/${id}`)
+      .post(`/bookings/${id}/cancel`)
       .set('Cookie', `accessToken=${userToken}`)
       .set('Accept', 'application/json')
-    expect(delResponse.status).toBe(204)
-    expect(delResponse.body).toEqual({})
+      .send({ reason: CancellationReason.OTHER })
+    expect(delResponse.status).toBe(200)
   })
 
   it('should create a new booking over cancelled booking with the same times', async () => {
@@ -307,11 +310,11 @@ describe('POST /bookings', () => {
 
     // Cleanup
     const delResponse = await request(app)
-      .delete(`/bookings/${id}`)
+      .post(`/bookings/${id}/cancel`)
       .set('Cookie', `accessToken=${userToken}`)
       .set('Accept', 'application/json')
-    expect(delResponse.status).toBe(204)
-    expect(delResponse.body).toEqual({})
+      .send({ reason: CancellationReason.OTHER })
+    expect(delResponse.status).toBe(200)
   })
 
   it('should allow admins to overwrite existing bookings', async () => {
@@ -341,37 +344,39 @@ describe('POST /bookings', () => {
 
     // Cleanup
     const delAgainResponse = await request(app)
-      .delete(`/bookings/${id}`)
+      .post(`/bookings/${id}/cancel`)
       .set('Cookie', `accessToken=${userToken}`)
       .set('Accept', 'application/json')
+      .send({ reason: CancellationReason.OTHER })
     expect(delAgainResponse.status).toBe(409)
     expect(delAgainResponse.body).toEqual({
       status: 409,
       title: 'Conflict',
       detail: 'Booking already cancelled',
-      instance: `/bookings/${id}`,
+      instance: `/bookings/${id}/cancel`,
       timestamp: expect.any(String),
     })
 
     const delWrongUserResponse = await request(app)
-      .delete(`/bookings/${overwrite.body.bookingId}`)
+      .post(`/bookings/${overwrite.body.bookingId}/cancel`)
       .set('Cookie', `accessToken=${userToken}`)
       .set('Accept', 'application/json')
+      .send({ reason: CancellationReason.OTHER })
     expect(delWrongUserResponse.status).toBe(403)
     expect(delWrongUserResponse.body).toEqual({
       status: 403,
       title: 'Forbidden',
       detail: 'Booking not owned by user or user has no admin rights',
-      instance: `/bookings/${overwrite.body.bookingId}`,
+      instance: `/bookings/${overwrite.body.bookingId}/cancel`,
       timestamp: expect.any(String),
     })
 
     const delAdminResponse = await request(app)
-      .delete(`/bookings/${overwrite.body.bookingId}`)
+      .post(`/bookings/${overwrite.body.bookingId}/cancel`)
       .set('Cookie', `accessToken=${adminToken}`)
       .set('Accept', 'application/json')
-    expect(delAdminResponse.status).toBe(204)
-    expect(delAdminResponse.body).toEqual({})
+      .send({ reason: CancellationReason.OTHER })
+    expect(delAdminResponse.status).toBe(200)
   })
 
   it('should return 400 for invalid payload', async () => {
@@ -420,9 +425,10 @@ describe('POST /bookings', () => {
 
     // Cleanup
     const delResponse = await request(app)
-      .delete(`/bookings/${response.body.bookingId}`)
+      .post(`/bookings/${response.body.bookingId}/cancel`)
       .set('Cookie', `accessToken=${userToken}`)
-    expect(delResponse.status).toBe(204)
+      .send({ reason: CancellationReason.OTHER })
+    expect(delResponse.status).toBe(200)
   })
 
   it('should allow assigned instructor to delete their training booking', async () => {
@@ -437,9 +443,10 @@ describe('POST /bookings', () => {
 
     // userId (Matti1) is the assigned instructor and should be able to delete
     const delResponse = await request(app)
-      .delete(`/bookings/${bookingId}`)
+      .post(`/bookings/${bookingId}/cancel`)
       .set('Cookie', `accessToken=${userToken}`)
-    expect(delResponse.status).toBe(204)
+      .send({ reason: CancellationReason.OTHER })
+    expect(delResponse.status).toBe(200)
   })
 })
 
@@ -753,7 +760,10 @@ describe('POST /bookings/:id/transfer', () => {
     expect(transferResponse.body.calendarSequence).toBeGreaterThan(0)
 
     // Cleanup: cancel as the new owner (or admin) since the requesting user no longer owns it
-    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${adminToken}`)
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ reason: CancellationReason.OTHER })
   })
 
   it('should return 400 when transferring to the current owner', async () => {
@@ -773,7 +783,10 @@ describe('POST /bookings/:id/transfer', () => {
     expect(transferResponse.body.detail).toBe('Booking is already owned by this member')
 
     // Cleanup
-    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${userToken}`)
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.OTHER })
   })
 
   it('should return 400 when the target member does not exist', async () => {
@@ -793,7 +806,10 @@ describe('POST /bookings/:id/transfer', () => {
     expect(transferResponse.body.detail).toBe('Member not found')
 
     // Cleanup
-    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${userToken}`)
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.OTHER })
   })
 
   it('should return 403 when the requester does not own the booking', async () => {
@@ -824,7 +840,10 @@ describe('POST /bookings/:id/transfer', () => {
     )
 
     // Cleanup
-    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${userToken}`)
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.OTHER })
   })
 
   it('should allow an admin to transfer another members booking', async () => {
@@ -844,7 +863,10 @@ describe('POST /bookings/:id/transfer', () => {
     expect(transferResponse.body.memberId).toBe('Antti1')
 
     // Cleanup
-    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${adminToken}`)
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ reason: CancellationReason.OTHER })
   })
 
   it('should return 409 when the booking is already cancelled', async () => {

@@ -184,15 +184,6 @@ export const FlightLogUpsertSchema = UpsertSchema(FlightLogSchema).pick({
   totalTimeInService: true,
 })
 
-// extra raw fields needed for migration
-export const FlightLogMigrationSchema = FlightLogSchema.pick({
-  isBillableFlight: true,
-  isDtoTrainingFlight: true,
-  invoiceNumber: true,
-}).merge(FlightLogUpsertSchema)
-
-export type FlightLogMigrationRequest = z.infer<typeof FlightLogMigrationSchema>
-
 // Regular members cannot edit all fields
 export const FlightLogMemberUpsertSchema = FlightLogUpsertSchema.omit({
   ajlbBlankRowsBefore: true,

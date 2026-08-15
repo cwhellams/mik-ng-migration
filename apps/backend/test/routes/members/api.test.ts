@@ -1704,30 +1704,6 @@ describe('GET /members/annual-membership-stats', () => {
   })
 })
 
-describe('POST /members/:memberId/approve with migration flag', () => {
-  it('should skip sending email when x-mik-migration header is true', async () => {
-    const response = await request(app)
-      .post('/members/Marja1/approve')
-      .set('Cookie', `accessToken=${adminToken}`)
-      .set('x-mik-migration', 'true')
-
-    expect(response.status).toBe(HttpStatusCode.Created)
-    const member = response.body as Member
-    expect(member.roles.length).toBeGreaterThan(0)
-
-    // Cleanup
-    await db
-      .updateTable('member.register')
-      .set({
-        membership_approved_at: null,
-        membership_approved_by: null,
-      })
-      .where('member_id', '=', 'Marja1')
-      .execute()
-    await db.deleteFrom('member.member_to_roles').where('member_id', '=', 'Marja1').execute()
-  })
-})
-
 describe('DELETE /members/:memberId', () => {
   it('should return 404 when trying to delete non-existent member', async () => {
     const response = await request(app)

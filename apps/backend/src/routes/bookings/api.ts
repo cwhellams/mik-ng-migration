@@ -390,56 +390,6 @@ router.patch('/:id', async (req: Request<Record<string, string>>, res: Response)
   res.status(200).json(updated)
 })
 
-// Cancel a booking (legacy endpoint, no reason required)
-router.delete('/:id', async (req: Request<Record<string, string>>, res: Response) => {
-  const bookingId = req.params.id
-
-  const booking = await getBookingById(bookingId)
-  if (!booking) {
-    return problem({ status: 404, detail: 'Booking not found' })
-  }
-  if (booking.status === BookingStatus.CANCELLED) {
-    return problem({ status: 409, detail: 'Booking already cancelled' })
-  }
-  validateWriteAccess(booking, req)
-
-  logger.info(
-    `Cancelling booking ${bookingId}. Cancelled by member: ${req.user?.memberId} with permissions :${req.user?.permissions}`,
-  )
-
-  const cancelled = await cancelBooking(bookingId, req.user!)
-  if (!cancelled) {
-    return problem({
-      status: 500,
-      detail: 'Booking deletion failed',
-    })
-  }
-
-  const member = await getMemberById(cancelled.memberId)
-  if (member?.email) {
-    const { subject, html } = renderEmail(
-      'booking-cancelled',
-      member.lang,
-      bookingEmailVars(cancelled, { firstName: member.firstName }),
-    )
-    sendEmail(member.email, subject, html, [
-      {
-        filename: 'booking.ics',
-        content: generateCancelIcsContent(cancelled),
-        contentType: 'text/calendar',
-      },
-    ])
-  }
-  notifyInstructor(
-    cancelled.instructorMemberId,
-    cancelled,
-    memberFullName(cancelled.member),
-    'cancelled',
-  )
-
-  res.status(204).json(cancelled)
-})
-
 // Cancel a booking with a reason
 router.post('/:id/cancel', async (req: Request<Record<string, string>>, res: Response) => {
   const bookingId = req.params.id

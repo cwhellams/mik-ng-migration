@@ -16,7 +16,6 @@ import {
   ValidatedFlightLogMemberUpsertSchema,
   BilledFlightLogUpsertSchema,
   type FlightLogUpsertRequest,
-  FlightLogMigrationSchema,
   type FlightLogStatsResponse,
   type FlightLogStats,
   type FlightLogStatsFilter,
@@ -75,12 +74,8 @@ router.get('/airfields', async (req: Request<Record<string, string>>, res: Respo
 router.post('/', async (req: Request<Record<string, string>>, res: Response) => {
   const isAdmin = isFlightLogAdmin(req.user)
   if (isAdmin) {
-    const enableFullData = req.headers['x-mik-migration'] === 'true'
-
     // admin can create flight logs for other members
-    const data = flightLogDateValidator(
-      enableFullData ? FlightLogMigrationSchema : FlightLogUpsertSchema,
-    ).parse(req.body)
+    const data = flightLogDateValidator(FlightLogUpsertSchema).parse(req.body)
 
     const businessErrors: z.IssueData[] = []
     validateFlightLogBusinessRules(data, (issue) => businessErrors.push(issue))
@@ -458,11 +453,6 @@ router.post(
         status: 500,
         detail: 'Flight log update failed',
       })
-    }
-
-    // remove after migration
-    if (req.headers['x-mik-migration']) {
-      await updateFlightLogStatus(flightId, flight.status, FlightLogStatus.PAID, {}, req.user!)
     }
 
     const afterUpdate = await getFlightLog(flightId)

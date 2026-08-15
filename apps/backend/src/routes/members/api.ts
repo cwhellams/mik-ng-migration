@@ -259,18 +259,11 @@ router.post(
   async (req: Request<{ memberId: string }>, res: Response<Member>) => {
     const memberId = req.params.memberId
 
-    // skip integrations during migration
-    const createSimplbooks = req.headers['x-mik-migration'] !== 'true'
-
-    const approval = await setMembershipApproval(memberId, req.user!.memberId, createSimplbooks)
-    if (createSimplbooks) {
-      const { subject, html } = renderEmail('registration-approved', approval.lang, {
-        firstName: approval.firstName,
-      })
-      sendEmail(approval.email, subject, html)
-    } else {
-      console.log(`Skipping sending approval email to ${approval.email} due to migration flag`)
-    }
+    const approval = await setMembershipApproval(memberId, req.user!.memberId, true)
+    const { subject, html } = renderEmail('registration-approved', approval.lang, {
+      firstName: approval.firstName,
+    })
+    sendEmail(approval.email, subject, html)
 
     // add default roles for the member
     await updateMemberRoles(memberId, rolesForNewMember(approval.memberType), req.user!)

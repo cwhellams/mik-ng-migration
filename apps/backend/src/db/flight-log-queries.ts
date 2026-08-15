@@ -14,7 +14,6 @@ import {
   type InvoicableFlightFilters,
   FlightType,
   type PrivOrComFlight,
-  type FlightLogMigrationRequest,
   InvoicableFlights,
   type FlightLogStats,
   type FlightCredit,
@@ -725,24 +724,20 @@ export async function getInvoicableFlights(
 }
 
 export async function insertFlightLog(
-  data: FlightLogMemberRequest | FlightLogUpsertRequest | FlightLogMigrationRequest,
+  data: FlightLogMemberRequest | FlightLogUpsertRequest,
   user: { memberId: string; permissions: MIKPermissions[] },
 ): Promise<string> {
   // admins can bill flights to other members
   const billableMemberId = 'billableMemberId' in data ? data.billableMemberId : user.memberId
 
-  // determine if this is a DTO training flight
-  const isDtoTrainingFlight =
-    'isDtoTrainingFlight' in data
-      ? data.isDtoTrainingFlight
-      : (
-          await db
-            .selectFrom('member.register')
-            .select('is_training_program_pilot')
-            .where('member_id', '=', billableMemberId)
-            .limit(1)
-            .executeTakeFirstOrThrow()
-        ).is_training_program_pilot
+  // determine if this is a DTO training flight (auto-detected from member's training status)
+  const member = await db
+    .selectFrom('member.register')
+    .select('is_training_program_pilot')
+    .where('member_id', '=', billableMemberId)
+    .limit(1)
+    .executeTakeFirstOrThrow()
+  const isDtoTrainingFlight = !!member.is_training_program_pilot
 
   // DTO training flights always have flight type DTO
   const flightType = isDtoTrainingFlight ? FlightType.DTO : data.flightType
@@ -797,41 +792,30 @@ export async function insertFlightLog(
       priv_or_com_flight: flightTypeToPrivOrCom(flightType),
       total_time_in_service: data.totalTimeInService,
 
-      // only for the migration
-      invoice_number: 'invoiceNumber' in data ? data.invoiceNumber : undefined,
+      // Admin billability/fee/validation fields (use request values when available)
+      invoice_number: undefined,
       is_billable_flight: 'isBillableFlight' in data ? data.isBillableFlight : true,
       partially_billable_flight: data.partiallyBillableFlight ?? false,
       entry_error_fee: 'entryErrorFee' in data ? (data.entryErrorFee ?? false) : false,
       entry_error_fee_applied_by_member_id:
-        // For migration imports, honor the supplied member ID; for all regular inserts,
-        // derive it from the current user when an entry error fee is applied.
-        'entryErrorFeeAppliedByMemberId' in data
-          ? data.entryErrorFeeAppliedByMemberId
-          : 'entryErrorFee' in data && data.entryErrorFee
-            ? user.memberId
-            : null,
+        'entryErrorFee' in data && data.entryErrorFee ? user.memberId : null,
       non_billing_approved_by_member_id:
-        // For migration imports, honor the supplied member ID; for all regular inserts,
-        // derive it from the current user when the flight is marked non-billable.
-        'nonBillingApprovedByMemberId' in data
-          ? data.nonBillingApprovedByMemberId
-          : 'isBillableFlight' in data && data.isBillableFlight === false
-            ? user.memberId
-            : null,
+        'isBillableFlight' in data && data.isBillableFlight === false ? user.memberId : null,
+      non_billing_reason: 'nonBillingReason' in data ? data.nonBillingReason : undefined,
+      min_billable_exception_reason:
+        'minBillableExceptionReason' in data ? data.minBillableExceptionReason : undefined,
+      min_billable_exception_approved_by_member_id:
+        'minBillableExceptionReason' in data && data.minBillableExceptionReason !== null
+          ? user.memberId
+          : null,
       validation_remarks: 'validationRemarks' in data ? data.validationRemarks : null,
 
       ajlb_blank_rows_before: 'ajlbBlankRowsBefore' in data ? data.ajlbBlankRowsBefore : 0,
-      ajlb_seq_no:
-        // For migration imports, use the supplied ajlbSeqNo; for all regular inserts
-        // (admin or member), always auto-detect from the current open AJLB so that a
-        // hardcoded frontend default can never land the flight in the wrong book.
-        'isDtoTrainingFlight' in data && data.ajlbSeqNo
-          ? data.ajlbSeqNo
-          : eb
-              .selectFrom('flight.vw_flight_time_totals')
-              .select(eb.fn.coalesce('ajlb_seq_no', eb.lit(0)).as('ajlb_seq_no'))
-              .where('aircraft_registration', '=', data.aircraftRegistration)
-              .where('current', '=', true),
+      ajlb_seq_no: eb
+        .selectFrom('flight.vw_flight_time_totals')
+        .select(eb.fn.coalesce('ajlb_seq_no', eb.lit(0)).as('ajlb_seq_no'))
+        .where('aircraft_registration', '=', data.aircraftRegistration)
+        .where('current', '=', true),
       flight_id: generateShortId(),
       created_by: user.memberId,
       created_at: new Date().toISOString(),
