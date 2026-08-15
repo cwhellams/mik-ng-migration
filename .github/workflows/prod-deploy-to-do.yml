@@ -58,6 +58,12 @@ jobs:
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITAL_OCEAN_TEST_API_KEY }}
+          # Pinned instead of "latest": the action resolves "latest" via an
+          # unauthenticated GitHub API call, which silently falls back to a
+          # hardcoded old default (1.98.1 as of writing) when that call is
+          # rate-limited. That old version doesn't know about the app spec's
+          # `vpc` field and fails with "json: unknown field \"vpc\"".
+          version: 1.166.0
 
       - name: Log in to DO Container Registry
         run: doctl registry login --expiry-seconds 1200
