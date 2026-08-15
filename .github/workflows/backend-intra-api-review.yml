@@ -134,7 +134,8 @@ jobs:
           # which is gated at zero errors by its own step above.
           # 81 -> 80: the sanitizers test moved to packages/contracts with them,
           # where zero tolerance forced its useless-escape to be fixed properly.
-          THRESHOLD=80
+          # 80 -> 79: getAirfields lost an unused parameter (#1165 review).
+          THRESHOLD=79
 
           # Check if error count exceeds threshold
           if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then

@@ -1,14 +1,14 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 
 /**
  * Delete any unused (not yet verified) pending email change requests for a member.
  * Called before creating a new request to ensure only one is active at a time.
  */
 export async function invalidatePreviousEmailChanges(memberId: string): Promise<void> {
-  await db
-    .deleteFrom('member.pending_email_changes')
-    .where('member_id', '=', memberId)
-    .where('used_at', 'is', null)
+  await camelDb
+    .deleteFrom('member.pendingEmailChanges')
+    .where('memberId', '=', memberId)
+    .where('usedAt', 'is', null)
     .execute()
 }
 
@@ -24,13 +24,13 @@ export async function createPendingEmailChange(
 ): Promise<string> {
   await invalidatePreviousEmailChanges(memberId)
 
-  const result = await db
-    .insertInto('member.pending_email_changes')
+  const result = await camelDb
+    .insertInto('member.pendingEmailChanges')
     .values({
-      member_id: memberId,
-      new_email: newEmail.toLowerCase(),
-      token_hash: tokenHash,
-      expires_at: expiresAt,
+      memberId: memberId,
+      newEmail: newEmail.toLowerCase(),
+      tokenHash: tokenHash,
+      expiresAt: expiresAt,
     })
     .returning('id')
     .executeTakeFirstOrThrow()
@@ -46,13 +46,13 @@ export async function createPendingEmailChange(
  * Returns the claimed row, or undefined if no match.
  */
 export async function claimPendingEmailChangeByTokenHash(tokenHash: string, memberId: string) {
-  return db
-    .updateTable('member.pending_email_changes')
-    .set({ used_at: new Date() })
-    .where('token_hash', '=', tokenHash)
-    .where('member_id', '=', memberId)
-    .where('used_at', 'is', null)
-    .where('expires_at', '>', new Date())
+  return camelDb
+    .updateTable('member.pendingEmailChanges')
+    .set({ usedAt: new Date() })
+    .where('tokenHash', '=', tokenHash)
+    .where('memberId', '=', memberId)
+    .where('usedAt', 'is', null)
+    .where('expiresAt', '>', new Date())
     .returningAll()
     .executeTakeFirst()
 }

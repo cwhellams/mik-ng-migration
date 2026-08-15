@@ -1,6 +1,6 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import type { Selectable } from 'kysely'
-import type { MemberRegister, MemberBrevoSyncState } from './schema.js'
+import type { MemberRegister, MemberSimplbooksSyncState } from './schema.camel.d.ts'
 import logger from '../lib/logger.ts'
 import type { SimplbooksSyncStatus } from '../services/simplbooks/models.ts'
 import { MIKMemberTypes } from '@mik/contracts/members'
@@ -8,12 +8,12 @@ import { MIKMemberTypes } from '@mik/contracts/members'
 /**
  * Get the last successful sync state
  */
-export async function getLastSimplbooksSyncState(): Promise<Selectable<MemberBrevoSyncState> | null> {
-  const state = await db
-    .selectFrom('member.simplbooks_sync_state')
+export async function getLastSimplbooksSyncState(): Promise<Selectable<MemberSimplbooksSyncState> | null> {
+  const state = await camelDb
+    .selectFrom('member.simplbooksSyncState')
     .selectAll()
-    .where('sync_status', '=', 'SUCCESS')
-    .orderBy('last_synced_at', 'desc')
+    .where('syncStatus', '=', 'SUCCESS')
+    .orderBy('lastSyncedAt', 'desc')
     .limit(1)
     .executeTakeFirst()
 
@@ -28,13 +28,13 @@ export async function createSimplbooksSyncState(
   status: 'SUCCESS' | 'FAILED' | 'IN_PROGRESS',
   errorMessage?: string,
 ): Promise<number> {
-  const result = await db
-    .insertInto('member.simplbooks_sync_state')
+  const result = await camelDb
+    .insertInto('member.simplbooksSyncState')
     .values({
-      last_synced_at: new Date(),
-      members_synced: membersSynced,
-      sync_status: status,
-      error_message: errorMessage,
+      lastSyncedAt: new Date(),
+      membersSynced: membersSynced,
+      syncStatus: status,
+      errorMessage: errorMessage,
     })
     .returning('id')
     .executeTakeFirstOrThrow()
@@ -51,13 +51,13 @@ export async function updateSimplbooksSyncState(
   status: 'SUCCESS' | 'FAILED',
   errorMessage?: string,
 ): Promise<void> {
-  await db
-    .updateTable('member.simplbooks_sync_state')
+  await camelDb
+    .updateTable('member.simplbooksSyncState')
     .set({
-      last_synced_at: new Date(),
-      members_synced: membersSynced,
-      sync_status: status,
-      error_message: errorMessage,
+      lastSyncedAt: new Date(),
+      membersSynced: membersSynced,
+      syncStatus: status,
+      errorMessage: errorMessage,
     })
     .where('id', '=', syncId)
     .execute()
@@ -71,12 +71,12 @@ export async function updateSimplbooksSyncState(
  * - OR have a failed sync status
  */
 export async function getMembersToSync(lastSyncedAt?: Date): Promise<Selectable<MemberRegister>[]> {
-  let query = db
+  let query = camelDb
     .selectFrom('member.register')
     .selectAll()
-    .where('is_membership_approved', '=', true)
-    .where('email_verified_at', 'is not', null)
-    .where('member_type', 'not in', [
+    .where('isMembershipApproved', '=', true)
+    .where('emailVerifiedAt', 'is not', null)
+    .where('memberType', 'not in', [
       MIKMemberTypes.EXTERNAL,
       MIKMemberTypes.REMOVED,
       MIKMemberTypes.SYSTEM,
@@ -86,15 +86,15 @@ export async function getMembersToSync(lastSyncedAt?: Date): Promise<Selectable<
     // Get members updated since last sync OR never synced OR failed
     query = query.where((eb) =>
       eb.or([
-        eb('updated_at', '>', lastSyncedAt),
-        eb('simplbooks_synced_at', 'is', null),
-        eb('simplbooks_sync_status', '=', 'FAILED'),
+        eb('updatedAt', '>', lastSyncedAt),
+        eb('simplbooksSyncedAt', 'is', null),
+        eb('simplbooksSyncStatus', '=', 'FAILED'),
       ]),
     )
   } else {
     // First sync - get all approved and verified members
     query = query.where((eb) =>
-      eb.or([eb('simplbooks_synced_at', 'is', null), eb('simplbooks_sync_status', '=', 'FAILED')]),
+      eb.or([eb('simplbooksSyncedAt', 'is', null), eb('simplbooksSyncStatus', '=', 'FAILED')]),
     )
   }
 
@@ -108,13 +108,13 @@ export async function updateMemberSimplbooksSyncStatus(
   memberId: string,
   status: SimplbooksSyncStatus,
 ): Promise<void> {
-  await db
+  await camelDb
     .updateTable('member.register')
     .set({
-      simplbooks_synced_at: new Date(),
-      simplbooks_sync_status: status,
+      simplbooksSyncedAt: new Date(),
+      simplbooksSyncStatus: status,
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .execute()
 
   logger.info(`Updated Simplbooks sync status for member ${memberId} to ${status}`)
@@ -124,12 +124,12 @@ export async function updateMemberSimplbooksSyncStatus(
  * Get members with pending Simplbooks sync status
  */
 export async function getMembersWithPendingSimplbooksSync(): Promise<Selectable<MemberRegister>[]> {
-  return await db
+  return await camelDb
     .selectFrom('member.register')
     .selectAll()
-    .where('simplbooks_sync_status', '=', 'PENDING')
-    .where('is_membership_approved', '=', true)
-    .where('email_verified_at', 'is not', null)
+    .where('simplbooksSyncStatus', '=', 'PENDING')
+    .where('isMembershipApproved', '=', true)
+    .where('emailVerifiedAt', 'is not', null)
     .execute()
 }
 
@@ -139,10 +139,10 @@ export async function getMembersWithPendingSimplbooksSync(): Promise<Selectable<
 export async function getMemberForSimplbooksSync(
   memberId: string,
 ): Promise<Selectable<MemberRegister> | undefined> {
-  return await db
+  return await camelDb
     .selectFrom('member.register')
     .selectAll()
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .executeTakeFirst()
 }
 
@@ -150,12 +150,12 @@ export async function getMemberForSimplbooksSync(
  * Mark member as needing Simplbooks sync (used when member is updated)
  */
 export async function markMemberForSimplbooksSync(memberId: string): Promise<void> {
-  await db
+  await camelDb
     .updateTable('member.register')
     .set({
-      simplbooks_sync_status: 'PENDING',
+      simplbooksSyncStatus: 'PENDING',
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .execute()
 }
 
@@ -167,13 +167,13 @@ export async function getSimplbooksSyncStatusCounts(): Promise<{
   synced: number
   failed: number
 }> {
-  const results = await db
+  const results = await camelDb
     .selectFrom('member.register')
-    .select('simplbooks_sync_status')
-    .select((eb) => eb.fn.count('member_id').as('count'))
-    .where('is_membership_approved', '=', true)
-    .where('email_verified_at', 'is not', null)
-    .groupBy('simplbooks_sync_status')
+    .select('simplbooksSyncStatus')
+    .select((eb) => eb.fn.count('memberId').as('count'))
+    .where('isMembershipApproved', '=', true)
+    .where('emailVerifiedAt', 'is not', null)
+    .groupBy('simplbooksSyncStatus')
     .execute()
 
   const counts = {
@@ -184,11 +184,11 @@ export async function getSimplbooksSyncStatusCounts(): Promise<{
 
   results.forEach((result) => {
     const count = Number(result.count)
-    if (result.simplbooks_sync_status === 'PENDING') {
+    if (result.simplbooksSyncStatus === 'PENDING') {
       counts.pending = count
-    } else if (result.simplbooks_sync_status === 'SYNCED') {
+    } else if (result.simplbooksSyncStatus === 'SYNCED') {
       counts.synced = count
-    } else if (result.simplbooks_sync_status === 'FAILED') {
+    } else if (result.simplbooksSyncStatus === 'FAILED') {
       counts.failed = count
     }
   })

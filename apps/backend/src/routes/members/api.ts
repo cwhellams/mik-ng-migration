@@ -122,10 +122,10 @@ async function captureMailingListSyncData(
 ): Promise<MailingListSyncData> {
   if (newLists === undefined || !isBrevoConfigured) return null
   const current = await getMemberForBrevoSync(memberId)
-  if (!current?.brevo_contact_id) return null
+  if (!current?.brevoContactId) return null
   return {
-    brevoContactId: Number(current.brevo_contact_id),
-    oldLists: (current.mailing_lists as string[] | null) ?? [],
+    brevoContactId: Number(current.brevoContactId),
+    oldLists: (current.mailingLists as string[] | null) ?? [],
     newLists: newLists ?? [],
   }
 }
@@ -434,7 +434,7 @@ router.post(
       return
     }
 
-    await updateMember(req.user!.memberId, { email: claimed.new_email }, req.user!)
+    await updateMember(req.user!.memberId, { email: claimed.newEmail }, req.user!)
 
     const member = await getMemberById(req.user!.memberId)
     res.status(200).json(member)

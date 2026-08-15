@@ -148,7 +148,7 @@ router.post('/login/verify-code', async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Invalid or expired code' })
   }
 
-  const codeMatches = bcrypt.compareSync(code, attempt.code_hash)
+  const codeMatches = bcrypt.compareSync(code, attempt.codeHash)
   if (!codeMatches) {
     const failures = await incrementLoginAttemptFailures(attempt.id)
     logger.warn('verify-code: incorrect code for %s (attempt %d)', email, failures)

@@ -1,6 +1,6 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import type { Selectable } from 'kysely'
-import type { MemberRegister, MemberBrevoSyncState } from './schema.ts'
+import type { MemberRegister, MemberBrevoSyncState } from './schema.camel.d.ts'
 import logger from '../lib/logger.ts'
 import type { BrevoSyncStatus } from '../services/brevo/models.ts'
 import { MIKMemberTypes } from '@mik/contracts/members'
@@ -9,11 +9,11 @@ import { MIKMemberTypes } from '@mik/contracts/members'
  * Get the last successful sync state
  */
 export async function getLastBrevoSyncState(): Promise<Selectable<MemberBrevoSyncState> | null> {
-  const state = await db
-    .selectFrom('member.brevo_sync_state')
+  const state = await camelDb
+    .selectFrom('member.brevoSyncState')
     .selectAll()
-    .where('sync_status', '=', 'SUCCESS')
-    .orderBy('last_synced_at', 'desc')
+    .where('syncStatus', '=', 'SUCCESS')
+    .orderBy('lastSyncedAt', 'desc')
     .limit(1)
     .executeTakeFirst()
 
@@ -28,13 +28,13 @@ export async function createBrevoSyncState(
   status: 'SUCCESS' | 'FAILED' | 'IN_PROGRESS',
   errorMessage?: string,
 ): Promise<number> {
-  const result = await db
-    .insertInto('member.brevo_sync_state')
+  const result = await camelDb
+    .insertInto('member.brevoSyncState')
     .values({
-      last_synced_at: new Date(),
-      members_synced: membersSynced,
-      sync_status: status,
-      error_message: errorMessage,
+      lastSyncedAt: new Date(),
+      membersSynced: membersSynced,
+      syncStatus: status,
+      errorMessage: errorMessage,
     })
     .returning('id')
     .executeTakeFirstOrThrow()
@@ -51,13 +51,13 @@ export async function updateBrevoSyncState(
   status: 'SUCCESS' | 'FAILED',
   errorMessage?: string,
 ): Promise<void> {
-  await db
-    .updateTable('member.brevo_sync_state')
+  await camelDb
+    .updateTable('member.brevoSyncState')
     .set({
-      last_synced_at: new Date(),
-      members_synced: membersSynced,
-      sync_status: status,
-      error_message: errorMessage,
+      lastSyncedAt: new Date(),
+      membersSynced: membersSynced,
+      syncStatus: status,
+      errorMessage: errorMessage,
     })
     .where('id', '=', syncId)
     .execute()
@@ -71,12 +71,12 @@ export async function updateBrevoSyncState(
  * - OR have a failed sync status
  */
 export async function getMembersToSync(lastSyncedAt?: Date): Promise<Selectable<MemberRegister>[]> {
-  let query = db
+  let query = camelDb
     .selectFrom('member.register')
     .selectAll()
-    .where('is_membership_approved', '=', true)
-    .where('email_verified_at', 'is not', null)
-    .where('member_type', 'not in', [
+    .where('isMembershipApproved', '=', true)
+    .where('emailVerifiedAt', 'is not', null)
+    .where('memberType', 'not in', [
       MIKMemberTypes.EXTERNAL,
       MIKMemberTypes.REMOVED,
       MIKMemberTypes.SYSTEM,
@@ -86,15 +86,15 @@ export async function getMembersToSync(lastSyncedAt?: Date): Promise<Selectable<
     // Get members updated since last sync OR never synced OR failed
     query = query.where((eb) =>
       eb.or([
-        eb('updated_at', '>', lastSyncedAt),
-        eb('brevo_synced_at', 'is', null),
-        eb('brevo_sync_status', '=', 'FAILED'),
+        eb('updatedAt', '>', lastSyncedAt),
+        eb('brevoSyncedAt', 'is', null),
+        eb('brevoSyncStatus', '=', 'FAILED'),
       ]),
     )
   } else {
     // First sync - get all approved and verified members
     query = query.where((eb) =>
-      eb.or([eb('brevo_synced_at', 'is', null), eb('brevo_sync_status', '=', 'FAILED')]),
+      eb.or([eb('brevoSyncedAt', 'is', null), eb('brevoSyncStatus', '=', 'FAILED')]),
     )
   }
 
@@ -109,14 +109,14 @@ export async function updateMemberBrevoSyncStatus(
   status: BrevoSyncStatus,
   brevoContactId?: number,
 ): Promise<void> {
-  await db
+  await camelDb
     .updateTable('member.register')
     .set({
-      brevo_synced_at: new Date(),
-      brevo_sync_status: status,
-      brevo_contact_id: brevoContactId,
+      brevoSyncedAt: new Date(),
+      brevoSyncStatus: status,
+      brevoContactId: brevoContactId,
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .execute()
 
   logger.info(`Updated Brevo sync status for member ${memberId} to ${status}`)
@@ -126,12 +126,12 @@ export async function updateMemberBrevoSyncStatus(
  * Get members with pending Brevo sync status
  */
 export async function getMembersWithPendingBrevoSync(): Promise<Selectable<MemberRegister>[]> {
-  return await db
+  return await camelDb
     .selectFrom('member.register')
     .selectAll()
-    .where('brevo_sync_status', '=', 'PENDING')
-    .where('is_membership_approved', '=', true)
-    .where('email_verified_at', 'is not', null)
+    .where('brevoSyncStatus', '=', 'PENDING')
+    .where('isMembershipApproved', '=', true)
+    .where('emailVerifiedAt', 'is not', null)
     .execute()
 }
 
@@ -141,10 +141,10 @@ export async function getMembersWithPendingBrevoSync(): Promise<Selectable<Membe
 export async function getMemberForBrevoSync(
   memberId: string,
 ): Promise<Selectable<MemberRegister> | undefined> {
-  return await db
+  return await camelDb
     .selectFrom('member.register')
     .selectAll()
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .executeTakeFirst()
 }
 
@@ -152,12 +152,12 @@ export async function getMemberForBrevoSync(
  * Mark member as needing Brevo sync (used when member is updated)
  */
 export async function markMemberForBrevoSync(memberId: string): Promise<void> {
-  await db
+  await camelDb
     .updateTable('member.register')
     .set({
-      brevo_sync_status: 'PENDING',
+      brevoSyncStatus: 'PENDING',
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .execute()
 }
 
@@ -169,13 +169,13 @@ export async function getBrevoSyncStatusCounts(): Promise<{
   synced: number
   failed: number
 }> {
-  const results = await db
+  const results = await camelDb
     .selectFrom('member.register')
-    .select('brevo_sync_status')
-    .select((eb) => eb.fn.count('member_id').as('count'))
-    .where('is_membership_approved', '=', true)
-    .where('email_verified_at', 'is not', null)
-    .groupBy('brevo_sync_status')
+    .select('brevoSyncStatus')
+    .select((eb) => eb.fn.count('memberId').as('count'))
+    .where('isMembershipApproved', '=', true)
+    .where('emailVerifiedAt', 'is not', null)
+    .groupBy('brevoSyncStatus')
     .execute()
 
   const counts = {
@@ -186,11 +186,11 @@ export async function getBrevoSyncStatusCounts(): Promise<{
 
   results.forEach((result) => {
     const count = Number(result.count)
-    if (result.brevo_sync_status === 'PENDING') {
+    if (result.brevoSyncStatus === 'PENDING') {
       counts.pending = count
-    } else if (result.brevo_sync_status === 'SYNCED') {
+    } else if (result.brevoSyncStatus === 'SYNCED') {
       counts.synced = count
-    } else if (result.brevo_sync_status === 'FAILED') {
+    } else if (result.brevoSyncStatus === 'FAILED') {
       counts.failed = count
     }
   })

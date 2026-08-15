@@ -1,27 +1,27 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import type { ProofFile, ProofDocumentCategory } from '@mik/contracts/instructor-qualifications'
 
 function mapProofRow(row: {
   id: number
-  member_id: string
-  file_name: string
-  storage_key: string
-  mime_type: string
-  uploaded_at: Date
-  uploaded_by: string
-  history_id: number | string | null
-  document_category: string
+  memberId: string
+  fileName: string
+  storageKey: string
+  mimeType: string
+  uploadedAt: Date
+  uploadedBy: string
+  historyId: number | string | null
+  documentCategory: string
 }): ProofFile {
   return {
     id: row.id,
-    memberId: row.member_id,
-    fileName: row.file_name,
-    storageKey: row.storage_key,
-    mimeType: row.mime_type,
-    uploadedAt: row.uploaded_at.toISOString(),
-    uploadedBy: row.uploaded_by,
-    historyId: row.history_id !== null ? Number(row.history_id) : null,
-    documentCategory: row.document_category as ProofDocumentCategory,
+    memberId: row.memberId,
+    fileName: row.fileName,
+    storageKey: row.storageKey,
+    mimeType: row.mimeType,
+    uploadedAt: row.uploadedAt.toISOString(),
+    uploadedBy: row.uploadedBy,
+    historyId: row.historyId !== null ? Number(row.historyId) : null,
+    documentCategory: row.documentCategory as ProofDocumentCategory,
   }
 }
 
@@ -34,16 +34,16 @@ export async function addQualificationProof(
   historyId: number | null = null,
   documentCategory: ProofDocumentCategory = 'LICENSE',
 ): Promise<ProofFile> {
-  const row = await db
-    .insertInto('member.qualification_proof_files')
+  const row = await camelDb
+    .insertInto('member.qualificationProofFiles')
     .values({
-      member_id: memberId,
-      file_name: fileName,
-      storage_key: storageKey,
-      mime_type: mimeType,
-      uploaded_by: uploadedBy,
-      history_id: historyId,
-      document_category: documentCategory,
+      memberId: memberId,
+      fileName: fileName,
+      storageKey: storageKey,
+      mimeType: mimeType,
+      uploadedBy: uploadedBy,
+      historyId: historyId,
+      documentCategory: documentCategory,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -52,11 +52,11 @@ export async function addQualificationProof(
 }
 
 export async function getQualificationProofs(memberId: string): Promise<ProofFile[]> {
-  const rows = await db
-    .selectFrom('member.qualification_proof_files')
+  const rows = await camelDb
+    .selectFrom('member.qualificationProofFiles')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('uploaded_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('uploadedAt', 'desc')
     .execute()
 
   return rows.map(mapProofRow)
@@ -70,13 +70,13 @@ export async function getLatestProofByCategory(
   category: ProofDocumentCategory,
   asOf: Date,
 ): Promise<ProofFile | null> {
-  const row = await db
-    .selectFrom('member.qualification_proof_files')
+  const row = await camelDb
+    .selectFrom('member.qualificationProofFiles')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .where('document_category', '=', category)
-    .where('uploaded_at', '<=', asOf)
-    .orderBy('uploaded_at', 'desc')
+    .where('memberId', '=', memberId)
+    .where('documentCategory', '=', category)
+    .where('uploadedAt', '<=', asOf)
+    .orderBy('uploadedAt', 'desc')
     .executeTakeFirst()
 
   return row ? mapProofRow(row) : null
@@ -105,13 +105,13 @@ export async function getLatestProofIdsByMembers(
 
   const cutoff = asOf ?? new Date()
 
-  const rows = await db
-    .selectFrom('member.qualification_proof_files')
-    .select(['id', 'member_id', 'document_category', 'uploaded_at'])
-    .where('member_id', 'in', memberIds)
-    .where('document_category', 'in', ['LICENSE', 'MEDICAL'])
-    .where('uploaded_at', '<=', cutoff)
-    .orderBy('uploaded_at', 'desc')
+  const rows = await camelDb
+    .selectFrom('member.qualificationProofFiles')
+    .select(['id', 'memberId', 'documentCategory', 'uploadedAt'])
+    .where('memberId', 'in', memberIds)
+    .where('documentCategory', 'in', ['LICENSE', 'MEDICAL'])
+    .where('uploadedAt', '<=', cutoff)
+    .orderBy('uploadedAt', 'desc')
     .orderBy('id', 'desc')
     .execute()
 
@@ -120,17 +120,17 @@ export async function getLatestProofIdsByMembers(
   const seen = new Set<string>()
 
   for (const row of rows) {
-    const key = `${row.member_id}:${row.document_category}`
+    const key = `${row.memberId}:${row.documentCategory}`
     if (seen.has(key)) continue
     seen.add(key)
 
-    const entry = result.get(row.member_id) ?? { licenseProofId: null, medicalProofId: null }
-    if (row.document_category === 'LICENSE') {
+    const entry = result.get(row.memberId) ?? { licenseProofId: null, medicalProofId: null }
+    if (row.documentCategory === 'LICENSE') {
       entry.licenseProofId = row.id
-    } else if (row.document_category === 'MEDICAL') {
+    } else if (row.documentCategory === 'MEDICAL') {
       entry.medicalProofId = row.id
     }
-    result.set(row.member_id, entry)
+    result.set(row.memberId, entry)
   }
 
   return result

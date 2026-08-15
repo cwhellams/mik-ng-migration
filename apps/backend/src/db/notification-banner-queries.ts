@@ -1,10 +1,10 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import type { NotificationBanner } from '@mik/contracts/notification-banner'
 import type { JWTUser } from '../routes/auth/token.ts'
 
 export const getNotificationBanner = async (): Promise<NotificationBanner> => {
-  const result = await db
-    .selectFrom('notification_banner')
+  const result = await camelDb
+    .selectFrom('notificationBanner')
     .select(['enabled', 'message', 'severity'])
     .where('id', '=', 1)
     .executeTakeFirstOrThrow()
@@ -20,14 +20,14 @@ export const setNotificationBanner = async (
   banner: NotificationBanner,
   user: JWTUser,
 ): Promise<void> => {
-  await db
-    .updateTable('notification_banner')
+  await camelDb
+    .updateTable('notificationBanner')
     .set({
       enabled: banner.enabled,
       message: banner.message,
       severity: banner.severity,
-      updated_at: new Date(),
-      updated_by: user.memberId,
+      updatedAt: new Date(),
+      updatedBy: user.memberId,
     })
     .where('id', '=', 1)
     .execute()

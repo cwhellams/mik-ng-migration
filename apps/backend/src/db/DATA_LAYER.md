@@ -29,6 +29,11 @@ in one commit is ~4,900 mechanical edits across the whole backend.
    `as any` casts go — they exist to force hand-mapped rows past types that were written
    by hand in the first place.
 
+   Delete every `any` in the module while you are there — `(eb: any)`, `record: any`,
+   `updateData: any`. They are not cosmetic: an `any` hides un-migrated snake_case
+   identifiers from the compiler, so the module looks migrated and isn't.
+   `aircraft-card-queries.ts` had `eb.fn.count('card_id')` sitting inside one.
+
    Do **not** keep defensive `String(...)` / `Number(...)` wrappers around a value now
    that it has a real type. `new Date(String(row.createdAt)).toISOString()` is not a
    no-op: `Date#toString()` has no millisecond field, so it truncates the timestamp.
@@ -98,14 +103,28 @@ corrupted by it. `test/db/camel-case-plugin.test.ts` pins this.
 
 ## Progress
 
-Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`.
+**23 of 53 query modules migrated.** Everything with no raw SQL and no shared transaction
+is done — what remains is exactly the set that needs a judgement call.
 
-Remaining, easiest first — all have db-level tests and no raw SQL:
-`cost-centre`, `brevo-sync`.
+Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
+`aircraft-card`, `airfields`, `auth`, `brevo-sync`, `cost-centre`, `email-change`,
+`events`, `fuel-prices`, `instructor-qualification`, `mailbox`, `notification-banner`,
+`passkey`, `prices`, `push`, `qualification-proof`, `secrets`, `simplbooks-sync`,
+`useful-phone-number`.
 
-Then the ones needing care: `aircraft`, `aircraft-document`, `member`, `occurrence`,
-`expense`, `booking`, `tax-report`, `traficom-report`, `flight-log` (raw SQL and/or shared
-transactions), and `ajlb` (raw `pool.query`).
+Remaining, grouped by what makes them awkward:
+
+- **Raw `sql` fragments** — audit each fragment's result keys by hand:
+  `aircraft`, `aircraft-document`, `aircraft-hil`, `aircraft-navdata`, `ame`, `booking`,
+  `brevo-campaign-archive`, `defect`, `document`, `flight-log`, `fuel-report`, `gdpr`,
+  `instructor-worktime`, `member`, `prepaid-hours`, `shop`, `stats`, `tax-report`,
+  `tiny-url`, `traficom-report`, `uplift-report`.
+- **Shared transactions — must move as one commit**, since a transaction cannot span the
+  two instances: `expense`, `expense-attachment`, `inventory`, `meeting`, `mileage`,
+  `occurrence`, `outbox-simplbooks`. `maintenance-note` and `defect` are a second such
+  pair: `maintenance-note` opens a transaction and passes it into `defect-queries`.
+- **Raw `pool.query`**, bypassing Kysely entirely, so the plugin never applies:
+  `ajlb`. Those functions stay snake_case until they are rewritten as Kysely queries.
 
 When the last one moves, delete `schema.d.ts`, rename `schema.camel.d.ts` over it, and
 collapse `camelDb` back into `db`.

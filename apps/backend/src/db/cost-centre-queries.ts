@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 
 export interface CostCentre {
   code: string
@@ -6,12 +6,12 @@ export interface CostCentre {
 }
 
 export async function getCostCentres(): Promise<CostCentre[]> {
-  return db.selectFrom('accts.cost_centre').selectAll().orderBy('code').execute()
+  return camelDb.selectFrom('accts.costCentre').selectAll().orderBy('code').execute()
 }
 
 export async function createCostCentre(code: string, description: string): Promise<CostCentre> {
-  return db
-    .insertInto('accts.cost_centre')
+  return camelDb
+    .insertInto('accts.costCentre')
     .values({ code, description })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -21,8 +21,8 @@ export async function updateCostCentre(
   code: string,
   description: string,
 ): Promise<CostCentre | undefined> {
-  return db
-    .updateTable('accts.cost_centre')
+  return camelDb
+    .updateTable('accts.costCentre')
     .set({ description })
     .where('code', '=', code)
     .returningAll()
@@ -30,8 +30,8 @@ export async function updateCostCentre(
 }
 
 export async function deleteCostCentre(code: string): Promise<boolean> {
-  const result = await db
-    .deleteFrom('accts.cost_centre')
+  const result = await camelDb
+    .deleteFrom('accts.costCentre')
     .where('code', '=', code)
     .executeTakeFirstOrThrow()
   return result.numDeletedRows > BigInt(0)

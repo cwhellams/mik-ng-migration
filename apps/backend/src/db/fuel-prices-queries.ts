@@ -1,11 +1,11 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 
 const FUEL_PRICES_ID = 1
 
 export const getFuelPricesMarkdown = async (): Promise<string> => {
-  const record = await db
-    .selectFrom('fuel_prices_content')
+  const record = await camelDb
+    .selectFrom('fuelPricesContent')
     .select('markdown')
     .where('id', '=', FUEL_PRICES_ID)
     .executeTakeFirst()
@@ -15,12 +15,12 @@ export const getFuelPricesMarkdown = async (): Promise<string> => {
 
 export const setFuelPricesMarkdown = async (markdown: string, user: JWTUser): Promise<void> => {
   const now = new Date()
-  const updateResult = await db
-    .updateTable('fuel_prices_content')
+  const updateResult = await camelDb
+    .updateTable('fuelPricesContent')
     .set({
       markdown,
-      updated_at: now,
-      updated_by: user.memberId,
+      updatedAt: now,
+      updatedBy: user.memberId,
     })
     .where('id', '=', FUEL_PRICES_ID)
     .executeTakeFirst()
@@ -29,15 +29,15 @@ export const setFuelPricesMarkdown = async (markdown: string, user: JWTUser): Pr
   // the singleton row, but keep this defensive fallback for environments
   // where data may have been manually removed.
   if (updateResult.numUpdatedRows === BigInt(0)) {
-    await db
-      .insertInto('fuel_prices_content')
+    await camelDb
+      .insertInto('fuelPricesContent')
       .values({
         id: FUEL_PRICES_ID,
         markdown,
-        created_at: now,
-        updated_at: now,
-        created_by: user.memberId,
-        updated_by: user.memberId,
+        createdAt: now,
+        updatedAt: now,
+        createdBy: user.memberId,
+        updatedBy: user.memberId,
       })
       .execute()
   }

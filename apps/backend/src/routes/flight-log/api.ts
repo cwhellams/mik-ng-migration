@@ -64,8 +64,7 @@ const isFlightLogAdmin = (user?: JWTUser): boolean =>
 
 // Get flight log total times by registraion
 router.get('/airfields', async (req: Request<Record<string, string>>, res: Response) => {
-  const reg = req.params.registration
-  const airfields = await getAirfields(reg)
+  const airfields = await getAirfields()
   if (airfields.length === 0) {
     return problem({ status: 404, detail: 'Airfields not found' })
   }

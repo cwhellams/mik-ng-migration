@@ -72,7 +72,7 @@ export async function syncMembersToSimplbooks(): Promise<void> {
   try {
     // Get last successful sync time
     const lastSyncState = await getLastSimplbooksSyncState()
-    const lastSyncedAt = lastSyncState?.last_synced_at
+    const lastSyncedAt = lastSyncState?.lastSyncedAt
 
     logger.info(
       `Last successful sync was at: ${lastSyncedAt ? lastSyncedAt.toISOString() : 'never'}`,
@@ -98,9 +98,9 @@ export async function syncMembersToSimplbooks(): Promise<void> {
         syncedCount++
       } catch (error) {
         failedCount++
-        logger.error(`Failed to sync member ${member.member_id} to Simplbooks:`, error)
+        logger.error(`Failed to sync member ${member.memberId} to Simplbooks:`, error)
         // Mark as failed but continue with other members
-        await updateMemberSimplbooksSyncStatus(member.member_id, 'FAILED')
+        await updateMemberSimplbooksSyncStatus(member.memberId, 'FAILED')
       }
     }
 
@@ -131,28 +131,28 @@ export async function syncMembersToSimplbooks(): Promise<void> {
 type MemberToSync = Awaited<ReturnType<typeof getMembersToSync>>[number]
 
 async function syncMemberToSimplbooks(member: MemberToSync): Promise<void> {
-  logger.info(`Syncing member ${member.member_id} (${member.email}) to Simplbooks`)
+  logger.info(`Syncing member ${member.memberId} (${member.email}) to Simplbooks`)
 
   // Check if contact already exists in Simplbooks
-  if (!member.billing_id)
-    throw new Error(`Member ${member.member_id} does not have a billing_id, unable to sync !`)
+  if (!member.billingId)
+    throw new Error(`Member ${member.memberId} does not have a billing_id, unable to sync !`)
 
   // Update existing contact
-  logger.info(`Updating existing Simplbooks contact for member ${member.member_id}`)
+  logger.info(`Updating existing Simplbooks contact for member ${member.memberId}`)
 
   const client: ClientData = {
     Client: {
       e_mail: member.email,
-      name: member.first_name + ' ' + member.last_name,
-      phone: member.phone_number ?? '',
-      address_street: member.street_address ?? '',
-      address_city: member.town_city ?? '',
+      name: member.firstName + ' ' + member.lastName,
+      phone: member.phoneNumber ?? '',
+      address_street: member.streetAddress ?? '',
+      address_city: member.townCity ?? '',
       address_postal_code: member.postcode ?? '',
-      client_settings_language: mapMIKLangToSimplbooksLanguage(member.lang_iso639),
+      client_settings_language: mapMIKLangToSimplbooksLanguage(member.langIso639),
     },
   }
-  await updateClient(Number(member.billing_id), client)
-  await updateMemberSimplbooksSyncStatus(member.member_id, 'SYNCED')
+  await updateClient(Number(member.billingId), client)
+  await updateMemberSimplbooksSyncStatus(member.memberId, 'SYNCED')
 
-  logger.info(`Successfully synced member ${member.member_id} to Simplbooks`)
+  logger.info(`Successfully synced member ${member.memberId} to Simplbooks`)
 }

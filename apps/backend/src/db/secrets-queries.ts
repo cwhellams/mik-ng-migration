@@ -1,24 +1,24 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import type { Secret, SecretCreate, SecretUpdate } from '@mik/contracts/secrets'
 import type { JWTUser } from '../routes/auth/token.ts'
 
 // Get all secrets ordered alphabetically by secret_key
 // If isAdmin is false, only MEMBER class secrets are returned
 export const getAllSecrets = async (isAdmin: boolean): Promise<Secret[]> => {
-  const secrets = await db
+  const secrets = await camelDb
     .selectFrom('secrets')
     .select([
       'id',
-      'secret_key as secretKey',
-      'secret_value as secretValue',
-      'secret_class as secretClass',
-      'created_at as createdAt',
-      'updated_at as updatedAt',
-      'created_by as createdBy',
-      'updated_by as updatedBy',
+      'secretKey',
+      'secretValue',
+      'secretClass',
+      'createdAt',
+      'updatedAt',
+      'createdBy',
+      'updatedBy',
     ])
-    .$if(!isAdmin, (qb) => qb.where('secret_class', '=', 'MEMBER'))
-    .orderBy('secret_key', 'asc')
+    .$if(!isAdmin, (qb) => qb.where('secretClass', '=', 'MEMBER'))
+    .orderBy('secretKey', 'asc')
     .execute()
 
   return secrets.map((secret) => ({
@@ -31,17 +31,17 @@ export const getAllSecrets = async (isAdmin: boolean): Promise<Secret[]> => {
 
 // Get a single secret by ID
 export const getSecretById = async (id: number): Promise<Secret | undefined> => {
-  const secret = await db
+  const secret = await camelDb
     .selectFrom('secrets')
     .select([
       'id',
-      'secret_key as secretKey',
-      'secret_value as secretValue',
-      'secret_class as secretClass',
-      'created_at as createdAt',
-      'updated_at as updatedAt',
-      'created_by as createdBy',
-      'updated_by as updatedBy',
+      'secretKey',
+      'secretValue',
+      'secretClass',
+      'createdAt',
+      'updatedAt',
+      'createdBy',
+      'updatedBy',
     ])
     .where('id', '=', String(id))
     .executeTakeFirst()
@@ -60,24 +60,24 @@ export const getSecretById = async (id: number): Promise<Secret | undefined> => 
 
 // Create a new secret
 export const createSecret = async (secret: SecretCreate, user: JWTUser): Promise<Secret> => {
-  const newSecret = await db
+  const newSecret = await camelDb
     .insertInto('secrets')
     .values({
-      secret_key: secret.secretKey,
-      secret_value: secret.secretValue,
-      secret_class: secret.secretClass,
-      created_by: user.memberId,
-      updated_by: user.memberId,
+      secretKey: secret.secretKey,
+      secretValue: secret.secretValue,
+      secretClass: secret.secretClass,
+      createdBy: user.memberId,
+      updatedBy: user.memberId,
     })
     .returning([
       'id',
-      'secret_key as secretKey',
-      'secret_value as secretValue',
-      'secret_class as secretClass',
-      'created_at as createdAt',
-      'updated_at as updatedAt',
-      'created_by as createdBy',
-      'updated_by as updatedBy',
+      'secretKey',
+      'secretValue',
+      'secretClass',
+      'createdAt',
+      'updatedAt',
+      'createdBy',
+      'updatedBy',
     ])
     .executeTakeFirstOrThrow()
 
@@ -95,25 +95,25 @@ export const updateSecret = async (
   secret: SecretUpdate,
   user: JWTUser,
 ): Promise<Secret | undefined> => {
-  const updatedSecret = await db
+  const updatedSecret = await camelDb
     .updateTable('secrets')
     .set({
-      ...(secret.secretKey && { secret_key: secret.secretKey }),
-      ...(secret.secretValue && { secret_value: secret.secretValue }),
-      ...(secret.secretClass && { secret_class: secret.secretClass }),
-      updated_by: user.memberId,
-      updated_at: new Date().toISOString(),
+      ...(secret.secretKey && { secretKey: secret.secretKey }),
+      ...(secret.secretValue && { secretValue: secret.secretValue }),
+      ...(secret.secretClass && { secretClass: secret.secretClass }),
+      updatedBy: user.memberId,
+      updatedAt: new Date().toISOString(),
     })
     .where('id', '=', String(id))
     .returning([
       'id',
-      'secret_key as secretKey',
-      'secret_value as secretValue',
-      'secret_class as secretClass',
-      'created_at as createdAt',
-      'updated_at as updatedAt',
-      'created_by as createdBy',
-      'updated_by as updatedBy',
+      'secretKey',
+      'secretValue',
+      'secretClass',
+      'createdAt',
+      'updatedAt',
+      'createdBy',
+      'updatedBy',
     ])
     .executeTakeFirst()
 
@@ -131,7 +131,7 @@ export const updateSecret = async (
 
 // Delete a secret
 export const deleteSecret = async (id: number): Promise<boolean> => {
-  const result = await db.deleteFrom('secrets').where('id', '=', String(id)).execute()
+  const result = await camelDb.deleteFrom('secrets').where('id', '=', String(id)).execute()
 
   return result.length > 0 && Number(result[0].numDeletedRows) > 0
 }

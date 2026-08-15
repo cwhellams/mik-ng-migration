@@ -71,7 +71,7 @@ async function syncMembersToBrevo(): Promise<void> {
   try {
     // Get last successful sync time
     const lastSyncState = await getLastBrevoSyncState()
-    const lastSyncedAt = lastSyncState?.last_synced_at
+    const lastSyncedAt = lastSyncState?.lastSyncedAt
 
     logger.info(
       `Last successful sync was at: ${lastSyncedAt ? lastSyncedAt.toISOString() : 'never'}`,
@@ -97,9 +97,9 @@ async function syncMembersToBrevo(): Promise<void> {
         syncedCount++
       } catch (error) {
         failedCount++
-        logger.error(`Failed to sync member ${member.member_id} to Brevo:`, error)
+        logger.error(`Failed to sync member ${member.memberId} to Brevo:`, error)
         // Mark as failed but continue with other members
-        await updateMemberBrevoSyncStatus(member.member_id, 'FAILED')
+        await updateMemberBrevoSyncStatus(member.memberId, 'FAILED')
       }
     }
 
@@ -146,24 +146,24 @@ export async function removeMemberFromBrevo(member: Member): Promise<void> {
 }
 
 async function syncMemberToBrevo(member: MemberToSync): Promise<void> {
-  logger.info(`Syncing member ${member.member_id} (${member.email}) to Brevo`)
+  logger.info(`Syncing member ${member.memberId} (${member.email}) to Brevo`)
 
   // Prepare contact attributes
   const attributes: BrevoContactAttributes = {
-    FIRSTNAME: member.first_name,
-    LASTNAME: member.last_name,
-    MEMBER_TYPE: member.member_type as MIKMemberTypes,
-    LANG_ISO639: member.lang_iso639 as MIKLang,
-    IS_MEMBERSHIP_EXPIRED: member.is_membership_expired ?? false,
-    EMAIL_VERIFIED: member.email_verified_at !== null,
+    FIRSTNAME: member.firstName,
+    LASTNAME: member.lastName,
+    MEMBER_TYPE: member.memberType as MIKMemberTypes,
+    LANG_ISO639: member.langIso639 as MIKLang,
+    IS_MEMBERSHIP_EXPIRED: member.isMembershipExpired ?? false,
+    EMAIL_VERIFIED: member.emailVerifiedAt !== null,
   }
 
   // Determine list IDs based on member type
-  const listId = MemberTypeToBrevoListId[member.member_type as MIKMemberTypes]
+  const listId = MemberTypeToBrevoListId[member.memberType as MIKMemberTypes]
   const listIds: number[] = []
 
   // All non-REMOVED members should be in the ALL list
-  if (member.member_type !== MemberTypes.REMOVED) {
+  if (member.memberType !== MemberTypes.REMOVED) {
     listIds.push(BrevoListId.ALL)
   }
 
@@ -173,11 +173,11 @@ async function syncMemberToBrevo(member: MemberToSync): Promise<void> {
   }
 
   // Check if contact already exists in Brevo
-  const existingContact = await brevoClient.getContactByExtId(member.member_id)
+  const existingContact = await brevoClient.getContactByExtId(member.memberId)
 
   if (existingContact) {
     // Update existing contact
-    logger.info(`Updating existing Brevo contact for member ${member.member_id}`)
+    logger.info(`Updating existing Brevo contact for member ${member.memberId}`)
 
     // Check if member type changed (need to update lists)
     const currentListIds = existingContact.listIds || []
@@ -191,24 +191,24 @@ async function syncMemberToBrevo(member: MemberToSync): Promise<void> {
       unlinkListIds: unlinkListIds.length > 0 ? unlinkListIds : undefined,
     })
 
-    await updateMemberBrevoSyncStatus(member.member_id, 'SYNCED', existingContact.id)
+    await updateMemberBrevoSyncStatus(member.memberId, 'SYNCED', existingContact.id)
   } else {
     // Create new contact
-    logger.info(`Creating new Brevo contact for member ${member.member_id}`)
+    logger.info(`Creating new Brevo contact for member ${member.memberId}`)
 
     const createRequest: BrevoCreateContactRequest = {
       email: member.email,
-      ext_id: member.member_id,
+      ext_id: member.memberId,
       attributes,
       listIds,
       updateEnabled: true,
     }
 
     const contactId = await brevoClient.createContact(createRequest)
-    await updateMemberBrevoSyncStatus(member.member_id, 'SYNCED', contactId)
+    await updateMemberBrevoSyncStatus(member.memberId, 'SYNCED', contactId)
   }
 
-  logger.info(`Successfully synced member ${member.member_id} to Brevo`)
+  logger.info(`Successfully synced member ${member.memberId} to Brevo`)
 }
 
 /**

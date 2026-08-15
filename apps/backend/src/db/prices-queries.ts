@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import type {
   PublicAircraftPricing,
   PublicMembershipFee,
@@ -18,19 +18,22 @@ import {
 export async function getCurrentAircraftPricing(): Promise<PublicAircraftPricing[]> {
   const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
 
-  const results = await db
-    .selectFrom('accts.aircraft_pricing')
-    .select(['registration', 'price_per_min', 'valid_from', 'valid_to'])
-    .where('valid_from', '<=', today)
-    .where((eb: any) => eb.or([eb('valid_to', 'is', null), eb('valid_to', '>=', today)]))
+  const results = await camelDb
+    .selectFrom('accts.aircraftPricing')
+    .select(['registration', 'pricePerMin', 'validFrom', 'validTo'])
+    .where('validFrom', '<=', today)
+    .where((eb) => eb.or([eb('validTo', 'is', null), eb('validTo', '>=', today)]))
     .orderBy('registration', 'asc')
     .execute()
 
-  return results.map((row: any) => ({
+  // snake_case on the left because these are the wire contract's field names, not
+  // column names — @mik/contracts/prices declares valid_from/price_per_min, as
+  // invoicing and aircraft-pricing do. Renaming them would be a breaking API change.
+  return results.map((row) => ({
     registration: row.registration,
-    price_per_min: Number(row.price_per_min),
-    valid_from: row.valid_from,
-    valid_to: row.valid_to,
+    price_per_min: Number(row.pricePerMin),
+    valid_from: row.validFrom,
+    valid_to: row.validTo,
   }))
 }
 
@@ -45,15 +48,15 @@ export async function getMembershipFees(): Promise<PublicMembershipFee[]> {
     ART_SUPPORTING_MEMBER_FEE_CODE,
   ]
 
-  const results = await db
+  const results = await camelDb
     .selectFrom('accts.items')
     .select(['code', 'name', 'item'])
     .where('code', 'in', membershipCodes)
     .execute()
 
   return results
-    .filter((result: any) => result.item)
-    .map((result: any) => {
+    .filter((result) => result.item)
+    .map((result) => {
       const rawItem = result.item as Record<string, unknown>
       return {
         code: result.code,
@@ -68,7 +71,7 @@ export async function getMembershipFees(): Promise<PublicMembershipFee[]> {
  * Get equipment fee from SimplBooks items
  */
 export async function getEquipmentFee(): Promise<PublicEquipmentFee | null> {
-  const result = await db
+  const result = await camelDb
     .selectFrom('accts.items')
     .select(['code', 'name', 'item'])
     .where('code', '=', ART_EQUIP_FEE_CODE)

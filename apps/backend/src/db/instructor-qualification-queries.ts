@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   InstructorQualification,
@@ -26,6 +26,20 @@ import {
 } from '../routes/instructor-qualifications/decider.ts'
 
 const INSTRUCTOR_ROLES = ['INSTRUCTOR', 'EXAMINER']
+
+/** Fetch the active instructor roster (memberId, firstName, lastName) ordered by last/first name. */
+async function getInstructorRoster() {
+  return camelDb
+    .selectFrom('member.register')
+    .innerJoin('member.memberToRoles', 'member.register.memberId', 'member.memberToRoles.memberId')
+    .select(['member.register.memberId', 'member.register.firstName', 'member.register.lastName'])
+    .where('member.memberToRoles.roleId', 'in', INSTRUCTOR_ROLES)
+    .where('member.register.memberType', '!=', 'REMOVED')
+    .groupBy(['member.register.memberId', 'member.register.firstName', 'member.register.lastName'])
+    .orderBy('member.register.lastName')
+    .orderBy('member.register.firstName')
+    .execute()
+}
 
 export async function getInstructorQualification(
   memberId: string,
@@ -190,44 +204,23 @@ export async function getQualificationSnapshotAtDate(
 }
 
 export async function getAllInstructorStatuses(): Promise<InstructorStatusSummary[]> {
-  const members = await db
-    .selectFrom('member.register')
-    .innerJoin(
-      'member.member_to_roles',
-      'member.register.member_id',
-      'member.member_to_roles.member_id',
-    )
-    .select([
-      'member.register.member_id',
-      'member.register.first_name',
-      'member.register.last_name',
-    ])
-    .where('member.member_to_roles.role_id', 'in', INSTRUCTOR_ROLES)
-    .where('member.register.member_type', '!=', 'REMOVED')
-    .groupBy([
-      'member.register.member_id',
-      'member.register.first_name',
-      'member.register.last_name',
-    ])
-    .orderBy('member.register.last_name')
-    .orderBy('member.register.first_name')
-    .execute()
+  const members = await getInstructorRoster()
 
-  const memberIds = members.map((m) => m.member_id)
+  const memberIds = members.map((m) => m.memberId)
   const proofIds = await getLatestProofIdsByMembers(memberIds)
   const eventStore = getEventStore()
 
   return Promise.all(
     members.map(async (member) => {
-      const streamId = instructorQualificationStreamId(member.member_id)
+      const streamId = instructorQualificationStreamId(member.memberId)
       const { state } = await eventStore.aggregateStream<
         ReturnType<typeof initialState>,
         InstructorQualificationEvent
       >(streamId, { evolve, initialState })
       return {
-        memberId: member.member_id,
-        firstName: member.first_name,
-        lastName: member.last_name,
+        memberId: member.memberId,
+        firstName: member.firstName,
+        lastName: member.lastName,
         fiExpiry: state.fiExpiry,
         iriExpiry: state.iriExpiry,
         criExpiry: state.criExpiry,
@@ -235,8 +228,8 @@ export async function getAllInstructorStatuses(): Promise<InstructorStatusSummar
         medicalClass1Expiry: state.medicalClass1Expiry,
         medicalClass2Expiry: state.medicalClass2Expiry,
         medicalLaplExpiry: state.medicalLaplExpiry,
-        licenseProofId: proofIds.get(member.member_id)?.licenseProofId ?? null,
-        medicalProofId: proofIds.get(member.member_id)?.medicalProofId ?? null,
+        licenseProofId: proofIds.get(member.memberId)?.licenseProofId ?? null,
+        medicalProofId: proofIds.get(member.memberId)?.medicalProofId ?? null,
       }
     }),
   )
@@ -255,36 +248,15 @@ export async function getAllInstructorStatusesAtDate(
   endOfDay.setHours(23, 59, 59, 999)
 
   // Get the current roster (names never change retroactively)
-  const members = await db
-    .selectFrom('member.register')
-    .innerJoin(
-      'member.member_to_roles',
-      'member.register.member_id',
-      'member.member_to_roles.member_id',
-    )
-    .select([
-      'member.register.member_id',
-      'member.register.first_name',
-      'member.register.last_name',
-    ])
-    .where('member.member_to_roles.role_id', 'in', INSTRUCTOR_ROLES)
-    .where('member.register.member_type', '!=', 'REMOVED')
-    .groupBy([
-      'member.register.member_id',
-      'member.register.first_name',
-      'member.register.last_name',
-    ])
-    .orderBy('member.register.last_name')
-    .orderBy('member.register.first_name')
-    .execute()
+  const members = await getInstructorRoster()
 
-  const memberIds = members.map((m) => m.member_id)
+  const memberIds = members.map((m) => m.memberId)
   const proofIds = await getLatestProofIdsByMembers(memberIds, endOfDay)
   const eventStore = getEventStore()
 
   const results: InstructorStatusSummary[] = await Promise.all(
     members.map(async (member) => {
-      const streamId = instructorQualificationStreamId(member.member_id)
+      const streamId = instructorQualificationStreamId(member.memberId)
       const { events } = await eventStore.readStream<InstructorQualificationEvent>(streamId)
       const eventsUpToDate = events
         .filter((e) => e.type === 'InstructorQualificationSet')
@@ -294,9 +266,9 @@ export async function getAllInstructorStatusesAtDate(
         initialState(),
       )
       return {
-        memberId: member.member_id,
-        firstName: member.first_name,
-        lastName: member.last_name,
+        memberId: member.memberId,
+        firstName: member.firstName,
+        lastName: member.lastName,
         fiExpiry: state.fiExpiry,
         iriExpiry: state.iriExpiry,
         criExpiry: state.criExpiry,
@@ -304,8 +276,8 @@ export async function getAllInstructorStatusesAtDate(
         medicalClass1Expiry: state.medicalClass1Expiry,
         medicalClass2Expiry: state.medicalClass2Expiry,
         medicalLaplExpiry: state.medicalLaplExpiry,
-        licenseProofId: proofIds.get(member.member_id)?.licenseProofId ?? null,
-        medicalProofId: proofIds.get(member.member_id)?.medicalProofId ?? null,
+        licenseProofId: proofIds.get(member.memberId)?.licenseProofId ?? null,
+        medicalProofId: proofIds.get(member.memberId)?.medicalProofId ?? null,
       }
     }),
   )
@@ -339,13 +311,13 @@ export interface ExpiringQualification {
 export async function getQualificationsByExpiryDate(
   expiryDate: string,
 ): Promise<ExpiringQualification[]> {
-  const members = await db
+  const members = await camelDb
     .selectFrom('member.register as r')
-    .innerJoin('member.member_to_roles as mtr', 'r.member_id', 'mtr.member_id')
-    .select(['r.member_id', 'r.first_name', 'r.last_name', 'r.email', 'r.lang_iso639'])
-    .where('mtr.role_id', 'in', INSTRUCTOR_ROLES)
-    .where('r.member_type', '!=', 'REMOVED')
-    .groupBy(['r.member_id', 'r.first_name', 'r.last_name', 'r.email', 'r.lang_iso639'])
+    .innerJoin('member.memberToRoles as mtr', 'r.memberId', 'mtr.memberId')
+    .select(['r.memberId', 'r.firstName', 'r.lastName', 'r.email', 'r.langIso639'])
+    .where('mtr.roleId', 'in', INSTRUCTOR_ROLES)
+    .where('r.memberType', '!=', 'REMOVED')
+    .groupBy(['r.memberId', 'r.firstName', 'r.lastName', 'r.email', 'r.langIso639'])
     .execute()
 
   const eventStore = getEventStore()
@@ -356,7 +328,7 @@ export async function getQualificationsByExpiryDate(
       const { state } = await eventStore.aggregateStream<
         ReturnType<typeof initialState>,
         InstructorQualificationEvent
-      >(instructorQualificationStreamId(member.member_id), { evolve, initialState })
+      >(instructorQualificationStreamId(member.memberId), { evolve, initialState })
 
       const fields: Array<[QualificationField, string | null]> = [
         ['fiExpiry', state.fiExpiry],
@@ -371,11 +343,11 @@ export async function getQualificationsByExpiryDate(
       for (const [field, expiry] of fields) {
         if (expiry === expiryDate) {
           results.push({
-            memberId: member.member_id,
-            firstName: member.first_name,
-            lastName: member.last_name,
+            memberId: member.memberId,
+            firstName: member.firstName,
+            lastName: member.lastName,
             email: member.email,
-            lang: member.lang_iso639 ?? undefined,
+            lang: member.langIso639 ?? undefined,
             field,
             expiryDate,
           })

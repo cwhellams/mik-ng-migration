@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import { BookingStatus } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
 
@@ -14,30 +14,30 @@ export type PushSubscriptionRow = {
 
 const mapRow = (r: {
   id: string
-  member_id: string
+  memberId: string
   endpoint: string
-  keys_auth: string
-  keys_p256dh: string
-  user_agent: string | null
-  created_at: Date | string
+  keysAuth: string
+  keysP256dh: string
+  userAgent: string | null
+  createdAt: Date | string
 }): PushSubscriptionRow => ({
   id: r.id,
-  memberId: r.member_id,
+  memberId: r.memberId,
   endpoint: r.endpoint,
-  keysAuth: r.keys_auth,
-  keysP256dh: r.keys_p256dh,
-  userAgent: r.user_agent,
-  createdAt: new Date(r.created_at).toISOString(),
+  keysAuth: r.keysAuth,
+  keysP256dh: r.keysP256dh,
+  userAgent: r.userAgent,
+  createdAt: new Date(r.createdAt).toISOString(),
 })
 
 export async function getPushSubscriptionsByMemberId(
   memberId: string,
 ): Promise<PushSubscriptionRow[]> {
-  const rows = await db
-    .selectFrom('member.push_subscriptions')
+  const rows = await camelDb
+    .selectFrom('member.pushSubscriptions')
     .selectAll()
-    .where('member_id', '=', memberId)
-    .orderBy('created_at', 'desc')
+    .where('memberId', '=', memberId)
+    .orderBy('createdAt', 'desc')
     .execute()
   return rows.map(mapRow)
 }
@@ -55,21 +55,21 @@ export async function upsertPushSubscription(input: {
   keysP256dh: string
   userAgent: string | null
 }): Promise<string> {
-  const result = await db
-    .insertInto('member.push_subscriptions')
+  const result = await camelDb
+    .insertInto('member.pushSubscriptions')
     .values({
-      member_id: input.memberId,
+      memberId: input.memberId,
       endpoint: input.endpoint,
-      keys_auth: input.keysAuth,
-      keys_p256dh: input.keysP256dh,
-      user_agent: input.userAgent,
+      keysAuth: input.keysAuth,
+      keysP256dh: input.keysP256dh,
+      userAgent: input.userAgent,
     })
     .onConflict((oc) =>
       oc.column('endpoint').doUpdateSet({
-        member_id: input.memberId,
-        keys_auth: input.keysAuth,
-        keys_p256dh: input.keysP256dh,
-        user_agent: input.userAgent,
+        memberId: input.memberId,
+        keysAuth: input.keysAuth,
+        keysP256dh: input.keysP256dh,
+        userAgent: input.userAgent,
       }),
     )
     .returning('id')
@@ -82,9 +82,9 @@ export async function deletePushSubscriptionByEndpoint(
   memberId: string,
   endpoint: string,
 ): Promise<boolean> {
-  const result = await db
-    .deleteFrom('member.push_subscriptions')
-    .where('member_id', '=', memberId)
+  const result = await camelDb
+    .deleteFrom('member.pushSubscriptions')
+    .where('memberId', '=', memberId)
     .where('endpoint', '=', endpoint)
     .executeTakeFirst()
   return Number(result.numDeletedRows) > 0
@@ -92,12 +92,12 @@ export async function deletePushSubscriptionByEndpoint(
 
 /** Remove a subscription by endpoint regardless of owner (e.g. push provider reports it as gone). */
 export async function deletePushSubscriptionByEndpointGlobal(endpoint: string): Promise<void> {
-  await db.deleteFrom('member.push_subscriptions').where('endpoint', '=', endpoint).execute()
+  await camelDb.deleteFrom('member.pushSubscriptions').where('endpoint', '=', endpoint).execute()
 }
 
 /** Remove all subscriptions for a member (used when the member is deactivated). */
 export async function deletePushSubscriptionsForMember(memberId: string): Promise<void> {
-  await db.deleteFrom('member.push_subscriptions').where('member_id', '=', memberId).execute()
+  await camelDb.deleteFrom('member.pushSubscriptions').where('memberId', '=', memberId).execute()
 }
 
 export type PushReminderCandidate = {
@@ -133,24 +133,24 @@ export async function claimUpcomingBookingsForPushReminder(
     .unix()
     .toString()
 
-  const candidates = await db
+  const candidates = await camelDb
     .selectFrom('schedule.bookings')
-    .select(['booking_id', 'member_id', 'registration', 'start_time_epoch'])
-    .where('start_time_epoch', '>=', windowStart)
-    .where('start_time_epoch', '<=', windowEnd)
+    .select(['bookingId', 'memberId', 'registration', 'startTimeEpoch'])
+    .where('startTimeEpoch', '>=', windowStart)
+    .where('startTimeEpoch', '<=', windowEnd)
     .where((eb) =>
       eb.or([
-        eb('booking_status', '=', BookingStatus.CONFIRMED),
-        eb('booking_status', '=', BookingStatus.TENTATIVE),
+        eb('bookingStatus', '=', BookingStatus.CONFIRMED),
+        eb('bookingStatus', '=', BookingStatus.TENTATIVE),
       ]),
     )
     .where((eb) =>
       eb.not(
         eb.exists(
           eb
-            .selectFrom('schedule.push_reminder_log')
+            .selectFrom('schedule.pushReminderLog')
             .select('id')
-            .whereRef('schedule.push_reminder_log.booking_id', '=', 'schedule.bookings.booking_id'),
+            .whereRef('schedule.pushReminderLog.bookingId', '=', 'schedule.bookings.bookingId'),
         ),
       ),
     )
@@ -160,20 +160,20 @@ export async function claimUpcomingBookingsForPushReminder(
     return []
   }
 
-  const claimed = await db
-    .insertInto('schedule.push_reminder_log')
-    .values(candidates.map((c) => ({ booking_id: c.booking_id, member_id: c.member_id })))
-    .onConflict((oc) => oc.column('booking_id').doNothing())
-    .returning('booking_id')
+  const claimed = await camelDb
+    .insertInto('schedule.pushReminderLog')
+    .values(candidates.map((c) => ({ bookingId: c.bookingId, memberId: c.memberId })))
+    .onConflict((oc) => oc.column('bookingId').doNothing())
+    .returning('bookingId')
     .execute()
 
-  const claimedIds = new Set(claimed.map((r) => r.booking_id))
+  const claimedIds = new Set(claimed.map((r) => r.bookingId))
   return candidates
-    .filter((c) => claimedIds.has(c.booking_id))
+    .filter((c) => claimedIds.has(c.bookingId))
     .map((c) => ({
-      bookingId: c.booking_id,
-      memberId: c.member_id,
+      bookingId: c.bookingId,
+      memberId: c.memberId,
       registration: c.registration,
-      startTimeEpoch: c.start_time_epoch,
+      startTimeEpoch: c.startTimeEpoch,
     }))
 }

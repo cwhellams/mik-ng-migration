@@ -15,9 +15,9 @@ describe('Brevo sync queries', () => {
       // Should return undefined or a valid sync state
       if (result) {
         expect(result).toHaveProperty('id')
-        expect(result).toHaveProperty('last_synced_at')
-        expect(result).toHaveProperty('members_synced')
-        expect(result).toHaveProperty('sync_status')
+        expect(result).toHaveProperty('lastSyncedAt')
+        expect(result).toHaveProperty('membersSynced')
+        expect(result).toHaveProperty('syncStatus')
       }
     })
   })
@@ -29,8 +29,8 @@ describe('Brevo sync queries', () => {
       const result = await getLastBrevoSyncState()
       expect(result).not.toBeNull()
       if (result) {
-        expect(result.members_synced).toBe(5)
-        expect(result.sync_status).toBe('SUCCESS')
+        expect(result.membersSynced).toBe(5)
+        expect(result.syncStatus).toBe('SUCCESS')
       }
     })
 
@@ -52,20 +52,20 @@ describe('Brevo sync queries', () => {
       // Each member should have required fields
       if (result.length > 0) {
         const member = result[0]
-        expect(member).toHaveProperty('member_id')
+        expect(member).toHaveProperty('memberId')
         expect(member).toHaveProperty('email')
-        expect(member).toHaveProperty('first_name')
-        expect(member).toHaveProperty('last_name')
-        expect(member).toHaveProperty('member_type')
-        expect(member).toHaveProperty('lang_iso639')
-        expect(member).toHaveProperty('email_verified_at')
-        expect(member).toHaveProperty('brevo_synced_at')
-        expect(member).toHaveProperty('brevo_contact_id')
-        expect(member).toHaveProperty('brevo_sync_status')
+        expect(member).toHaveProperty('firstName')
+        expect(member).toHaveProperty('lastName')
+        expect(member).toHaveProperty('memberType')
+        expect(member).toHaveProperty('langIso639')
+        expect(member).toHaveProperty('emailVerifiedAt')
+        expect(member).toHaveProperty('brevoSyncedAt')
+        expect(member).toHaveProperty('brevoContactId')
+        expect(member).toHaveProperty('brevoSyncStatus')
 
         // Should only include approved members with verified emails
-        expect(member.is_membership_approved).toBe(true)
-        expect(member.email_verified_at).not.toBeNull()
+        expect(member.isMembershipApproved).toBe(true)
+        expect(member.emailVerifiedAt).not.toBeNull()
       }
     })
 
@@ -89,16 +89,16 @@ describe('Brevo sync queries', () => {
       const member = members[0]
       const contactId = 12345
 
-      await updateMemberBrevoSyncStatus(member.member_id, 'SYNCED', contactId)
+      await updateMemberBrevoSyncStatus(member.memberId, 'SYNCED', contactId)
 
       // Verify the update by getting members again
       const updatedMembers = await getMembersToSync()
-      const updatedMember = updatedMembers.find((m) => m.member_id === member.member_id)
+      const updatedMember = updatedMembers.find((m) => m.memberId === member.memberId)
 
       if (updatedMember) {
-        expect(updatedMember.brevo_sync_status).toBe('SYNCED')
-        expect(updatedMember.brevo_contact_id).toBe(contactId)
-        expect(updatedMember.brevo_synced_at).not.toBeNull()
+        expect(updatedMember.brevoSyncStatus).toBe('SYNCED')
+        expect(updatedMember.brevoContactId).toBe(contactId)
+        expect(updatedMember.brevoSyncedAt).not.toBeNull()
       }
 
       await db.updateTable('member.register').set({ brevo_contact_id: null }).execute()
@@ -113,14 +113,14 @@ describe('Brevo sync queries', () => {
 
       const member = members[0]
 
-      await updateMemberBrevoSyncStatus(member.member_id, 'FAILED')
+      await updateMemberBrevoSyncStatus(member.memberId, 'FAILED')
 
       // Verify the update
       const updatedMembers = await getMembersToSync()
-      const updatedMember = updatedMembers.find((m) => m.member_id === member.member_id)
+      const updatedMember = updatedMembers.find((m) => m.memberId === member.memberId)
 
       if (updatedMember) {
-        expect(updatedMember.brevo_sync_status).toBe('FAILED')
+        expect(updatedMember.brevoSyncStatus).toBe('FAILED')
       }
     })
   })

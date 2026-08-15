@@ -1,4 +1,7 @@
-import { db } from './connection.ts'
+import type { Updateable } from 'kysely'
+
+import type { MemberEvents } from './schema.camel.d.ts'
+import { camelDb } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   ClubEvent,
@@ -9,19 +12,19 @@ import type {
 } from '@mik/contracts/events'
 
 type EventRow = {
-  event_id: string
+  eventId: string
   title: string
   description: string | null
   location: string | null
-  image_url: string | null
+  imageUrl: string | null
   performer: string | null
-  start_time: Date
-  end_time: Date
-  is_public: boolean
-  created_at: Date
-  created_by: string
-  updated_at: Date
-  updated_by: string
+  startTime: Date
+  endTime: Date
+  isPublic: boolean
+  createdAt: Date
+  createdBy: string
+  updatedAt: Date
+  updatedBy: string
 }
 
 const isTranslationLanguage = (language: string): language is keyof EventTranslations =>
@@ -33,71 +36,71 @@ const getTranslationsByEventId = async (
   const map = new Map<string, EventTranslations>()
   if (eventIds.length === 0) return map
 
-  const rows = await db
-    .selectFrom('member.event_translations')
-    .select(['event_id', 'language', 'title', 'description'])
-    .where('event_id', 'in', eventIds)
+  const rows = await camelDb
+    .selectFrom('member.eventTranslations')
+    .select(['eventId', 'language', 'title', 'description'])
+    .where('eventId', 'in', eventIds)
     .execute()
 
   for (const row of rows) {
     if (!isTranslationLanguage(row.language)) continue
-    const translations = map.get(row.event_id) ?? {}
+    const translations = map.get(row.eventId) ?? {}
     translations[row.language] = { title: row.title, description: row.description }
-    map.set(row.event_id, translations)
+    map.set(row.eventId, translations)
   }
 
   return map
 }
 
 const toEvent = (row: EventRow, translations: EventTranslations = {}): ClubEvent => ({
-  eventId: row.event_id,
+  eventId: row.eventId,
   title: row.title,
   description: row.description,
   location: row.location,
-  imageUrl: row.image_url,
+  imageUrl: row.imageUrl,
   performer: row.performer,
   translations,
-  startTime: row.start_time.toISOString(),
-  endTime: row.end_time.toISOString(),
-  isPublic: row.is_public,
-  createdAt: row.created_at.toISOString(),
-  createdBy: row.created_by,
-  updatedAt: row.updated_at.toISOString(),
-  updatedBy: row.updated_by,
+  startTime: row.startTime.toISOString(),
+  endTime: row.endTime.toISOString(),
+  isPublic: row.isPublic,
+  createdAt: row.createdAt.toISOString(),
+  createdBy: row.createdBy,
+  updatedAt: row.updatedAt.toISOString(),
+  updatedBy: row.updatedBy,
 })
 
 export const getAllEvents = async (filters: EventFilters = {}): Promise<ClubEvent[]> => {
   const { from, to, publicOnly = false, limit = 200, offset = 0 } = filters
 
-  let query = db
+  let query = camelDb
     .selectFrom('member.events')
     .selectAll()
-    .orderBy('start_time', 'asc')
+    .orderBy('startTime', 'asc')
     .limit(limit)
     .offset(offset)
 
   if (publicOnly) {
-    query = query.where('is_public', '=', true)
+    query = query.where('isPublic', '=', true)
   }
 
   if (from) {
-    query = query.where('end_time', '>=', new Date(from))
+    query = query.where('endTime', '>=', new Date(from))
   }
 
   if (to) {
-    query = query.where('start_time', '<=', new Date(to))
+    query = query.where('startTime', '<=', new Date(to))
   }
 
   const rows = await query.execute()
-  const translationsByEventId = await getTranslationsByEventId(rows.map((row) => row.event_id))
-  return rows.map((row) => toEvent(row, translationsByEventId.get(row.event_id)))
+  const translationsByEventId = await getTranslationsByEventId(rows.map((row) => row.eventId))
+  return rows.map((row) => toEvent(row, translationsByEventId.get(row.eventId)))
 }
 
 export const getEventById = async (eventId: string): Promise<ClubEvent | undefined> => {
-  const row = await db
+  const row = await camelDb
     .selectFrom('member.events')
     .selectAll()
-    .where('event_id', '=', eventId)
+    .where('eventId', '=', eventId)
     .executeTakeFirst()
 
   if (!row) return undefined
@@ -107,13 +110,13 @@ export const getEventById = async (eventId: string): Promise<ClubEvent | undefin
 }
 
 export const getEventImageKey = async (eventId: string): Promise<string | null | undefined> => {
-  const row = await db
+  const row = await camelDb
     .selectFrom('member.events')
-    .select('image_key')
-    .where('event_id', '=', eventId)
+    .select('imageKey')
+    .where('eventId', '=', eventId)
     .executeTakeFirst()
 
-  return row?.image_key
+  return row?.imageKey
 }
 
 export const setEventImage = async (
@@ -121,10 +124,10 @@ export const setEventImage = async (
   imageUrl: string,
   imageKey: string,
 ): Promise<ClubEvent | undefined> => {
-  const row = await db
+  const row = await camelDb
     .updateTable('member.events')
-    .set({ image_url: imageUrl, image_key: imageKey, updated_at: new Date() })
-    .where('event_id', '=', eventId)
+    .set({ imageUrl: imageUrl, imageKey: imageKey, updatedAt: new Date() })
+    .where('eventId', '=', eventId)
     .returningAll()
     .executeTakeFirst()
 
@@ -134,10 +137,10 @@ export const setEventImage = async (
 }
 
 export const clearEventImage = async (eventId: string): Promise<ClubEvent | undefined> => {
-  const row = await db
+  const row = await camelDb
     .updateTable('member.events')
-    .set({ image_url: null, image_key: null, updated_at: new Date() })
-    .where('event_id', '=', eventId)
+    .set({ imageUrl: null, imageKey: null, updatedAt: new Date() })
+    .where('eventId', '=', eventId)
     .returningAll()
     .executeTakeFirst()
 
@@ -152,17 +155,17 @@ const upsertEventTranslation = async (
   title: string,
   description: string | null,
 ): Promise<void> => {
-  await db
-    .insertInto('member.event_translations')
-    .values({ event_id: eventId, language, title, description })
-    .onConflict((oc) => oc.columns(['event_id', 'language']).doUpdateSet({ title, description }))
+  await camelDb
+    .insertInto('member.eventTranslations')
+    .values({ eventId: eventId, language, title, description })
+    .onConflict((oc) => oc.columns(['eventId', 'language']).doUpdateSet({ title, description }))
     .execute()
 }
 
 const deleteEventTranslation = async (eventId: string, language: 'fi' | 'sv'): Promise<void> => {
-  await db
-    .deleteFrom('member.event_translations')
-    .where('event_id', '=', eventId)
+  await camelDb
+    .deleteFrom('member.eventTranslations')
+    .where('eventId', '=', eventId)
     .where('language', '=', language)
     .execute()
 }
@@ -190,25 +193,25 @@ const applyTranslations = async (
 }
 
 export const createEvent = async (data: EventCreate, user: JWTUser): Promise<ClubEvent> => {
-  const row = await db
+  const row = await camelDb
     .insertInto('member.events')
     .values({
       title: data.title,
       description: data.description ?? null,
       location: data.location ?? null,
       performer: data.performer ?? null,
-      start_time: new Date(data.startTime),
-      end_time: new Date(data.endTime),
-      is_public: data.isPublic ?? false,
-      created_by: user.memberId,
-      updated_by: user.memberId,
+      startTime: new Date(data.startTime),
+      endTime: new Date(data.endTime),
+      isPublic: data.isPublic ?? false,
+      createdBy: user.memberId,
+      updatedBy: user.memberId,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
 
-  await applyTranslations(row.event_id, data.translations)
+  await applyTranslations(row.eventId, data.translations)
 
-  return getEventById(row.event_id) as Promise<ClubEvent>
+  return getEventById(row.eventId) as Promise<ClubEvent>
 }
 
 export const updateEvent = async (
@@ -216,23 +219,26 @@ export const updateEvent = async (
   data: EventUpdate,
   user: JWTUser,
 ): Promise<ClubEvent | undefined> => {
-  const updates: Record<string, unknown> = {
-    updated_at: new Date(),
-    updated_by: user.memberId,
+  // Updateable<> rather than Record<string, unknown>: an untyped patch object hides
+  // column names from the compiler, and three of these stayed snake_case through the
+  // migration because of it.
+  const updates: Updateable<MemberEvents> = {
+    updatedAt: new Date(),
+    updatedBy: user.memberId,
   }
 
   if (data.title !== undefined) updates.title = data.title
   if (data.description !== undefined) updates.description = data.description
   if (data.location !== undefined) updates.location = data.location
   if (data.performer !== undefined) updates.performer = data.performer
-  if (data.startTime !== undefined) updates.start_time = new Date(data.startTime)
-  if (data.endTime !== undefined) updates.end_time = new Date(data.endTime)
-  if (data.isPublic !== undefined) updates.is_public = data.isPublic
+  if (data.startTime !== undefined) updates.startTime = new Date(data.startTime)
+  if (data.endTime !== undefined) updates.endTime = new Date(data.endTime)
+  if (data.isPublic !== undefined) updates.isPublic = data.isPublic
 
-  const row = await db
+  const row = await camelDb
     .updateTable('member.events')
     .set(updates)
-    .where('event_id', '=', eventId)
+    .where('eventId', '=', eventId)
     .returningAll()
     .executeTakeFirst()
 
@@ -244,9 +250,9 @@ export const updateEvent = async (
 }
 
 export const deleteEvent = async (eventId: string): Promise<boolean> => {
-  const result = await db
+  const result = await camelDb
     .deleteFrom('member.events')
-    .where('event_id', '=', eventId)
+    .where('eventId', '=', eventId)
     .executeTakeFirst()
 
   return (result.numDeletedRows ?? BigInt(0)) > BigInt(0)
