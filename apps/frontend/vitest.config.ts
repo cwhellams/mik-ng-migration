@@ -21,17 +21,15 @@ export default defineConfig({
     setupFiles: ['src/test/setup.ts'],
     // Undo spies/stubs between tests so one test's vi.spyOn can't leak.
     restoreMocks: true,
-    // Vitest's CPU-based default fork count resolves to effectively serial on
-    // GitHub's hosted runner (verified: a CI run's phase-duration sum matched
-    // its wall-clock time almost exactly, meaning no file execution overlap).
-    // These tests have no shared external resource (mocked network, no DB),
-    // so forcing real parallelism here is safe.
-    poolOptions: {
-      forks: {
-        minForks: 2,
-        maxForks: 4,
-      },
-    },
+    // Vitest's default worker count is `max(availableParallelism() - 1, 1)`,
+    // which resolves to effectively serial on GitHub's hosted runner (verified:
+    // a CI run's phase-duration sum matched its wall-clock time almost exactly,
+    // meaning no file execution overlap). These tests have no shared external
+    // resource (mocked network, no DB), so forcing real parallelism is safe.
+    // Vitest 4 dropped `poolOptions.forks`; `maxWorkers` is the replacement and
+    // has no minimum counterpart — workers are spawned up to this cap as files
+    // become available, and the suite has far more files than workers.
+    maxWorkers: 4,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'lcov', 'html'],
