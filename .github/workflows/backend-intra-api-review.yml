@@ -62,9 +62,9 @@ jobs:
     steps:
       # We must checkout code first as the GH workspace is clean / empty
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Run Flyway DB setup
         run: |
@@ -96,7 +96,7 @@ jobs:
             flyway/flyway:latest migrate
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '26'
           cache: 'pnpm'
@@ -169,10 +169,10 @@ jobs:
       # (create-test-release-and-deploy-to-do.yml), so a Dockerfile mistake shows up
       # after merge, in the deploy. Build it here instead.
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build production image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: false
@@ -221,7 +221,7 @@ jobs:
           pnpm test
 
       - name: Upload test coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-coverage-report
           path: apps/backend/coverage/
