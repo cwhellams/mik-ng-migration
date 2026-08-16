@@ -245,15 +245,23 @@ export type Invoice = z.infer<typeof InvoiceRootSchema>
 export type InvoicePost = z.infer<typeof InvoicePostRootSchema>
 export type InvoicePostPayload = z.infer<typeof InvoiceSchema>
 
+// Describes a row of accts.outbox_simplbooks, so its keys are camelCase like every
+// other row the db instance returns. It was snake_case until the collapse, while the
+// worker selecting the row had already moved — and an `as AcctsOutboxSimplbooks` cast
+// in simplbooksOutboxWorker hid the mismatch from the compiler.
 export const AcctsOutboxSimplbooksSchema = z.object({
-  created_at_utc: z.union([z.string().datetime(), z.date()]).optional(),
-  error_message: z.string().optional().nullable(),
-  event_type: z.string(),
+  createdAtUtc: z.union([z.string().datetime(), z.date()]).optional(),
+  errorMessage: z.string().optional().nullable(),
+  eventType: z.string(),
   id: z.string(),
   payload: z.unknown(), // Can be improved if Json shape is known
-  processed_at: z.union([z.string().datetime(), z.date()]).optional().nullable(),
-  status: z.nativeEnum(SimplbooksStatus).optional(),
-  updated_at_utc: z.union([z.string().datetime(), z.date()]).optional(),
+  processedAt: z.union([z.string().datetime(), z.date()]).optional().nullable(),
+  // z.enum rather than z.nativeEnum: a TS string enum is nominal, so the generated
+  // column type ("PENDING" | ...) is not assignable to it, while SimplbooksStatus
+  // members still assign to these literals. That lets the worker hand the row straight
+  // to dispatchOutboxMsg without a cast.
+  status: z.enum(['PENDING', 'PROCESSING', 'SYNCED', 'FAILED', 'SKIPPED']).optional(),
+  updatedAtUtc: z.union([z.string().datetime(), z.date()]).optional(),
 })
 
 export type AcctsOutboxSimplbooks = z.infer<typeof AcctsOutboxSimplbooksSchema>

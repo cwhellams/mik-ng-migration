@@ -82,38 +82,38 @@ async function insertTestFlightLog(flightId: string, memberId: string) {
   await db
     .insertInto('flight.logs')
     .values({
-      flight_id: flightId,
-      billable_member_id: memberId,
-      pic_member_id: memberId,
-      pic_last_name: 'Tester',
-      pic_role: 'STU' as const,
-      aircraft_registration: 'OH-P28',
-      off_block_time_epoch: 1768125600,
-      takeoff_time_epoch: 1768125660,
-      landing_time_epoch: 1768129200,
-      on_block_time_epoch: 1768129260,
-      fuel_remaining_litres: 20,
-      persons_on_board: 2,
-      number_of_landings: 1,
-      night_flying_mins: 0,
-      instrument_flying_mins: 0,
-      departure_airport: 'EFHK',
-      arrival_airport: 'EFHK',
-      flight_type: 'SCHOOL',
-      created_by: memberId,
-      updated_by: memberId,
-      is_billable_flight: false,
-      priv_or_com_flight: 'C',
-      ajlb_seq_no: 4,
-      ajlb_blank_rows_before: 0,
+      flightId: flightId,
+      billableMemberId: memberId,
+      picMemberId: memberId,
+      picLastName: 'Tester',
+      picRole: 'STU' as const,
+      aircraftRegistration: 'OH-P28',
+      offBlockTimeEpoch: 1768125600,
+      takeoffTimeEpoch: 1768125660,
+      landingTimeEpoch: 1768129200,
+      onBlockTimeEpoch: 1768129260,
+      fuelRemainingLitres: 20,
+      personsOnBoard: 2,
+      numberOfLandings: 1,
+      nightFlyingMins: 0,
+      instrumentFlyingMins: 0,
+      departureAirport: 'EFHK',
+      arrivalAirport: 'EFHK',
+      flightType: 'SCHOOL',
+      createdBy: memberId,
+      updatedBy: memberId,
+      isBillableFlight: false,
+      privOrComFlight: 'C',
+      ajlbSeqNo: 4,
+      ajlbBlankRowsBefore: 0,
       status: 'NEW',
-      is_dto_training_flight: true,
+      isDtoTrainingFlight: true,
     })
     .execute()
 }
 
 async function deleteTestFlightLog(flightId: string) {
-  await db.deleteFrom('flight.logs').where('flight_id', '=', flightId).execute()
+  await db.deleteFrom('flight.logs').where('flightId', '=', flightId).execute()
 }
 
 // ── Tests: Training Programs ──────────────────────────────────────────────────
@@ -141,11 +141,11 @@ describe('POST /dto/programs', () => {
   const TEST_PROGRAM_NAME = 'Test Program DTO Suite'
 
   beforeEach(async () => {
-    await db.deleteFrom('dto.training_program').where('name', '=', TEST_PROGRAM_NAME).execute()
+    await db.deleteFrom('dto.trainingProgram').where('name', '=', TEST_PROGRAM_NAME).execute()
   })
 
   afterEach(async () => {
-    await db.deleteFrom('dto.training_program').where('name', '=', TEST_PROGRAM_NAME).execute()
+    await db.deleteFrom('dto.trainingProgram').where('name', '=', TEST_PROGRAM_NAME).execute()
   })
 
   it('returns 403 for DTO_USER', async () => {
@@ -204,7 +204,7 @@ describe('PUT /dto/syllabi/:syllabusId (update does not wipe minBlockTimeMins)',
 
   afterEach(async () => {
     if (draftSyllabusId) {
-      await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', draftSyllabusId).execute()
+      await db.deleteFrom('dto.syllabus').where('syllabusId', '=', draftSyllabusId).execute()
     }
   })
 
@@ -250,7 +250,7 @@ describe('POST /dto/syllabi/:syllabusId/submit-for-approval', () => {
   })
 
   afterEach(async () => {
-    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', draftSyllabusId).execute()
+    await db.deleteFrom('dto.syllabus').where('syllabusId', '=', draftSyllabusId).execute()
   })
 
   it('returns 403 for DTO_USER', async () => {
@@ -289,7 +289,7 @@ describe('POST /dto/syllabi/:syllabusId/withdraw', () => {
   })
 
   afterEach(async () => {
-    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', draftSyllabusId).execute()
+    await db.deleteFrom('dto.syllabus').where('syllabusId', '=', draftSyllabusId).execute()
   })
 
   it('returns 404 when called on a DRAFT syllabus', async () => {
@@ -326,7 +326,7 @@ describe('POST /dto/syllabi/:syllabusId/publish', () => {
   let draftSyllabusId: string
 
   beforeEach(async () => {
-    await db.deleteFrom('dto.training_program').where('name', '=', TEST_PROGRAM_NAME).execute()
+    await db.deleteFrom('dto.trainingProgram').where('name', '=', TEST_PROGRAM_NAME).execute()
     const programRes = await request(app)
       .post('/dto/programs')
       .set('Cookie', `accessToken=${adminToken}`)
@@ -341,8 +341,8 @@ describe('POST /dto/syllabi/:syllabusId/publish', () => {
   })
 
   afterEach(async () => {
-    await db.deleteFrom('dto.syllabus').where('program_id', '=', testProgramId).execute()
-    await db.deleteFrom('dto.training_program').where('program_id', '=', testProgramId).execute()
+    await db.deleteFrom('dto.syllabus').where('programId', '=', testProgramId).execute()
+    await db.deleteFrom('dto.trainingProgram').where('programId', '=', testProgramId).execute()
   })
 
   it('returns 404 when publishing directly from DRAFT (approval step is now required)', async () => {
@@ -411,7 +411,7 @@ describe('PUT /dto/syllabi/:syllabusId and /flights — WAITING_FOR_APPROVAL gua
   })
 
   afterEach(async () => {
-    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', syllabusId).execute()
+    await db.deleteFrom('dto.syllabus').where('syllabusId', '=', syllabusId).execute()
   })
 
   it('PUT /dto/syllabi/:syllabusId returns 404 for a WAITING_FOR_APPROVAL syllabus', async () => {
@@ -471,13 +471,13 @@ describe('PATCH /dto/syllabi/:syllabusId/text', () => {
     // test only needs an isolated PUBLISHED syllabus, not the shared seed fixture.
     await db
       .updateTable('dto.syllabus')
-      .set({ status: 'PUBLISHED', published_at: new Date() })
-      .where('syllabus_id', '=', testSyllabusId)
+      .set({ status: 'PUBLISHED', publishedAt: new Date() })
+      .where('syllabusId', '=', testSyllabusId)
       .execute()
   })
 
   afterEach(async () => {
-    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', testSyllabusId).execute()
+    await db.deleteFrom('dto.syllabus').where('syllabusId', '=', testSyllabusId).execute()
   })
 
   it('returns 403 for DTO_USER', async () => {
@@ -498,17 +498,14 @@ describe('PATCH /dto/syllabi/:syllabusId/text', () => {
       .set('Cookie', `accessToken=${adminToken}`)
       .send({ description: 'x' })
     expect(res.status).toBe(404)
-    await db
-      .deleteFrom('dto.syllabus')
-      .where('syllabus_id', '=', draftRes.body.syllabusId)
-      .execute()
+    await db.deleteFrom('dto.syllabus').where('syllabusId', '=', draftRes.body.syllabusId).execute()
   })
 
   it('returns 404 when the syllabus is ARCHIVED', async () => {
     await db
       .updateTable('dto.syllabus')
       .set({ status: 'ARCHIVED' })
-      .where('syllabus_id', '=', testSyllabusId)
+      .where('syllabusId', '=', testSyllabusId)
       .execute()
     const res = await request(app)
       .patch(`/dto/syllabi/${testSyllabusId}/text`)
@@ -573,8 +570,8 @@ describe('PATCH /dto/syllabi/:syllabusId/text', () => {
     const foreignItemId = foreignFlightsRes.body.flights[0].items[0].itemId
     await db
       .updateTable('dto.syllabus')
-      .set({ status: 'PUBLISHED', published_at: new Date() })
-      .where('syllabus_id', '=', foreignSyllabusId)
+      .set({ status: 'PUBLISHED', publishedAt: new Date() })
+      .where('syllabusId', '=', foreignSyllabusId)
       .execute()
 
     // PATCH testSyllabusId's text but reference the OTHER syllabus's flight/item IDs.
@@ -598,19 +595,19 @@ describe('PATCH /dto/syllabi/:syllabusId/text', () => {
 
     // The foreign syllabus's flight/item text must be completely untouched.
     const foreignFlightRow = await db
-      .selectFrom('dto.syllabus_flights')
+      .selectFrom('dto.syllabusFlights')
       .select('name')
-      .where('flight_id', '=', foreignFlightId)
+      .where('flightId', '=', foreignFlightId)
       .executeTakeFirst()
     expect(foreignFlightRow?.name).toBe('Foreign flight name')
     const foreignItemRow = await db
-      .selectFrom('dto.syllabus_flight_items')
+      .selectFrom('dto.syllabusFlightItems')
       .select('name')
-      .where('item_id', '=', foreignItemId)
+      .where('itemId', '=', foreignItemId)
       .executeTakeFirst()
     expect(foreignItemRow?.name).toBe('Foreign item name')
 
-    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', foreignSyllabusId).execute()
+    await db.deleteFrom('dto.syllabus').where('syllabusId', '=', foreignSyllabusId).execute()
   })
 })
 
@@ -628,7 +625,7 @@ describe('PUT /dto/syllabi/:syllabusId/flights — flightType and easaFclReferen
   })
 
   afterEach(async () => {
-    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', draftSyllabusId).execute()
+    await db.deleteFrom('dto.syllabus').where('syllabusId', '=', draftSyllabusId).execute()
   })
 
   it('persists flightType and easaFclReference on a flight', async () => {
@@ -729,7 +726,7 @@ describe('GET /dto/syllabi/:syllabusId/export', () => {
     // cleanup imported syllabus
     await db
       .deleteFrom('dto.syllabus')
-      .where('syllabus_id', '=', importRes.body.syllabusId)
+      .where('syllabusId', '=', importRes.body.syllabusId)
       .execute()
   })
 
@@ -772,7 +769,7 @@ describe('POST /dto/programs/:programId/syllabi/import', () => {
 
   afterEach(async () => {
     if (importedSyllabusId) {
-      await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', importedSyllabusId).execute()
+      await db.deleteFrom('dto.syllabus').where('syllabusId', '=', importedSyllabusId).execute()
       importedSyllabusId = undefined
     }
   })
@@ -932,7 +929,7 @@ describe('POST /dto/syllabi/:syllabusId/copy', () => {
 
   afterEach(async () => {
     if (copiedSyllabusId) {
-      await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', copiedSyllabusId).execute()
+      await db.deleteFrom('dto.syllabus').where('syllabusId', '=', copiedSyllabusId).execute()
       copiedSyllabusId = undefined
     }
   })
@@ -994,8 +991,8 @@ describe('POST /dto/flight-logs/:flightLogId/attempt — ownership', () => {
 
   afterEach(async () => {
     await db
-      .deleteFrom('dto.syllabus_flight_attempts')
-      .where('flight_log_id', '=', TEST_FLIGHT_ID)
+      .deleteFrom('dto.syllabusFlightAttempts')
+      .where('flightLogId', '=', TEST_FLIGHT_ID)
       .execute()
     await deleteTestFlightLog(TEST_FLIGHT_ID)
   })

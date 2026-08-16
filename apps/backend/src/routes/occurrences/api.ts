@@ -42,7 +42,7 @@ import { sendCamoNotification } from '../../templates/camoNotification.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { getMemberRolesByPermission } from '../../db/member-queries.ts'
 import { storageService } from '../../services/storage.ts'
-import { camelDb } from '../../db/connection.ts'
+import { db } from '../../db/connection.ts'
 import logger from '../../lib/logger.ts'
 
 export const router = Router()
@@ -488,7 +488,7 @@ router.post(
       // The whole sequence below must succeed or fail together: if any step throws,
       // the original report must not end up marked RECEIVED with access already
       // revoked but no valid anonymized copy.
-      const received = await camelDb.transaction().execute(async (trx) => {
+      const received = await db.transaction().execute(async (trx) => {
         // Create anonymized version from the original
         const anonymizingReport = await createOccurrence(
           {

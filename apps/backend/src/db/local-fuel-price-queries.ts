@@ -1,4 +1,4 @@
-import { camelDb, type CamelRow } from './connection.ts'
+import { db, type DbRow } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type { LocalFuelPrice, UpsertLocalFuelPrice } from '@mik/contracts/fuel-prices'
 import type { FuelType } from '@mik/contracts/expenses'
@@ -6,7 +6,7 @@ import type { FuelType } from '@mik/contracts/expenses'
 // Typed from the generated schema rather than hand-declared: the old signature
 // spelled four of these columns `unknown` because the snake_case row shape had to
 // be written out by hand to keep the mapper compiling.
-type LocalFuelPriceRow = CamelRow<'accts.localFuelPrice'>
+type LocalFuelPriceRow = DbRow<'accts.localFuelPrice'>
 
 // Barely a mapper now: the plugin does the renaming and the generated types give
 // real types instead of `unknown`, so the defensive String()/Number() wrappers the
@@ -23,7 +23,7 @@ const mapLocalFuelPrice = (row: LocalFuelPriceRow): LocalFuelPrice => ({
 })
 
 export async function getLocalFuelPrices(): Promise<LocalFuelPrice[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.localFuelPrice')
     .selectAll()
     .orderBy('fuelType')
@@ -42,7 +42,7 @@ export async function createLocalFuelPrice(
   data: UpsertLocalFuelPrice,
   user: JWTUser,
 ): Promise<LocalFuelPrice> {
-  const row = await camelDb
+  const row = await db
     .insertInto('accts.localFuelPrice')
     .values({
       fuelType: data.fuelType,
@@ -71,7 +71,7 @@ export async function getEffectiveLocalFuelPrice(
   fuelType: FuelType,
   date: string,
 ): Promise<LocalFuelPrice | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('accts.localFuelPrice')
     .selectAll()
     .where('fuelType', '=', fuelType)

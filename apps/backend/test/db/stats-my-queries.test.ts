@@ -15,15 +15,16 @@ describe('stats-queries: getMyStatistics', () => {
     // number_of_landings is randomized per row in the mass test data fixture,
     // so the expected total can't be a fixed literal — derive it the same way
     // getMyStatistics does, straight from the source rows.
-    // Runs on the snake_case `db` instance, which does not transform result keys, so
-    // this alias and the read below must stay snake_case even though getMyStatistics
-    // itself now returns camelCase.
-    const landingsRow = await sql<{ total_landings: number }>`
+    // The SQL alias stays snake_case — raw SQL text is never transformed — but the
+    // result key comes back camelCased, so the annotation and the read are camelCase.
+    // Getting this pair the wrong way round returns undefined, and `?? 0` then turns
+    // the expected total into a silent zero.
+    const landingsRow = await sql<{ totalLandings: number }>`
       SELECT COALESCE(SUM(number_of_landings), 0)::int AS total_landings
       FROM flight.logs
       WHERE pic_member_id = ${MEMBER_ID}
     `.execute(db)
-    const expectedTotalLandings = Number(landingsRow.rows[0]?.total_landings ?? 0)
+    const expectedTotalLandings = Number(landingsRow.rows[0]?.totalLandings ?? 0)
 
     expect(result.totals).toEqual({
       flightCount: 201,

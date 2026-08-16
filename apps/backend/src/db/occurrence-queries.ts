@@ -13,16 +13,16 @@ import {
 } from '@mik/contracts/occurrences'
 import { generateShortId } from '../util/nanoId.ts'
 import * as connection from './connection.ts'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import type { DB } from './schema.d.ts'
 import { camelCaseNestedRows } from './connection.ts'
-import type { CamelRow } from './connection.ts'
+import type { DbRow } from './connection.ts'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 import { storageService } from '../services/storage.ts'
 
-type Executor = Kysely<CamelDB> | Transaction<CamelDB>
+type Executor = Kysely<DB> | Transaction<DB>
 
 const toOccurrence = (
-  row: CamelRow<'flight.occurrences'>,
+  row: DbRow<'flight.occurrences'>,
   access: OccurrenceAccess[],
   attachments: OccurrenceAttachment[],
 ): Occurrence => {
@@ -68,7 +68,7 @@ export const getOccurrence = async (
   },
   access: 'read' | 'write' | 'manage',
 ): Promise<Occurrence | undefined> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .selectFrom('flight.occurrences')
     .selectAll()
     .select((eb) =>
@@ -149,7 +149,7 @@ export const getOccurrence = async (
 }
 
 const hasAccess = (
-  eb: ExpressionBuilder<CamelDB, 'flight.occurrenceAccess'>,
+  eb: ExpressionBuilder<DB, 'flight.occurrenceAccess'>,
   limitations: {
     memberId?: string
     roles?: string[]
@@ -185,7 +185,7 @@ export async function getOccurrences(
     roles: string[]
   },
 ): Promise<Occurrence[]> {
-  const results = await connection.camelDb
+  const results = await connection.db
     .selectFrom('flight.occurrences')
     .selectAll()
     .innerJoin(
@@ -218,7 +218,7 @@ export async function createOccurrence(
     comments: OccurrenceComment[]
   },
   user: JWTUser,
-  executor: Executor = connection.camelDb,
+  executor: Executor = connection.db,
 ): Promise<Occurrence> {
   const now = new Date()
 
@@ -280,7 +280,7 @@ export async function updateOccurrence(
     }
   >,
   user: JWTUser,
-  executor: Executor = connection.camelDb,
+  executor: Executor = connection.db,
 ): Promise<Occurrence> {
   const now = new Date().toISOString()
   const updated: Occurrence = {
@@ -324,7 +324,7 @@ export async function updateOccurrence(
 export const addOccurrenceAccess = async (
   reportId: string,
   user: JWTUser,
-  executor: Executor = connection.camelDb,
+  executor: Executor = connection.db,
   ...access: OccurrenceAccess[]
 ): Promise<OccurrenceAccess[]> => {
   const inserted = await executor
@@ -360,7 +360,7 @@ export const updateOccurrenceAccess = async (
   reportId: string,
   access: OccurrenceAccess,
   user: JWTUser,
-  executor: Executor = connection.camelDb,
+  executor: Executor = connection.db,
 ) =>
   executor
     .updateTable('flight.occurrenceAccess')
@@ -375,7 +375,7 @@ export const updateOccurrenceAccess = async (
     .execute()
 
 export const deleteOccurrenceAccess = async (reportId: string, ...accessIds: number[]) =>
-  await connection.camelDb
+  await connection.db
     .deleteFrom('flight.occurrenceAccess')
     .where('reportId', '=', reportId)
     .where('accessId', 'in', accessIds)
@@ -393,8 +393,8 @@ const insertOccurrenceAttachment = async (
   reportId: string,
   attachment: NewOccurrenceAttachment,
   createdBy: string,
-  executor: Executor = connection.camelDb,
-): Promise<CamelRow<'flight.occurrenceAttachments'>> => {
+  executor: Executor = connection.db,
+): Promise<DbRow<'flight.occurrenceAttachments'>> => {
   const now = new Date()
   return executor
     .insertInto('flight.occurrenceAttachments')
@@ -415,7 +415,7 @@ const insertOccurrenceAttachment = async (
 }
 
 const mapAttachmentRow = (
-  row: CamelRow<'flight.occurrenceAttachments'>,
+  row: DbRow<'flight.occurrenceAttachments'>,
   by: string,
 ): OccurrenceAttachment => ({
   attachmentId: row.attachmentId,
@@ -436,7 +436,7 @@ export const addOccurrenceAttachment = async (
   user: JWTUser,
   maxAttachments: number,
 ): Promise<OccurrenceAttachment | undefined> =>
-  connection.camelDb.transaction().execute(async (trx) => {
+  connection.db.transaction().execute(async (trx) => {
     await sql`select pg_advisory_xact_lock(hashtext(${reportId}))`.execute(trx)
 
     const { count } = await trx
@@ -454,7 +454,7 @@ export const addOccurrenceAttachment = async (
   })
 
 export const getOccurrenceAttachment = async (reportId: string, attachmentId: number) =>
-  connection.camelDb
+  connection.db
     .selectFrom('flight.occurrenceAttachments')
     .selectAll()
     .where('reportId', '=', reportId)
@@ -463,7 +463,7 @@ export const getOccurrenceAttachment = async (reportId: string, attachmentId: nu
     .executeTakeFirst()
 
 export const countOccurrenceAttachments = async (reportId: string): Promise<number> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .selectFrom('flight.occurrenceAttachments')
     .select((eb) => eb.fn.countAll().as('count'))
     .where('reportId', '=', reportId)
@@ -478,7 +478,7 @@ export const removeOccurrenceAttachment = async (
   bucketName: string,
   user: JWTUser,
 ): Promise<void> => {
-  const removed = await connection.camelDb
+  const removed = await connection.db
     .updateTable('flight.occurrenceAttachments')
     .set({
       removedAt: new Date(),
@@ -503,7 +503,7 @@ export const copyOccurrenceAttachments = async (
   fromReportId: string,
   toReportId: string,
   bucketName: string,
-  executor: Executor = connection.camelDb,
+  executor: Executor = connection.db,
 ): Promise<OccurrenceAttachment[]> => {
   const source = await executor
     .selectFrom('flight.occurrenceAttachments')

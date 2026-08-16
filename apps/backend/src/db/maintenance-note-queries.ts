@@ -1,5 +1,5 @@
 import * as connection from './connection.ts'
-import type { CamelRow } from './connection.ts'
+import type { DbRow } from './connection.ts'
 import { resolveDefectsByHil, resolveDefects } from './defect-queries.ts'
 import type {
   MaintenanceNote,
@@ -7,7 +7,7 @@ import type {
   UpdateMaintenanceNoteRequest,
 } from '@mik/contracts/maintenance-notes'
 
-function mapRowToNote(row: CamelRow<'flight.maintenanceNote'>): MaintenanceNote {
+function mapRowToNote(row: DbRow<'flight.maintenanceNote'>): MaintenanceNote {
   return {
     noteId: row.noteId,
     aircraftRegistration: row.aircraftRegistration,
@@ -26,7 +26,7 @@ export async function getMaintenanceNotes(
   aircraftRegistration: string,
   ajlbSeqNo?: number,
 ): Promise<MaintenanceNote[]> {
-  const rows = await connection.camelDb
+  const rows = await connection.db
     .selectFrom('flight.maintenanceNote')
     .selectAll()
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -43,7 +43,7 @@ export async function createMaintenanceNote(
 ): Promise<MaintenanceNote> {
   const now = new Date()
 
-  return connection.camelDb.transaction().execute(async (trx) => {
+  return connection.db.transaction().execute(async (trx) => {
     const row = await trx
       .insertInto('flight.maintenanceNote')
       .values({
@@ -96,7 +96,7 @@ export async function updateMaintenanceNote(
   updatedBy: string,
   createdByFilter?: string,
 ): Promise<MaintenanceNote | undefined> {
-  let query = connection.camelDb
+  let query = connection.db
     .updateTable('flight.maintenanceNote')
     .set({
       ...(data.description !== undefined && { description: data.description }),
@@ -116,14 +116,11 @@ export async function updateMaintenanceNote(
 }
 
 export async function deleteMaintenanceNote(noteId: string): Promise<void> {
-  await connection.camelDb
-    .deleteFrom('flight.maintenanceNote')
-    .where('noteId', '=', noteId)
-    .execute()
+  await connection.db.deleteFrom('flight.maintenanceNote').where('noteId', '=', noteId).execute()
 }
 
 export async function getMaintenanceNote(noteId: string): Promise<MaintenanceNote | undefined> {
-  const row = await connection.camelDb
+  const row = await connection.db
     .selectFrom('flight.maintenanceNote')
     .selectAll()
     .where('noteId', '=', noteId)

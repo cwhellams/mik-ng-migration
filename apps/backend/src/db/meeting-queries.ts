@@ -1,7 +1,7 @@
 import { sql, type Kysely, type Transaction } from 'kysely'
 
-import { camelDb } from './connection.ts'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import { db } from './connection.ts'
+import type { DB } from './schema.d.ts'
 import {
   type CreateMeeting,
   type CreateVote,
@@ -14,7 +14,7 @@ import {
 } from '@mik/contracts/meetings'
 import { problem } from '../routes/response.ts'
 
-type Executor = Kysely<CamelDB> | Transaction<CamelDB>
+type Executor = Kysely<DB> | Transaction<DB>
 
 type MeetingRow = {
   meetingId: string
@@ -297,7 +297,7 @@ const getVoteMeta = async (
 }
 
 export const getMeetings = async (memberId?: string): Promise<Meeting[]> => {
-  const rows = await getMeetingRows(camelDb, memberId)
+  const rows = await getMeetingRows(db, memberId)
   return rows.map(mapMeeting)
 }
 
@@ -305,7 +305,7 @@ export const getMeetingById = async (
   meetingId: string,
   memberId?: string,
 ): Promise<Meeting | undefined> => {
-  const rows = await getMeetingRows(camelDb, memberId, meetingId)
+  const rows = await getMeetingRows(db, memberId, meetingId)
   return rows[0] ? mapMeeting(rows[0]) : undefined
 }
 
@@ -356,7 +356,7 @@ export const getActiveMeeting = async (memberId: string): Promise<Meeting | unde
        )
     ORDER BY m.started_at DESC
     LIMIT 1
-  `.execute(camelDb)
+  `.execute(db)
 
   return rows[0] ? mapMeeting(rows[0]) : undefined
 }
@@ -378,7 +378,7 @@ export const createMeeting = async (data: CreateMeeting, createdBy: string): Pro
       ${createdBy}
     )
     RETURNING meeting_id
-  `.execute(camelDb)
+  `.execute(db)
 
   const meetingId = rows[0]?.meetingId
   if (!meetingId) {
@@ -426,7 +426,7 @@ export const updateMeeting = async (
     WHERE meeting_id = ${meetingId}::uuid
       AND status != 'ENDED'
     RETURNING meeting_id
-  `.execute(camelDb)
+  `.execute(db)
 
   return rows[0] ? getMeetingById(meetingId, memberId) : undefined
 }
@@ -437,7 +437,7 @@ export const deleteMeeting = async (meetingId: string): Promise<boolean> => {
     WHERE meeting_id = ${meetingId}::uuid
       AND status = 'DRAFT'
     RETURNING TRUE AS deleted
-  `.execute(camelDb)
+  `.execute(db)
 
   return Boolean(rows[0]?.deleted)
 }
@@ -453,7 +453,7 @@ export const startMeeting = async (
     WHERE status IN ('ONGOING', 'PENDING_NOTES')
       AND meeting_id <> ${meetingId}::uuid
     LIMIT 1
-  `.execute(camelDb)
+  `.execute(db)
 
   if (activeRows[0]) {
     return problem({ status: 409, detail: 'Another meeting is already ongoing' })
@@ -468,7 +468,7 @@ export const startMeeting = async (
       WHERE meeting_id = ${meetingId}::uuid
         AND status = 'DRAFT'
       RETURNING meeting_id
-    `.execute(camelDb)
+    `.execute(db)
 
     return rows[0] ? getMeetingById(meetingId, memberId ?? _startedBy) : undefined
   } catch (error: any) {
@@ -490,7 +490,7 @@ export const pendingNotesMeeting = async (
     WHERE meeting_id = ${meetingId}::uuid
       AND status = 'ONGOING'
     RETURNING meeting_id
-  `.execute(camelDb)
+  `.execute(db)
 
   return rows[0] ? getMeetingById(meetingId, memberId) : undefined
 }
@@ -510,7 +510,7 @@ export const endMeeting = async (
     WHERE meeting_id = ${meetingId}::uuid
       AND status = 'PENDING_NOTES'
     RETURNING meeting_id
-  `.execute(camelDb)
+  `.execute(db)
 
   return rows[0] ? getMeetingById(meetingId, memberId ?? _endedBy) : undefined
 }
@@ -529,7 +529,7 @@ export const registerAttendance = async (meetingId: string, memberId: string): P
     INSERT INTO member.meeting_attendance (meeting_id, member_id)
     VALUES (${meetingId}::uuid, ${memberId})
     ON CONFLICT (meeting_id, member_id) DO NOTHING
-  `.execute(camelDb)
+  `.execute(db)
 }
 
 export const getMeetingAttendees = async (meetingId: string): Promise<MeetingAttendee[]> => {
@@ -544,7 +544,7 @@ export const getMeetingAttendees = async (meetingId: string): Promise<MeetingAtt
     INNER JOIN member.register r ON r.member_id = ma.member_id
     WHERE ma.meeting_id = ${meetingId}::uuid
     ORDER BY r.first_name ASC, r.last_name ASC
-  `.execute(camelDb)
+  `.execute(db)
 
   return rows.map((row) => ({
     memberId: row.memberId,
@@ -568,7 +568,7 @@ export const getVoteCounters = async (meetingId: string): Promise<VoteCounter[]>
     INNER JOIN member.register r ON r.member_id = mvc.member_id
     WHERE mvc.meeting_id = ${meetingId}::uuid
     ORDER BY r.first_name ASC, r.last_name ASC
-  `.execute(camelDb)
+  `.execute(db)
 
   return rows.map((row) => ({
     memberId: row.memberId,
@@ -589,7 +589,7 @@ export const addVoteCounter = async (
     INSERT INTO member.meeting_vote_counter (meeting_id, member_id, assigned_by)
     VALUES (${meetingId}::uuid, ${memberId}, ${assignedBy})
     ON CONFLICT (meeting_id, member_id) DO NOTHING
-  `.execute(camelDb)
+  `.execute(db)
 }
 
 export const removeVoteCounter = async (meetingId: string, memberId: string): Promise<boolean> => {
@@ -598,7 +598,7 @@ export const removeVoteCounter = async (meetingId: string, memberId: string): Pr
     WHERE meeting_id = ${meetingId}::uuid
       AND member_id = ${memberId}
     RETURNING TRUE AS deleted
-  `.execute(camelDb)
+  `.execute(db)
 
   return Boolean(rows[0]?.deleted)
 }
@@ -608,7 +608,7 @@ export const createVote = async (
   data: CreateVote,
   createdBy: string,
 ): Promise<MeetingVote> => {
-  const voteId = await camelDb.transaction().execute(async (trx) => {
+  const voteId = await db.transaction().execute(async (trx) => {
     const meeting = await getMeetingById(meetingId, createdBy)
     if (!meeting) {
       return problem({ status: 404, detail: 'Meeting not found' })
@@ -682,7 +682,7 @@ export const openVote = async (
   _openedBy: string,
   memberId?: string,
 ): Promise<MeetingVote | undefined> => {
-  return camelDb.transaction().execute(async (trx) => {
+  return db.transaction().execute(async (trx) => {
     const meta = await getVoteMeta(trx, voteId)
     if (!meta) {
       return undefined
@@ -740,7 +740,7 @@ export const closeVote = async (
     WHERE vote_id = ${voteId}::uuid
       AND status = 'OPEN'
     RETURNING vote_id
-  `.execute(camelDb)
+  `.execute(db)
 
   return rows[0] ? getMeetingVoteById(voteId, true, memberId ?? closedBy) : undefined
 }
@@ -759,7 +759,7 @@ export const abandonVote = async (
     WHERE vote_id = ${voteId}::uuid
       AND status = 'OPEN'
     RETURNING vote_id
-  `.execute(camelDb)
+  `.execute(db)
 
   return rows[0] ? getMeetingVoteById(voteId, true, memberId ?? abandonedBy) : undefined
 }
@@ -768,19 +768,19 @@ export const getMeetingVotes = async (
   meetingId: string,
   includeResults: boolean,
   memberId?: string,
-): Promise<MeetingVote[]> => getVoteRows(camelDb, meetingId, includeResults, memberId)
+): Promise<MeetingVote[]> => getVoteRows(db, meetingId, includeResults, memberId)
 
 export const getMeetingVoteById = async (
   voteId: string,
   includeResults: boolean,
   memberId?: string,
 ): Promise<MeetingVote | undefined> => {
-  const meta = await getVoteMeta(camelDb, voteId)
+  const meta = await getVoteMeta(db, voteId)
   if (!meta) {
     return undefined
   }
 
-  const votes = await getVoteRows(camelDb, meta.meetingId, includeResults, memberId, voteId)
+  const votes = await getVoteRows(db, meta.meetingId, includeResults, memberId, voteId)
   return votes[0]
 }
 
@@ -792,7 +792,7 @@ export const hasVoted = async (voteId: string, memberId: string): Promise<boolea
       WHERE vote_id = ${voteId}::uuid
         AND member_id = ${memberId}
     ) AS has_voted
-  `.execute(camelDb)
+  `.execute(db)
 
   return Boolean(rows[0]?.hasVoted)
 }
@@ -802,7 +802,7 @@ export const submitVote = async (
   memberId: string,
   optionIds: string[],
 ): Promise<void> => {
-  await camelDb.transaction().execute(async (trx) => {
+  await db.transaction().execute(async (trx) => {
     const meta = await getVoteMeta(trx, voteId)
     if (!meta) {
       return problem({ status: 404, detail: 'Vote not found' })
@@ -864,7 +864,7 @@ export const isAttendee = async (meetingId: string, memberId: string): Promise<b
       WHERE meeting_id = ${meetingId}::uuid
         AND member_id = ${memberId}
     ) AS is_attendee
-  `.execute(camelDb)
+  `.execute(db)
 
   return Boolean(rows[0]?.isAttendee)
 }
@@ -877,7 +877,7 @@ export const isVoteCounter = async (meetingId: string, memberId: string): Promis
       WHERE meeting_id = ${meetingId}::uuid
         AND member_id = ${memberId}
     ) AS is_vote_counter
-  `.execute(camelDb)
+  `.execute(db)
 
   return Boolean(rows[0]?.isVoteCounter)
 }

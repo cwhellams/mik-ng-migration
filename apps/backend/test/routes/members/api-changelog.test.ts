@@ -122,31 +122,31 @@ describe('GET /members/changelog', () => {
         .updateTable('member.register')
         // is_membership_approved is generated from membership_approved_by
         .set({
-          membership_approved_by: 'k1mnimda',
-          membership_approved_at: now,
-          updated_at: now,
-          updated_by: 'k1mnimda',
+          membershipApprovedBy: 'k1mnimda',
+          membershipApprovedAt: now,
+          updatedAt: now,
+          updatedBy: 'k1mnimda',
         })
-        .where('member_id', '=', memberId)
+        .where('memberId', '=', memberId)
         .execute()
 
       await db
         .updateTable('member.register')
-        .set({ member_type: MIKMemberTypes.FLYING, updated_at: now, updated_by: 'k1mnimda' })
-        .where('member_id', '=', memberId)
+        .set({ memberType: MIKMemberTypes.FLYING, updatedAt: now, updatedBy: 'k1mnimda' })
+        .where('memberId', '=', memberId)
         .execute()
 
       // Background sync churn that must not show up as a registry change
       await db
         .updateTable('member.register')
-        .set({ brevo_sync_status: 'SYNCED', brevo_synced_at: now, updated_at: now })
-        .where('member_id', '=', memberId)
+        .set({ brevoSyncStatus: 'SYNCED', brevoSyncedAt: now, updatedAt: now })
+        .where('memberId', '=', memberId)
         .execute()
 
       await db
         .updateTable('member.register')
-        .set({ member_type: MIKMemberTypes.REMOVED, updated_at: now, updated_by: 'k1mnimda' })
-        .where('member_id', '=', memberId)
+        .set({ memberType: MIKMemberTypes.REMOVED, updatedAt: now, updatedBy: 'k1mnimda' })
+        .where('memberId', '=', memberId)
         .execute()
 
       // A separate external contact, used to check the member type filter
@@ -166,11 +166,11 @@ describe('GET /members/changelog', () => {
     afterAll(async () => {
       await db
         .deleteFrom('member.register')
-        .where('member_id', 'in', [memberId, externalMemberId])
+        .where('memberId', 'in', [memberId, externalMemberId])
         .execute()
       await db
-        .deleteFrom('member.register_audit')
-        .where('member_id', 'in', [memberId, externalMemberId])
+        .deleteFrom('member.registerAudit')
+        .where('memberId', 'in', [memberId, externalMemberId])
         .execute()
     })
 

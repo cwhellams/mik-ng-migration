@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { sql } from 'kysely'
 import type {
   InstructorWorktimeEntry,
@@ -73,7 +73,7 @@ export async function getInstructorWorktime(
       mr.last_name,
       instructor_flights.off_block_time_utc::date
     ORDER BY date ASC, instructor_name ASC
-  `.execute(camelDb)
+  `.execute(db)
 
   return result.rows.map((row) => ({
     instructorMemberId: row.instructorMemberId,

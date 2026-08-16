@@ -17,40 +17,40 @@ describe('stats-queries: AOG (Aircraft On Ground) days', () => {
     await db
       .insertInto('schedule.bookings')
       .values({
-        booking_id: bookingId,
-        member_id: 'k1mnimda',
+        bookingId: bookingId,
+        memberId: 'k1mnimda',
         registration: 'OH-STL',
-        booking_type: 'MAINTENANCE',
-        booking_status: 'CONFIRMED',
-        start_time_epoch: Math.floor(MAINTENANCE_START.getTime() / 1000),
-        end_time_epoch: Math.floor(MAINTENANCE_END.getTime() / 1000),
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        bookingType: 'MAINTENANCE',
+        bookingStatus: 'CONFIRMED',
+        startTimeEpoch: Math.floor(MAINTENANCE_START.getTime() / 1000),
+        endTimeEpoch: Math.floor(MAINTENANCE_END.getTime() / 1000),
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
 
     const defect = await db
       .insertInto('flight.defect')
       .values({
-        aircraft_registration: 'OH-STL',
-        ajlb_seq_no: 1,
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 1,
         description: 'AOG stats test defect',
-        flight_mins: 0,
+        flightMins: 0,
         status: 'RESOLVED',
-        created_at: DEFECT_CREATED,
-        created_by: 'k1mnimda',
-        updated_at: DEFECT_RESOLVED,
-        updated_by: 'k1mnimda',
+        createdAt: DEFECT_CREATED,
+        createdBy: 'k1mnimda',
+        updatedAt: DEFECT_RESOLVED,
+        updatedBy: 'k1mnimda',
       })
-      .returning('defect_id')
+      .returning('defectId')
       .executeTakeFirstOrThrow()
-    defectId = defect.defect_id
+    defectId = defect.defectId
   })
 
   afterAll(async () => {
-    await db.deleteFrom('schedule.bookings').where('booking_id', '=', bookingId).execute()
+    await db.deleteFrom('schedule.bookings').where('bookingId', '=', bookingId).execute()
     if (defectId) {
-      await db.deleteFrom('flight.defect').where('defect_id', '=', defectId).execute()
+      await db.deleteFrom('flight.defect').where('defectId', '=', defectId).execute()
     }
   })
 

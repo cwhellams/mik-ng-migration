@@ -1,6 +1,6 @@
 import type { Updateable } from 'kysely'
 
-import type { AcctsAircraftPricing } from './schema.camel.d.ts'
+import type { AcctsAircraftPricing } from './schema.d.ts'
 import * as connection from './connection.ts'
 import type {
   AircraftPricing,
@@ -22,7 +22,7 @@ export const getAircraftPricing = async (
 ): Promise<AircraftPricing[]> => {
   const { registration, fromDate, toDate } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('accts.aircraftPricing')
     .selectAll()
     .orderBy('registration', 'asc')
@@ -73,7 +73,7 @@ export const insertAircraftPricing = async (
   data: CreateAircraftPricing,
 ): Promise<AircraftPricing> => {
   try {
-    const result = await connection.camelDb
+    const result = await connection.db
       .insertInto('accts.aircraftPricing')
       .values({
         registration: data.registration,
@@ -126,7 +126,7 @@ export const updateAircraftPricing = async (
   data: UpdateAircraftPricing,
 ): Promise<AircraftPricing> => {
   try {
-    // Updateable<> rather than `any`: the point of moving to camelDb is that the
+    // Updateable<> rather than `any`: the point of moving to camelCase is that the
     // compiler checks column names, and an `any` update object opts straight back out.
     const updateData: Updateable<AcctsAircraftPricing> = {
       updatedAt: new Date().toISOString(),
@@ -145,7 +145,7 @@ export const updateAircraftPricing = async (
       updateData.notes = data.notes
     }
 
-    const result = await connection.camelDb
+    const result = await connection.db
       .updateTable('accts.aircraftPricing')
       .set(updateData)
       .where('registration', '=', registration)
@@ -191,7 +191,7 @@ export const deleteAircraftPricing = async (
   registration: string,
   validFrom: string,
 ): Promise<void> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .deleteFrom('accts.aircraftPricing')
     .where('registration', '=', registration)
     .where('validFrom', '=', validFrom)
@@ -208,7 +208,7 @@ export const deleteAircraftPricing = async (
 export const getAircraftPricingHistory = async (
   registration: string,
 ): Promise<AircraftPricing[]> => {
-  const results = await connection.camelDb
+  const results = await connection.db
     .selectFrom('accts.aircraftPricing')
     .selectAll()
     .where('registration', '=', registration)
@@ -237,7 +237,7 @@ export const getAircraftPriceForDate = async (
   registration: string,
   date: string, // YYYY-MM-DD format
 ): Promise<number | null> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .selectFrom('accts.aircraftPricing')
     .select('pricePerMin')
     .where('registration', '=', registration)

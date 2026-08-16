@@ -39,7 +39,10 @@ import {
   insertStuckRowToOutbox,
   revertBillingIdChanges,
 } from '../../db/__helpers__/simplbooksDbHelpers.ts'
-import { checkAndClearStuckMessages } from '../../../src/db/outbox-simplbooks-queries.ts'
+import {
+  checkAndClearStuckMessages,
+  insertOutboxItem,
+} from '../../../src/db/outbox-simplbooks-queries.ts'
 import { db } from '../../../src/db/connection.ts'
 import type { Json } from '../../../src/db/schema.d.ts'
 
@@ -75,16 +78,16 @@ const flyingMemberInvoiceMemberPayload: InvoiceMember = InvoiceMemberSchema.pars
 })
 
 const obMsgAddMember: AcctsOutboxSimplbooks = {
-  created_at_utc: new Date(),
-  event_type: SimplbooksEventType.ADD_MEMBER,
+  createdAtUtc: new Date(),
+  eventType: SimplbooksEventType.ADD_MEMBER,
   id: randomUUID(),
   payload: flyingMemberInvoiceMemberPayload,
   status: SimplbooksStatus.PENDING,
 }
 
 const obMsgMembershipFeeInvoice: AcctsOutboxSimplbooks = {
-  created_at_utc: new Date(),
-  event_type: SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE,
+  createdAtUtc: new Date(),
+  eventType: SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE,
   id: randomUUID(),
   payload: { ...flyingMember, billingId: '8766623' },
   status: SimplbooksStatus.PENDING,
@@ -93,16 +96,16 @@ const obMsgMembershipFeeInvoice: AcctsOutboxSimplbooks = {
 // ORD000001 is seeded with two order items and no invoice_id, and its member has a
 // billing id — everything createShopOrderInvoice needs.
 const obMsgShopOrderInvoice: AcctsOutboxSimplbooks = {
-  created_at_utc: new Date(),
-  event_type: SimplbooksEventType.SHOP_ORDER_INVOICE,
+  createdAtUtc: new Date(),
+  eventType: SimplbooksEventType.SHOP_ORDER_INVOICE,
   id: randomUUID(),
   payload: { orderId: 'ORD000001' },
   status: SimplbooksStatus.PENDING,
 }
 
 const obMsgNewMembershipFeeInvoice: AcctsOutboxSimplbooks = {
-  created_at_utc: new Date(),
-  event_type: SimplbooksEventType.NEW_MEMBER_FEES,
+  createdAtUtc: new Date(),
+  eventType: SimplbooksEventType.NEW_MEMBER_FEES,
   id: randomUUID(),
   payload: { ...flyingMember, billingId: '8766624' },
   status: SimplbooksStatus.PENDING,
@@ -183,13 +186,13 @@ describe('Simplbooks Outbox Handler tests', () => {
     // Insert a duplicate outbox row and dispatch it — annual_fee row now exists, must be skipped
     const duplicateId = randomUUID()
     await db
-      .insertInto('accts.outbox_simplbooks')
+      .insertInto('accts.outboxSimplbooks')
       .values({
         id: duplicateId,
-        event_type: SimplbooksEventType.NEW_MEMBER_FEES,
+        eventType: SimplbooksEventType.NEW_MEMBER_FEES,
         payload: obMsgNewMembershipFeeInvoice.payload as Json,
-        created_at_utc: new Date(),
-        updated_at_utc: new Date(),
+        createdAtUtc: new Date(),
+        updatedAtUtc: new Date(),
         status: SimplbooksStatus.PENDING,
       })
       .execute()
@@ -205,7 +208,7 @@ describe('Simplbooks Outbox Handler tests', () => {
 
     // The duplicate outbox row should be marked SKIPPED
     const skipped = await db
-      .selectFrom('accts.outbox_simplbooks')
+      .selectFrom('accts.outboxSimplbooks')
       .selectAll()
       .where('id', '=', duplicateId)
       .executeTakeFirst()
@@ -217,17 +220,17 @@ describe('Simplbooks Outbox Handler tests', () => {
 
   // Nothing exercised createShopOrderInvoice until this, which is how two separate
   // snake_case row schemas (ShopOrderRowSchema, then ShopOrderItemRowSchema) survived
-  // the camelDb migration. Both are .strict(), so a mismatch throws on every real
+  // the camelCase migration. Both are .strict(), so a mismatch throws on every real
   // shop order rather than degrading quietly.
   it('creates an invoice for a shop order, parsing both the order and its items', async () => {
     await expect(dispatchOutboxMsg(obMsgShopOrderInvoice)).resolves.not.toThrow()
 
     const order = await db
       .selectFrom('shop.orders')
-      .select('invoice_id')
-      .where('order_id', '=', 'ORD000001')
+      .select('invoiceId')
+      .where('orderId', '=', 'ORD000001')
       .executeTakeFirstOrThrow()
-    expect(order.invoice_id).not.toBeNull()
+    expect(order.invoiceId).not.toBeNull()
 
     // deleteCreatedInvoice() only ever removes Anna1's rows, and this order belongs to
     // Matti1. accts.invoice.id is unique across members and the mock always returns the
@@ -235,10 +238,31 @@ describe('Simplbooks Outbox Handler tests', () => {
     // invoice fail on pk_accts_invoice. Clean up by the id this test actually produced.
     await db
       .updateTable('shop.orders')
-      .set({ invoice_id: null })
-      .where('order_id', '=', 'ORD000001')
+      .set({ invoiceId: null })
+      .where('orderId', '=', 'ORD000001')
       .execute()
-    await db.deleteFrom('accts.invoice').where('id', '=', order.invoice_id!).execute()
+    await db.deleteFrom('accts.invoice').where('id', '=', order.invoiceId!).execute()
+  })
+
+  // Every other test here builds its outbox row as a literal, so the handler has never
+  // been handed a row that actually came out of the database. That is how the row and
+  // AcctsOutboxSimplbooksSchema drifted apart: the schema stayed snake_case after the
+  // query moved to the camelCase instance, `msg.event_type` read undefined, and the
+  // switch fell through to "Unsupported outbox event type: undefined" for every item.
+  it('resolves the event type of a row read from the database, not just a literal', async () => {
+    await insertOutboxItem(SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE, { nonsense: true })
+
+    const row = await db
+      .selectFrom('accts.outboxSimplbooks')
+      .selectAll()
+      .where('eventType', '=', SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE)
+      .orderBy('createdAtUtc', 'desc')
+      .limit(1)
+      .executeTakeFirstOrThrow()
+
+    // The payload is deliberately invalid, so this throws either way — what matters is
+    // *which* error. Failing to resolve the type means the row never reached a handler.
+    await expect(dispatchOutboxMsg(row)).rejects.not.toThrow(/Unsupported outbox event type/)
   })
 
   it('checks and clears stuck outbox messages ', async () => {

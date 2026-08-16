@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { sql } from 'kysely'
 import type {
   UpliftReportEntry,
@@ -10,7 +10,7 @@ export async function getUpliftReport(filters: UpliftReportFilters): Promise<{
   data: UpliftReportEntry[]
   summary: UpliftReportSummary
 }> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('flight.logs')
     .leftJoin('member.register', 'flight.logs.picMemberId', 'member.register.memberId')
     .select([
@@ -48,7 +48,7 @@ export async function getUpliftReport(filters: UpliftReportFilters): Promise<{
   const totalOilUpliftLitres = data.reduce((sum, e) => sum + (e.oilUpliftLitres ?? 0), 0)
 
   // Fetch fuel types for this aircraft
-  const aircraft = await camelDb
+  const aircraft = await db
     .selectFrom('flight.aircraft')
     .select('fuelTypes')
     .where('registration', '=', filters.aircraftRegistration)

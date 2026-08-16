@@ -33,7 +33,7 @@ import {
   getMileageReportRows,
   recordMileageHetuAccess,
 } from '../../db/mileage-queries.ts'
-import { camelDb } from '../../db/connection.ts'
+import { db } from '../../db/connection.ts'
 import { getMemberById, updateMember } from '../../db/member-queries.ts'
 import { storageService } from '../../services/storage.ts'
 import { SimplbooksEventType } from '../../services/simplbooks/models.ts'
@@ -904,7 +904,7 @@ router.post(
         })
       }
 
-      const uploaded = await camelDb.transaction().execute(async (txn) => {
+      const uploaded = await db.transaction().execute(async (txn) => {
         const rows = []
         for (const attachment of stored) {
           rows.push(await addExpenseAttachment(req.params.id, attachment, txn))
@@ -1013,7 +1013,7 @@ router.post(
       !!fuelSummary &&
       (fuelSummary.capped || fuelSummary.clubCardCost > 0 || !payoutLineItems.length)
 
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await approveExpenseClaim(req.params.id, req.user!.memberId, txn)
 
       // Nothing left to reimburse (all fuel was on the club card, or the club-card spend
@@ -1187,7 +1187,7 @@ router.post(
     }
 
     const { message } = RequestInfoSchema.parse(req.body)
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await addExpenseMessage(
         claim.id,
         req.user!.memberId,

@@ -34,10 +34,10 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
     // Remove any pre-existing articles with these codes so our test IDs are authoritative
     await db
       .selectFrom('flight.aircraft as a')
-      .leftJoin('prepaid.packages as p', 'p.aircraft_registration', 'a.registration')
+      .leftJoin('prepaid.packages as p', 'p.aircraftRegistration', 'a.registration')
       .select('a.registration as registration')
       .groupBy('a.registration')
-      .having((eb) => eb.fn.count('p.product_id'), '=', 0)
+      .having((eb) => eb.fn.count('p.productId'), '=', 0)
       .orderBy('a.registration', 'asc')
       .executeTakeFirstOrThrow()
       .then((row) => {
@@ -172,13 +172,13 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
     await db
       .insertInto('shop.categories')
       .values({
-        category_id: 'FLT_PKG',
+        categoryId: 'FLT_PKG',
         name: { en: 'Flight packages', fi: 'Lentopaketit', sv: 'Flygpaket' },
         description: null,
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
-      .onConflict((oc) => oc.column('category_id').doNothing())
+      .onConflict((oc) => oc.column('categoryId').doNothing())
       .execute()
   })
 
@@ -206,32 +206,29 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   afterEach(async () => {
     // Clean up test data
     for (const invoiceId of createdInvoiceIds) {
-      await db
-        .deleteFrom('member.annual_fees')
-        .where('invoice_id', '=', Number(invoiceId))
-        .execute()
+      await db.deleteFrom('member.annualFees').where('invoiceId', '=', Number(invoiceId)).execute()
       await db.deleteFrom('accts.invoice').where('id', '=', invoiceId).execute()
     }
 
     if (createdMemberPackageIds.length > 0) {
       await db
-        .deleteFrom('prepaid.usage_log')
-        .where('member_package_id', 'in', createdMemberPackageIds)
+        .deleteFrom('prepaid.usageLog')
+        .where('memberPackageId', 'in', createdMemberPackageIds)
         .execute()
       await db
-        .deleteFrom('prepaid.member_packages')
-        .where('member_package_id', 'in', createdMemberPackageIds)
+        .deleteFrom('prepaid.memberPackages')
+        .where('memberPackageId', 'in', createdMemberPackageIds)
         .execute()
     }
 
     if (createdPrepaidProductIds.length > 0) {
       await db
         .deleteFrom('prepaid.packages')
-        .where('product_id', 'in', createdPrepaidProductIds)
+        .where('productId', 'in', createdPrepaidProductIds)
         .execute()
       await db
         .deleteFrom('shop.products')
-        .where('product_id', 'in', createdPrepaidProductIds)
+        .where('productId', 'in', createdPrepaidProductIds)
         .execute()
     }
 
@@ -281,29 +278,29 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       .insertInto('accts.invoice')
       .values({
         id: invoiceId,
-        member_id: memberId,
-        invoice_type: MIKInvoiceType.EQUIPMENT_FEE,
+        memberId: memberId,
+        invoiceType: MIKInvoiceType.EQUIPMENT_FEE,
         description: `Test equipment fee invoice ${year}`,
-        pmt_ref: `TSTEQ${year}`,
-        paid_at: null,
-        due_at: new Date().toISOString(),
-        sent_at: null,
+        pmtRef: `TSTEQ${year}`,
+        paidAt: null,
+        dueAt: new Date().toISOString(),
+        sentAt: null,
         currency: 'EUR',
-        total_sum: '135.00',
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        totalSum: '135.00',
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
       .execute()
 
     await db
-      .insertInto('member.annual_fees')
+      .insertInto('member.annualFees')
       .values({
-        member_id: memberId,
+        memberId: memberId,
         year: year,
-        fee_type: RecurringFeeType.EQUIPMENT_FEE,
-        invoice_id: invoiceId,
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        feeType: RecurringFeeType.EQUIPMENT_FEE,
+        invoiceId: invoiceId,
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
       .execute()
 
@@ -331,48 +328,48 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
     await db
       .insertInto('shop.products')
       .values({
-        product_id: actualProductId,
-        category_id: 'FLT_PKG',
-        simplbooks_item_id: simplbooksItemId,
+        productId: actualProductId,
+        categoryId: 'FLT_PKG',
+        simplbooksItemId: simplbooksItemId,
         name: { en: actualProductId, fi: actualProductId, sv: actualProductId },
         description: null,
         price: Number((minutes * perMinRate).toFixed(2)),
-        stock_quantity: 1,
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        stockQuantity: 1,
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
       .execute()
 
     await db
       .insertInto('prepaid.packages')
       .values({
-        product_id: actualProductId,
-        aircraft_registration: aircraftRegistration,
-        minutes_per_package: minutes,
-        per_min_rate: perMinRate,
-        total_packages_available: 1,
-        max_per_member: 1,
-        expires_at: '2099-12-31',
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        productId: actualProductId,
+        aircraftRegistration: aircraftRegistration,
+        minutesPerPackage: minutes,
+        perMinRate: perMinRate,
+        totalPackagesAvailable: 1,
+        maxPerMember: 1,
+        expiresAt: '2099-12-31',
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
       .execute()
 
     const row = await db
-      .insertInto('prepaid.member_packages')
+      .insertInto('prepaid.memberPackages')
       .values({
-        member_id: testMemberId,
-        product_id: actualProductId,
-        order_id: null,
-        total_minutes: minutes,
-        used_minutes: usedMinutes,
-        expires_at: '2099-12-31',
+        memberId: testMemberId,
+        productId: actualProductId,
+        orderId: null,
+        totalMinutes: minutes,
+        usedMinutes: usedMinutes,
+        expiresAt: '2099-12-31',
       })
-      .returning('member_package_id')
+      .returning('memberPackageId')
       .executeTakeFirstOrThrow()
 
     createdPrepaidProductIds.push(actualProductId)
-    createdMemberPackageIds.push(row.member_package_id)
+    createdMemberPackageIds.push(row.memberPackageId)
   }
 
   describe('Equipment usage fee application logic', () => {

@@ -1,7 +1,7 @@
 import { sql } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
-import { camelCaseNestedRows, camelDb, type CamelRow } from './connection.ts'
+import { camelCaseNestedRows, db, type DbRow } from './connection.ts'
 import type { RegisterRequest } from '@mik/contracts/auth'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
@@ -32,7 +32,7 @@ import { RecurringFeeType, SimplbooksEventType } from '../services/simplbooks/mo
 import type { DashboardSettings } from '@mik/contracts/dashboard'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
-  const member = await camelDb
+  const member = await db
     .selectFrom('member.register')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -45,7 +45,7 @@ export async function getMemberById(memberId: string): Promise<Member | undefine
 
 // Get member using email
 export async function getMemberByEmail(email: string): Promise<Member | undefined> {
-  const member = await camelDb
+  const member = await db
     .selectFrom('member.register')
     .selectAll()
     .where('email', '=', email.toLowerCase())
@@ -55,7 +55,7 @@ export async function getMemberByEmail(email: string): Promise<Member | undefine
   }
 }
 
-function toMember(member: CamelRow<'member.register'>, roles: MemberRole[]): Member {
+function toMember(member: DbRow<'member.register'>, roles: MemberRole[]): Member {
   return {
     memberId: member.memberId,
     memberType: member.memberType as MIKMemberTypes,
@@ -156,7 +156,7 @@ export async function getMembers(
   const publicRoles = (await getAllMemberRoles(true)).map((role) => role.roleId)
   const filterRoles = isAdmin ? roles : getPublicRolesToQuery(publicRoles, roles)
 
-  let list = await camelDb
+  let list = await db
     .selectFrom('member.register')
     .select((eb) => [
       'member.register.memberId',
@@ -266,7 +266,7 @@ export async function getMembers(
 }
 
 export async function getMembersForAnnualMembershipFee(year: number): Promise<InvoiceMember[]> {
-  const members = await camelDb
+  const members = await db
     .selectFrom('member.register')
     .select([
       'member.register.memberId',
@@ -309,7 +309,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
   const now = new Date()
   const new_member_id = generateShortId()
 
-  const insRetval = await camelDb
+  const insRetval = await db
     .insertInto('member.register')
     .values({
       memberId: new_member_id,
@@ -361,7 +361,7 @@ export async function updateMemberLang(
 ): Promise<boolean> {
   const now = new Date()
 
-  const result = await camelDb
+  const result = await db
     .updateTable('member.register')
     .set({
       langIso639: lang,
@@ -384,7 +384,7 @@ export async function updateMember(
 ): Promise<boolean> {
   const now = new Date()
 
-  const result = await camelDb
+  const result = await db
     .updateTable('member.register')
     .set({
       memberType: patch.memberType,
@@ -464,7 +464,7 @@ export async function setMustUpdateProfileBulk(
   jwt: JWTUser,
 ): Promise<number> {
   if (memberIds.length === 0) return 0
-  const result = await camelDb
+  const result = await db
     .updateTable('member.register')
     .set({ mustUpdateProfile: value, updatedAt: new Date(), updatedBy: jwt.memberId })
     .where('memberId', 'in', memberIds)
@@ -473,7 +473,7 @@ export async function setMustUpdateProfileBulk(
 }
 
 export async function clearMustUpdateProfile(memberId: string, jwt: JWTUser): Promise<void> {
-  await camelDb
+  await db
     .updateTable('member.register')
     .set({ mustUpdateProfile: false, updatedAt: new Date(), updatedBy: jwt.memberId })
     .where('memberId', '=', memberId)
@@ -482,12 +482,12 @@ export async function clearMustUpdateProfile(memberId: string, jwt: JWTUser): Pr
 }
 
 export async function removeMember(memberId: string): Promise<boolean> {
-  await camelDb
+  await db
     .deleteFrom('member.memberToRoles')
     .where('memberId', '=', memberId)
     .executeTakeFirstOrThrow()
 
-  const result = await camelDb
+  const result = await db
     .deleteFrom('member.register')
     .where('memberId', '=', memberId)
     .where('brevoContactId', 'is', null) // only delete if member is not sync'd to Brevo
@@ -500,7 +500,7 @@ export async function setMembershipApproval(
   approvedBy: string,
   createSimplbooksAccount: boolean,
 ): Promise<Member> {
-  return await camelDb.transaction().execute(async (txn) => {
+  return await db.transaction().execute(async (txn) => {
     const member = await txn
       .updateTable('member.register')
       .set({
@@ -540,7 +540,7 @@ export async function updateMemberRoles(
   const oldRoles = existingRoleIds.filter((existingRoleId) => !roles.includes(existingRoleId))
 
   if (newRoles.length > 0) {
-    await camelDb
+    await db
       .insertInto('member.memberToRoles')
       .values(
         newRoles.map((newRole) => ({
@@ -554,7 +554,7 @@ export async function updateMemberRoles(
   }
 
   if (oldRoles.length > 0) {
-    await camelDb
+    await db
       .deleteFrom('member.memberToRoles')
       .where('memberId', '=', memberId)
       .where('roleId', 'in', oldRoles)
@@ -566,7 +566,7 @@ export async function updateMemberRoles(
 // Role queries
 //
 
-function toMemberRole(role: CamelRow<'member.roles'>): MemberRole {
+function toMemberRole(role: DbRow<'member.roles'>): MemberRole {
   return {
     roleId: role.roleId,
     description: role.description,
@@ -585,7 +585,7 @@ function toMemberRole(role: CamelRow<'member.roles'>): MemberRole {
 }
 
 export async function getMemberRolesByMemberId(memberId: string): Promise<MemberRole[]> {
-  const roles = await camelDb
+  const roles = await db
     .selectFrom('member.roles')
     .selectAll()
     .innerJoin('member.memberToRoles', 'member.memberToRoles.roleId', 'member.roles.roleId')
@@ -599,7 +599,7 @@ export async function getMemberRolesByMemberId(memberId: string): Promise<Member
 export async function getMemberRolesByPermission(
   permission: MIKPermissions,
 ): Promise<MemberRole[]> {
-  const roles = await camelDb
+  const roles = await db
     .selectFrom('member.roles')
     .selectAll()
     .where((eb) => eb('permissions', '@>', JSON.stringify(permission)))
@@ -609,7 +609,7 @@ export async function getMemberRolesByPermission(
 }
 
 export async function getAllMemberRoles(isPublic?: boolean): Promise<MemberRole[]> {
-  const roles = await camelDb
+  const roles = await db
     .selectFrom('member.roles')
     .selectAll()
     .$if(isPublic !== undefined, (qb) => qb.where('isPublic', '=', isPublic!))
@@ -618,7 +618,7 @@ export async function getAllMemberRoles(isPublic?: boolean): Promise<MemberRole[
   return roles.map(toMemberRole)
 }
 export async function getMemberRoleById(roleId: string): Promise<MemberRole | undefined> {
-  const role = await camelDb
+  const role = await db
     .selectFrom('member.roles')
     .selectAll()
     .where('roleId', '=', roleId)
@@ -629,7 +629,7 @@ export async function getMemberRoleById(roleId: string): Promise<MemberRole | un
 export async function addMemberRole(role: Upsert<MemberRole>, jwt: JWTUser): Promise<MemberRole> {
   const now = new Date()
 
-  const result = await camelDb
+  const result = await db
     .insertInto('member.roles')
     .values({
       roleId: role.roleId,
@@ -665,7 +665,7 @@ export async function updateMemberRole(
 ): Promise<boolean> {
   const now = new Date()
 
-  const result = await camelDb
+  const result = await db
     .updateTable('member.roles')
     .set({
       roleId: patch.roleId,
@@ -685,7 +685,7 @@ export async function updateMemberRole(
 }
 
 export async function removeMemberRole(roleId: string): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('member.roles')
     .where('roleId', '=', roleId)
     .executeTakeFirstOrThrow()
@@ -697,7 +697,7 @@ export async function getFeeProcessingItemForMember(
   year: number,
   memberId: string,
 ): Promise<FeeProcessingItem | undefined> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('member.annualFees')
     .where('feeType', '=', feeType)
     .where('year', '=', year)
@@ -724,7 +724,7 @@ export async function getFeeProcessingItemForMember(
  * Suspend a member's ability to make reservations
  */
 export async function suspendMemberReservations(memberId: string): Promise<void> {
-  await camelDb
+  await db
     .updateTable('member.register')
     .set({
       canMakeReservations: false,
@@ -739,7 +739,7 @@ export async function suspendMemberReservations(memberId: string): Promise<void>
  * Restore a member's ability to make reservations
  */
 export async function restoreMemberReservations(memberId: string): Promise<void> {
-  await camelDb
+  await db
     .updateTable('member.register')
     .set({
       canMakeReservations: true,
@@ -751,7 +751,7 @@ export async function restoreMemberReservations(memberId: string): Promise<void>
 }
 
 export async function getDashboardSettings(memberId: string): Promise<DashboardSettings | null> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('member.register')
     .select('dashboardSettings')
     .where('memberId', '=', memberId)
@@ -766,7 +766,7 @@ export async function setDashboardSettings(
   memberId: string,
   settings: DashboardSettings | null,
 ): Promise<void> {
-  await camelDb
+  await db
     .updateTable('member.register')
     .set({
       dashboardSettings: settings,
@@ -782,7 +782,7 @@ export async function setDashboardSettings(
  * Returns a breakdown of which dependent records exist.
  */
 export async function canMemberBeDeleted(memberId: string): Promise<MemberDeletability> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('member.register')
     .select((eb) => [
       eb
@@ -837,7 +837,7 @@ export async function deactivateMember(
   removedBy: string,
   reason?: string,
 ): Promise<void> {
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     // Remove all roles/permissions
     await txn.deleteFrom('member.memberToRoles').where('memberId', '=', memberId).execute()
 
@@ -878,7 +878,7 @@ export async function deactivateMember(
 export async function restoreMember(memberId: string, restoredBy: string): Promise<Member> {
   const now = new Date()
 
-  const member = await camelDb
+  const member = await db
     .updateTable('member.register')
     .set({
       memberType: MIKMemberTypes.FLYING, // Default to FLYING, admin can change later
@@ -905,7 +905,7 @@ export async function getUnpaidMembershipFeesForYear(
   memberId: string,
   year: number,
 ): Promise<Array<{ id: string; invoice_type: string; pmt_ref: string | null }>> {
-  const invoices = await camelDb
+  const invoices = await db
     .selectFrom('member.annualFees')
     .innerJoin('accts.invoice', 'member.annualFees.invoiceId', 'accts.invoice.id')
     .select(['accts.invoice.id', 'accts.invoice.invoiceType', 'accts.invoice.pmtRef'])
@@ -937,7 +937,7 @@ export async function getJuniorMembersTurning18Today(): Promise<
   const birthDay = String(today.getDate()).padStart(2, '0')
   const targetDob = `${birthYear}-${birthMonth}-${birthDay}`
 
-  const members = await camelDb
+  const members = await db
     .selectFrom('member.register')
     .select(['memberId', 'firstName', 'email', 'langIso639'])
     .where('memberType', '=', MIKMemberTypes.JUNIOR)
@@ -961,7 +961,7 @@ export async function getJuniorMembersTurning18Today(): Promise<
 export async function promoteMemberToFlying(memberId: string): Promise<void> {
   const now = new Date()
 
-  await camelDb
+  await db
     .updateTable('member.register')
     .set({
       memberType: MIKMemberTypes.FLYING,
@@ -984,7 +984,7 @@ export async function hasMemberFlownBillableFlightInYear(
   const yearStartEpoch = Math.floor(yearStart.getTime() / 1000).toString()
   const nextYearStartEpoch = Math.floor(nextYearStart.getTime() / 1000).toString()
 
-  const flightCount = await camelDb
+  const flightCount = await db
     .selectFrom('flight.logs')
     .select((eb) => eb.fn.count('flightId').as('count'))
     .where('billableMemberId', '=', memberId)
@@ -1001,7 +1001,7 @@ export async function hasMemberFlownBillableFlightInYear(
  * but has not been paid.
  */
 export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<NonRenewalMember[]> {
-  const results = await camelDb
+  const results = await db
     .selectFrom('member.register as r')
     .leftJoin(
       (eb) =>
@@ -1092,7 +1092,7 @@ export async function insertNonRenewalAction(
   performedBy: string,
   notes?: string,
 ): Promise<NonRenewalAction> {
-  const result = await camelDb
+  const result = await db
     .insertInto('member.nonRenewalActions')
     .values({
       memberId: memberId,
@@ -1198,7 +1198,7 @@ export async function getMemberChangeLog(
   const newType = sql<string | null>`a.new_data ->> 'member_type'`
   const previousType = sql<string | null>`a.changed_data ->> 'member_type'`
 
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('member.registerAudit as a')
     .leftJoin('member.register as cb', 'cb.memberId', 'a.changedBy')
     .select([

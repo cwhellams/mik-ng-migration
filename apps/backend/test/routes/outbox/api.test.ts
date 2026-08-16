@@ -56,32 +56,28 @@ async function insertOutboxRow(overrides: {
   const id = overrides.id ?? randomUUID()
   testIds.push(id)
   await db
-    .insertInto('accts.outbox_simplbooks')
+    .insertInto('accts.outboxSimplbooks')
     .values({
       id,
-      event_type: overrides.event_type ?? 'addMember',
+      eventType: overrides.event_type ?? 'addMember',
       status: (overrides.status ?? 'PENDING') as any,
       payload: overrides.payload ?? ({ test: true } as any),
-      created_at_utc: overrides.created_at_utc ?? new Date(),
-      updated_at_utc: new Date(),
-      processed_at: overrides.processed_at ?? null,
-      error_message: overrides.error_message ?? null,
+      createdAtUtc: overrides.created_at_utc ?? new Date(),
+      updatedAtUtc: new Date(),
+      processedAt: overrides.processed_at ?? null,
+      errorMessage: overrides.error_message ?? null,
     })
     .execute()
   return id
 }
 
 async function getRowById(id: string) {
-  return db
-    .selectFrom('accts.outbox_simplbooks')
-    .selectAll()
-    .where('id', '=', id)
-    .executeTakeFirst()
+  return db.selectFrom('accts.outboxSimplbooks').selectAll().where('id', '=', id).executeTakeFirst()
 }
 
 afterEach(async () => {
   if (testIds.length > 0) {
-    await db.deleteFrom('accts.outbox_simplbooks').where('id', 'in', testIds).execute()
+    await db.deleteFrom('accts.outboxSimplbooks').where('id', 'in', testIds).execute()
     testIds.length = 0
   }
 })
@@ -303,7 +299,7 @@ describe('PATCH /outbox/:id/retry', () => {
 
     const row = await getRowById(id)
     expect(row?.status).toBe('PENDING')
-    expect(row?.error_message).toBeNull()
+    expect(row?.errorMessage).toBeNull()
   })
 
   it('should clear the error_message when resetting to PENDING', async () => {
@@ -315,7 +311,7 @@ describe('PATCH /outbox/:id/retry', () => {
     await request(app).patch(`/outbox/${id}/retry`).set('Cookie', `accessToken=${outboxAdminToken}`)
 
     const row = await getRowById(id)
-    expect(row?.error_message).toBeNull()
+    expect(row?.errorMessage).toBeNull()
   })
 
   it('should NOT change status for a PENDING row (only FAILED rows are retryable)', async () => {

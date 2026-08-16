@@ -335,26 +335,26 @@ describe('POST /maintenance-notes with hilIds', () => {
   ): Promise<string> => {
     const now = new Date()
     const row = await db
-      .insertInto('flight.aircraft_hil')
+      .insertInto('flight.aircraftHil')
       .values({
-        aircraft_registration: aircraftRegistration,
-        hil_number: hilNumber,
-        source_ref: `${TEST_MARKER} ref`,
-        defect_cat: 'B',
+        aircraftRegistration: aircraftRegistration,
+        hilNumber: hilNumber,
+        sourceRef: `${TEST_MARKER} ref`,
+        defectCat: 'B',
         description: `${TEST_MARKER} landing light inoperative`,
         restrictions: 'Day VFR only',
-        open_date: now,
+        openDate: now,
         name: 'Plane Captain',
-        due_date: new Date(now.getTime() + 30 * 24 * 3600 * 1000),
-        resolved_note_id: null,
-        created_at: now,
-        created_by: 'Matti1',
-        updated_at: now,
-        updated_by: 'Matti1',
+        dueDate: new Date(now.getTime() + 30 * 24 * 3600 * 1000),
+        resolvedNoteId: null,
+        createdAt: now,
+        createdBy: 'Matti1',
+        updatedAt: now,
+        updatedBy: 'Matti1',
       })
-      .returning('hil_id')
+      .returning('hilId')
       .executeTakeFirstOrThrow()
-    return row.hil_id
+    return row.hilId
   }
 
   beforeEach(async () => {
@@ -373,15 +373,15 @@ describe('POST /maintenance-notes with hilIds', () => {
     defectId = defect.defectId
     await db
       .updateTable('flight.defect')
-      .set({ hil_id: hilId, status: 'MOVED_TO_HIL' })
-      .where('defect_id', '=', defectId)
+      .set({ hilId: hilId, status: 'MOVED_TO_HIL' })
+      .where('defectId', '=', defectId)
       .execute()
   })
 
   afterEach(async () => {
     // aircraft_hil references the note via resolved_note_id, so it must go first
-    await db.deleteFrom('flight.defect').where('defect_id', '=', defectId).execute()
-    await db.deleteFrom('flight.aircraft_hil').where('hil_id', '=', hilId).execute()
+    await db.deleteFrom('flight.defect').where('defectId', '=', defectId).execute()
+    await db.deleteFrom('flight.aircraftHil').where('hilId', '=', hilId).execute()
     if (createdNoteId) {
       await deleteMaintenanceNote(createdNoteId)
       createdNoteId = ''
@@ -405,19 +405,19 @@ describe('POST /maintenance-notes with hilIds', () => {
     createdNoteId = res.body.noteId
 
     const hil = await db
-      .selectFrom('flight.aircraft_hil')
-      .select('resolved_note_id')
-      .where('hil_id', '=', hilId)
+      .selectFrom('flight.aircraftHil')
+      .select('resolvedNoteId')
+      .where('hilId', '=', hilId)
       .executeTakeFirstOrThrow()
-    expect(hil.resolved_note_id).toBe(createdNoteId)
+    expect(hil.resolvedNoteId).toBe(createdNoteId)
 
     const defect = await db
       .selectFrom('flight.defect')
-      .select(['status', 'resolved_note_id'])
-      .where('defect_id', '=', defectId)
+      .select(['status', 'resolvedNoteId'])
+      .where('defectId', '=', defectId)
       .executeTakeFirstOrThrow()
     expect(defect.status).toBe('RESOLVED')
-    expect(defect.resolved_note_id).toBe(createdNoteId)
+    expect(defect.resolvedNoteId).toBe(createdNoteId)
   })
 
   it('does not resolve a hold item (or its defect) belonging to a different aircraft', async () => {
@@ -435,8 +435,8 @@ describe('POST /maintenance-notes with hilIds', () => {
     )
     await db
       .updateTable('flight.defect')
-      .set({ hil_id: otherHilId, status: 'MOVED_TO_HIL' })
-      .where('defect_id', '=', otherDefect.defectId)
+      .set({ hilId: otherHilId, status: 'MOVED_TO_HIL' })
+      .where('defectId', '=', otherDefect.defectId)
       .execute()
 
     try {
@@ -456,22 +456,22 @@ describe('POST /maintenance-notes with hilIds', () => {
       createdNoteId = res.body.noteId
 
       const hil = await db
-        .selectFrom('flight.aircraft_hil')
-        .select('resolved_note_id')
-        .where('hil_id', '=', otherHilId)
+        .selectFrom('flight.aircraftHil')
+        .select('resolvedNoteId')
+        .where('hilId', '=', otherHilId)
         .executeTakeFirstOrThrow()
-      expect(hil.resolved_note_id).toBeNull()
+      expect(hil.resolvedNoteId).toBeNull()
 
       const defect = await db
         .selectFrom('flight.defect')
-        .select(['status', 'resolved_note_id'])
-        .where('defect_id', '=', otherDefect.defectId)
+        .select(['status', 'resolvedNoteId'])
+        .where('defectId', '=', otherDefect.defectId)
         .executeTakeFirstOrThrow()
       expect(defect.status).toBe('MOVED_TO_HIL')
-      expect(defect.resolved_note_id).toBeNull()
+      expect(defect.resolvedNoteId).toBeNull()
     } finally {
-      await db.deleteFrom('flight.defect').where('defect_id', '=', otherDefect.defectId).execute()
-      await db.deleteFrom('flight.aircraft_hil').where('hil_id', '=', otherHilId).execute()
+      await db.deleteFrom('flight.defect').where('defectId', '=', otherDefect.defectId).execute()
+      await db.deleteFrom('flight.aircraftHil').where('hilId', '=', otherHilId).execute()
     }
   })
 })
@@ -511,8 +511,8 @@ describe('POST /maintenance-notes with defectIds', () => {
   })
 
   afterEach(async () => {
-    await db.deleteFrom('flight.defect').where('defect_id', '=', defectId).execute()
-    await db.deleteFrom('flight.defect').where('defect_id', '=', otherAircraftDefectId).execute()
+    await db.deleteFrom('flight.defect').where('defectId', '=', defectId).execute()
+    await db.deleteFrom('flight.defect').where('defectId', '=', otherAircraftDefectId).execute()
     if (createdNoteId) {
       await deleteMaintenanceNote(createdNoteId)
       createdNoteId = ''
@@ -537,12 +537,12 @@ describe('POST /maintenance-notes with defectIds', () => {
 
     const defect = await db
       .selectFrom('flight.defect')
-      .select(['status', 'resolved_note_id', 'hil_id'])
-      .where('defect_id', '=', defectId)
+      .select(['status', 'resolvedNoteId', 'hilId'])
+      .where('defectId', '=', defectId)
       .executeTakeFirstOrThrow()
     expect(defect.status).toBe('RESOLVED')
-    expect(defect.resolved_note_id).toBe(createdNoteId)
-    expect(defect.hil_id).toBeNull()
+    expect(defect.resolvedNoteId).toBe(createdNoteId)
+    expect(defect.hilId).toBeNull()
   })
 
   it('does not resolve a defect belonging to a different aircraft', async () => {
@@ -563,11 +563,11 @@ describe('POST /maintenance-notes with defectIds', () => {
 
     const defect = await db
       .selectFrom('flight.defect')
-      .select(['status', 'resolved_note_id'])
-      .where('defect_id', '=', otherAircraftDefectId)
+      .select(['status', 'resolvedNoteId'])
+      .where('defectId', '=', otherAircraftDefectId)
       .executeTakeFirstOrThrow()
     expect(defect.status).toBe('ACTIVE')
-    expect(defect.resolved_note_id).toBeNull()
+    expect(defect.resolvedNoteId).toBeNull()
   })
 })
 

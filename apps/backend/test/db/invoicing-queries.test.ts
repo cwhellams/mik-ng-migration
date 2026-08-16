@@ -212,19 +212,19 @@ describe('Invoicing Queries', () => {
 
     beforeEach(async () => {
       await db
-        .deleteFrom('member.annual_fees')
-        .where('member_id', '=', feeMemberId)
+        .deleteFrom('member.annualFees')
+        .where('memberId', '=', feeMemberId)
         .where('year', '=', feeYear)
-        .where('fee_type', '=', RecurringFeeType.EQUIPMENT_FEE)
+        .where('feeType', '=', RecurringFeeType.EQUIPMENT_FEE)
         .execute()
     })
 
     afterEach(async () => {
       await db
-        .deleteFrom('member.annual_fees')
-        .where('member_id', '=', feeMemberId)
+        .deleteFrom('member.annualFees')
+        .where('memberId', '=', feeMemberId)
         .where('year', '=', feeYear)
-        .where('fee_type', '=', RecurringFeeType.EQUIPMENT_FEE)
+        .where('feeType', '=', RecurringFeeType.EQUIPMENT_FEE)
         .execute()
 
       if (createdInvoiceId) {
@@ -241,39 +241,39 @@ describe('Invoicing Queries', () => {
     it('should return true when equipment fee request exists', async () => {
       const maxIdResult = await db
         .selectFrom('accts.invoice')
-        .select(db.fn.max('id').as('max_id'))
+        .select(db.fn.max('id').as('maxId'))
         .executeTakeFirst()
 
-      const nextId = maxIdResult?.max_id ? Number(maxIdResult.max_id) + 1 : 1
+      const nextId = maxIdResult?.maxId ? Number(maxIdResult.maxId) + 1 : 1
       createdInvoiceId = nextId.toString()
 
       await db
         .insertInto('accts.invoice')
         .values({
           id: createdInvoiceId,
-          member_id: feeMemberId,
-          invoice_type: MIKInvoiceType.EQUIPMENT_FEE,
+          memberId: feeMemberId,
+          invoiceType: MIKInvoiceType.EQUIPMENT_FEE,
           description: 'Test equipment fee invoice',
-          pmt_ref: 'TEST-EQUIP-FEE',
-          paid_at: null,
-          due_at: new Date().toISOString(),
-          sent_at: null,
+          pmtRef: 'TEST-EQUIP-FEE',
+          paidAt: null,
+          dueAt: new Date().toISOString(),
+          sentAt: null,
           currency: 'EUR',
-          total_sum: '0.00',
-          created_by: adminMemberId,
-          updated_by: adminMemberId,
+          totalSum: '0.00',
+          createdBy: adminMemberId,
+          updatedBy: adminMemberId,
         })
         .execute()
 
       await db
-        .insertInto('member.annual_fees')
+        .insertInto('member.annualFees')
         .values({
-          member_id: feeMemberId,
+          memberId: feeMemberId,
           year: feeYear,
-          fee_type: RecurringFeeType.EQUIPMENT_FEE,
-          invoice_id: nextId,
-          created_by: adminMemberId,
-          updated_by: adminMemberId,
+          feeType: RecurringFeeType.EQUIPMENT_FEE,
+          invoiceId: nextId,
+          createdBy: adminMemberId,
+          updatedBy: adminMemberId,
         })
         .execute()
 

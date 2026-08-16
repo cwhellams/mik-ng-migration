@@ -41,18 +41,18 @@ describe('createExpenseReimbursement bookkeeping date (issue #1071)', () => {
     jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksGet)
 
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'misc')
       .executeTakeFirstOrThrow()
     const claim = await db
-      .insertInto('accts.expense_claim')
+      .insertInto('accts.expenseClaim')
       .values({
-        member_id: MEMBER_ID,
-        category_id: category.id,
+        memberId: MEMBER_ID,
+        categoryId: category.id,
         title: 'Bookkeeping date test',
         status: ExpenseClaimStatus.SUBMITTED,
-        submitted_at: new Date('2026-08-01T12:00:00.000Z'),
+        submittedAt: new Date('2026-08-01T12:00:00.000Z'),
       })
       .returning('id')
       .executeTakeFirstOrThrow()
@@ -60,15 +60,15 @@ describe('createExpenseReimbursement bookkeeping date (issue #1071)', () => {
   })
 
   afterEach(async () => {
-    await db.deleteFrom('accts.expense_claim').where('id', '=', claimId).execute()
+    await db.deleteFrom('accts.expenseClaim').where('id', '=', claimId).execute()
     jest.clearAllMocks()
     delete process.env.SIMPLBOOKS_DRY_RUN
   })
 
   function makeOutboxMsg(payload: Record<string, unknown>): AcctsOutboxSimplbooks {
     return {
-      created_at_utc: new Date(),
-      event_type: SimplbooksEventType.REIMBURSEMENT,
+      createdAtUtc: new Date(),
+      eventType: SimplbooksEventType.REIMBURSEMENT,
       id: randomUUID(),
       payload: {
         claimId,

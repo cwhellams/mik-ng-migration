@@ -86,16 +86,16 @@ const CATEGORY_CODE = 'misc'
 
 async function insertClaim(status: ExpenseClaimStatus) {
   const category = await db
-    .selectFrom('accts.expense_category')
+    .selectFrom('accts.expenseCategory')
     .select('id')
     .where('code', '=', CATEGORY_CODE)
     .executeTakeFirstOrThrow()
 
   const claim = await db
-    .insertInto('accts.expense_claim')
+    .insertInto('accts.expenseClaim')
     .values({
-      member_id: MEMBER_ID,
-      category_id: category.id,
+      memberId: MEMBER_ID,
+      categoryId: category.id,
       title: 'Test claim',
       status,
     })
@@ -131,7 +131,7 @@ describe('GET /expenses/admin/pending/count', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
@@ -173,14 +173,14 @@ describe('POST /expenses (mileage)', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
 
   async function mileageCategoryId(): Promise<number> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'mileage')
       .executeTakeFirstOrThrow()
@@ -498,14 +498,14 @@ describe('POST /expenses (fuel)', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
 
   async function fuelCategoryId(): Promise<number> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'fuel')
       .executeTakeFirstOrThrow()
@@ -554,19 +554,19 @@ describe('POST /expenses (fuel)', () => {
 
     afterEach(async () => {
       if (insertedPriceIds.length > 0) {
-        await db.deleteFrom('accts.local_fuel_price').where('id', 'in', insertedPriceIds).execute()
+        await db.deleteFrom('accts.localFuelPrice').where('id', 'in', insertedPriceIds).execute()
         insertedPriceIds.length = 0
       }
     })
 
     async function insertLocalPrice(fuelType: string, priceEurPerLitre: number, validFrom: string) {
       const row = await db
-        .insertInto('accts.local_fuel_price')
+        .insertInto('accts.localFuelPrice')
         .values({
-          fuel_type: fuelType,
-          price_eur_per_litre: priceEurPerLitre,
-          valid_from: validFrom,
-          created_by: 'Juha1',
+          fuelType: fuelType,
+          priceEurPerLitre: priceEurPerLitre,
+          validFrom: validFrom,
+          createdBy: 'Juha1',
         })
         .returning('id')
         .executeTakeFirstOrThrow()
@@ -855,14 +855,14 @@ describe('POST /expenses (fuel litres/type)', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
 
   async function fuelCategoryId(): Promise<number> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'fuel')
       .executeTakeFirstOrThrow()
@@ -978,34 +978,34 @@ describe('POST /expenses (fuel litres/type)', () => {
     const categoryId = await fuelCategoryId()
 
     const claim = await db
-      .insertInto('accts.expense_claim')
+      .insertInto('accts.expenseClaim')
       .values({
-        member_id: 'Juha1',
-        category_id: categoryId,
+        memberId: 'Juha1',
+        categoryId: categoryId,
         title: 'Legacy fuel claim',
         status: ExpenseClaimStatus.DRAFT,
         // Predates the airport/date field (see FUEL_LINE_ITEM_AIRPORT_DATE_CUTOFF in
         // api.ts) — genuinely simulates legacy data rather than relying on the line
         // item merely having a persisted id, which no longer signals "legacy" now
         // that every item gets an id as soon as a draft is first saved.
-        created_at: new Date('2026-01-01T00:00:00.000Z'),
-        updated_at: new Date(),
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date(),
       })
       .returning('id')
       .executeTakeFirstOrThrow()
     insertedClaimIds.push(claim.id)
 
     const lineItem = await db
-      .insertInto('accts.expense_claim_line_item')
+      .insertInto('accts.expenseClaimLineItem')
       .values({
-        claim_id: claim.id,
+        claimId: claim.id,
         description: '100 l JetA1 (legacy, no airport recorded)',
         quantity: 100,
         unit: 'l',
-        unit_price: 1.5,
-        sort_order: 0,
-        cost_centre_code: 'OH-STL',
-        fuel_type: 'JetA1',
+        unitPrice: 1.5,
+        sortOrder: 0,
+        costCentreCode: 'OH-STL',
+        fuelType: 'JetA1',
         // fuel_date / airport intentionally left null — data entered before issue #966.
       })
       .returning('id')
@@ -1053,36 +1053,36 @@ describe('POST /expenses (fuel litres/type)', () => {
     const categoryId = await fuelCategoryId()
 
     const claim = await db
-      .insertInto('accts.expense_claim')
+      .insertInto('accts.expenseClaim')
       .values({
-        member_id: 'Juha1',
-        category_id: categoryId,
+        memberId: 'Juha1',
+        categoryId: categoryId,
         title: 'Legacy fuel claim (pre-aircraft-field)',
         status: ExpenseClaimStatus.DRAFT,
         // Predates FUEL_LINE_ITEM_AIRCRAFT_CUTOFF in api.ts - genuinely simulates
         // legacy data from before aircraft was tracked per line item.
-        created_at: new Date('2026-01-01T00:00:00.000Z'),
-        updated_at: new Date(),
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date(),
         iban: 'FI2112345600000785',
-        iban_account_name: 'Juha Seppälä',
-        expense_date: '2026-01-01',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: '2026-01-01',
       })
       .returning('id')
       .executeTakeFirstOrThrow()
     insertedClaimIds.push(claim.id)
 
     await db
-      .insertInto('accts.expense_claim_line_item')
+      .insertInto('accts.expenseClaimLineItem')
       .values({
-        claim_id: claim.id,
+        claimId: claim.id,
         description: '100 l JetA1 (legacy, no aircraft recorded)',
         quantity: 100,
         unit: 'l',
-        unit_price: 1.5,
-        sort_order: 0,
-        fuel_type: 'JetA1',
+        unitPrice: 1.5,
+        sortOrder: 0,
+        fuelType: 'JetA1',
         airport: 'EFHK',
-        fuel_date: '2026-01-01',
+        fuelDate: '2026-01-01',
         // cost_centre_code intentionally left null - predates per-line-item aircraft.
       })
       .execute()
@@ -1103,14 +1103,14 @@ describe('POST /expenses/:id/override-fuel-price', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
 
   async function createSubmittedFuelClaim(unitPrice: number): Promise<string> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'fuel')
       .executeTakeFirstOrThrow()
@@ -1198,14 +1198,14 @@ describe('POST /expenses (draft with incomplete line items)', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
 
   async function miscCategoryId(): Promise<number> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', CATEGORY_CODE)
       .executeTakeFirstOrThrow()
@@ -1253,14 +1253,14 @@ describe('POST /expenses/:id/submit (line item requirements)', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
 
   async function createDraft(lineItems: unknown[]): Promise<string> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', CATEGORY_CODE)
       .executeTakeFirstOrThrow()
@@ -1357,14 +1357,14 @@ describe('POST /expenses/:id/submit (mileage requirements)', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
 
   async function createMileageDraft(body: Record<string, unknown>): Promise<string> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'mileage')
       .executeTakeFirstOrThrow()
@@ -1467,10 +1467,10 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
       await db
-        .deleteFrom('accts.mileage_hetu_access_audit')
-        .where('claim_id', 'in', insertedClaimIds)
+        .deleteFrom('accts.mileageHetuAccessAudit')
+        .where('claimId', 'in', insertedClaimIds)
         .execute()
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
@@ -1481,7 +1481,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     distanceKm?: number
   }): Promise<string> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'mileage')
       .executeTakeFirstOrThrow()
@@ -1529,11 +1529,11 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
 
   async function approveClaim(claimId: string, approvedAt: Date): Promise<void> {
     await db
-      .updateTable('accts.expense_claim')
+      .updateTable('accts.expenseClaim')
       .set({
         status: ExpenseClaimStatus.APPROVED,
-        approved_at: approvedAt,
-        approved_by: 'Liisa1',
+        approvedAt: approvedAt,
+        approvedBy: 'Liisa1',
       })
       .where('id', '=', claimId)
       .execute()
@@ -1643,12 +1643,12 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
       expect(res.body.hetu).toBe('010101-123N')
 
       const auditRows = await db
-        .selectFrom('accts.mileage_hetu_access_audit')
+        .selectFrom('accts.mileageHetuAccessAudit')
         .selectAll()
-        .where('claim_id', '=', claimId)
+        .where('claimId', '=', claimId)
         .execute()
       expect(auditRows).toHaveLength(1)
-      expect(auditRows[0].accessed_by).toBe('Liisa1')
+      expect(auditRows[0].accessedBy).toBe('Liisa1')
       expect(auditRows[0].context).toBe('CLAIM_REVEAL')
     })
 
@@ -1698,9 +1698,9 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
       expect(res.status).toBe(409)
 
       const auditRows = await db
-        .selectFrom('accts.mileage_hetu_access_audit')
+        .selectFrom('accts.mileageHetuAccessAudit')
         .selectAll()
-        .where('claim_id', '=', claimId)
+        .where('claimId', '=', claimId)
         .execute()
       expect(auditRows).toHaveLength(0)
     })
@@ -1814,17 +1814,17 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
       await db
-        .deleteFrom('accts.expense_claim_edit_audit')
-        .where('claim_id', 'in', insertedClaimIds)
+        .deleteFrom('accts.expenseClaimEditAudit')
+        .where('claimId', 'in', insertedClaimIds)
         .execute()
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })
 
   async function createSubmittedClaim(): Promise<{ claimId: string; lineItemId: number }> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'misc')
       .executeTakeFirstOrThrow()
@@ -1883,12 +1883,12 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
     ).toBe(true)
 
     const auditRows = await db
-      .selectFrom('accts.expense_claim_edit_audit')
+      .selectFrom('accts.expenseClaimEditAudit')
       .selectAll()
-      .where('claim_id', '=', claimId)
+      .where('claimId', '=', claimId)
       .execute()
     expect(auditRows).toHaveLength(2) // description + unitPrice
-    expect(auditRows.map((r) => r.field_name).sort()).toEqual(['description', 'unitPrice'])
+    expect(auditRows.map((r) => r.fieldName).sort()).toEqual(['description', 'unitPrice'])
   })
 
   it('is a no-op (no message, no audit rows) when nothing actually changed', async () => {
@@ -1901,9 +1901,9 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
 
     expect(res.status).toBe(200)
     const auditRows = await db
-      .selectFrom('accts.expense_claim_edit_audit')
+      .selectFrom('accts.expenseClaimEditAudit')
       .selectAll()
-      .where('claim_id', '=', claimId)
+      .where('claimId', '=', claimId)
       .execute()
     expect(auditRows).toHaveLength(0)
   })
@@ -1915,7 +1915,7 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
   // the old figure.
   it('clears a stale totalCost when the treasurer corrects unitPrice', async () => {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'misc')
       .executeTakeFirstOrThrow()
@@ -1962,11 +1962,11 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
     expect(res.body.totalAmount).toBeCloseTo(300, 2)
 
     const auditRows = await db
-      .selectFrom('accts.expense_claim_edit_audit')
+      .selectFrom('accts.expenseClaimEditAudit')
       .selectAll()
-      .where('claim_id', '=', created.body.id)
+      .where('claimId', '=', created.body.id)
       .execute()
-    expect(auditRows.map((r) => r.field_name).sort()).toEqual(['totalCost', 'unitPrice'])
+    expect(auditRows.map((r) => r.fieldName).sort()).toEqual(['totalCost', 'unitPrice'])
   })
 
   // The treasurer's edit dialog (like the member's own form) lets the treasurer type the
@@ -1976,7 +1976,7 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
   // unitPrice 1.6667 -> 30 * 1.6667 = 50.01).
   it('persists an explicit totalCost sent alongside unitPrice, without drift', async () => {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'fuel')
       .executeTakeFirstOrThrow()
@@ -2029,7 +2029,7 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
   // silently left the claim-level flag disagreeing with the actual line items.
   it('recomputes refuelOutsideFinland when the treasurer corrects a fuel line item airport', async () => {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'fuel')
       .executeTakeFirstOrThrow()
@@ -2084,16 +2084,16 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
     // and leak a profile IBAN onto the admin token's member row, polluting unrelated
     // tests (e.g. members/api.test.ts's snapshot of that member).
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'misc')
       .executeTakeFirstOrThrow()
 
     const created = await db
-      .insertInto('accts.expense_claim')
+      .insertInto('accts.expenseClaim')
       .values({
-        member_id: 'Liisa1', // matches adminToken's memberId — this is the self-edit case
-        category_id: category.id,
+        memberId: 'Liisa1', // matches adminToken's memberId — this is the self-edit case
+        categoryId: category.id,
         title: 'Self-edit test',
         status: ExpenseClaimStatus.SUBMITTED,
       })
@@ -2111,7 +2111,7 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
 
   it('rejects editing a claim that is not awaiting approval (draft)', async () => {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'misc')
       .executeTakeFirstOrThrow()
@@ -2154,7 +2154,7 @@ describe('Expense claim attachments', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
     jest.restoreAllMocks()
@@ -2162,7 +2162,7 @@ describe('Expense claim attachments', () => {
 
   async function createDraftClaim(): Promise<string> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'misc')
       .executeTakeFirstOrThrow()
@@ -2330,28 +2330,28 @@ describe('POST /expenses/:id/approve (fuel reimbursement cap)', () => {
   afterEach(async () => {
     for (const claimId of insertedClaimIds) {
       await db
-        .deleteFrom('accts.outbox_simplbooks')
+        .deleteFrom('accts.outboxSimplbooks')
         .where(sql<boolean>`payload ->> 'claimId' = ${claimId}`)
         .execute()
     }
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
     if (insertedPriceIds.length > 0) {
-      await db.deleteFrom('accts.local_fuel_price').where('id', 'in', insertedPriceIds).execute()
+      await db.deleteFrom('accts.localFuelPrice').where('id', 'in', insertedPriceIds).execute()
       insertedPriceIds.length = 0
     }
   })
 
   async function insertLocalPrice(fuelType: string, price: number, validFrom: string) {
     const row = await db
-      .insertInto('accts.local_fuel_price')
+      .insertInto('accts.localFuelPrice')
       .values({
-        fuel_type: fuelType,
-        price_eur_per_litre: price,
-        valid_from: validFrom,
-        created_by: 'Juha1',
+        fuelType: fuelType,
+        priceEurPerLitre: price,
+        validFrom: validFrom,
+        createdBy: 'Juha1',
       })
       .returning('id')
       .executeTakeFirstOrThrow()
@@ -2360,7 +2360,7 @@ describe('POST /expenses/:id/approve (fuel reimbursement cap)', () => {
 
   async function createSubmittedFuelClaim(lineItems: Record<string, unknown>[]): Promise<string> {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'fuel')
       .executeTakeFirstOrThrow()
@@ -2398,9 +2398,9 @@ describe('POST /expenses/:id/approve (fuel reimbursement cap)', () => {
 
   async function outboxFor(claimId: string, eventType: SimplbooksEventType) {
     return db
-      .selectFrom('accts.outbox_simplbooks')
+      .selectFrom('accts.outboxSimplbooks')
       .selectAll()
-      .where('event_type', '=', eventType)
+      .where('eventType', '=', eventType)
       .where(sql<boolean>`payload ->> 'claimId' = ${claimId}`)
       .execute()
   }
@@ -2461,7 +2461,7 @@ describe('POST /expenses/:id/approve (fuel reimbursement cap)', () => {
 
   it('leaves a non-fuel claim paying exactly what was claimed', async () => {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', CATEGORY_CODE)
       .executeTakeFirstOrThrow()

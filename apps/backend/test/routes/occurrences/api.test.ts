@@ -72,11 +72,11 @@ afterAll(() => {
 afterEach(async () => {
   // Clean up test data
   await db
-    .deleteFrom('flight.occurrence_attachments')
-    .where('report_id', 'not like', 'SMS%')
+    .deleteFrom('flight.occurrenceAttachments')
+    .where('reportId', 'not like', 'SMS%')
     .execute()
-  await db.deleteFrom('flight.occurrence_access').where('report_id', 'not like', 'SMS%').execute()
-  await db.deleteFrom('flight.occurrences').where('report_id', 'not like', 'SMS%').execute()
+  await db.deleteFrom('flight.occurrenceAccess').where('reportId', 'not like', 'SMS%').execute()
+  await db.deleteFrom('flight.occurrences').where('reportId', 'not like', 'SMS%').execute()
 })
 
 describe('GET /occurrences', () => {

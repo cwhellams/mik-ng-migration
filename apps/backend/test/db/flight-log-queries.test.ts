@@ -349,7 +349,7 @@ describe('Db query FlightLog tests', () => {
       })
       expect(result.pageStartFlightMins).toEqual(700405 + 60)
     } finally {
-      await db.deleteFrom('flight.defect').where('defect_id', '=', defect.defectId).execute()
+      await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
       await deleteFlightLog(flightIdA)
       await deleteFlightLog(flightIdB)
     }
@@ -440,7 +440,7 @@ describe('Db query FlightLog tests', () => {
         { rowNumber: 2, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
       ])
     } finally {
-      await db.deleteFrom('flight.defect').where('defect_id', '=', defect.defectId).execute()
+      await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
       await deleteFlightLog(flightIdA)
     }
   })
@@ -468,22 +468,20 @@ describe('Db query FlightLog tests', () => {
 
     try {
       const rows = await db
-        .selectFrom('flight.vw_ajlb_live_sequence')
-        .select(['item_type', 'item_id', 'ajlb_row_number'])
-        .where('aircraft_registration', '=', 'OH-STL')
-        .where('ajlb_seq_no', '=', 3)
-        .orderBy('ajlb_row_number')
+        .selectFrom('flight.vwAjlbLiveSequence')
+        .select(['itemType', 'itemId', 'ajlbRowNumber'])
+        .where('aircraftRegistration', '=', 'OH-STL')
+        .where('ajlbSeqNo', '=', 3)
+        .orderBy('ajlbRowNumber')
         .execute()
 
-      const defectRow = rows.find((r) => r.item_id === defect.defectId)
-      const firstFlightRow = rows.find((r) => r.item_type === 'flight')
+      const defectRow = rows.find((r) => r.itemId === defect.defectId)
+      const firstFlightRow = rows.find((r) => r.itemType === 'flight')
       expect(defectRow).toBeDefined()
       expect(firstFlightRow).toBeDefined()
-      expect(Number(defectRow!.ajlb_row_number)).toBeLessThan(
-        Number(firstFlightRow!.ajlb_row_number),
-      )
+      expect(Number(defectRow!.ajlbRowNumber)).toBeLessThan(Number(firstFlightRow!.ajlbRowNumber))
     } finally {
-      await db.deleteFrom('flight.defect').where('defect_id', '=', defect.defectId).execute()
+      await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
     }
   })
 

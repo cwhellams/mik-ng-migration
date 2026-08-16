@@ -1,8 +1,8 @@
 import { sql, type Kysely } from 'kysely'
 
 import * as connection from './connection.ts'
-import type { CamelRow } from './connection.ts'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import type { DbRow } from './connection.ts'
+import type { DB } from './schema.d.ts'
 import type {
   AircraftHil,
   AircraftHilAuditEntry,
@@ -17,7 +17,7 @@ import type {
 import type { DefectStatus } from '@mik/contracts/defects'
 import { problem } from '../routes/response.ts'
 
-function mapRowToHil(row: CamelRow<'flight.aircraftHil'> & { name: string }): AircraftHil {
+function mapRowToHil(row: DbRow<'flight.aircraftHil'> & { name: string }): AircraftHil {
   return {
     hilId: row.hilId,
     aircraftRegistration: row.aircraftRegistration,
@@ -38,7 +38,7 @@ function mapRowToHil(row: CamelRow<'flight.aircraftHil'> & { name: string }): Ai
 }
 
 function mapRowToExtension(
-  row: CamelRow<'flight.aircraftHilExtension'> & { name: string },
+  row: DbRow<'flight.aircraftHilExtension'> & { name: string },
 ): AircraftHilExtension {
   return {
     extensionId: row.extensionId,
@@ -52,7 +52,7 @@ function mapRowToExtension(
 }
 
 export async function getAircraftHilEntries(aircraftRegistration: string): Promise<AircraftHil[]> {
-  const rows = await connection.camelDb
+  const rows = await connection.db
     .selectFrom('flight.aircraftHil')
     .selectAll()
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -63,7 +63,7 @@ export async function getAircraftHilEntries(aircraftRegistration: string): Promi
 }
 
 export async function getAircraftHilEntry(hilId: string): Promise<AircraftHil | undefined> {
-  const row = await connection.camelDb
+  const row = await connection.db
     .selectFrom('flight.aircraftHil')
     .selectAll()
     .where('hilId', '=', hilId)
@@ -85,7 +85,7 @@ export async function createAircraftHilEntry(
     sql<number>`(SELECT COALESCE(MAX(hil_number), 0) + 1 FROM flight.aircraft_hil WHERE aircraft_registration = ${data.aircraftRegistration})`
 
   try {
-    return await connection.camelDb.transaction().execute(async (trx) => {
+    return await connection.db.transaction().execute(async (trx) => {
       const row = await trx
         .insertInto('flight.aircraftHil')
         .values({
@@ -150,7 +150,7 @@ export async function updateAircraftHilEntry(
   hilId: string,
   data: UpdateAircraftHilRequest,
   updatedBy: string,
-  executor: Kysely<CamelDB> = connection.camelDb,
+  executor: Kysely<DB> = connection.db,
 ): Promise<AircraftHil | undefined> {
   try {
     const row = await executor
@@ -184,7 +184,7 @@ export async function updateAircraftHilEntry(
 }
 
 export async function getAircraftHilExtensions(hilId: string): Promise<AircraftHilExtension[]> {
-  const rows = await connection.camelDb
+  const rows = await connection.db
     .selectFrom('flight.aircraftHilExtension')
     .selectAll()
     .where('hilId', '=', hilId)
@@ -199,7 +199,7 @@ export async function createAircraftHilExtension(
   data: CreateAircraftHilExtensionRequest,
   createdBy: string,
 ): Promise<AircraftHilExtension> {
-  const row = await connection.camelDb
+  const row = await connection.db
     .insertInto('flight.aircraftHilExtension')
     .values({
       hilId,
@@ -216,7 +216,7 @@ export async function createAircraftHilExtension(
 }
 
 export async function getAircraftHilAudit(hilId: string): Promise<AircraftHilAuditEntry[]> {
-  const hilRows = await connection.camelDb
+  const hilRows = await connection.db
     .selectFrom('flight.aircraftHilAudit')
     .selectAll()
     .where('hilId', '=', hilId)
@@ -224,7 +224,7 @@ export async function getAircraftHilAudit(hilId: string): Promise<AircraftHilAud
 
   // Extensions are audited in their own table; surface them here too so the
   // "change history" for a hold item shows when its due date was extended.
-  const extensionRows = await connection.camelDb
+  const extensionRows = await connection.db
     .selectFrom('flight.aircraftHilExtensionAudit')
     .innerJoin(
       'flight.aircraftHilExtension',
@@ -275,7 +275,7 @@ export async function getAircraftHilOverview(
   aircraftRegistration?: string,
   includeResolved = false,
 ): Promise<AircraftHilOverview[]> {
-  const hilRows = await connection.camelDb
+  const hilRows = await connection.db
     .selectFrom('flight.aircraftHil')
     .selectAll()
     .$if(aircraftRegistration !== undefined, (qb) =>
@@ -291,7 +291,7 @@ export async function getAircraftHilOverview(
   // None of these three depend on each other's result, only on hilIds above.
   const [extensionRows, defectRows, openDefectRows] = await Promise.all([
     hilIds.length
-      ? connection.camelDb
+      ? connection.db
           .selectFrom('flight.aircraftHilExtension')
           .selectAll()
           .where('hilId', 'in', hilIds)
@@ -301,7 +301,7 @@ export async function getAircraftHilOverview(
       : Promise.resolve([]),
 
     hilIds.length
-      ? connection.camelDb
+      ? connection.db
           .selectFrom('flight.defect')
           .select([
             'defectId',
@@ -319,7 +319,7 @@ export async function getAircraftHilOverview(
 
     // A defect is ACTIVE only while it has neither a HIL deferral nor a
     // maintenance release, which is exactly when the aircraft is grounded by it.
-    connection.camelDb
+    connection.db
       .selectFrom('flight.defect')
       .select([
         'defectId',

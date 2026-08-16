@@ -1,11 +1,11 @@
 import { sql, type Kysely } from 'kysely'
 
 import * as connection from './connection.ts'
-import type { CamelRow } from './connection.ts'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import type { DbRow } from './connection.ts'
+import type { DB } from './schema.d.ts'
 import type { Defect, CreateDefectRequest, UpdateDefectRequest } from '@mik/contracts/defects'
 
-function mapRowToDefect(row: CamelRow<'flight.defect'>): Defect {
+function mapRowToDefect(row: DbRow<'flight.defect'>): Defect {
   return {
     defectId: row.defectId,
     aircraftRegistration: row.aircraftRegistration,
@@ -29,7 +29,7 @@ export async function getDefects(
   aircraftRegistration: string,
   ajlbSeqNo?: number,
 ): Promise<Defect[]> {
-  const rows = await connection.camelDb
+  const rows = await connection.db
     .selectFrom('flight.defect')
     .selectAll()
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -41,7 +41,7 @@ export async function getDefects(
 }
 
 export async function getDefect(defectId: string): Promise<Defect | undefined> {
-  const row = await connection.camelDb
+  const row = await connection.db
     .selectFrom('flight.defect')
     .selectAll()
     .where('defectId', '=', defectId)
@@ -52,7 +52,7 @@ export async function getDefect(defectId: string): Promise<Defect | undefined> {
 
 export async function createDefect(data: CreateDefectRequest, createdBy: string): Promise<Defect> {
   const now = new Date()
-  const row = await connection.camelDb
+  const row = await connection.db
     .insertInto('flight.defect')
     .values({
       aircraftRegistration: data.aircraftRegistration,
@@ -82,7 +82,7 @@ export async function updateDefect(
   updatedBy: string,
   createdByFilter?: string,
 ): Promise<Defect | undefined> {
-  let query = connection.camelDb
+  let query = connection.db
     .updateTable('flight.defect')
     .set({
       ...(data.description !== undefined && { description: data.description }),
@@ -122,7 +122,7 @@ export async function resolveDefectsByHil(
   aircraftRegistration: string,
   resolvedNoteId: string,
   updatedBy: string,
-  executor: Kysely<CamelDB> = connection.camelDb,
+  executor: Kysely<DB> = connection.db,
 ): Promise<void> {
   await executor
     .updateTable('flight.defect')
@@ -153,7 +153,7 @@ export async function setDefectsForHil(
   aircraftRegistration: string,
   defectIds: string[],
   updatedBy: string,
-  executor: Kysely<CamelDB> = connection.camelDb,
+  executor: Kysely<DB> = connection.db,
 ): Promise<boolean> {
   const now = new Date()
 
@@ -219,7 +219,7 @@ export async function resolveDefects(
   aircraftRegistration: string,
   resolvedNoteId: string,
   updatedBy: string,
-  executor: Kysely<CamelDB> = connection.camelDb,
+  executor: Kysely<DB> = connection.db,
 ): Promise<void> {
   await executor
     .updateTable('flight.defect')

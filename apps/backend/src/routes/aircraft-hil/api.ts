@@ -22,7 +22,7 @@ import {
 } from '../../db/aircraft-hil-queries.ts'
 import { resolveDefectsByHil, getDefect, setDefectsForHil } from '../../db/defect-queries.ts'
 import { getMaintenanceNote } from '../../db/maintenance-note-queries.ts'
-import { camelDb } from '../../db/connection.ts'
+import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
@@ -133,7 +133,7 @@ router.patch(
       }
     }
 
-    const updated = await camelDb.transaction().execute(async (trx) => {
+    const updated = await db.transaction().execute(async (trx) => {
       const result = await updateAircraftHilEntry(id, data, req.user!.memberId!, trx)
       if (!result) return undefined
 

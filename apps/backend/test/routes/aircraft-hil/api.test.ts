@@ -75,30 +75,30 @@ const insertHil = async (overrides: {
 }): Promise<{ hilId: string }> => {
   const now = new Date()
   const row = await db
-    .insertInto('flight.aircraft_hil')
+    .insertInto('flight.aircraftHil')
     .values({
-      aircraft_registration: AIRCRAFT,
-      hil_number: overrides.hilNumber,
-      source_ref: overrides.sourceRef ?? `${TEST_MARKER} ref`,
-      defect_cat: overrides.defectCat === undefined ? 'B' : overrides.defectCat,
+      aircraftRegistration: AIRCRAFT,
+      hilNumber: overrides.hilNumber,
+      sourceRef: overrides.sourceRef ?? `${TEST_MARKER} ref`,
+      defectCat: overrides.defectCat === undefined ? 'B' : overrides.defectCat,
       description: overrides.description ?? `${TEST_MARKER} landing light inoperative`,
       restrictions: overrides.restrictions ?? 'Day VFR only',
-      open_date: now,
+      openDate: now,
       name: 'Plane Captain',
-      due_date:
+      dueDate:
         overrides.dueDate === undefined
           ? new Date(now.getTime() + 30 * 24 * 3600 * 1000)
           : overrides.dueDate,
-      resolved_note_id: overrides.resolvedNoteId ?? null,
-      created_at: now,
-      created_by: 'Matti1',
-      updated_at: now,
-      updated_by: 'Matti1',
+      resolvedNoteId: overrides.resolvedNoteId ?? null,
+      createdAt: now,
+      createdBy: 'Matti1',
+      updatedAt: now,
+      updatedBy: 'Matti1',
     })
-    .returning('hil_id')
+    .returning('hilId')
     .executeTakeFirstOrThrow()
 
-  return { hilId: row.hil_id }
+  return { hilId: row.hilId }
 }
 
 const cleanup = async () => {
@@ -107,33 +107,33 @@ const cleanup = async () => {
   // seeded hold items.
   const hilIds = (
     await db
-      .selectFrom('flight.aircraft_hil')
-      .select('hil_id')
-      .where('aircraft_registration', '=', AIRCRAFT)
+      .selectFrom('flight.aircraftHil')
+      .select('hilId')
+      .where('aircraftRegistration', '=', AIRCRAFT)
       .where((eb) =>
         eb.or([
-          eb('source_ref', 'like', `${TEST_MARKER}%`),
-          eb('hil_number', '>=', TEST_HIL_NUMBER_FLOOR),
+          eb('sourceRef', 'like', `${TEST_MARKER}%`),
+          eb('hilNumber', '>=', TEST_HIL_NUMBER_FLOOR),
         ]),
       )
       .execute()
-  ).map((row) => row.hil_id)
+  ).map((row) => row.hilId)
 
   if (createdDefectIds.length) {
-    await db.deleteFrom('flight.defect').where('defect_id', 'in', createdDefectIds).execute()
+    await db.deleteFrom('flight.defect').where('defectId', 'in', createdDefectIds).execute()
     createdDefectIds.length = 0
   }
 
   if (hilIds.length) {
-    await db.deleteFrom('flight.defect').where('hil_id', 'in', hilIds).execute()
-    await db.deleteFrom('flight.aircraft_hil_extension').where('hil_id', 'in', hilIds).execute()
-    await db.deleteFrom('flight.aircraft_hil').where('hil_id', 'in', hilIds).execute()
-    await db.deleteFrom('flight.aircraft_hil_audit').where('hil_id', 'in', hilIds).execute()
+    await db.deleteFrom('flight.defect').where('hilId', 'in', hilIds).execute()
+    await db.deleteFrom('flight.aircraftHilExtension').where('hilId', 'in', hilIds).execute()
+    await db.deleteFrom('flight.aircraftHil').where('hilId', 'in', hilIds).execute()
+    await db.deleteFrom('flight.aircraftHilAudit').where('hilId', 'in', hilIds).execute()
   }
 
   // Maintenance notes go last: hold items reference them as the release record
   await db
-    .deleteFrom('flight.maintenance_note')
+    .deleteFrom('flight.maintenanceNote')
     .where('description', 'like', `${TEST_MARKER}%`)
     .execute()
 }
@@ -201,23 +201,23 @@ describe('GET /aircraft-hil/overview', () => {
     const { hilId } = await insertHil({ hilNumber: 9002, dueDate })
 
     await db
-      .insertInto('flight.aircraft_hil_extension')
+      .insertInto('flight.aircraftHilExtension')
       .values([
         {
-          hil_id: hilId,
-          extension_date: new Date('2025-12-01T00:00:00.000Z'),
+          hilId: hilId,
+          extensionDate: new Date('2025-12-01T00:00:00.000Z'),
           name: 'Plane Captain',
-          extension_due: new Date('2026-02-01T00:00:00.000Z'),
-          created_at: new Date(),
-          created_by: 'Matti1',
+          extensionDue: new Date('2026-02-01T00:00:00.000Z'),
+          createdAt: new Date(),
+          createdBy: 'Matti1',
         },
         {
-          hil_id: hilId,
-          extension_date: new Date('2026-01-15T00:00:00.000Z'),
+          hilId: hilId,
+          extensionDate: new Date('2026-01-15T00:00:00.000Z'),
           name: 'Plane Captain',
-          extension_due: new Date('2026-04-01T00:00:00.000Z'),
-          created_at: new Date(),
-          created_by: 'Matti1',
+          extensionDue: new Date('2026-04-01T00:00:00.000Z'),
+          createdAt: new Date(),
+          createdBy: 'Matti1',
         },
       ])
       .execute()
@@ -241,14 +241,14 @@ describe('GET /aircraft-hil/overview', () => {
     // A correcting extension entered after the original due date, tightening
     // it instead of pushing it out further.
     await db
-      .insertInto('flight.aircraft_hil_extension')
+      .insertInto('flight.aircraftHilExtension')
       .values({
-        hil_id: hilId,
-        extension_date: new Date('2026-01-10T00:00:00.000Z'),
+        hilId: hilId,
+        extensionDate: new Date('2026-01-10T00:00:00.000Z'),
         name: 'Plane Captain',
-        extension_due: new Date('2025-12-15T00:00:00.000Z'),
-        created_at: new Date(),
-        created_by: 'Matti1',
+        extensionDue: new Date('2025-12-15T00:00:00.000Z'),
+        createdAt: new Date(),
+        createdBy: 'Matti1',
       })
       .execute()
 
@@ -266,23 +266,23 @@ describe('GET /aircraft-hil/overview', () => {
     const { hilId } = await insertHil({ hilNumber: 9028, dueDate })
 
     await db
-      .insertInto('flight.aircraft_hil_extension')
+      .insertInto('flight.aircraftHilExtension')
       .values([
         {
-          hil_id: hilId,
-          extension_date: new Date('2025-12-01T00:00:00.000Z'),
+          hilId: hilId,
+          extensionDate: new Date('2025-12-01T00:00:00.000Z'),
           name: 'Plane Captain',
-          extension_due: new Date('2026-06-01T00:00:00.000Z'),
-          created_at: new Date(),
-          created_by: 'Matti1',
+          extensionDue: new Date('2026-06-01T00:00:00.000Z'),
+          createdAt: new Date(),
+          createdBy: 'Matti1',
         },
         {
-          hil_id: hilId,
-          extension_date: new Date('2026-01-15T00:00:00.000Z'),
+          hilId: hilId,
+          extensionDate: new Date('2026-01-15T00:00:00.000Z'),
           name: 'Plane Captain',
-          extension_due: new Date('2026-03-01T00:00:00.000Z'),
-          created_at: new Date(),
-          created_by: 'Matti1',
+          extensionDue: new Date('2026-03-01T00:00:00.000Z'),
+          createdAt: new Date(),
+          createdBy: 'Matti1',
         },
       ])
       .execute()
@@ -355,8 +355,8 @@ describe('GET /aircraft-hil/overview', () => {
     createdDefectIds.push(defect.defectId)
     await db
       .updateTable('flight.defect')
-      .set({ hil_id: hilId, status: 'MOVED_TO_HIL' })
-      .where('defect_id', '=', defect.defectId)
+      .set({ hilId: hilId, status: 'MOVED_TO_HIL' })
+      .where('defectId', '=', defect.defectId)
       .execute()
 
     const res = await request(app)
@@ -388,10 +388,10 @@ describe('GET /aircraft-hil/overview', () => {
   it('reports a hold item with no defect category or source ref', async () => {
     await insertHil({ hilNumber: 9030, defectCat: null, sourceRef: `${TEST_MARKER} keep` })
     await db
-      .updateTable('flight.aircraft_hil')
-      .set({ source_ref: null })
-      .where('hil_number', '=', 9030)
-      .where('aircraft_registration', '=', AIRCRAFT)
+      .updateTable('flight.aircraftHil')
+      .set({ sourceRef: null })
+      .where('hilNumber', '=', 9030)
+      .where('aircraftRegistration', '=', AIRCRAFT)
       .execute()
 
     const res = await request(app)
@@ -406,21 +406,21 @@ describe('GET /aircraft-hil/overview', () => {
 
   it('hides resolved hold items unless includeResolved is set', async () => {
     const note = await db
-      .insertInto('flight.maintenance_note')
+      .insertInto('flight.maintenanceNote')
       .values({
-        aircraft_registration: AIRCRAFT,
-        ajlb_seq_no: AJLB_SEQ_NO,
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} release`,
-        performed_by: 'AME',
-        flight_mins: 100,
-        blank_rows_after: 0,
-        created_at: new Date(),
-        created_by: 'Matti1',
+        performedBy: 'AME',
+        flightMins: 100,
+        blankRowsAfter: 0,
+        createdAt: new Date(),
+        createdBy: 'Matti1',
       })
-      .returning('note_id')
+      .returning('noteId')
       .executeTakeFirstOrThrow()
 
-    await insertHil({ hilNumber: 9004, resolvedNoteId: note.note_id })
+    await insertHil({ hilNumber: 9004, resolvedNoteId: note.noteId })
 
     const hidden = await request(app)
       .get('/aircraft-hil/overview')
@@ -500,7 +500,7 @@ describe('POST /aircraft-hil', () => {
     await db
       .updateTable('flight.defect')
       .set({ status: 'RESOLVED' })
-      .where('defect_id', '=', defect.defectId)
+      .where('defectId', '=', defect.defectId)
       .execute()
 
     const res = await request(app)
@@ -564,11 +564,11 @@ describe('POST /aircraft-hil', () => {
 
     const updated = await db
       .selectFrom('flight.defect')
-      .select(['hil_id', 'status'])
-      .where('defect_id', '=', defect.defectId)
+      .select(['hilId', 'status'])
+      .where('defectId', '=', defect.defectId)
       .executeTakeFirstOrThrow()
 
-    expect(updated.hil_id).toBe(res.body.hilId)
+    expect(updated.hilId).toBe(res.body.hilId)
     expect(updated.status).toBe('MOVED_TO_HIL')
   })
 
@@ -635,19 +635,19 @@ describe('POST /aircraft-hil', () => {
     const winner = first.status === 201 ? first.body : second.body
     const updated = await db
       .selectFrom('flight.defect')
-      .select(['hil_id', 'status'])
-      .where('defect_id', '=', defect.defectId)
+      .select(['hilId', 'status'])
+      .where('defectId', '=', defect.defectId)
       .executeTakeFirstOrThrow()
 
-    expect(updated.hil_id).toBe(winner.hilId)
+    expect(updated.hilId).toBe(winner.hilId)
     expect(updated.status).toBe('MOVED_TO_HIL')
 
     // The loser's transaction (insert + defer) must have rolled back entirely
     const createdEntries = await db
-      .selectFrom('flight.aircraft_hil')
-      .select('hil_number')
-      .where('aircraft_registration', '=', AIRCRAFT)
-      .where('hil_number', 'in', [9022, 9023])
+      .selectFrom('flight.aircraftHil')
+      .select('hilNumber')
+      .where('aircraftRegistration', '=', AIRCRAFT)
+      .where('hilNumber', 'in', [9022, 9023])
       .execute()
     expect(createdEntries).toHaveLength(1)
   })
@@ -737,14 +737,14 @@ describe('PATCH /aircraft-hil/:id', () => {
   it('refuses to clear the due date while an extension still stands', async () => {
     const { hilId } = await insertHil({ hilNumber: 9035 })
     await db
-      .insertInto('flight.aircraft_hil_extension')
+      .insertInto('flight.aircraftHilExtension')
       .values({
-        hil_id: hilId,
-        extension_date: new Date('2026-02-01T00:00:00.000Z'),
+        hilId: hilId,
+        extensionDate: new Date('2026-02-01T00:00:00.000Z'),
         name: 'Plane Captain',
-        extension_due: new Date('2026-04-01T00:00:00.000Z'),
-        created_at: new Date(),
-        created_by: 'Matti1',
+        extensionDue: new Date('2026-04-01T00:00:00.000Z'),
+        createdAt: new Date(),
+        createdBy: 'Matti1',
       })
       .execute()
 
@@ -756,34 +756,34 @@ describe('PATCH /aircraft-hil/:id', () => {
     expect(res.status).toBe(400)
 
     const unchanged = await db
-      .selectFrom('flight.aircraft_hil')
-      .select('due_date')
-      .where('hil_id', '=', hilId)
+      .selectFrom('flight.aircraftHil')
+      .select('dueDate')
+      .where('hilId', '=', hilId)
       .executeTakeFirstOrThrow()
-    expect(unchanged.due_date).not.toBeNull()
+    expect(unchanged.dueDate).not.toBeNull()
   })
 
   it('rejects a maintenance note that belongs to a different aircraft', async () => {
     const { hilId } = await insertHil({ hilNumber: 9012 })
     const note = await db
-      .insertInto('flight.maintenance_note')
+      .insertInto('flight.maintenanceNote')
       .values({
-        aircraft_registration: 'OH-IHQ',
-        ajlb_seq_no: 1,
+        aircraftRegistration: 'OH-IHQ',
+        ajlbSeqNo: 1,
         description: `${TEST_MARKER} wrong aircraft note`,
-        performed_by: 'AME',
-        flight_mins: 50,
-        blank_rows_after: 0,
-        created_at: new Date(),
-        created_by: 'Matti1',
+        performedBy: 'AME',
+        flightMins: 50,
+        blankRowsAfter: 0,
+        createdAt: new Date(),
+        createdBy: 'Matti1',
       })
-      .returning('note_id')
+      .returning('noteId')
       .executeTakeFirstOrThrow()
 
     const res = await request(app)
       .patch(`/aircraft-hil/${hilId}`)
       .set('Cookie', `accessToken=${flightLogAdminToken}`)
-      .send({ resolvedNoteId: note.note_id })
+      .send({ resolvedNoteId: note.noteId })
 
     expect(res.status).toBe(400)
   })
@@ -803,40 +803,40 @@ describe('PATCH /aircraft-hil/:id', () => {
     )
     await db
       .updateTable('flight.defect')
-      .set({ hil_id: hilId, status: 'MOVED_TO_HIL' })
-      .where('defect_id', '=', defect.defectId)
+      .set({ hilId: hilId, status: 'MOVED_TO_HIL' })
+      .where('defectId', '=', defect.defectId)
       .execute()
 
     const note = await db
-      .insertInto('flight.maintenance_note')
+      .insertInto('flight.maintenanceNote')
       .values({
-        aircraft_registration: AIRCRAFT,
-        ajlb_seq_no: AJLB_SEQ_NO,
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} release`,
-        performed_by: 'AME',
-        flight_mins: 65,
-        blank_rows_after: 0,
-        created_at: new Date(),
-        created_by: 'Matti1',
+        performedBy: 'AME',
+        flightMins: 65,
+        blankRowsAfter: 0,
+        createdAt: new Date(),
+        createdBy: 'Matti1',
       })
-      .returning('note_id')
+      .returning('noteId')
       .executeTakeFirstOrThrow()
 
     const res = await request(app)
       .patch(`/aircraft-hil/${hilId}`)
       .set('Cookie', `accessToken=${flightLogAdminToken}`)
-      .send({ resolvedNoteId: note.note_id })
+      .send({ resolvedNoteId: note.noteId })
 
     expect(res.status).toBe(200)
-    expect(res.body.resolvedNoteId).toBe(note.note_id)
+    expect(res.body.resolvedNoteId).toBe(note.noteId)
 
     const updatedDefect = await db
       .selectFrom('flight.defect')
-      .select(['status', 'resolved_note_id'])
-      .where('defect_id', '=', defect.defectId)
+      .select(['status', 'resolvedNoteId'])
+      .where('defectId', '=', defect.defectId)
       .executeTakeFirstOrThrow()
     expect(updatedDefect.status).toBe('RESOLVED')
-    expect(updatedDefect.resolved_note_id).toBe(note.note_id)
+    expect(updatedDefect.resolvedNoteId).toBe(note.noteId)
   })
 })
 
@@ -864,16 +864,16 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
   const deferTo = async (defectId: string, hilId: string) => {
     await db
       .updateTable('flight.defect')
-      .set({ hil_id: hilId, status: 'MOVED_TO_HIL' })
-      .where('defect_id', '=', defectId)
+      .set({ hilId: hilId, status: 'MOVED_TO_HIL' })
+      .where('defectId', '=', defectId)
       .execute()
   }
 
   const defectState = async (defectId: string) =>
     db
       .selectFrom('flight.defect')
-      .select(['hil_id', 'status'])
-      .where('defect_id', '=', defectId)
+      .select(['hilId', 'status'])
+      .where('defectId', '=', defectId)
       .executeTakeFirstOrThrow()
 
   it('swaps a wrongly picked defect for the right one', async () => {
@@ -890,8 +890,8 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
     expect(res.status).toBe(200)
     // The unlinked defect goes back to being an open defect, which grounds the
     // aircraft until it is deferred again or released by a maintenance note.
-    expect(await defectState(wrong.defectId)).toEqual({ hil_id: null, status: 'ACTIVE' })
-    expect(await defectState(right.defectId)).toEqual({ hil_id: hilId, status: 'MOVED_TO_HIL' })
+    expect(await defectState(wrong.defectId)).toEqual({ hilId: null, status: 'ACTIVE' })
+    expect(await defectState(right.defectId)).toEqual({ hilId: hilId, status: 'MOVED_TO_HIL' })
   })
 
   it('keeps the defects already linked when they are sent back unchanged', async () => {
@@ -907,8 +907,8 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
       .send({ defectIds: [first.defectId, second.defectId] })
 
     expect(res.status).toBe(200)
-    expect(await defectState(first.defectId)).toEqual({ hil_id: hilId, status: 'MOVED_TO_HIL' })
-    expect(await defectState(second.defectId)).toEqual({ hil_id: hilId, status: 'MOVED_TO_HIL' })
+    expect(await defectState(first.defectId)).toEqual({ hilId: hilId, status: 'MOVED_TO_HIL' })
+    expect(await defectState(second.defectId)).toEqual({ hilId: hilId, status: 'MOVED_TO_HIL' })
   })
 
   it('rejects a defect that belongs to a different aircraft', async () => {
@@ -923,7 +923,7 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
       .send({ defectIds: [other.defectId] })
 
     expect(res.status).toBe(400)
-    expect(await defectState(own.defectId)).toEqual({ hil_id: hilId, status: 'MOVED_TO_HIL' })
+    expect(await defectState(own.defectId)).toEqual({ hilId: hilId, status: 'MOVED_TO_HIL' })
   })
 
   it('rejects a defect that is already resolved', async () => {
@@ -932,7 +932,7 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
     await db
       .updateTable('flight.defect')
       .set({ status: 'RESOLVED' })
-      .where('defect_id', '=', resolved.defectId)
+      .where('defectId', '=', resolved.defectId)
       .execute()
 
     const res = await request(app)
@@ -956,27 +956,27 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
 
     expect(res.status).toBe(400)
     expect(await defectState(taken.defectId)).toEqual({
-      hil_id: otherHilId,
+      hilId: otherHilId,
       status: 'MOVED_TO_HIL',
     })
   })
 
   it('rejects changing the defects of a closed hold item', async () => {
     const note = await db
-      .insertInto('flight.maintenance_note')
+      .insertInto('flight.maintenanceNote')
       .values({
-        aircraft_registration: AIRCRAFT,
-        ajlb_seq_no: AJLB_SEQ_NO,
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} release`,
-        performed_by: 'AME',
-        flight_mins: 380,
-        blank_rows_after: 0,
-        created_at: new Date(),
-        created_by: 'Matti1',
+        performedBy: 'AME',
+        flightMins: 380,
+        blankRowsAfter: 0,
+        createdAt: new Date(),
+        createdBy: 'Matti1',
       })
-      .returning('note_id')
+      .returning('noteId')
       .executeTakeFirstOrThrow()
-    const { hilId } = await insertHil({ hilNumber: 9046, resolvedNoteId: note.note_id })
+    const { hilId } = await insertHil({ hilNumber: 9046, resolvedNoteId: note.noteId })
     const other = await addDefect('post-closure defect', 390)
 
     const res = await request(app)
@@ -996,7 +996,7 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
     await db
       .updateTable('flight.defect')
       .set({ status: 'RESOLVED' })
-      .where('defect_id', '=', resolvedInPlace.defectId)
+      .where('defectId', '=', resolvedInPlace.defectId)
       .execute()
 
     const res = await request(app)
@@ -1007,11 +1007,11 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
     expect(res.status).toBe(200)
     // Not reactivated by being left out of the new set
     expect(await defectState(resolvedInPlace.defectId)).toEqual({
-      hil_id: hilId,
+      hilId: hilId,
       status: 'RESOLVED',
     })
     expect(await defectState(replacement.defectId)).toEqual({
-      hil_id: hilId,
+      hilId: hilId,
       status: 'MOVED_TO_HIL',
     })
   })
@@ -1040,9 +1040,9 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
 
     expect(res.status).toBe(400)
     const unchanged = await db
-      .selectFrom('flight.aircraft_hil')
+      .selectFrom('flight.aircraftHil')
       .select('description')
-      .where('hil_id', '=', hilId)
+      .where('hilId', '=', hilId)
       .executeTakeFirstOrThrow()
     expect(unchanged.description).not.toBe('Should not be saved')
   })

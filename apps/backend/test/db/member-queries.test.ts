@@ -484,9 +484,9 @@ describe('Db add member tests', () => {
       await db
         .updateTable('member.register')
         .set({
-          brevo_contact_id: 12345,
+          brevoContactId: 12345,
         })
-        .where('member_id', '=', memberId)
+        .where('memberId', '=', memberId)
         .execute()
 
       await expect(removeMember(memberId)).resolves.toBe(false)
@@ -494,9 +494,9 @@ describe('Db add member tests', () => {
       await db
         .updateTable('member.register')
         .set({
-          brevo_contact_id: null,
+          brevoContactId: null,
         })
-        .where('member_id', '=', memberId)
+        .where('memberId', '=', memberId)
         .execute()
 
       await removeMember(memberId)
@@ -628,8 +628,8 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
   })
 
   afterAll(async () => {
-    await db.deleteFrom('member.annual_fees').where('member_id', '=', testMemberId).execute()
-    await db.deleteFrom('accts.invoice').where('member_id', '=', testMemberId).execute()
+    await db.deleteFrom('member.annualFees').where('memberId', '=', testMemberId).execute()
+    await db.deleteFrom('accts.invoice').where('memberId', '=', testMemberId).execute()
     await removeMember(testMemberId)
   })
 
@@ -643,23 +643,23 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
       .insertInto('accts.invoice')
       .values({
         id: String(INV_ANNUAL),
-        member_id: testMemberId,
-        invoice_type: MIKInvoiceType.ANNUAL_FEE,
-        pmt_ref: 'REF-ANNUAL',
-        due_at: `${currentYear}-12-31`,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        memberId: testMemberId,
+        invoiceType: MIKInvoiceType.ANNUAL_FEE,
+        pmtRef: 'REF-ANNUAL',
+        dueAt: `${currentYear}-12-31`,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
     await db
-      .insertInto('member.annual_fees')
+      .insertInto('member.annualFees')
       .values({
-        member_id: testMemberId,
-        fee_type: 'annual_fee',
+        memberId: testMemberId,
+        feeType: 'annual_fee',
         year: currentYear,
-        invoice_id: INV_ANNUAL,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        invoiceId: INV_ANNUAL,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
 
@@ -668,7 +668,7 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
     expect(result[0].invoice_type).toBe(MIKInvoiceType.ANNUAL_FEE)
     expect(result[0].pmt_ref).toBe('REF-ANNUAL')
 
-    await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_ANNUAL).execute()
+    await db.deleteFrom('member.annualFees').where('invoiceId', '=', INV_ANNUAL).execute()
     await db.deleteFrom('accts.invoice').where('id', '=', String(INV_ANNUAL)).execute()
   })
 
@@ -677,23 +677,23 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
       .insertInto('accts.invoice')
       .values({
         id: String(INV_JOINING),
-        member_id: testMemberId,
-        invoice_type: MIKInvoiceType.JOINING_FEE,
-        pmt_ref: 'REF-JOINING',
-        due_at: `${currentYear}-12-31`,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        memberId: testMemberId,
+        invoiceType: MIKInvoiceType.JOINING_FEE,
+        pmtRef: 'REF-JOINING',
+        dueAt: `${currentYear}-12-31`,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
     await db
-      .insertInto('member.annual_fees')
+      .insertInto('member.annualFees')
       .values({
-        member_id: testMemberId,
-        fee_type: 'annual_fee',
+        memberId: testMemberId,
+        feeType: 'annual_fee',
         year: currentYear,
-        invoice_id: INV_JOINING,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        invoiceId: INV_JOINING,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
 
@@ -702,7 +702,7 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
     expect(joiningFee).toBeDefined()
     expect(joiningFee?.pmt_ref).toBe('REF-JOINING')
 
-    await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_JOINING).execute()
+    await db.deleteFrom('member.annualFees').where('invoiceId', '=', INV_JOINING).execute()
     await db.deleteFrom('accts.invoice').where('id', '=', String(INV_JOINING)).execute()
   })
 
@@ -711,31 +711,31 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
       .insertInto('accts.invoice')
       .values({
         id: String(INV_PAID),
-        member_id: testMemberId,
-        invoice_type: MIKInvoiceType.ANNUAL_FEE,
-        pmt_ref: 'REF-PAID',
-        due_at: `${currentYear}-12-31`,
-        paid_at: `${currentYear}-01-15`,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        memberId: testMemberId,
+        invoiceType: MIKInvoiceType.ANNUAL_FEE,
+        pmtRef: 'REF-PAID',
+        dueAt: `${currentYear}-12-31`,
+        paidAt: `${currentYear}-01-15`,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
     await db
-      .insertInto('member.annual_fees')
+      .insertInto('member.annualFees')
       .values({
-        member_id: testMemberId,
-        fee_type: 'annual_fee',
+        memberId: testMemberId,
+        feeType: 'annual_fee',
         year: currentYear,
-        invoice_id: INV_PAID,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        invoiceId: INV_PAID,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
 
     const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
     expect(result.find((r) => r.pmt_ref === 'REF-PAID')).toBeUndefined()
 
-    await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_PAID).execute()
+    await db.deleteFrom('member.annualFees').where('invoiceId', '=', INV_PAID).execute()
     await db.deleteFrom('accts.invoice').where('id', '=', String(INV_PAID)).execute()
   })
 
@@ -744,30 +744,30 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
       .insertInto('accts.invoice')
       .values({
         id: String(INV_EQUIP),
-        member_id: testMemberId,
-        invoice_type: MIKInvoiceType.EQUIPMENT_FEE,
-        pmt_ref: 'REF-EQUIP',
-        due_at: `${currentYear}-12-31`,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        memberId: testMemberId,
+        invoiceType: MIKInvoiceType.EQUIPMENT_FEE,
+        pmtRef: 'REF-EQUIP',
+        dueAt: `${currentYear}-12-31`,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
     await db
-      .insertInto('member.annual_fees')
+      .insertInto('member.annualFees')
       .values({
-        member_id: testMemberId,
-        fee_type: 'equipment_fee',
+        memberId: testMemberId,
+        feeType: 'equipment_fee',
         year: currentYear,
-        invoice_id: INV_EQUIP,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        invoiceId: INV_EQUIP,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
 
     const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
     expect(result.find((r) => r.invoice_type === MIKInvoiceType.EQUIPMENT_FEE)).toBeUndefined()
 
-    await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_EQUIP).execute()
+    await db.deleteFrom('member.annualFees').where('invoiceId', '=', INV_EQUIP).execute()
     await db.deleteFrom('accts.invoice').where('id', '=', String(INV_EQUIP)).execute()
   })
 })

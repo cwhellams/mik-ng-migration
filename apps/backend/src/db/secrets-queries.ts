@@ -1,11 +1,11 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import type { Secret, SecretCreate, SecretUpdate } from '@mik/contracts/secrets'
 import type { JWTUser } from '../routes/auth/token.ts'
 
 // Get all secrets ordered alphabetically by secret_key
 // If isAdmin is false, only MEMBER class secrets are returned
 export const getAllSecrets = async (isAdmin: boolean): Promise<Secret[]> => {
-  const secrets = await camelDb
+  const secrets = await db
     .selectFrom('secrets')
     .select([
       'id',
@@ -31,7 +31,7 @@ export const getAllSecrets = async (isAdmin: boolean): Promise<Secret[]> => {
 
 // Get a single secret by ID
 export const getSecretById = async (id: number): Promise<Secret | undefined> => {
-  const secret = await camelDb
+  const secret = await db
     .selectFrom('secrets')
     .select([
       'id',
@@ -60,7 +60,7 @@ export const getSecretById = async (id: number): Promise<Secret | undefined> => 
 
 // Create a new secret
 export const createSecret = async (secret: SecretCreate, user: JWTUser): Promise<Secret> => {
-  const newSecret = await camelDb
+  const newSecret = await db
     .insertInto('secrets')
     .values({
       secretKey: secret.secretKey,
@@ -95,7 +95,7 @@ export const updateSecret = async (
   secret: SecretUpdate,
   user: JWTUser,
 ): Promise<Secret | undefined> => {
-  const updatedSecret = await camelDb
+  const updatedSecret = await db
     .updateTable('secrets')
     .set({
       ...(secret.secretKey && { secretKey: secret.secretKey }),
@@ -131,7 +131,7 @@ export const updateSecret = async (
 
 // Delete a secret
 export const deleteSecret = async (id: number): Promise<boolean> => {
-  const result = await camelDb.deleteFrom('secrets').where('id', '=', String(id)).execute()
+  const result = await db.deleteFrom('secrets').where('id', '=', String(id)).execute()
 
   return result.length > 0 && Number(result[0].numDeletedRows) > 0
 }

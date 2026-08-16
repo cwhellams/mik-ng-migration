@@ -1,6 +1,6 @@
 import type { Updateable } from 'kysely'
 
-import type { MemberDocuments } from './schema.camel.d.ts'
+import type { MemberDocuments } from './schema.d.ts'
 import * as connection from './connection.ts'
 import { sql } from 'kysely'
 import type { Document, DocumentFilters } from '@mik/contracts/documents'
@@ -15,7 +15,7 @@ export const getAllDocuments = async (
 ): Promise<Document[]> => {
   const { category, search, tags, showArchived = false, limit = 100, offset = 0 } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('member.documents')
     .selectAll()
     .where('isPublic', '=', true)
@@ -99,7 +99,7 @@ export const countDocuments = async (
 ): Promise<number> => {
   const { category, search, tags, showArchived = false } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('member.documents')
     .select((eb) => eb.fn.count('documentId').as('count'))
     .where('isPublic', '=', true)
@@ -154,7 +154,7 @@ export const countDocuments = async (
 }
 
 export const getDocumentStorageKeyById = async (documentId: number): Promise<string | null> => {
-  const record = await connection.camelDb
+  const record = await connection.db
     .selectFrom('member.documents')
     .select(['storageKey'])
     .where('documentId', '=', documentId)
@@ -164,7 +164,7 @@ export const getDocumentStorageKeyById = async (documentId: number): Promise<str
 }
 
 export const getDocumentById = async (documentId: number): Promise<Document | null> => {
-  const record = await connection.camelDb
+  const record = await connection.db
     .selectFrom('member.documents')
     .selectAll()
     .where('documentId', '=', documentId)
@@ -197,7 +197,7 @@ export const getDocumentById = async (documentId: number): Promise<Document | nu
 export const addDocument = async (document: Upsert<Document>, jwt: JWTUser): Promise<Document> => {
   const now = new Date()
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .insertInto('member.documents')
     .values({
       title: document.title,
@@ -262,7 +262,7 @@ export const updateDocument = async (
   if (patch.mimeType !== undefined) updateData.mimeType = patch.mimeType
   if (patch.storageKey !== undefined) updateData.storageKey = patch.storageKey
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .updateTable('member.documents')
     .set(updateData)
     .where('documentId', '=', documentId)
@@ -272,7 +272,7 @@ export const updateDocument = async (
 }
 
 export const removeDocument = async (documentId: number): Promise<boolean> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .deleteFrom('member.documents')
     .where('documentId', '=', documentId)
     .executeTakeFirst()

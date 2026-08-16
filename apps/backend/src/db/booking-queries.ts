@@ -8,7 +8,7 @@ import {
   type BookingUpsertRequest,
   type CancellationRequest,
 } from '@mik/contracts/bookings'
-import type { CamelRow } from './connection.ts'
+import type { DbRow } from './connection.ts'
 import { sql } from 'kysely'
 import dayjs from 'dayjs'
 import { generateShortId } from '../util/nanoId.ts'
@@ -16,8 +16,8 @@ import type { JWTUser } from '../routes/auth/token.ts'
 
 // The booking's own member columns come from a join on member.register; the
 // remaining names below are further joins onto the same table for the other roles.
-type BookingRow = CamelRow<'schedule.bookings'> &
-  Pick<CamelRow<'member.register'>, 'firstName' | 'lastName' | 'phoneNumber'> & {
+type BookingRow = DbRow<'schedule.bookings'> &
+  Pick<DbRow<'member.register'>, 'firstName' | 'lastName' | 'phoneNumber'> & {
     instructorFirstName?: string | null
     instructorLastName?: string | null
     instructorPhoneNumber?: string | null
@@ -78,7 +78,7 @@ const toArray = <T>(value: T | T[]): T[] => {
 }
 
 export const getBookings = async (filters: BookingFilters): Promise<Booking[]> => {
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('schedule.bookings')
     .selectAll(['schedule.bookings'])
     .innerJoin('member.register', 'schedule.bookings.memberId', 'member.register.memberId')
@@ -148,7 +148,7 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
 }
 
 export const getBookingById = async (bookingId: string): Promise<Booking | undefined> => {
-  let booking = await connection.camelDb
+  let booking = await connection.db
     .selectFrom('schedule.bookings')
     .selectAll('schedule.bookings')
     .innerJoin('member.register', 'schedule.bookings.memberId', 'member.register.memberId')
@@ -194,7 +194,7 @@ export const insertBooking = async (
 ): Promise<Booking> => {
   const now = new Date().toISOString()
 
-  const newBooking = await connection.camelDb
+  const newBooking = await connection.db
     .insertInto('schedule.bookings')
     .values({
       bookingId: generateShortId(),
@@ -239,7 +239,7 @@ export const updateBooking = async (
   jwt: JWTUser,
 ): Promise<Booking | undefined> => {
   const now = new Date().toISOString()
-  const updated = await connection.camelDb
+  const updated = await connection.db
     .updateTable('schedule.bookings')
     .set({
       registration: patch.registration,
@@ -271,7 +271,7 @@ export const cancelBooking = async (
   jwt: JWTUser,
   cancellation?: CancellationRequest,
 ): Promise<Booking | undefined> => {
-  const updated = await connection.camelDb
+  const updated = await connection.db
     .updateTable('schedule.bookings')
     .set({
       bookingStatus: BookingStatus.CANCELLED,
@@ -320,7 +320,7 @@ export const claimUpcomingBookingsForReminder = async (
   // Atomically claim bookings by setting reminder_sent_at in a single UPDATE.
   // Because this UPDATE is atomic, concurrent worker instances will each claim
   // a disjoint set of rows (only rows still NULL are updated).
-  const claimed = await connection.camelDb
+  const claimed = await connection.db
     .updateTable('schedule.bookings')
     .set({ reminderSentAt: now })
     .where('startTimeEpoch', '>=', windowStart)
@@ -341,7 +341,7 @@ export const claimUpcomingBookingsForReminder = async (
 
   // Fetch full booking data (including member info) for the claimed booking IDs
   const claimedIds = claimed.map((r) => r.bookingId)
-  const results = await connection.camelDb
+  const results = await connection.db
     .selectFrom('schedule.bookings')
     .selectAll(['schedule.bookings'])
     .innerJoin('member.register', 'schedule.bookings.memberId', 'member.register.memberId')
@@ -389,7 +389,7 @@ export const cancelAllFutureBookingsForMember = async (
   const now = new Date()
   const currentEpoch = dayjs().unix().toString()
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .updateTable('schedule.bookings')
     .set({
       bookingStatus: BookingStatus.CANCELLED,

@@ -1,7 +1,7 @@
 import type { Updateable } from 'kysely'
 
-import type { FlightAircraftCards } from './schema.camel.d.ts'
-import type { CamelRow } from './connection.ts'
+import type { FlightAircraftCards } from './schema.d.ts'
+import type { DbRow } from './connection.ts'
 import * as connection from './connection.ts'
 import type {
   AircraftCard,
@@ -17,7 +17,7 @@ export const getAllAircraftCards = async (
 ): Promise<AircraftCardAuditable[]> => {
   const { aircraftRegistration, validOnly = false, limit = 100, offset = 0 } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('flight.aircraftCards')
     .selectAll()
     .orderBy('validTo', 'asc')
@@ -48,7 +48,7 @@ export const countAircraftCards = async (
 ): Promise<number> => {
   const { aircraftRegistration, validOnly = false } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('flight.aircraftCards')
     .select((eb) => eb.fn.count('cardId').as('count'))
 
@@ -73,7 +73,7 @@ export const countAircraftCards = async (
 export const getAircraftCardById = async (
   cardId: number,
 ): Promise<AircraftCardAuditable | null> => {
-  const record = await connection.camelDb
+  const record = await connection.db
     .selectFrom('flight.aircraftCards')
     .selectAll()
     .where('cardId', '=', cardId)
@@ -90,7 +90,7 @@ export const addAircraftCard = async (
 ): Promise<AircraftCardAuditable> => {
   const now = new Date()
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .insertInto('flight.aircraftCards')
     .values({
       aircraftRegistration: card.aircraftRegistration,
@@ -137,7 +137,7 @@ export const updateAircraftCard = async (
   if (patch.validFrom !== undefined) updateData.validFrom = patch.validFrom
   if (patch.validTo !== undefined) updateData.validTo = patch.validTo
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .updateTable('flight.aircraftCards')
     .set(updateData)
     .where('cardId', '=', cardId)
@@ -147,7 +147,7 @@ export const updateAircraftCard = async (
 }
 
 export const removeAircraftCard = async (cardId: number): Promise<boolean> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .deleteFrom('flight.aircraftCards')
     .where('cardId', '=', cardId)
     .executeTakeFirst()
@@ -155,7 +155,7 @@ export const removeAircraftCard = async (cardId: number): Promise<boolean> => {
   return result.numDeletedRows == BigInt(1)
 }
 
-const mapRecord = (record: CamelRow<'flight.aircraftCards'>): AircraftCardAuditable => ({
+const mapRecord = (record: DbRow<'flight.aircraftCards'>): AircraftCardAuditable => ({
   cardId: record.cardId,
   aircraftRegistration: record.aircraftRegistration,
   name: record.name,

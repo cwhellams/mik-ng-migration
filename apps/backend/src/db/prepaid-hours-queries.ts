@@ -1,6 +1,6 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { sql, type Updateable } from 'kysely'
-import type { Json, PrepaidPackages, ShopProducts } from './schema.camel.d.ts'
+import type { Json, PrepaidPackages, ShopProducts } from './schema.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   PrepaidPackage,
@@ -32,7 +32,7 @@ type ProductData = {
 
 async function loadProductData(productIds: string[]): Promise<Map<string, ProductData>> {
   if (productIds.length === 0) return new Map()
-  const products = await camelDb
+  const products = await db
     .selectFrom('shop.products')
     .select([
       'productId',
@@ -95,7 +95,7 @@ function mapPackage(r: Record<string, unknown>, product?: ProductData): PrepaidP
 }
 
 export async function getPrepaidPackages(aircraftRegistration?: string): Promise<PrepaidPackage[]> {
-  let q = camelDb.selectFrom('prepaid.packages').selectAll()
+  let q = db.selectFrom('prepaid.packages').selectAll()
   if (aircraftRegistration) q = q.where('aircraftRegistration', '=', aircraftRegistration)
   const rows = await q.orderBy('expiresAt').execute()
   const productMap = await loadProductData(rows.map((r) => r.productId))
@@ -105,7 +105,7 @@ export async function getPrepaidPackages(aircraftRegistration?: string): Promise
 }
 
 export async function getPrepaidPackageById(id: string): Promise<PrepaidPackage | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('prepaid.packages')
     .selectAll()
     .where('productId', '=', id)
@@ -145,7 +145,7 @@ export async function insertPrepaidPackage(
     user,
   )
   const packageId = data.packageId || product.productId
-  await camelDb
+  await db
     .insertInto('prepaid.packages')
     .values({
       productId: packageId,
@@ -180,7 +180,7 @@ export async function updatePrepaidPackage(
   if (data.maxPerMember !== undefined) update.maxPerMember = data.maxPerMember
   if (data.expiresAt !== undefined) update.expiresAt = data.expiresAt
   if (data.isActive !== undefined) update.isActive = data.isActive
-  await camelDb.updateTable('prepaid.packages').set(update).where('productId', '=', id).execute()
+  await db.updateTable('prepaid.packages').set(update).where('productId', '=', id).execute()
 
   // Sync all product-level fields to shop.products
   const hasProductUpdate =
@@ -238,11 +238,7 @@ export async function updatePrepaidPackage(
     if (data.lowStockThreshold !== undefined)
       productUpdate.lowStockThreshold = data.lowStockThreshold
     if (data.isActive !== undefined) productUpdate.isActive = data.isActive
-    await camelDb
-      .updateTable('shop.products')
-      .set(productUpdate)
-      .where('productId', '=', id)
-      .execute()
+    await db.updateTable('shop.products').set(productUpdate).where('productId', '=', id).execute()
   }
   return getPrepaidPackageById(id) as Promise<PrepaidPackage>
 }
@@ -322,7 +318,7 @@ export async function getMemberPackages(
   memberId?: string,
   productId?: string,
 ): Promise<MemberPackage[]> {
-  let q = camelDb
+  let q = db
     .selectFrom('prepaid.memberPackages as mp')
     .leftJoin('prepaid.packages as p', 'p.productId', 'mp.productId')
     .leftJoin('member.register as m', 'm.memberId', 'mp.memberId')
@@ -369,7 +365,7 @@ async function attachUnbilledMinutes(packages: MemberPackage[]): Promise<MemberP
   }
 
   // Sum unbilled (billable but not yet billed) flight minutes per member+aircraft
-  const unbilledRows = await camelDb
+  const unbilledRows = await db
     .selectFrom('flight.logs')
     .select((eb) => [
       'billableMemberId',
@@ -415,7 +411,7 @@ async function attachUnbilledMinutes(packages: MemberPackage[]): Promise<MemberP
 }
 
 export async function getMemberPackageById(id: number): Promise<MemberPackage | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('prepaid.memberPackages')
     .selectAll()
     .where('memberPackageId', '=', id)
@@ -432,7 +428,7 @@ export async function getActivePackageForMemberAndAircraft(
   aircraftRegistration: string,
 ): Promise<MemberPackage | undefined> {
   const today = new Date().toISOString().split('T')[0]
-  const r = await camelDb
+  const r = await db
     .selectFrom('prepaid.memberPackages as mp')
     .innerJoin('prepaid.packages as p', 'p.productId', 'mp.productId')
     .selectAll('mp')
@@ -456,7 +452,7 @@ export async function createMemberPackage(
 
   const totalMinutes = pkg.minutesPerPackage
 
-  const result = await camelDb
+  const result = await db
     .insertInto('prepaid.memberPackages')
     .values({
       memberId: memberId,
@@ -469,7 +465,7 @@ export async function createMemberPackage(
     .executeTakeFirstOrThrow()
 
   // Increment sold_count on the package
-  await camelDb
+  await db
     .updateTable('prepaid.packages')
     .set((eb) => ({ soldCount: eb('soldCount', '+', 1) }))
     .where('productId', '=', productId)
@@ -505,13 +501,13 @@ export async function deductMinutesFromPackage(
   const newUsed = mp.usedMinutes + minutesFromPackage
   const nowExpired = newUsed >= mp.totalMinutes
 
-  await camelDb
+  await db
     .updateTable('prepaid.memberPackages')
     .set({ usedMinutes: newUsed, isExpired: nowExpired, updatedAt: new Date() })
     .where('memberPackageId', '=', mp.memberPackageId)
     .execute()
 
-  await camelDb
+  await db
     .insertInto('prepaid.usageLog')
     .values({
       memberPackageId: mp.memberPackageId,
@@ -535,7 +531,7 @@ export async function extendExpiryForAircraft(
   user: JWTUser,
 ): Promise<number> {
   // Find all non-expired member_packages for the given aircraft
-  const productIds = await camelDb
+  const productIds = await db
     .selectFrom('prepaid.packages')
     .select('productId')
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -545,7 +541,7 @@ export async function extendExpiryForAircraft(
 
   const ids = productIds.map((p) => p.productId)
 
-  const result = await camelDb
+  const result = await db
     .updateTable('prepaid.memberPackages')
     .set((eb) => ({
       expiresAt: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
@@ -556,7 +552,7 @@ export async function extendExpiryForAircraft(
     .executeTakeFirst()
 
   // Also extend the package definitions themselves
-  await camelDb
+  await db
     .updateTable('prepaid.packages')
     .set((eb) => ({
       expiresAt: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
@@ -575,7 +571,7 @@ export async function extendExpiryForAircraft(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getUsageLog(memberPackageId: number): Promise<UsageLog[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('prepaid.usageLog')
     .selectAll()
     .where('memberPackageId', '=', memberPackageId)
@@ -601,7 +597,7 @@ export async function getUsageLog(memberPackageId: number): Promise<UsageLog[]> 
 export async function getUnbilledTimeByAircraft(
   memberId: string,
 ): Promise<UnbilledTimeByAircraft[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('flight.logs')
     .select((eb) => [
       'aircraftRegistration',

@@ -103,9 +103,9 @@ describe('Aircraft Pricing Queries', () => {
     afterEach(async () => {
       // Clean up test data
       await db
-        .deleteFrom('accts.aircraft_pricing')
+        .deleteFrom('accts.aircraftPricing')
         .where('registration', '=', testPricing.registration)
-        .where('valid_from', '=', testPricing.valid_from)
+        .where('validFrom', '=', testPricing.valid_from)
         .execute()
     })
 

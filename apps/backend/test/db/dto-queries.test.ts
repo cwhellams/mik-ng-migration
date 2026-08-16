@@ -61,7 +61,7 @@ describe('updateSyllabus — minBlockTimeMins field handling', () => {
   })
 
   afterEach(async () => {
-    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', draftSyllabusId).execute()
+    await db.deleteFrom('dto.syllabus').where('syllabusId', '=', draftSyllabusId).execute()
   })
 
   it('preserves minBlockTimeMins when the field is omitted from the update', async () => {
@@ -118,26 +118,26 @@ describe('publishSyllabus', () => {
 
   afterEach(async () => {
     if (firstSyllabusId) {
-      await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', firstSyllabusId).execute()
+      await db.deleteFrom('dto.syllabus').where('syllabusId', '=', firstSyllabusId).execute()
       firstSyllabusId = undefined
     }
     if (secondSyllabusId) {
-      await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', secondSyllabusId).execute()
+      await db.deleteFrom('dto.syllabus').where('syllabusId', '=', secondSyllabusId).execute()
       secondSyllabusId = undefined
     }
     if (testProgramId) {
-      await db.deleteFrom('dto.training_program').where('program_id', '=', testProgramId).execute()
+      await db.deleteFrom('dto.trainingProgram').where('programId', '=', testProgramId).execute()
       testProgramId = undefined
     }
   })
 
   it('returns undefined when called on a DRAFT syllabus (must go through WAITING_FOR_APPROVAL)', async () => {
     const program = await db
-      .insertInto('dto.training_program')
-      .values({ name: TEST_PROGRAM_NAME, created_by: USER_ID, updated_by: USER_ID })
+      .insertInto('dto.trainingProgram')
+      .values({ name: TEST_PROGRAM_NAME, createdBy: USER_ID, updatedBy: USER_ID })
       .returningAll()
       .executeTakeFirstOrThrow()
-    testProgramId = program.program_id
+    testProgramId = program.programId
 
     const draft = await insertSyllabus(testProgramId, {}, USER_ID)
     firstSyllabusId = draft.syllabusId
@@ -147,11 +147,11 @@ describe('publishSyllabus', () => {
 
   it('archives the previously PUBLISHED syllabus for the same program', async () => {
     const program = await db
-      .insertInto('dto.training_program')
-      .values({ name: TEST_PROGRAM_NAME, created_by: USER_ID, updated_by: USER_ID })
+      .insertInto('dto.trainingProgram')
+      .values({ name: TEST_PROGRAM_NAME, createdBy: USER_ID, updatedBy: USER_ID })
       .returningAll()
       .executeTakeFirstOrThrow()
-    testProgramId = program.program_id
+    testProgramId = program.programId
 
     const first = await insertSyllabus(testProgramId, {}, USER_ID)
     firstSyllabusId = first.syllabusId
@@ -169,10 +169,10 @@ describe('publishSyllabus', () => {
     const firstAfter = await db
       .selectFrom('dto.syllabus')
       .selectAll()
-      .where('syllabus_id', '=', firstSyllabusId)
+      .where('syllabusId', '=', firstSyllabusId)
       .executeTakeFirst()
     expect(firstAfter?.status).toBe('ARCHIVED')
-    expect(firstAfter?.published_at).not.toBeNull()
+    expect(firstAfter?.publishedAt).not.toBeNull()
   })
 })
 
@@ -187,53 +187,53 @@ describe('updateAttemptSyllabusFlight — verified attempt guard', () => {
     await db
       .insertInto('flight.logs')
       .values({
-        flight_id: TEST_FLIGHT_ID,
-        billable_member_id: 'Juha1',
-        pic_member_id: 'Juha1',
-        pic_last_name: 'Tester',
-        pic_role: 'STU' as const,
-        aircraft_registration: 'OH-P28',
-        off_block_time_epoch: 1768200000,
-        takeoff_time_epoch: 1768200060,
-        landing_time_epoch: 1768203600,
-        on_block_time_epoch: 1768203660,
-        fuel_remaining_litres: 20,
-        persons_on_board: 2,
-        number_of_landings: 1,
-        night_flying_mins: 0,
-        instrument_flying_mins: 0,
-        departure_airport: 'EFHK',
-        arrival_airport: 'EFHK',
-        flight_type: 'SCHOOL',
-        created_by: 'Juha1',
-        updated_by: 'Juha1',
-        is_billable_flight: false,
-        priv_or_com_flight: 'C',
-        ajlb_seq_no: 4,
-        ajlb_blank_rows_before: 0,
+        flightId: TEST_FLIGHT_ID,
+        billableMemberId: 'Juha1',
+        picMemberId: 'Juha1',
+        picLastName: 'Tester',
+        picRole: 'STU' as const,
+        aircraftRegistration: 'OH-P28',
+        offBlockTimeEpoch: 1768200000,
+        takeoffTimeEpoch: 1768200060,
+        landingTimeEpoch: 1768203600,
+        onBlockTimeEpoch: 1768203660,
+        fuelRemainingLitres: 20,
+        personsOnBoard: 2,
+        numberOfLandings: 1,
+        nightFlyingMins: 0,
+        instrumentFlyingMins: 0,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFHK',
+        flightType: 'SCHOOL',
+        createdBy: 'Juha1',
+        updatedBy: 'Juha1',
+        isBillableFlight: false,
+        privOrComFlight: 'C',
+        ajlbSeqNo: 4,
+        ajlbBlankRowsBefore: 0,
         status: 'NEW',
-        is_dto_training_flight: true,
+        isDtoTrainingFlight: true,
       })
       .execute()
     await db
-      .insertInto('dto.syllabus_flight_attempts')
+      .insertInto('dto.syllabusFlightAttempts')
       .values({
-        attempt_id: TEST_ATTEMPT_ID,
-        flight_log_id: TEST_FLIGHT_ID,
-        syllabus_flight_id: FLIGHT_01_ID,
-        member_syllabus_id: MS_JUHA1,
-        instructor_member_id: 'Juha1',
-        verification_result: null,
+        attemptId: TEST_ATTEMPT_ID,
+        flightLogId: TEST_FLIGHT_ID,
+        syllabusFlightId: FLIGHT_01_ID,
+        memberSyllabusId: MS_JUHA1,
+        instructorMemberId: 'Juha1',
+        verificationResult: null,
       })
       .execute()
   })
 
   afterEach(async () => {
     await db
-      .deleteFrom('dto.syllabus_flight_attempts')
-      .where('attempt_id', '=', TEST_ATTEMPT_ID)
+      .deleteFrom('dto.syllabusFlightAttempts')
+      .where('attemptId', '=', TEST_ATTEMPT_ID)
       .execute()
-    await db.deleteFrom('flight.logs').where('flight_id', '=', TEST_FLIGHT_ID).execute()
+    await db.deleteFrom('flight.logs').where('flightId', '=', TEST_FLIGHT_ID).execute()
   })
 
   it('updates syllabus flight on an unverified attempt', async () => {
@@ -249,11 +249,11 @@ describe('updateAttemptSyllabusFlight — verified attempt guard', () => {
 
     // Verify original syllabusFlightId is unchanged in the DB
     const row = await db
-      .selectFrom('dto.syllabus_flight_attempts')
-      .select('syllabus_flight_id')
-      .where('attempt_id', '=', ATTEMPT_J1_01)
+      .selectFrom('dto.syllabusFlightAttempts')
+      .select('syllabusFlightId')
+      .where('attemptId', '=', ATTEMPT_J1_01)
       .executeTakeFirst()
-    expect(row?.syllabus_flight_id).toBe(FLIGHT_01_ID)
+    expect(row?.syllabusFlightId).toBe(FLIGHT_01_ID)
   })
 })
 
@@ -311,7 +311,7 @@ describe('copySyllabusAsDraft', () => {
 
   afterEach(async () => {
     if (copiedSyllabusId) {
-      await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', copiedSyllabusId).execute()
+      await db.deleteFrom('dto.syllabus').where('syllabusId', '=', copiedSyllabusId).execute()
       copiedSyllabusId = undefined
     }
   })

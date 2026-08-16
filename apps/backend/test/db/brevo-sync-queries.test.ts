@@ -101,7 +101,7 @@ describe('Brevo sync queries', () => {
         expect(updatedMember.brevoSyncedAt).not.toBeNull()
       }
 
-      await db.updateTable('member.register').set({ brevo_contact_id: null }).execute()
+      await db.updateTable('member.register').set({ brevoContactId: null }).execute()
     })
 
     it('should update member sync status to failed', async () => {

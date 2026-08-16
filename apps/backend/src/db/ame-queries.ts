@@ -1,6 +1,6 @@
 import { sql, type SqlBool } from 'kysely'
 
-import { camelDb, type CamelRow } from './connection.ts'
+import { db, type DbRow } from './connection.ts'
 import {
   AmeReviewStatus,
   AmeStatus,
@@ -22,7 +22,7 @@ import type { JWTUser } from '../routes/auth/token.ts'
 // `submittedByName` is a raw `trim(concat(...))` over the joined member row; the three
 // rating columns come from the aggregate subquery and the current user's rating join.
 // Everything else is `club.ameList` itself, so it is checked against the schema.
-type AmeRow = CamelRow<'club.ameList'> & {
+type AmeRow = DbRow<'club.ameList'> & {
   submittedByName: string | null
   averageRating: unknown
   ratingCount: unknown
@@ -74,11 +74,11 @@ const mapRow = (row: AmeRow): AmeEntry => ({
  * empty values rather than a cast, so the absence is stated once instead of at each of
  * the three call sites.
  */
-const mapRowWithoutJoins = (row: CamelRow<'club.ameList'>): AmeEntry =>
+const mapRowWithoutJoins = (row: DbRow<'club.ameList'>): AmeEntry =>
   mapRow({ ...row, submittedByName: null, averageRating: null, ratingCount: 0, myRating: null })
 
 const baseSelect = (currentUserId?: string) =>
-  camelDb
+  db
     .selectFrom('club.ameList as a')
     .leftJoin('member.register as m', 'm.memberId', 'a.submittedBy')
     .leftJoin(
@@ -136,7 +136,7 @@ export async function getApprovedAmeEntries(
     q = q.where(sql<SqlBool>`a.medical_types @> ${sql.val([medicalType])}::text[]`)
   }
 
-  const countQ = camelDb
+  const countQ = db
     .selectFrom('club.ameList as a')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('a.status', '=', AmeStatus.APPROVED)
@@ -172,7 +172,7 @@ export async function getAllAmeEntries(
     q = q.where(sql<SqlBool>`a.medical_types @> ${sql.val([medicalType])}::text[]`)
   }
 
-  const countQ = camelDb
+  const countQ = db
     .selectFrom('club.ameList as a')
     .select((eb) => eb.fn.countAll<number>().as('count'))
 
@@ -194,7 +194,7 @@ export async function getAllAmeEntries(
 }
 
 export async function getPendingAmeCount(): Promise<number> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('club.ameList')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('status', '=', AmeStatus.SUBMITTED)
@@ -203,7 +203,7 @@ export async function getPendingAmeCount(): Promise<number> {
 }
 
 export async function createAmeEntry(data: CreateAmeEntry, user: JWTUser): Promise<AmeEntry> {
-  const row = await camelDb
+  const row = await db
     .insertInto('club.ameList')
     .values({
       submittedBy: user.memberId,
@@ -223,7 +223,7 @@ export async function createAmeEntry(data: CreateAmeEntry, user: JWTUser): Promi
 }
 
 export async function approveAmeEntry(id: string, approver: JWTUser): Promise<AmeEntry | null> {
-  const row = await camelDb
+  const row = await db
     .updateTable('club.ameList')
     .set({
       status: AmeStatus.APPROVED,
@@ -245,7 +245,7 @@ export async function rejectAmeEntry(
   rejecter: JWTUser,
   reason: string,
 ): Promise<AmeEntry | null> {
-  const row = await camelDb
+  const row = await db
     .updateTable('club.ameList')
     .set({
       status: AmeStatus.REJECTED,
@@ -268,7 +268,7 @@ export async function upsertAmeRating(
   memberId: string,
   stars: number,
 ): Promise<void> {
-  await camelDb
+  await db
     .insertInto('club.ameRating')
     .values({ ameId: ameId, memberId: memberId, stars })
     .onConflict((oc) =>
@@ -279,17 +279,17 @@ export async function upsertAmeRating(
 
 export async function getPendingReviewCounts(): Promise<AmePendingCounts> {
   const [submissions, editSuggestions, removalRequests] = await Promise.all([
-    camelDb
+    db
       .selectFrom('club.ameList')
       .select((eb) => eb.fn.countAll<number>().as('count'))
       .where('status', '=', AmeStatus.SUBMITTED)
       .executeTakeFirstOrThrow(),
-    camelDb
+    db
       .selectFrom('club.ameEditSuggestion')
       .select((eb) => eb.fn.countAll<number>().as('count'))
       .where('status', '=', AmeReviewStatus.SUBMITTED)
       .executeTakeFirstOrThrow(),
-    camelDb
+    db
       .selectFrom('club.ameRemovalRequest')
       .select((eb) => eb.fn.countAll<number>().as('count'))
       .where('status', '=', AmeReviewStatus.SUBMITTED)
@@ -305,14 +305,14 @@ export async function getPendingReviewCounts(): Promise<AmePendingCounts> {
 
 /** The `club.ameList` columns `editSuggestionBaseSelect` aliases as `current*`. */
 type CurrentAmeColumns = Pick<
-  CamelRow<'club.ameList'>,
+  DbRow<'club.ameList'>,
   'name' | 'medicalCentre' | 'location' | 'price' | 'medicalTypes' | 'notes' | 'reportDate'
 >
 
 // The suggestion's own columns are `club.ameEditSuggestion`; `submittedByName` is a raw
 // `trim(concat(...))` over the joined member row, and the `current*` columns are the
 // live `club.ameList` values the suggestion would replace.
-type AmeEditSuggestionRow = CamelRow<'club.ameEditSuggestion'> & {
+type AmeEditSuggestionRow = DbRow<'club.ameEditSuggestion'> & {
   submittedByName: string | null
   currentName: CurrentAmeColumns['name']
   currentMedicalCentre: CurrentAmeColumns['medicalCentre']
@@ -351,7 +351,7 @@ const mapEditSuggestionRow = (row: AmeEditSuggestionRow): AmeEditSuggestion => (
 })
 
 const editSuggestionBaseSelect = () =>
-  camelDb
+  db
     .selectFrom('club.ameEditSuggestion as s')
     .innerJoin('club.ameList as a', 'a.id', 's.ameId')
     .leftJoin('member.register as m', 'm.memberId', 's.submittedBy')
@@ -389,7 +389,7 @@ export async function createAmeEditSuggestion(
   data: SuggestAmeEdit,
   user: JWTUser,
 ): Promise<AmeEditSuggestion> {
-  const row = await camelDb
+  const row = await db
     .insertInto('club.ameEditSuggestion')
     .values({
       ameId: ameId,
@@ -422,7 +422,7 @@ export async function getAllEditSuggestions(
     q = q.where('s.status', '=', status)
   }
 
-  const countQ = camelDb
+  const countQ = db
     .selectFrom('club.ameEditSuggestion')
     .select((eb) => eb.fn.countAll<number>().as('count'))
 
@@ -444,7 +444,7 @@ export async function approveAmeEditSuggestion(
   id: string,
   approver: JWTUser,
 ): Promise<AmeEditSuggestion | null> {
-  const suggestion = await camelDb
+  const suggestion = await db
     .selectFrom('club.ameEditSuggestion')
     .selectAll()
     .where('id', '=', id)
@@ -453,7 +453,7 @@ export async function approveAmeEditSuggestion(
 
   if (!suggestion) return null
 
-  await camelDb
+  await db
     .updateTable('club.ameList')
     .set({
       name: suggestion.name,
@@ -468,7 +468,7 @@ export async function approveAmeEditSuggestion(
     .where('id', '=', suggestion.ameId)
     .execute()
 
-  await camelDb
+  await db
     .updateTable('club.ameEditSuggestion')
     .set({
       status: AmeReviewStatus.APPROVED,
@@ -488,7 +488,7 @@ export async function rejectAmeEditSuggestion(
   rejecter: JWTUser,
   reason: string,
 ): Promise<AmeEditSuggestion | null> {
-  const row = await camelDb
+  const row = await db
     .updateTable('club.ameEditSuggestion')
     .set({
       status: AmeReviewStatus.REJECTED,
@@ -510,8 +510,8 @@ export async function rejectAmeEditSuggestion(
 
 // `ameName` is the joined `club.ameList.name`, `submittedByName` a raw `trim(concat(...))`
 // over the joined member row; the rest is `club.ameRemovalRequest` itself.
-type AmeRemovalRequestRow = CamelRow<'club.ameRemovalRequest'> & {
-  ameName: CamelRow<'club.ameList'>['name']
+type AmeRemovalRequestRow = DbRow<'club.ameRemovalRequest'> & {
+  ameName: DbRow<'club.ameList'>['name']
   submittedByName: string | null
 }
 
@@ -531,7 +531,7 @@ const mapRemovalRequestRow = (row: AmeRemovalRequestRow): AmeRemovalRequest => (
 })
 
 const removalRequestBaseSelect = () =>
-  camelDb
+  db
     .selectFrom('club.ameRemovalRequest as r')
     .innerJoin('club.ameList as a', 'a.id', 'r.ameId')
     .leftJoin('member.register as m', 'm.memberId', 'r.submittedBy')
@@ -557,7 +557,7 @@ export async function createAmeRemovalRequest(
   data: RequestAmeRemoval,
   user: JWTUser,
 ): Promise<AmeRemovalRequest> {
-  const row = await camelDb
+  const row = await db
     .insertInto('club.ameRemovalRequest')
     .values({
       ameId: ameId,
@@ -584,7 +584,7 @@ export async function getAllRemovalRequests(
     q = q.where('r.status', '=', status)
   }
 
-  const countQ = camelDb
+  const countQ = db
     .selectFrom('club.ameRemovalRequest')
     .select((eb) => eb.fn.countAll<number>().as('count'))
 
@@ -606,7 +606,7 @@ export async function approveAmeRemovalRequest(
   id: string,
   approver: JWTUser,
 ): Promise<AmeRemovalRequest | null> {
-  const request = await camelDb
+  const request = await db
     .selectFrom('club.ameRemovalRequest')
     .selectAll()
     .where('id', '=', id)
@@ -615,13 +615,13 @@ export async function approveAmeRemovalRequest(
 
   if (!request) return null
 
-  await camelDb
+  await db
     .updateTable('club.ameList')
     .set({ status: AmeStatus.REMOVED, updatedAt: new Date() })
     .where('id', '=', request.ameId)
     .execute()
 
-  await camelDb
+  await db
     .updateTable('club.ameRemovalRequest')
     .set({
       status: AmeReviewStatus.APPROVED,
@@ -641,7 +641,7 @@ export async function rejectAmeRemovalRequest(
   rejecter: JWTUser,
   reason: string,
 ): Promise<AmeRemovalRequest | null> {
-  const row = await camelDb
+  const row = await db
     .updateTable('club.ameRemovalRequest')
     .set({
       status: AmeReviewStatus.REJECTED,

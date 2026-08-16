@@ -1,4 +1,4 @@
-import { camelDb } from '../../db/connection.ts'
+import { db } from '../../db/connection.ts'
 import { updateExpenseSimplbooksId, getExpenseClaimById } from '../../db/expense-queries.ts'
 import { getMemberById } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
@@ -49,7 +49,7 @@ import {
   getNextCreditNoteSequenceNumber,
 } from '../../db/outbox-simplbooks-queries.ts'
 import type { Transaction } from 'kysely'
-import type { DB as CamelDB } from '../../db/schema.camel.d.ts'
+import type { DB } from '../../db/schema.d.ts'
 import { createPlannedFlightInvoicePayload } from '../accounting/flightInvoiceCreator.ts'
 import { FlightInvoicePayloadSchema } from '@mik/contracts/flight-log'
 import { isRecurringFeeAlreadyCreated } from '../accounting/recurringFeesProcessor.ts'
@@ -62,7 +62,7 @@ export const MIK_CURRENCY = 'EUR'
 
 export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
   try {
-    switch (msg.event_type) {
+    switch (msg.eventType) {
       case SimplbooksEventType.ADD_MEMBER:
         await addMember(msg)
         break
@@ -94,12 +94,12 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
         await createClubFuelRecoveryInvoice(msg)
         break
       default:
-        throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
+        throw new Error(`Unsupported outbox event type: ${msg.eventType}`)
     }
   } catch (error) {
     if (error instanceof SimplbooksApiError) {
       logger.error(
-        `SimplBooks dispatch failed for outbox event ${msg.event_type} (${msg.id}) at ${error.method} ${error.endpoint}`,
+        `SimplBooks dispatch failed for outbox event ${msg.eventType} (${msg.id}) at ${error.method} ${error.endpoint}`,
       )
     }
 
@@ -177,7 +177,7 @@ async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     logger.warn(
       `Annual membership fee (via joining fee invoice) for year ${year} has already been created for member ${member.memberId}`,
     )
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
@@ -190,9 +190,9 @@ async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
 
   const feeInvoice = await createNewMemberFeesInvoicePayload(
     member,
-    outboxMsg.created_at_utc ? new Date(outboxMsg.created_at_utc) : new Date(),
+    outboxMsg.createdAtUtc ? new Date(outboxMsg.createdAtUtc) : new Date(),
   )
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     const invoiceId = await createInvoice(
       member.memberId,
       outboxMsg.id,
@@ -231,7 +231,7 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     logger.warn(
       `Annual membership fee invoice for year ${year} has already been created for member ${member.memberId}`,
     )
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
@@ -250,13 +250,13 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   // Check if the member has opted for equipment fee renewal at the same time
   const includeEquipmentFee = member.autoRenewEquipmentFee === true && !equipmentFeealreadyCreated
 
-  const outboxDate = outboxMsg.created_at_utc ? new Date(outboxMsg.created_at_utc) : new Date()
+  const outboxDate = outboxMsg.createdAtUtc ? new Date(outboxMsg.createdAtUtc) : new Date()
   const feeInvoice = includeEquipmentFee
     ? await createAnnualMemberFeeWithEquipmentFeeInvoicePayload(member, outboxDate)
     : await createAnnualMemberFeeInvoicePayload(member)
 
-  await camelDb.transaction().execute(async (txn) => {
-    // Create invoice entry to camelDb
+  await db.transaction().execute(async (txn) => {
+    // Create invoice entry to db
     const invoiceId = await createInvoice(
       member.memberId,
       outboxMsg.id,
@@ -310,7 +310,7 @@ async function createFlightInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   // Extract all flight IDs from the payload
   const flightIds = flights.flights.map((flight) => flight.flightId)
 
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     const { invoice: flightInvoicePayload, prepaidUsagePlan } =
       await createPlannedFlightInvoicePayload(flights, billableMemberId, {
         executor: txn,
@@ -339,10 +339,10 @@ async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks)
   const year = getCurrentYear()
   const feeInvoicePayload = await createAnnualEquipmentFeeInvoicePayload(
     member,
-    outboxMsg.created_at_utc ? new Date(outboxMsg.created_at_utc) : new Date(),
+    outboxMsg.createdAtUtc ? new Date(outboxMsg.createdAtUtc) : new Date(),
   )
 
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     const invoiceId = await createInvoice(
       member.memberId,
       outboxMsg.id,
@@ -446,7 +446,7 @@ async function resolveArticleId(item: ShopOrderItemRow): Promise<number> {
 async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const payload = ShopOrderInvoicePayloadSchema.parse(outboxMsg.payload)
 
-  const orderRow = await camelDb
+  const orderRow = await db
     .selectFrom('shop.orders as o')
     .leftJoin('member.register as m', 'm.memberId', 'o.memberId')
     .select(['o.orderId', 'o.memberId', 'o.invoiceId', 'm.billingId'])
@@ -460,7 +460,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   }
 
   if (order.invoiceId) {
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
@@ -482,7 +482,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     )
   }
 
-  const itemRows = await camelDb
+  const itemRows = await db
     .selectFrom('shop.orderItems as oi')
     .leftJoin('shop.products as p', 'p.productId', 'oi.productId')
     .select(['oi.quantity', 'oi.unitPrice', 'oi.productSnapshot', 'p.simplbooksItemId'])
@@ -521,13 +521,13 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     Tasks: tasks,
   }
 
-  await camelDb
+  await db
     .updateTable('shop.orders')
     .set({ status: 'PROCESSING', updatedAt: new Date(), updatedBy: MIK_SIMPLBOOKS_MEMBER })
     .where('orderId', '=', payload.orderId)
     .execute()
 
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     const invoiceId = await createInvoice(
       order.memberId,
       outboxMsg.id,
@@ -569,7 +569,7 @@ async function sendInvoiceEmail(
   dryRunTasks?: DryRunTask[],
 ) {
   try {
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       // Mark the outbox message as processed
       await setOutboxStatus(txn, outboxMsgId, SimplbooksStatus.SYNCED)
 
@@ -620,7 +620,7 @@ async function createInvoice(
   outboxMsgId: string,
   invoiceType: MIKInvoiceType,
   payload: InvoicePost,
-  txn: Transaction<CamelDB>,
+  txn: Transaction<DB>,
 ): Promise<number> {
   if (isDryRunEnabled()) {
     return createDryRunInvoice(memberId, outboxMsgId, invoiceType, payload, txn)
@@ -661,7 +661,7 @@ async function createDryRunInvoice(
   outboxMsgId: string,
   invoiceType: MIKInvoiceType,
   payload: InvoicePost,
-  txn: Transaction<CamelDB>,
+  txn: Transaction<DB>,
 ): Promise<number> {
   const fakeId = generateDryRunInvoiceId()
   const now = new Date()
@@ -714,7 +714,7 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
     logger.info(
       `[DRY RUN] Skipping SimplBooks client creation for member ${member.memberId} — fake billing ID: ${fakeBillingId}`,
     )
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await updateMemberBillingId(txn, member.memberId, fakeBillingId)
       await insertOutboxItem(
         SimplbooksEventType.NEW_MEMBER_FEES,
@@ -747,7 +747,7 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
     clientId = existingClientId
   }
 
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     // Set the billing id in our DB - which is the returned SimplBooks client id
     await updateMemberBillingId(txn, member.memberId, clientId.toString())
 
@@ -832,7 +832,7 @@ async function createExpenseReimbursement(outboxMsg: AcctsOutboxSimplbooks) {
   try {
     if (isDryRunEnabled()) {
       logger.info(`DRY RUN: Would create SimplBooks purchase for claim ${payload.claimId}`)
-      await camelDb.transaction().execute(async (txn) => {
+      await db.transaction().execute(async (txn) => {
         await updateExpenseSimplbooksId(payload.claimId, generateDryRunInvoiceId(), txn)
         await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
       })
@@ -948,13 +948,13 @@ async function createExpenseReimbursement(outboxMsg: AcctsOutboxSimplbooks) {
 
     const result = await createSimplbooksPurchase(purchasePayload)
 
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await updateExpenseSimplbooksId(payload.claimId, result.inserted_id, txn)
       await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
     })
   } catch (error) {
     logger.error(`Failed to create expense reimbursement for claim ${payload.claimId}`, error)
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
@@ -1011,7 +1011,7 @@ async function createClubFuelRecoveryInvoice(outboxMsg: AcctsOutboxSimplbooks) {
       ],
     }
 
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       const invoiceId = await createInvoice(
         payload.memberId,
         outboxMsg.id,
@@ -1025,7 +1025,7 @@ async function createClubFuelRecoveryInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     })
   } catch (error) {
     logger.error(`Failed to create club fuel recovery invoice for claim ${payload.claimId}`, error)
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
@@ -1092,7 +1092,7 @@ async function createCreditNote(outboxMsg: AcctsOutboxSimplbooks) {
     )
 
     // Mark invoice as credited in our database
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await txn
         .updateTable('accts.invoice')
         .set({
@@ -1106,7 +1106,7 @@ async function createCreditNote(outboxMsg: AcctsOutboxSimplbooks) {
     })
   } catch (error) {
     logger.error(`Failed to create credit note for invoice ${payload.simplbooksInvoiceId}`, error)
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,

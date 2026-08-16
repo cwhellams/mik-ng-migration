@@ -14,7 +14,7 @@ describe('cost-centre-queries', () => {
   const code = `UT_CC_${Date.now()}`
 
   afterAll(async () => {
-    await db.deleteFrom('accts.cost_centre').where('code', '=', code).execute()
+    await db.deleteFrom('accts.costCentre').where('code', '=', code).execute()
   })
 
   it('creates, reads, updates and deletes a cost centre', async () => {

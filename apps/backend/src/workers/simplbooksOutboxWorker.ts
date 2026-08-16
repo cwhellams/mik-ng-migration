@@ -1,7 +1,7 @@
 import 'dotenv/config'
 
-import { camelDb } from '../db/connection.ts'
-import { SimplbooksStatus, type AcctsOutboxSimplbooks } from '../services/simplbooks/models.ts'
+import { db } from '../db/connection.ts'
+import { SimplbooksStatus } from '../services/simplbooks/models.ts'
 
 import logger from '../lib/logger.ts'
 import { dispatchOutboxMsg } from '../services/simplbooks/simplbooksOutboxHandler.ts'
@@ -33,12 +33,20 @@ export function startSimpleBooksOutboxProcessor() {
   }
 }
 
-async function processOutbox(): Promise<number> {
+// Exported so a test can drive one iteration directly, per the worker guidance in
+// .github/copilot-instructions.md. Nothing covered this function until the collapse
+// (issue #1115), which is how the row it reads and the schema describing that row
+// drifted apart unnoticed.
+export async function processOutbox(): Promise<number> {
   try {
     logger.info('Outbox worker iteration started')
 
-    const taskRow = await camelDb.transaction().execute(async (txn) => {
-      const nextRow = (await txn
+    const taskRow = await db.transaction().execute(async (txn) => {
+      // Deliberately not cast to AcctsOutboxSimplbooks. A cast here is what let the
+      // row schema drift out of sync with the row: it stayed snake_case after this
+      // query moved to the camelCase instance, so `event_type` read undefined and
+      // every dispatch threw "Unsupported outbox event type: undefined".
+      const nextRow = await txn
         .selectFrom('accts.outboxSimplbooks')
         .selectAll()
         .where('status', '=', SimplbooksStatus.PENDING)
@@ -46,7 +54,7 @@ async function processOutbox(): Promise<number> {
         .skipLocked()
         .orderBy('createdAtUtc', 'asc')
         .limit(1)
-        .executeTakeFirst()) as AcctsOutboxSimplbooks | undefined
+        .executeTakeFirst()
 
       if (!nextRow) {
         return undefined
@@ -66,7 +74,7 @@ async function processOutbox(): Promise<number> {
       return 30_000
     }
 
-    logger.info(`Processing outbox item : ${taskRow.id} of type ${taskRow.event_type}`)
+    logger.info(`Processing outbox item : ${taskRow.id} of type ${taskRow.eventType}`)
 
     try {
       await dispatchOutboxMsg(taskRow) // axios happens here
@@ -75,7 +83,7 @@ async function processOutbox(): Promise<number> {
 
       logger.error(`Failed to process outbox item : ${taskRow.id}. Error: ${errorMessage}`)
 
-      await camelDb
+      await db
         .updateTable('accts.outboxSimplbooks')
         .set({
           status: SimplbooksStatus.FAILED,

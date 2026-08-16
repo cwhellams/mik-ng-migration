@@ -53,29 +53,29 @@ describe('Simplbooks Invoice Payment Worker', () => {
     // Note: We use the database's default ID generation
     const maxIdResult = await db
       .selectFrom('accts.invoice')
-      .select(db.fn.max('id').as('max_id'))
+      .select(db.fn.max('id').as('maxId'))
       .executeTakeFirst()
 
-    const nextId = maxIdResult?.max_id ? Number(maxIdResult.max_id) + 1 : 1
+    const nextId = maxIdResult?.maxId ? Number(maxIdResult.maxId) + 1 : 1
 
     await db
       .insertInto('accts.invoice')
       .values({
         id: nextId.toString(),
-        member_id: testMemberId,
-        invoice_type: 'FLIGHT',
+        memberId: testMemberId,
+        invoiceType: 'FLIGHT',
         description: 'Test flight invoice',
         // The bank payment reference printed on the invoice — deliberately not
         // the SimplBooks invoice id, which is `accts.invoice.id` above. The
         // worker looks SimplBooks up by that id; see test/workers/README.md.
-        pmt_ref: '12345',
-        paid_at: null, // is_paid will be false (generated column)
-        due_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-        sent_at: new Date().toISOString(),
+        pmtRef: '12345',
+        paidAt: null, // is_paid will be false (generated column)
+        dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        sentAt: new Date().toISOString(),
         currency: 'EUR',
-        total_sum: '100.00',
-        created_by: MIK_SIMPLBOOKS_MEMBER,
-        updated_by: MIK_SIMPLBOOKS_MEMBER,
+        totalSum: '100.00',
+        createdBy: MIK_SIMPLBOOKS_MEMBER,
+        updatedBy: MIK_SIMPLBOOKS_MEMBER,
       })
       .execute()
 
@@ -83,7 +83,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
 
     // Create a test flight log linked to the invoice (flight_id is VARCHAR(9))
     testFlightId = 'tstpymnt'
-    await db.deleteFrom('flight.logs').where('flight_id', '=', testFlightId).execute()
+    await db.deleteFrom('flight.logs').where('flightId', '=', testFlightId).execute()
 
     // Generate past timestamps rounded down to the nearest minute (divisible by 60)
     // to satisfy check_all_times_in_mins and check_epochs_not_future constraints.
@@ -134,7 +134,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
   afterEach(async () => {
     // Clean up test flight log and invoice
     if (testFlightId) {
-      await db.deleteFrom('flight.logs').where('flight_id', '=', testFlightId).execute()
+      await db.deleteFrom('flight.logs').where('flightId', '=', testFlightId).execute()
     }
     if (testInvoiceId) {
       await db.deleteFrom('accts.invoice').where('id', '=', testInvoiceId).execute()
@@ -199,26 +199,26 @@ describe('Simplbooks Invoice Payment Worker', () => {
       // Create an invoice without pmt_ref
       const maxIdResult = await db
         .selectFrom('accts.invoice')
-        .select(db.fn.max('id').as('max_id'))
+        .select(db.fn.max('id').as('maxId'))
         .executeTakeFirst()
 
-      const nextId = maxIdResult?.max_id ? Number(maxIdResult.max_id) + 1 : 1
+      const nextId = maxIdResult?.maxId ? Number(maxIdResult.maxId) + 1 : 1
 
       await db
         .insertInto('accts.invoice')
         .values({
           id: nextId.toString(),
-          member_id: testMemberId,
-          invoice_type: 'FLIGHT',
+          memberId: testMemberId,
+          invoiceType: 'FLIGHT',
           description: 'Test invoice without ref',
-          pmt_ref: '',
-          paid_at: null, // is_paid will be false (generated column)
-          due_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          sent_at: new Date().toISOString(),
+          pmtRef: '',
+          paidAt: null, // is_paid will be false (generated column)
+          dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          sentAt: new Date().toISOString(),
           currency: 'EUR',
-          total_sum: '100.00',
-          created_by: MIK_SIMPLBOOKS_MEMBER,
-          updated_by: MIK_SIMPLBOOKS_MEMBER,
+          totalSum: '100.00',
+          createdBy: MIK_SIMPLBOOKS_MEMBER,
+          updatedBy: MIK_SIMPLBOOKS_MEMBER,
         })
         .execute()
 
@@ -244,18 +244,18 @@ describe('Simplbooks Invoice Payment Worker', () => {
         .where('id', '=', testInvoiceId)
         .executeTakeFirst()
 
-      expect(invoice?.is_paid).toBe(true)
-      expect(invoice?.paid_at).toBe(paidDate)
-      expect(invoice?.updated_by).toBe('simplbks')
+      expect(invoice?.isPaid).toBe(true)
+      expect(invoice?.paidAt).toBe(paidDate)
+      expect(invoice?.updatedBy).toBe('simplbks')
 
       const flightLog = await db
         .selectFrom('flight.logs')
         .selectAll()
-        .where('flight_id', '=', testFlightId)
+        .where('flightId', '=', testFlightId)
         .executeTakeFirst()
 
       expect(flightLog?.status).toBe(FlightLogStatus.PAID)
-      expect(flightLog?.updated_by).toBe('simplbks')
+      expect(flightLog?.updatedBy).toBe('simplbks')
     })
   })
 
@@ -284,7 +284,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
         .where('id', '=', testInvoiceId)
         .executeTakeFirst()
 
-      expect(invoiceBefore?.is_paid).toBe(false)
+      expect(invoiceBefore?.isPaid).toBe(false)
 
       // Drive the worker's own logic. This block used to re-implement the
       // paid-date check and call markInvoiceAsPaid itself, so it passed
@@ -313,15 +313,15 @@ describe('Simplbooks Invoice Payment Worker', () => {
         .where('id', '=', testInvoiceId)
         .executeTakeFirst()
 
-      expect(invoiceAfter?.is_paid).toBe(true)
-      expect(invoiceAfter?.paid_at).toBe('2024-11-27')
-      expect(invoiceAfter?.updated_by).toBe('simplbks')
+      expect(invoiceAfter?.isPaid).toBe(true)
+      expect(invoiceAfter?.paidAt).toBe('2024-11-27')
+      expect(invoiceAfter?.updatedBy).toBe('simplbks')
 
       // Verify flight logs linked to the invoice are also marked as PAID
       const flightLogAfter = await db
         .selectFrom('flight.logs')
         .selectAll()
-        .where('flight_id', '=', testFlightId)
+        .where('flightId', '=', testFlightId)
         .executeTakeFirst()
 
       expect(flightLogAfter?.status).toBe(FlightLogStatus.PAID)
@@ -351,7 +351,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
         .where('id', '=', testInvoiceId)
         .executeTakeFirst()
 
-      expect(invoiceBefore?.is_paid).toBe(false)
+      expect(invoiceBefore?.isPaid).toBe(false)
 
       const unpaidInvoices = await getUnpaidInvoicesWithSimplbooksRef()
       const testInvoice = unpaidInvoices.find((inv) => inv.id.toString() === testInvoiceId)
@@ -366,8 +366,8 @@ describe('Simplbooks Invoice Payment Worker', () => {
         .where('id', '=', testInvoiceId)
         .executeTakeFirst()
 
-      expect(invoiceAfter?.is_paid).toBe(false)
-      expect(invoiceAfter?.paid_at).toBeNull()
+      expect(invoiceAfter?.isPaid).toBe(false)
+      expect(invoiceAfter?.paidAt).toBeNull()
     })
   })
 })

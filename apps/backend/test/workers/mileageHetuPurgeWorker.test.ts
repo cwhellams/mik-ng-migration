@@ -72,40 +72,40 @@ describe('Mileage HETU Purge Worker', () => {
 
     afterEach(async () => {
       if (insertedClaimIds.length > 0) {
-        await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+        await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
         insertedClaimIds.length = 0
       }
     })
 
     async function insertMileageClaim(approvedAt: Date | null): Promise<string> {
       const category = await db
-        .selectFrom('accts.expense_category')
+        .selectFrom('accts.expenseCategory')
         .select('id')
         .where('code', '=', 'mileage')
         .executeTakeFirstOrThrow()
 
       const claim = await db
-        .insertInto('accts.expense_claim')
+        .insertInto('accts.expenseClaim')
         .values({
-          member_id: MEMBER_ID,
-          category_id: category.id,
+          memberId: MEMBER_ID,
+          categoryId: category.id,
           title: 'HETU purge test',
           status: approvedAt ? ExpenseClaimStatus.APPROVED : ExpenseClaimStatus.SUBMITTED,
-          approved_at: approvedAt,
-          approved_by: approvedAt ? MEMBER_ID : null,
-          hetu_encrypted: 'dummy-ciphertext',
+          approvedAt: approvedAt,
+          approvedBy: approvedAt ? MEMBER_ID : null,
+          hetuEncrypted: 'dummy-ciphertext',
         })
         .returning('id')
         .executeTakeFirstOrThrow()
 
       await db
-        .insertInto('accts.expense_mileage_detail')
+        .insertInto('accts.expenseMileageDetail')
         .values({
-          claim_id: claim.id,
+          claimId: claim.id,
           route: 'HOME - ROS - HOME',
-          journey_date: '2026-07-16',
-          distance_km: 99,
-          rate_per_km: 0.275,
+          journeyDate: '2026-07-16',
+          distanceKm: 99,
+          ratePerKm: 0.275,
         })
         .execute()
 
@@ -120,11 +120,11 @@ describe('Mileage HETU Purge Worker', () => {
       expect(purged).toBeGreaterThanOrEqual(1)
 
       const claim = await db
-        .selectFrom('accts.expense_claim')
-        .select('hetu_encrypted')
+        .selectFrom('accts.expenseClaim')
+        .select('hetuEncrypted')
         .where('id', '=', oldClaimId)
         .executeTakeFirstOrThrow()
-      expect(claim.hetu_encrypted).toBeNull()
+      expect(claim.hetuEncrypted).toBeNull()
     })
 
     it('does not purge HETU on claims approved less than 7 days ago', async () => {
@@ -134,11 +134,11 @@ describe('Mileage HETU Purge Worker', () => {
       await purgeExpiredHetu()
 
       const claim = await db
-        .selectFrom('accts.expense_claim')
-        .select('hetu_encrypted')
+        .selectFrom('accts.expenseClaim')
+        .select('hetuEncrypted')
         .where('id', '=', recentClaimId)
         .executeTakeFirstOrThrow()
-      expect(claim.hetu_encrypted).toBe('dummy-ciphertext')
+      expect(claim.hetuEncrypted).toBe('dummy-ciphertext')
     })
 
     it('does not purge HETU on unapproved claims', async () => {
@@ -148,11 +148,11 @@ describe('Mileage HETU Purge Worker', () => {
       await purgeExpiredHetu()
 
       const claim = await db
-        .selectFrom('accts.expense_claim')
-        .select('hetu_encrypted')
+        .selectFrom('accts.expenseClaim')
+        .select('hetuEncrypted')
         .where('id', '=', unapprovedClaimId)
         .executeTakeFirstOrThrow()
-      expect(claim.hetu_encrypted).toBe('dummy-ciphertext')
+      expect(claim.hetuEncrypted).toBe('dummy-ciphertext')
     })
   })
 

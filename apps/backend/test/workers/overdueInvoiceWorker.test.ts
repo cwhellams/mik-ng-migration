@@ -65,26 +65,26 @@ describe('Overdue Invoice Worker', () => {
     // Create a test overdue invoice without reminder sent
     const maxIdResult = await db
       .selectFrom('accts.invoice')
-      .select(db.fn.max('id').as('max_id'))
+      .select(db.fn.max('id').as('maxId'))
       .executeTakeFirst()
 
-    const nextId = maxIdResult?.max_id ? Number(maxIdResult.max_id) + 1 : 1
+    const nextId = maxIdResult?.maxId ? Number(maxIdResult.maxId) + 1 : 1
 
     await db
       .insertInto('accts.invoice')
       .values({
         id: nextId.toString(),
-        member_id: testMemberId,
-        invoice_type: 'FLIGHT',
+        memberId: testMemberId,
+        invoiceType: 'FLIGHT',
         description: 'Test overdue invoice',
-        pmt_ref: '12345', // Simplbooks invoice ID
-        paid_at: null, // is_paid will be false (generated column)
-        due_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-        sent_at: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(), // 35 days ago
+        pmtRef: '12345', // Simplbooks invoice ID
+        paidAt: null, // is_paid will be false (generated column)
+        dueAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+        sentAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(), // 35 days ago
         currency: 'EUR',
-        total_sum: '150.00',
-        created_by: MIK_SIMPLBOOKS_MEMBER,
-        updated_by: MIK_SIMPLBOOKS_MEMBER,
+        totalSum: '150.00',
+        createdBy: MIK_SIMPLBOOKS_MEMBER,
+        updatedBy: MIK_SIMPLBOOKS_MEMBER,
       })
       .execute()
 
@@ -238,8 +238,8 @@ describe('Overdue Invoice Worker', () => {
       await db
         .updateTable('accts.invoice')
         .set({
-          paid_at: new Date().toISOString(),
-          updated_by: MIK_SIMPLBOOKS_MEMBER,
+          paidAt: new Date().toISOString(),
+          updatedBy: MIK_SIMPLBOOKS_MEMBER,
         })
         .where('id', '=', testInvoiceId)
         .execute()
@@ -257,8 +257,8 @@ describe('Overdue Invoice Worker', () => {
       await db
         .updateTable('accts.invoice')
         .set({
-          due_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days in future
-          updated_by: MIK_SIMPLBOOKS_MEMBER,
+          dueAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days in future
+          updatedBy: MIK_SIMPLBOOKS_MEMBER,
         })
         .where('id', '=', testInvoiceId)
         .execute()
@@ -279,8 +279,8 @@ describe('Overdue Invoice Worker', () => {
       await db
         .updateTable('accts.invoice')
         .set({
-          due_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-          updated_by: MIK_SIMPLBOOKS_MEMBER,
+          dueAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedBy: MIK_SIMPLBOOKS_MEMBER,
         })
         .where('id', '=', testInvoiceId)
         .execute()
@@ -303,8 +303,8 @@ describe('Overdue Invoice Worker', () => {
       await db
         .updateTable('accts.invoice')
         .set({
-          due_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          updated_by: MIK_SIMPLBOOKS_MEMBER,
+          dueAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedBy: MIK_SIMPLBOOKS_MEMBER,
         })
         .where('id', '=', testInvoiceId)
         .execute()
@@ -331,8 +331,8 @@ describe('Overdue Invoice Worker', () => {
         .where('id', '=', testInvoiceId)
         .executeTakeFirst()
 
-      expect(invoice?.overdue_email_sent_at).not.toBeNull()
-      expect(invoice?.updated_by).toBe(MIK_SIMPLBOOKS_MEMBER)
+      expect(invoice?.overdueEmailSentAt).not.toBeNull()
+      expect(invoice?.updatedBy).toBe(MIK_SIMPLBOOKS_MEMBER)
     })
   })
 
@@ -351,8 +351,8 @@ describe('Overdue Invoice Worker', () => {
       // Remove billing_id from the test member
       await db
         .updateTable('member.register')
-        .set({ billing_id: null })
-        .where('member_id', '=', testMemberId)
+        .set({ billingId: null })
+        .where('memberId', '=', testMemberId)
         .execute()
 
       await processOverdueInvoices(mockSendEmail, mockCreateClientNote)
@@ -362,8 +362,8 @@ describe('Overdue Invoice Worker', () => {
       // Restore billing_id to original test data value
       await db
         .updateTable('member.register')
-        .set({ billing_id: '123' })
-        .where('member_id', '=', testMemberId)
+        .set({ billingId: '123' })
+        .where('memberId', '=', testMemberId)
         .execute()
     })
 
@@ -381,10 +381,10 @@ describe('Overdue Invoice Worker', () => {
       // Invoice was still marked as reminded
       const invoice = await db
         .selectFrom('accts.invoice')
-        .select('overdue_email_sent_at')
+        .select('overdueEmailSentAt')
         .where('id', '=', testInvoiceId)
         .executeTakeFirst()
-      expect(invoice?.overdue_email_sent_at).not.toBeNull()
+      expect(invoice?.overdueEmailSentAt).not.toBeNull()
     })
   })
 })

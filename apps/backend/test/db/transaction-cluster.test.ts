@@ -2,7 +2,7 @@ import 'dotenv/config'
 
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals'
 
-import { camelDb, db } from '../../src/db/connection.ts'
+import { db } from '../../src/db/connection.ts'
 import { resolveDefects, setDefectsForHil } from '../../src/db/defect-queries.ts'
 import { updateAircraftHilEntry } from '../../src/db/aircraft-hil-queries.ts'
 
@@ -10,23 +10,21 @@ import { updateAircraftHilEntry } from '../../src/db/aircraft-hil-queries.ts'
  * aircraft-hil, defect and maintenance-note share transactions across module
  * boundaries — maintenance-note opens one and passes it into defect-queries, and
  * routes/aircraft-hil/api.ts opens one spanning both aircraft-hil-queries and
- * defect-queries. That is why phase 5 (issue #1115) had to move all three in one
- * commit: a transaction belongs to a single Kysely instance, so a `db.transaction()`
- * handed to a function that queries `camelDb` would run on a different connection and
- * not roll back with it.
+ * defect-queries.
  *
- * What guards what, since the three mechanisms are easy to conflate:
+ * What these tests guard is that a module *uses the executor it was handed* rather
+ * than reaching for the module-level `db`. That distinction still exists with a single
+ * Kysely instance: `db.transaction()` runs on its own connection, so a function that
+ * quietly ignores the transaction it was given writes outside it and survives the
+ * rollback.
  *
- *   - The *route* using the wrong instance is a compile error. Reverting
- *     routes/aircraft-hil/api.ts to db.transaction() gives
- *     "TS2345: Argument of type 'Transaction<DB>' is not assignable to parameter of
- *     type 'Kysely<DB>'" on each call that takes the executor. No test needed, and no
- *     test could catch it anyway — it does not build.
- *   - A *module* ignoring the executor it was handed and reaching for its own instance
- *     compiles fine, and is what these tests catch.
- *   - The route's happy path — hold item resolved and its defect cascaded — is covered
- *     end-to-end by test/routes/aircraft-hil/api.test.ts. That test would still pass if
- *     the writes stopped being atomic, which is why the rollback assertions below exist.
+ * The route's happy path — hold item resolved and its defect cascaded — is covered
+ * end-to-end by test/routes/aircraft-hil/api.test.ts. That test would still pass if the
+ * writes stopped being atomic, which is why the rollback assertions below exist.
+ *
+ * (These were written during issue #1115 phase 5, when a transaction additionally could
+ * not span the two Kysely instances that then existed. That hazard is gone with the
+ * instances; the executor-plumbing one is not.)
  */
 describe('transaction cluster: aircraft-hil / defect / maintenance-note', () => {
   // flight.defect has an FK onto the journey log book, so the fixture has to hang
@@ -41,56 +39,56 @@ describe('transaction cluster: aircraft-hil / defect / maintenance-note', () => 
     // flight.defect.resolved_note_id has an FK onto the maintenance note, so the
     // note the rollback would undo has to exist first.
     const note = await db
-      .insertInto('flight.maintenance_note')
+      .insertInto('flight.maintenanceNote')
       .values({
-        aircraft_registration: registration,
-        ajlb_seq_no: ajlbSeqNo,
+        aircraftRegistration: registration,
+        ajlbSeqNo: ajlbSeqNo,
         description: 'transaction cluster fixture note',
-        performed_by: 'Matti1',
-        flight_mins: 0,
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        performedBy: 'Matti1',
+        flightMins: 0,
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
-      .returning('note_id')
+      .returning('noteId')
       .executeTakeFirstOrThrow()
-    noteId = note.note_id
+    noteId = note.noteId
 
     const now = new Date()
     const hil = await db
-      .insertInto('flight.aircraft_hil')
+      .insertInto('flight.aircraftHil')
       .values({
-        aircraft_registration: registration,
-        hil_number: 99001,
+        aircraftRegistration: registration,
+        hilNumber: 99001,
         description: 'transaction cluster fixture hil',
-        open_date: now,
+        openDate: now,
         name: 'Plane Captain',
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
-      .returning('hil_id')
+      .returning('hilId')
       .executeTakeFirstOrThrow()
-    hilId = hil.hil_id
+    hilId = hil.hilId
 
     const row = await db
       .insertInto('flight.defect')
       .values({
-        aircraft_registration: registration,
-        ajlb_seq_no: ajlbSeqNo,
+        aircraftRegistration: registration,
+        ajlbSeqNo: ajlbSeqNo,
         description: 'transaction cluster fixture',
-        flight_mins: 0,
+        flightMins: 0,
         status: 'ACTIVE',
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
-      .returning('defect_id')
+      .returning('defectId')
       .executeTakeFirstOrThrow()
-    defectId = row.defect_id
+    defectId = row.defectId
   })
 
   afterEach(async () => {
-    await db.deleteFrom('flight.defect').where('defect_id', '=', defectId).execute()
-    await db.deleteFrom('flight.maintenance_note').where('note_id', '=', noteId).execute()
-    await db.deleteFrom('flight.aircraft_hil').where('hil_id', '=', hilId).execute()
+    await db.deleteFrom('flight.defect').where('defectId', '=', defectId).execute()
+    await db.deleteFrom('flight.maintenanceNote').where('noteId', '=', noteId).execute()
+    await db.deleteFrom('flight.aircraftHil').where('hilId', '=', hilId).execute()
   })
 
   const statusOf = async (id: string) =>
@@ -98,24 +96,24 @@ describe('transaction cluster: aircraft-hil / defect / maintenance-note', () => 
       await db
         .selectFrom('flight.defect')
         .select('status')
-        .where('defect_id', '=', id)
+        .where('defectId', '=', id)
         .executeTakeFirstOrThrow()
     ).status
 
-  it('applies a cross-module write inside a camelDb transaction', async () => {
-    await camelDb.transaction().execute(async (trx) => {
+  it('applies a cross-module write inside a db transaction', async () => {
+    await db.transaction().execute(async (trx) => {
       await resolveDefects([defectId], registration, noteId, 'Matti1', trx)
     })
 
     expect(await statusOf(defectId)).toBe('RESOLVED')
   })
 
-  // The one that matters. If defect-queries were still on `db` while the caller
-  // opened a `camelDb` transaction, this write would land on a separate connection,
-  // commit independently, and survive the rollback.
+  // The one that matters. If defect-queries ignored the `trx` it is handed and reached
+  // for the module-level `db`, this write would land on a separate connection, commit
+  // independently, and survive the rollback.
   it('rolls the write back when the transaction fails', async () => {
     await expect(
-      camelDb.transaction().execute(async (trx) => {
+      db.transaction().execute(async (trx) => {
         await resolveDefects([defectId], registration, noteId, 'Matti1', trx)
         throw new Error('forced rollback')
       }),
@@ -131,16 +129,16 @@ describe('transaction cluster: aircraft-hil / defect / maintenance-note', () => 
     const restrictionsOf = async () =>
       (
         await db
-          .selectFrom('flight.aircraft_hil')
+          .selectFrom('flight.aircraftHil')
           .select('restrictions')
-          .where('hil_id', '=', hilId)
+          .where('hilId', '=', hilId)
           .executeTakeFirstOrThrow()
       ).restrictions
 
     expect(await restrictionsOf()).toBeNull()
 
     await expect(
-      camelDb.transaction().execute(async (trx) => {
+      db.transaction().execute(async (trx) => {
         await updateAircraftHilEntry(hilId, { restrictions: 'Day VFR only' }, 'Matti1', trx)
         await setDefectsForHil(hilId, registration, [defectId], 'Matti1', trx)
         throw new Error('forced rollback')
@@ -151,9 +149,9 @@ describe('transaction cluster: aircraft-hil / defect / maintenance-note', () => 
     expect(await restrictionsOf()).toBeNull()
     const defect = await db
       .selectFrom('flight.defect')
-      .select('hil_id')
-      .where('defect_id', '=', defectId)
+      .select('hilId')
+      .where('defectId', '=', defectId)
       .executeTakeFirstOrThrow()
-    expect(defect.hil_id).toBeNull()
+    expect(defect.hilId).toBeNull()
   })
 })

@@ -4,9 +4,9 @@ import type {
   AircraftJourneyLogBook,
   AircraftLandingsBaseline,
 } from '@mik/contracts/ajlb'
-import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './schema.camel.js'
+import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './schema.js'
 import { sql, type Selectable, type Transaction } from 'kysely'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import type { DB } from './schema.d.ts'
 import type { Upsert } from '@mik/contracts/schema'
 import type { JWTUser } from '../routes/auth/token.ts'
 
@@ -60,7 +60,7 @@ const mapResultToAjlb = (
 })
 
 export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBook[]> {
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('flight.aircraftJourneyLogBook as ajlb')
     .leftJoin('flight.vwFlightTimeTotals as totals', (join) =>
       join
@@ -112,7 +112,7 @@ export async function getAjlb(
   registration: string,
   seqNo: number,
 ): Promise<AircraftJourneyLogBook | undefined> {
-  const row = await connection.camelDb
+  const row = await connection.db
     .selectFrom('flight.aircraftJourneyLogBook as ajlb')
     .leftJoin('flight.vwFlightTimeTotals as totals', (join) =>
       join
@@ -145,7 +145,7 @@ export async function createAjlb(
   jwt: JWTUser,
 ): Promise<void> {
   const now = new Date()
-  await connection.camelDb
+  await connection.db
     .insertInto('flight.aircraftJourneyLogBook')
     .values({
       aircraftRegistration: ajlb.aircraftRegistration,
@@ -166,7 +166,7 @@ export async function createAjlb(
 }
 
 export async function deleteAjlb(aircraft_registration: string, seq_no: number): Promise<boolean> {
-  const result = await connection.camelDb
+  const result = await connection.db
     .deleteFrom('flight.aircraftJourneyLogBook')
     .where('aircraftRegistration', '=', aircraft_registration)
     .where('seqNo', '=', seq_no)
@@ -180,7 +180,7 @@ export async function updateAjlb(
   ajlb: Partial<AircraftJourneyLogBook>,
   jwt: JWTUser,
 ): Promise<AircraftJourneyLogBook | undefined> {
-  const result = await connection.camelDb
+  const result = await connection.db
     .updateTable('flight.aircraftJourneyLogBook')
     .set({
       aircraftRegistration: ajlb.aircraftRegistration,
@@ -208,7 +208,7 @@ export async function updateAjlb(
 export async function getAircraftLandingsBaseline(
   aircraftRegistration: string,
 ): Promise<AircraftLandingsBaseline | undefined> {
-  const row = await connection.camelDb
+  const row = await connection.db
     .selectFrom('flight.aircraftLandingsBaseline')
     .selectAll()
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -235,7 +235,7 @@ export async function setAircraftLandingsBaseline(
   jwt: JWTUser,
 ): Promise<void> {
   const now = new Date()
-  await connection.camelDb.transaction().execute(async (trx) => {
+  await connection.db.transaction().execute(async (trx) => {
     // Insert or update baseline
     await trx
       .insertInto('flight.aircraftLandingsBaseline')
@@ -268,7 +268,7 @@ export async function setAircraftLandingsBaseline(
  * builder calls would be a behaviour change dressed up as a refactor.
  */
 async function backfillLandingsFromBaseline(
-  trx: Transaction<CamelDB>,
+  trx: Transaction<DB>,
   aircraftRegistration: string,
 ): Promise<void> {
   // Step 1: Update first logbook's start_landings to baseline
@@ -363,7 +363,7 @@ async function backfillLandingsFromBaseline(
 export async function deleteAircraftLandingsBaseline(
   aircraftRegistration: string,
 ): Promise<boolean> {
-  return await connection.camelDb.transaction().execute(async (trx) => {
+  return await connection.db.transaction().execute(async (trx) => {
     const result = await trx
       .deleteFrom('flight.aircraftLandingsBaseline')
       .where('aircraftRegistration', '=', aircraftRegistration)

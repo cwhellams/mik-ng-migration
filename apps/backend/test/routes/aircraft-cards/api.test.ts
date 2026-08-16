@@ -55,9 +55,9 @@ const newCard = {
 
 const cleanupTestCards = async () => {
   await db
-    .deleteFrom('flight.aircraft_cards')
+    .deleteFrom('flight.aircraftCards')
     .where('name', 'like', 'Air BP Fuel Card%')
-    .where('aircraft_registration', '=', TEST_REGISTRATION)
+    .where('aircraftRegistration', '=', TEST_REGISTRATION)
     .execute()
 }
 

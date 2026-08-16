@@ -4,27 +4,32 @@ import { afterAll, describe, expect, it } from '@jest/globals'
 
 import { sql } from 'kysely'
 
-import { camelDb, db } from '../../src/db/connection.ts'
+import { db } from '../../src/db/connection.ts'
 
 /**
- * Pins the behaviour the phase 5 migration (issue #1115) rests on. If any of this
- * changes, every domain already moved to `camelDb` is silently wrong, so these
- * assertions matter more than their size suggests.
+ * Pins the behaviour the whole data layer rests on. Every query in the backend goes
+ * through this plugin, so if any of this changes, everything is silently wrong — these
+ * assertions matter more than their size suggests. See src/db/DATA_LAYER.md.
+ *
+ * Two further cases used to live here, asserting that the *other* instance left keys
+ * snake_case. They were meaningful only while `db` and `camelDb` ran side by side
+ * during issue #1115 phase 5; with a single instance they would assert the opposite of
+ * the truth, so they went with the second instance.
  */
-describe('CamelCasePlugin (camelDb)', () => {
+describe('CamelCasePlugin', () => {
   const code = `UT_CAMEL_${Date.now()}`
 
   afterAll(async () => {
-    await db.deleteFrom('accts.cost_centre').where('code', '=', code).execute()
+    await db.deleteFrom('accts.costCentre').where('code', '=', code).execute()
   })
 
   it('writes camelCase identifiers to snake_case columns and reads them back camelCase', async () => {
-    await camelDb
+    await db
       .insertInto('accts.costCentre')
       .values({ code, description: 'Camel case plugin test' })
       .execute()
 
-    const viaCamel = await camelDb
+    const viaCamel = await db
       .selectFrom('accts.costCentre')
       .selectAll()
       .where('code', '=', code)
@@ -32,19 +37,36 @@ describe('CamelCasePlugin (camelDb)', () => {
 
     expect(viaCamel.description).toBe('Camel case plugin test')
 
-    // The row really did land in the snake_case column, i.e. the plugin rewrote the
-    // identifier on the way out rather than the two instances disagreeing.
-    const viaSnake = await db
-      .selectFrom('accts.cost_centre')
-      .selectAll()
-      .where('code', '=', code)
-      .executeTakeFirstOrThrow()
+    // Raw SQL is never touched by the identifier transformer, so naming the real
+    // relation here is what proves the insert actually landed in accts.cost_centre —
+    // a second query builder call would just repeat the same rewrite and prove nothing.
+    const viaRawSql = await sql<{
+      description: string
+    }>`select description from accts.cost_centre where code = ${code}`.execute(db)
 
-    expect(viaSnake.description).toBe('Camel case plugin test')
+    expect(viaRawSql.rows).toHaveLength(1)
+    expect(viaRawSql.rows[0].description).toBe('Camel case plugin test')
+  })
+
+  // accts.cost_centre has no multi-word column, so the test above can only demonstrate
+  // the table half of the rewrite. This covers the column half without needing a
+  // fixture, by checking the SQL that is actually sent.
+  it('rewrites multi-word identifiers to snake_case in the emitted SQL', async () => {
+    const { sql: emitted } = db
+      .selectFrom('flight.maintenanceNote')
+      .select(['aircraftRegistration', 'ajlbSeqNo'])
+      .where('performedBy', '=', 'Matti1')
+      .compile()
+
+    expect(emitted).toContain('"flight"."maintenance_note"')
+    expect(emitted).toContain('"aircraft_registration"')
+    expect(emitted).toContain('"ajlb_seq_no"')
+    expect(emitted).toContain('"performed_by"')
+    expect(emitted).not.toMatch(/[a-z][A-Z]/)
   })
 
   it('camelCases the audit quadruple without a hand-written mapper', async () => {
-    const row = await camelDb
+    const row = await db
       .selectFrom('flight.maintenanceNote')
       .selectAll()
       .limit(1)
@@ -65,7 +87,7 @@ describe('CamelCasePlugin (camelDb)', () => {
   // outbox.payload (a SimplBooks request body) and Emmett's event-store metadata
   // columns have the same requirement.
   it('leaves the keys inside JSONB values alone', async () => {
-    const row = await camelDb
+    const row = await db
       .selectFrom('flight.maintenanceNoteAudit')
       .selectAll()
       .where('changedData', 'is not', null)
@@ -91,31 +113,9 @@ describe('CamelCasePlugin (camelDb)', () => {
   it('camelCases the result keys of raw sql too, not just built queries', async () => {
     const result = await sql<{
       totalCount: number
-    }>`select count(*)::int as total_count from accts.cost_centre`.execute(camelDb)
+    }>`select count(*)::int as total_count from accts.cost_centre`.execute(db)
 
     expect(result.rows[0]).toHaveProperty('totalCount')
     expect(result.rows[0]).not.toHaveProperty('total_count')
-  })
-
-  it('leaves raw sql result keys alone on the original instance', async () => {
-    const result = await sql<{
-      total_count: number
-    }>`select count(*)::int as total_count from accts.cost_centre`.execute(db)
-
-    expect(result.rows[0]).toHaveProperty('total_count')
-    expect(result.rows[0]).not.toHaveProperty('totalCount')
-  })
-
-  it('does not change what the original snake_case instance returns', async () => {
-    const row = await db
-      .selectFrom('flight.maintenance_note')
-      .selectAll()
-      .limit(1)
-      .executeTakeFirst()
-
-    if (!row) return
-
-    expect(row).toHaveProperty('created_at')
-    expect(row).not.toHaveProperty('createdAt')
   })
 })

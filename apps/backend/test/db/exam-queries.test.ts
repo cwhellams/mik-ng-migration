@@ -25,19 +25,16 @@ describe('Db exam attempt tests', () => {
   const unpublishedVersionId = 'TSTVER02'
 
   const cleanupExamFixtures = async () => {
-    await db.deleteFrom('exam.attempts').where('version_id', '=', versionId).execute()
-    await db.deleteFrom('exam.attempts').where('version_id', '=', unpublishedVersionId).execute()
+    await db.deleteFrom('exam.attempts').where('versionId', '=', versionId).execute()
+    await db.deleteFrom('exam.attempts').where('versionId', '=', unpublishedVersionId).execute()
     await db
-      .deleteFrom('exam.exam_versions')
-      .where('version_id', '=', newerPublishedVersionId)
+      .deleteFrom('exam.examVersions')
+      .where('versionId', '=', newerPublishedVersionId)
       .execute()
-    await db
-      .deleteFrom('exam.exam_versions')
-      .where('version_id', '=', unpublishedVersionId)
-      .execute()
-    await db.deleteFrom('exam.exam_versions').where('version_id', '=', versionId).execute()
-    await db.deleteFrom('exam.exams').where('exam_id', '=', unpublishedExamId).execute()
-    await db.deleteFrom('exam.exams').where('exam_id', '=', examId).execute()
+    await db.deleteFrom('exam.examVersions').where('versionId', '=', unpublishedVersionId).execute()
+    await db.deleteFrom('exam.examVersions').where('versionId', '=', versionId).execute()
+    await db.deleteFrom('exam.exams').where('examId', '=', unpublishedExamId).execute()
+    await db.deleteFrom('exam.exams').where('examId', '=', examId).execute()
   }
 
   beforeEach(async () => {
@@ -46,67 +43,67 @@ describe('Db exam attempt tests', () => {
     await db
       .insertInto('exam.exams')
       .values({
-        exam_id: examId,
-        exam_type: 'OTHER',
+        examId: examId,
+        examType: 'OTHER',
         name: 'Test exam',
-        created_by: createdBy,
-        updated_by: createdBy,
+        createdBy: createdBy,
+        updatedBy: createdBy,
       })
       .execute()
 
     await db
       .insertInto('exam.exams')
       .values({
-        exam_id: unpublishedExamId,
-        exam_type: 'OTHER',
+        examId: unpublishedExamId,
+        examType: 'OTHER',
         name: 'Unpublished exam',
-        created_by: createdBy,
-        updated_by: createdBy,
+        createdBy: createdBy,
+        updatedBy: createdBy,
       })
       .execute()
 
     await db
-      .insertInto('exam.exam_versions')
+      .insertInto('exam.examVersions')
       .values({
-        version_id: versionId,
-        exam_id: examId,
-        version_number: 1,
+        versionId: versionId,
+        examId: examId,
+        versionNumber: 1,
         status: 'RETIRED',
-        default_language: 'en',
-        supported_languages: ['en'],
-        pass_percent: 75,
-        created_by: createdBy,
-        updated_by: createdBy,
+        defaultLanguage: 'en',
+        supportedLanguages: ['en'],
+        passPercent: 75,
+        createdBy: createdBy,
+        updatedBy: createdBy,
       })
       .execute()
 
     await db
-      .insertInto('exam.exam_versions')
+      .insertInto('exam.examVersions')
       .values({
-        version_id: newerPublishedVersionId,
-        exam_id: examId,
-        version_number: 2,
+        versionId: newerPublishedVersionId,
+        examId: examId,
+        versionNumber: 2,
         status: 'PUBLISHED',
-        default_language: 'en',
-        supported_languages: ['en'],
-        pass_percent: 75,
-        created_by: createdBy,
-        updated_by: createdBy,
+        defaultLanguage: 'en',
+        supportedLanguages: ['en'],
+        passPercent: 75,
+        createdBy: createdBy,
+        updatedBy: createdBy,
       })
       .execute()
 
     await db
-      .insertInto('exam.exam_versions')
+      .insertInto('exam.examVersions')
       .values({
-        version_id: unpublishedVersionId,
-        exam_id: unpublishedExamId,
-        version_number: 1,
+        versionId: unpublishedVersionId,
+        examId: unpublishedExamId,
+        versionNumber: 1,
         status: 'DRAFT',
-        default_language: 'en',
-        supported_languages: ['en'],
-        pass_percent: 75,
-        created_by: createdBy,
-        updated_by: createdBy,
+        defaultLanguage: 'en',
+        supportedLanguages: ['en'],
+        passPercent: 75,
+        createdBy: createdBy,
+        updatedBy: createdBy,
       })
       .execute()
 
@@ -114,26 +111,26 @@ describe('Db exam attempt tests', () => {
       .insertInto('exam.attempts')
       .values([
         {
-          attempt_id: attemptIds[0],
-          version_id: versionId,
-          member_id: gradedMemberId,
+          attemptId: attemptIds[0],
+          versionId: versionId,
+          memberId: gradedMemberId,
           language: 'en',
           status: 'GRADED',
-          score_percent: 80,
-          correct_count: 4,
-          total_count: 5,
+          scorePercent: 80,
+          correctCount: 4,
+          totalCount: 5,
           passed: true,
-          created_at: new Date('2026-01-02T10:00:00.000Z'),
-          updated_at: new Date('2026-01-02T10:00:00.000Z'),
+          createdAt: new Date('2026-01-02T10:00:00.000Z'),
+          updatedAt: new Date('2026-01-02T10:00:00.000Z'),
         },
         {
-          attempt_id: attemptIds[1],
-          version_id: versionId,
-          member_id: inProgressMemberId,
+          attemptId: attemptIds[1],
+          versionId: versionId,
+          memberId: inProgressMemberId,
           language: 'en',
           status: 'IN_PROGRESS',
-          created_at: new Date('2026-01-03T10:00:00.000Z'),
-          updated_at: new Date('2026-01-03T10:00:00.000Z'),
+          createdAt: new Date('2026-01-03T10:00:00.000Z'),
+          updatedAt: new Date('2026-01-03T10:00:00.000Z'),
         },
       ])
       .execute()
@@ -201,10 +198,10 @@ describe('Randomised question selection', () => {
   const questionIds = ['RNDQ0001', 'RNDQ0002', 'RNDQ0003', 'RNDQ0004', 'RNDQ0005']
 
   const cleanup = async () => {
-    await db.deleteFrom('exam.attempts').where('version_id', '=', rndVersionId).execute()
-    await db.deleteFrom('exam.questions').where('version_id', '=', rndVersionId).execute()
-    await db.deleteFrom('exam.exam_versions').where('version_id', '=', rndVersionId).execute()
-    await db.deleteFrom('exam.exams').where('exam_id', '=', rndExamId).execute()
+    await db.deleteFrom('exam.attempts').where('versionId', '=', rndVersionId).execute()
+    await db.deleteFrom('exam.questions').where('versionId', '=', rndVersionId).execute()
+    await db.deleteFrom('exam.examVersions').where('versionId', '=', rndVersionId).execute()
+    await db.deleteFrom('exam.exams').where('examId', '=', rndExamId).execute()
   }
 
   beforeEach(async () => {
@@ -213,34 +210,34 @@ describe('Randomised question selection', () => {
     await db
       .insertInto('exam.exams')
       .values({
-        exam_id: rndExamId,
-        exam_type: 'OTHER',
+        examId: rndExamId,
+        examType: 'OTHER',
         name: 'Rnd Exam',
-        created_by: createdBy,
-        updated_by: createdBy,
+        createdBy: createdBy,
+        updatedBy: createdBy,
       })
       .execute()
 
     await db
-      .insertInto('exam.exam_versions')
+      .insertInto('exam.examVersions')
       .values({
-        version_id: rndVersionId,
-        exam_id: rndExamId,
-        version_number: 1,
+        versionId: rndVersionId,
+        examId: rndExamId,
+        versionNumber: 1,
         status: 'PUBLISHED',
-        default_language: 'en',
-        supported_languages: ['en'],
-        pass_percent: 75,
-        question_count: 3,
-        created_by: createdBy,
-        updated_by: createdBy,
+        defaultLanguage: 'en',
+        supportedLanguages: ['en'],
+        passPercent: 75,
+        questionCount: 3,
+        createdBy: createdBy,
+        updatedBy: createdBy,
       })
       .execute()
 
     for (let i = 0; i < questionIds.length; i++) {
       await db
         .insertInto('exam.questions')
-        .values({ question_id: questionIds[i], version_id: rndVersionId, sort_order: i })
+        .values({ questionId: questionIds[i], versionId: rndVersionId, sortOrder: i })
         .execute()
     }
   })
@@ -275,9 +272,9 @@ describe('Randomised question selection', () => {
 
   it('uses all questions when question_count is null', async () => {
     await db
-      .updateTable('exam.exam_versions')
-      .set({ question_count: null })
-      .where('version_id', '=', rndVersionId)
+      .updateTable('exam.examVersions')
+      .set({ questionCount: null })
+      .where('versionId', '=', rndVersionId)
       .execute()
 
     const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
@@ -319,7 +316,7 @@ describe('importExam', () => {
 
   afterEach(async () => {
     for (const examId of importedExamIds) {
-      await db.deleteFrom('exam.exams').where('exam_id', '=', examId).execute()
+      await db.deleteFrom('exam.exams').where('examId', '=', examId).execute()
     }
     importedExamIds.length = 0
   })

@@ -1,4 +1,4 @@
-import { camelDb, type CamelRow } from './connection.ts'
+import { db, type DbRow } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   type FlightLogFilters,
@@ -25,7 +25,7 @@ import {
 } from '@mik/contracts/flight-log'
 import type { MIKPermissions } from '@mik/contracts/members'
 import { generateShortId } from '../util/nanoId.ts'
-import type { DB } from './schema.camel.d.ts'
+import type { DB } from './schema.d.ts'
 import {
   sql,
   type ExpressionBuilder,
@@ -43,9 +43,9 @@ import type { FlightForEstimation } from '../services/accounting/flightCostEstim
 // The four AJLB page/total columns come from a join on the flight.vwFlightLogs view,
 // so they are not part of the flight.logs row type.
 function mapFullResultToFlightLogs(
-  row: CamelRow<'flight.logs'> &
+  row: DbRow<'flight.logs'> &
     Pick<
-      CamelRow<'flight.vwFlightLogs'>,
+      DbRow<'flight.vwFlightLogs'>,
       'acTotalFlightTime' | 'acTotalLandings' | 'pageNumber' | 'rowNumber'
     >,
 ): FlightLog {
@@ -123,7 +123,7 @@ function mapFullResultToFlightLogs(
 
 // Get single flight log
 export async function getFlightLog(flightId: string): Promise<FlightLog | undefined> {
-  let res = await camelDb
+  let res = await db
     .selectFrom('flight.logs')
     .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
     .selectAll('flight.logs')
@@ -151,7 +151,7 @@ export async function getFlightLogPageForMins(
   ajlbSeqNo: number,
   flightMins: number,
 ): Promise<number | undefined> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('flight.logs')
     .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -192,7 +192,7 @@ export async function getAjlbLiveBaselineFlightMins(
   aircraftRegistration: string,
   ajlbSeqNo: number,
 ): Promise<number> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('flight.vwFlightTimeTotals')
     .select('validatedTotalFlightMins')
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -212,7 +212,7 @@ export async function getAjlbPageItemRows(
   ajlbSeqNo: number,
   page: number,
 ): Promise<PageItemRow[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('flight.vwAjlbLiveRows')
     .select(['rowNumber', 'itemType', 'itemId', 'isContentRow'])
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -232,7 +232,7 @@ export async function getAjlbPageItemRows(
 export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLogListResponse> {
   const ajlbPaging = !!filters.ajlbSeqNo && filters.page !== undefined
 
-  const query = camelDb
+  const query = db
     .selectFrom('flight.logs')
     .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
     .$if(!!filters.flightId, (qb) => qb.where('flight.logs.flightId', '=', filters.flightId!))
@@ -351,7 +351,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
 
   let pageStartFlightMins: number | null = null
   if (ajlbPaging && filters.page! > 1) {
-    const prevPageLastFlight = await camelDb
+    const prevPageLastFlight = await db
       .selectFrom('flight.logs')
       .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
       .where('ajlbSeqNo', '=', filters.ajlbSeqNo!)
@@ -443,7 +443,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
 export async function getUnbilledFlightsForEstimation(
   memberId: string,
 ): Promise<FlightForEstimation[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('flight.logs')
     .leftJoin('member.register', 'flight.logs.billableMemberId', 'member.register.memberId')
     .leftJoin('flight.flightCredits', 'flight.logs.flightId', 'flight.flightCredits.flightId')
@@ -507,7 +507,7 @@ export async function getFlightStats(
   billableMemberId: string,
   activeOnly: boolean,
 ): Promise<FlightLogStats[]> {
-  const res = await camelDb
+  const res = await db
     .selectFrom('flight.logs')
     .select((eb) => [
       'flight.logs.aircraftRegistration as aircraftRegistration',
@@ -560,7 +560,7 @@ export async function getFlightStats(
 export async function getInvoicableFlights(
   filters: InvoicableFlightFilters,
 ): Promise<InvoicableFlightListResponse> {
-  let query = camelDb
+  let query = db
     .selectFrom('flight.logs')
     .leftJoin('member.register', 'flight.logs.billableMemberId', 'member.register.memberId')
     .leftJoin('flight.flightCredits', 'flight.logs.flightId', 'flight.flightCredits.flightId')
@@ -726,7 +726,7 @@ export async function insertFlightLog(
   const billableMemberId = 'billableMemberId' in data ? data.billableMemberId : user.memberId
 
   // determine if this is a DTO training flight (auto-detected from member's training status)
-  const member = await camelDb
+  const member = await db
     .selectFrom('member.register')
     .select('isTrainingProgramPilot')
     .where('memberId', '=', billableMemberId)
@@ -737,7 +737,7 @@ export async function insertFlightLog(
   // DTO training flights always have flight type DTO
   const flightType = isDtoTrainingFlight ? FlightType.DTO : data.flightType
 
-  const retval = await camelDb
+  const retval = await db
     .insertInto('flight.logs')
     .values((eb) => ({
       aircraftRegistration: data.aircraftRegistration,
@@ -825,7 +825,7 @@ export async function insertFlightLog(
 }
 
 export async function deleteFlightLog(flightId: string): Promise<boolean> {
-  let delQuery = camelDb
+  let delQuery = db
     .deleteFrom('flight.logs')
     .where('flightId', '=', flightId)
     .where('status', '=', FlightLogStatus.NEW)
@@ -999,7 +999,7 @@ export const updateFlightLogStatus = async (
 export const invoiceFlights = async (flights: InvoicableFlight[]): Promise<void> => {
   // send all billable flights to simplbooks invoicing through outbox
   // and mark the corresponding flight logs as QUEUED_FOR_INVOICING in the same transaction
-  await camelDb.transaction().execute(async (trx) => {
+  await db.transaction().execute(async (trx) => {
     const now = new Date()
     // Mark flights as invoiced so they are not selected again by getInvoicableFlights
     for (const flight of flights) {
@@ -1031,7 +1031,7 @@ const updateFlightLogWithAudit = async (
   user: JWTUser,
   update: (eb: ExpressionBuilder<DB, 'flight.logs'>) => UpdateObject<DB, 'flight.logs'>,
 ): Promise<boolean> => {
-  let updQuery = camelDb
+  let updQuery = db
     .updateTable('flight.logs')
     .set(update)
     .set({
@@ -1055,7 +1055,7 @@ export async function getOverlappingFlightLogs({
   onBlockTimeEpoch,
   excludeFlightId,
 }: FlightLogOverlapQuery): Promise<FlightLogOverlapConflict[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('flight.logs')
     .select(['flightId', 'aircraftRegistration', 'offBlockTimeUtc', 'onBlockTimeUtc', 'status'])
     .where('aircraftRegistration', '=', aircraftRegistration)
@@ -1076,7 +1076,7 @@ export async function getOverlappingFlightLogs({
 }
 
 export async function getFlightLogTotals(registration?: string): Promise<FlightTimeTotals[]> {
-  let query = camelDb
+  let query = db
     .selectFrom('flight.vwFlightTimeTotals')
     .selectAll()
     .where('current', '=', true)
@@ -1097,7 +1097,7 @@ export async function getFlightLogTotals(registration?: string): Promise<FlightT
 }
 
 export async function getFlightCredit(flightId: string): Promise<FlightCredit | null> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('flight.flightCredits')
     .select(['flightId', 'creditedMins', 'note'])
     .where('flightId', '=', flightId)
@@ -1119,7 +1119,7 @@ export async function upsertFlightCredit(
   allocatedByMemberId: string,
 ): Promise<FlightCredit> {
   const now = new Date()
-  await camelDb
+  await db
     .insertInto('flight.flightCredits')
     .values({
       flightId: flightId,
@@ -1177,7 +1177,7 @@ function resolveExportCrew(
 
 function buildExportBaseQuery(filters: FlightLogExportFilters, memberId?: string) {
   return (
-    camelDb
+    db
       .selectFrom('flight.logs')
       .leftJoin(
         'flight.aircraft',

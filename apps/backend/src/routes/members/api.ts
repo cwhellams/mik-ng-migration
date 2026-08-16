@@ -71,7 +71,7 @@ import {
   getGdprProfileAuditTrail,
   getGdprFlightLogAuditTrail,
 } from '../../db/gdpr-queries.ts'
-import { camelDb } from '../../db/connection.ts'
+import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '@mik/contracts/schema'
 import { RegisterRequestSchema } from '@mik/contracts/auth'
@@ -979,7 +979,7 @@ const cancelMembershipHandler = async (
   if (!hasBillableFlights && unpaidFees.length > 0) {
     for (const fee of unpaidFees) {
       if (fee.pmt_ref) {
-        await camelDb
+        await db
           .insertInto('accts.outboxSimplbooks')
           .values({
             id: randomUUID(),

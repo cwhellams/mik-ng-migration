@@ -1,9 +1,9 @@
 import type { Kysely, Transaction } from 'kysely'
-import { camelDb } from './connection.ts'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import { db } from './connection.ts'
+import type { DB } from './schema.d.ts'
 import type { ExpenseClaimAttachment } from '@mik/contracts/expenses'
 
-type Executor = Kysely<CamelDB> | Transaction<CamelDB>
+type Executor = Kysely<DB> | Transaction<DB>
 
 const mapAttachment = (row: {
   id: number
@@ -26,7 +26,7 @@ const mapAttachment = (row: {
 })
 
 export async function getExpenseAttachments(claimId: string): Promise<ExpenseClaimAttachment[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.expenseClaimAttachment')
     .selectAll()
     .where('claimId', '=', claimId)
@@ -39,7 +39,7 @@ export async function getExpenseAttachments(claimId: string): Promise<ExpenseCla
 export async function addExpenseAttachment(
   claimId: string,
   file: { storageKey: string; fileName: string; fileSize: number; mimeType: string },
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<ExpenseClaimAttachment> {
   const { sortOrder } = await executor
     .selectFrom('accts.expenseClaimAttachment')
@@ -66,7 +66,7 @@ export async function getExpenseAttachment(
   claimId: string,
   attachmentId: number,
 ): Promise<ExpenseClaimAttachment | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('accts.expenseClaimAttachment')
     .selectAll()
     .where('claimId', '=', claimId)
@@ -79,7 +79,7 @@ export async function deleteExpenseAttachment(
   claimId: string,
   attachmentId: number,
 ): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('accts.expenseClaimAttachment')
     .where('claimId', '=', claimId)
     .where('id', '=', attachmentId)

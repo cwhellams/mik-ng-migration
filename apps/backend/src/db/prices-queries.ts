@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import type {
   PublicAircraftPricing,
   PublicMembershipFee,
@@ -18,7 +18,7 @@ import {
 export async function getCurrentAircraftPricing(): Promise<PublicAircraftPricing[]> {
   const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
 
-  const results = await camelDb
+  const results = await db
     .selectFrom('accts.aircraftPricing')
     .select(['registration', 'pricePerMin', 'validFrom', 'validTo'])
     .where('validFrom', '<=', today)
@@ -48,7 +48,7 @@ export async function getMembershipFees(): Promise<PublicMembershipFee[]> {
     ART_SUPPORTING_MEMBER_FEE_CODE,
   ]
 
-  const results = await camelDb
+  const results = await db
     .selectFrom('accts.items')
     .select(['code', 'name', 'item'])
     .where('code', 'in', membershipCodes)
@@ -71,7 +71,7 @@ export async function getMembershipFees(): Promise<PublicMembershipFee[]> {
  * Get equipment fee from SimplBooks items
  */
 export async function getEquipmentFee(): Promise<PublicEquipmentFee | null> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('accts.items')
     .select(['code', 'name', 'item'])
     .where('code', '=', ART_EQUIP_FEE_CODE)

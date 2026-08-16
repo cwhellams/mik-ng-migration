@@ -14,16 +14,16 @@ describe('stats-queries: occurrences per 100 flight hours', () => {
   const deletedId = 'STO1DELD'
 
   const baseOccurrence = {
-    occurrence_date: OCCURRENCE_DATE,
-    report_date: OCCURRENCE_DATE,
+    occurrenceDate: OCCURRENCE_DATE,
+    reportDate: OCCURRENCE_DATE,
     headline: 'Safety stats test occurrence',
     location: 'EFNU',
     description: 'Test occurrence for safety stats view',
     categories: JSON.stringify(['WILD']),
-    is_dto_report: false,
+    isDtoReport: false,
     registration: 'OH-STL',
-    created_by: 'k1mnimda',
-    updated_by: 'k1mnimda',
+    createdBy: 'k1mnimda',
+    updatedBy: 'k1mnimda',
   }
 
   beforeAll(async () => {
@@ -33,7 +33,7 @@ describe('stats-queries: occurrences per 100 flight hours', () => {
       .insertInto('flight.occurrences')
       .values({
         ...baseOccurrence,
-        report_id: originalId,
+        reportId: originalId,
         status: 'RECEIVED',
       })
       .execute()
@@ -42,23 +42,23 @@ describe('stats-queries: occurrences per 100 flight hours', () => {
       .insertInto('flight.occurrences')
       .values({
         ...baseOccurrence,
-        report_id: copyId,
+        reportId: copyId,
         status: 'ANONYMIZED',
-        linked_report_id: originalId,
+        linkedReportId: originalId,
       })
       .execute()
 
     await db
       .updateTable('flight.occurrences')
-      .set({ linked_report_id: copyId })
-      .where('report_id', '=', originalId)
+      .set({ linkedReportId: copyId })
+      .where('reportId', '=', originalId)
       .execute()
 
     await db
       .insertInto('flight.occurrences')
       .values({
         ...baseOccurrence,
-        report_id: deletedId,
+        reportId: deletedId,
         status: 'DELETED',
       })
       .execute()
@@ -67,7 +67,7 @@ describe('stats-queries: occurrences per 100 flight hours', () => {
   afterAll(async () => {
     await db
       .deleteFrom('flight.occurrences')
-      .where('report_id', 'in', [originalId, copyId, deletedId])
+      .where('reportId', 'in', [originalId, copyId, deletedId])
       .execute()
   })
 

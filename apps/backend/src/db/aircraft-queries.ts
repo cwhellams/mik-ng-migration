@@ -2,7 +2,7 @@ import type { Updateable } from 'kysely'
 import { sql, type Selectable } from 'kysely'
 
 import * as connection from './connection.ts'
-import type { FlightAircraft } from './schema.camel.d.ts'
+import type { FlightAircraft } from './schema.d.ts'
 import type { Aircraft, AircraftNote, FuelTypeEntry } from '@mik/contracts/aircrafts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
@@ -15,7 +15,7 @@ export const getAllAircraft = async (
   onlyActive: boolean,
   visibleOnly: boolean,
 ): Promise<Aircraft[]> => {
-  const rows = await connection.camelDb
+  const rows = await connection.db
     .selectFrom('flight.aircraft')
     .selectAll()
     .$if(onlyActive, (qb) => qb.where('active', '=', true))
@@ -39,7 +39,7 @@ export const getAircraftByRegistration = async (
   onlyActive: boolean,
   visibleOnly: boolean = false,
 ): Promise<Aircraft | undefined> => {
-  const row = await connection.camelDb
+  const row = await connection.db
     .selectFrom('flight.aircraft')
     .selectAll()
     .where('registration', '=', registration)
@@ -100,7 +100,7 @@ const toAircraft = (
 export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Promise<Aircraft> {
   const now = new Date()
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .insertInto('flight.aircraft')
     .values({
       registration: aircraft.registration,
@@ -170,7 +170,7 @@ export async function updateAircraft(
     >`CASE WHEN preferred_fuel_type = ANY(${patch.fuelTypes}) THEN preferred_fuel_type ELSE NULL END`
   }
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .updateTable('flight.aircraft')
     .set({
       registration: patch.registration,
@@ -214,7 +214,7 @@ export async function updateAircraft(
 }
 
 export async function removeAircraft(registration: string): Promise<boolean> {
-  const result = await connection.camelDb
+  const result = await connection.db
     .deleteFrom('flight.aircraft')
     .where('registration', '=', registration)
     .executeTakeFirstOrThrow()
@@ -222,7 +222,7 @@ export async function removeAircraft(registration: string): Promise<boolean> {
 }
 
 export async function getAllFuelTypes(): Promise<FuelTypeEntry[]> {
-  const rows = await connection.camelDb
+  const rows = await connection.db
     .selectFrom('flight.fuelTypes')
     .selectAll()
     .orderBy('sortOrder')

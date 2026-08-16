@@ -1,5 +1,5 @@
-import { camelDb } from './connection.ts'
-import type { AuthEventType } from './schema.camel.d.ts'
+import { db } from './connection.ts'
+import type { AuthEventType } from './schema.d.ts'
 
 const MAX_FAILED_ATTEMPTS = 5
 
@@ -12,7 +12,7 @@ export async function createLoginAttempt(
   expiresAt: Date,
   ipAddress: string | undefined,
 ): Promise<string> {
-  const result = await camelDb
+  const result = await db
     .insertInto('member.loginAttempts')
     .values({
       email: email.toLowerCase(),
@@ -28,7 +28,7 @@ export async function createLoginAttempt(
 
 /** Get the most recent non-expired, non-used login attempt for an email. */
 export async function getActiveLoginAttempt(email: string) {
-  return camelDb
+  return db
     .selectFrom('member.loginAttempts')
     .selectAll()
     .where('email', '=', email.toLowerCase())
@@ -42,7 +42,7 @@ export async function getActiveLoginAttempt(email: string) {
 
 /** Mark a login attempt as successfully consumed so it cannot be reused. */
 export async function markLoginAttemptUsed(id: string): Promise<void> {
-  await camelDb
+  await db
     .updateTable('member.loginAttempts')
     .set({ usedAt: new Date() })
     .where('id', '=', id)
@@ -51,7 +51,7 @@ export async function markLoginAttemptUsed(id: string): Promise<void> {
 
 /** Increment the failed-attempt counter. Returns the new count. */
 export async function incrementLoginAttemptFailures(id: string): Promise<number> {
-  const result = await camelDb
+  const result = await db
     .updateTable('member.loginAttempts')
     .set((eb) => ({ failedAttempts: eb('failedAttempts', '+', 1) }))
     .where('id', '=', id)
@@ -63,7 +63,7 @@ export async function incrementLoginAttemptFailures(id: string): Promise<number>
 /** Delete all previous login attempts for an email when a new one is requested
  *  (prevents multiple valid attempt rows accumulating). */
 export async function invalidatePreviousLoginAttempts(email: string): Promise<void> {
-  await camelDb
+  await db
     .deleteFrom('member.loginAttempts')
     .where('email', '=', email.toLowerCase())
     .where('usedAt', 'is', null)
@@ -77,7 +77,7 @@ export async function invalidatePreviousLoginAttempts(email: string): Promise<vo
  * Returns the claimed row, or undefined if the token is invalid/used/expired.
  */
 export async function claimLoginAttemptByTokenHash(tokenHash: string) {
-  return camelDb
+  return db
     .updateTable('member.loginAttempts')
     .set({ usedAt: new Date() })
     .where('linkTokenHash', '=', tokenHash)
@@ -94,7 +94,7 @@ export async function createLoginEvent(
   ipAddress: string | undefined,
   userAgent: string | undefined,
 ): Promise<void> {
-  await camelDb
+  await db
     .insertInto('member.loginEvents')
     .values({
       memberId: memberId ?? null,

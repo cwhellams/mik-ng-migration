@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { Transaction } from 'kysely' // Adjust the import path/module if needed
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import type { DB } from './schema.d.ts'
 import {
   AnnualFeeInfoSchema,
   FeeProcessingStatus,
@@ -12,16 +12,16 @@ import {
 } from '../services/simplbooks/models.ts'
 import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import logger from '../lib/logger.ts'
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { FlightLogStatus } from '@mik/contracts/flight-log'
 
 export async function insertOutboxItem(
   eventType: SimplbooksEventType,
   payload: any,
-  txn?: Transaction<CamelDB>,
+  txn?: Transaction<DB>,
 ) {
-  const executor = txn ?? camelDb
+  const executor = txn ?? db
 
   await executor
     .insertInto('accts.outboxSimplbooks')
@@ -34,7 +34,7 @@ export async function insertOutboxItem(
 }
 
 export async function getFeeProcessingItem(feeType: RecurringFeeType, year: number) {
-  return await camelDb
+  return await db
     .selectFrom('accts.recurringFeesProcessing')
     .where('feeType', '=', feeType)
     .where('year', '=', year)
@@ -48,7 +48,7 @@ export async function insertFeeProcessingItem(
   year: number,
   memberId: string,
 ) {
-  await camelDb
+  await db
     .insertInto('accts.recurringFeesProcessing')
     .values({
       feeType: feeType,
@@ -66,7 +66,7 @@ export async function updateFeeProcessingItem(
   year: number,
   memberId: string,
 ) {
-  await camelDb
+  await db
     .updateTable('accts.recurringFeesProcessing')
     .set({
       status: status,
@@ -78,7 +78,7 @@ export async function updateFeeProcessingItem(
 }
 
 export async function setOutboxStatus(
-  txn: Transaction<CamelDB>,
+  txn: Transaction<DB>,
   outboxMsgId: string,
   status: SimplbooksStatus,
   errorMessage?: string,
@@ -109,7 +109,7 @@ export type OutboxFilters = {
 }
 
 export async function getOutboxItems(filters: OutboxFilters) {
-  let query = camelDb.selectFrom('accts.outboxSimplbooks').selectAll()
+  let query = db.selectFrom('accts.outboxSimplbooks').selectAll()
 
   if (filters.status) {
     query = query.where('status', '=', filters.status as SimplbooksStatus)
@@ -134,7 +134,7 @@ export async function getOutboxItems(filters: OutboxFilters) {
 }
 
 export async function resetOutboxItemToPending(id: string): Promise<void> {
-  await camelDb
+  await db
     .updateTable('accts.outboxSimplbooks')
     .set({
       status: SimplbooksStatus.PENDING,
@@ -147,7 +147,7 @@ export async function resetOutboxItemToPending(id: string): Promise<void> {
 }
 
 export async function checkAndClearStuckMessages(): Promise<void> {
-  const results = await camelDb
+  const results = await db
     .updateTable('accts.outboxSimplbooks')
     .set({ status: SimplbooksStatus.PENDING })
     .where('status', '=', SimplbooksStatus.PROCESSING)
@@ -163,7 +163,7 @@ export async function checkAndClearStuckMessages(): Promise<void> {
   logger.info('No stuck messages found in the SimplBooks outbox with status PROCESSING')
 }
 
-export async function insertMemberAnnualFees(txn: Transaction<CamelDB>, feeInfo: AnnualFeeInfo) {
+export async function insertMemberAnnualFees(txn: Transaction<DB>, feeInfo: AnnualFeeInfo) {
   const validated = AnnualFeeInfoSchema.parse(feeInfo)
 
   await txn
@@ -180,7 +180,7 @@ export async function insertMemberAnnualFees(txn: Transaction<CamelDB>, feeInfo:
 }
 
 export async function updateFlightLogsWithInvoiceNumber(
-  txn: Transaction<CamelDB>,
+  txn: Transaction<DB>,
   flightIds: string[],
   invoiceNumber: string,
 ) {
@@ -204,7 +204,7 @@ export async function updateFlightLogsWithInvoiceNumber(
  * Insert a new invoice record into the database
  */
 export async function insertInvoice(
-  txn: Transaction<CamelDB>,
+  txn: Transaction<DB>,
   memberId: string,
   invoiceType: MIKInvoiceType,
   invoiceData: InvoiceBase,
@@ -235,7 +235,7 @@ export async function insertInvoice(
  * Update member billing ID (SimplBooks client ID)
  */
 export async function updateMemberBillingId(
-  txn: Transaction<CamelDB>,
+  txn: Transaction<DB>,
   memberId: string,
   billingId: string,
 ) {
@@ -250,8 +250,8 @@ export async function updateMemberBillingId(
     .execute()
 }
 
-export async function getNextCreditNoteSequenceNumber(txn?: Transaction<CamelDB>): Promise<string> {
-  const executor = txn ?? camelDb
+export async function getNextCreditNoteSequenceNumber(txn?: Transaction<DB>): Promise<string> {
+  const executor = txn ?? db
 
   const result = await executor
     .selectNoFrom((eb) =>

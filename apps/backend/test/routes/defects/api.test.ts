@@ -67,59 +67,59 @@ const createdNoteIds: string[] = []
 const insertHil = async (aircraftRegistration: string, hilNumber: number): Promise<string> => {
   const now = new Date()
   const row = await db
-    .insertInto('flight.aircraft_hil')
+    .insertInto('flight.aircraftHil')
     .values({
-      aircraft_registration: aircraftRegistration,
-      hil_number: hilNumber,
-      source_ref: `${TEST_MARKER} ref`,
-      defect_cat: 'B',
+      aircraftRegistration: aircraftRegistration,
+      hilNumber: hilNumber,
+      sourceRef: `${TEST_MARKER} ref`,
+      defectCat: 'B',
       description: `${TEST_MARKER} landing light inoperative`,
       restrictions: null,
-      open_date: now,
+      openDate: now,
       name: 'Plane Captain',
-      due_date: new Date(now.getTime() + 30 * 24 * 3600 * 1000),
-      resolved_note_id: null,
-      created_at: now,
-      created_by: 'Matti1',
-      updated_at: now,
-      updated_by: 'Matti1',
+      dueDate: new Date(now.getTime() + 30 * 24 * 3600 * 1000),
+      resolvedNoteId: null,
+      createdAt: now,
+      createdBy: 'Matti1',
+      updatedAt: now,
+      updatedBy: 'Matti1',
     })
-    .returning('hil_id')
+    .returning('hilId')
     .executeTakeFirstOrThrow()
-  createdHilIds.push(row.hil_id)
-  return row.hil_id
+  createdHilIds.push(row.hilId)
+  return row.hilId
 }
 
 const insertNote = async (aircraftRegistration: string): Promise<string> => {
   const row = await db
-    .insertInto('flight.maintenance_note')
+    .insertInto('flight.maintenanceNote')
     .values({
-      aircraft_registration: aircraftRegistration,
-      ajlb_seq_no: AJLB_SEQ_NO,
+      aircraftRegistration: aircraftRegistration,
+      ajlbSeqNo: AJLB_SEQ_NO,
       description: `${TEST_MARKER} note`,
-      performed_by: 'AME',
-      flight_mins: 50,
-      blank_rows_after: 0,
-      created_at: new Date(),
-      created_by: 'Matti1',
+      performedBy: 'AME',
+      flightMins: 50,
+      blankRowsAfter: 0,
+      createdAt: new Date(),
+      createdBy: 'Matti1',
     })
-    .returning('note_id')
+    .returning('noteId')
     .executeTakeFirstOrThrow()
-  createdNoteIds.push(row.note_id)
-  return row.note_id
+  createdNoteIds.push(row.noteId)
+  return row.noteId
 }
 
 const cleanup = async () => {
   if (createdDefectIds.length) {
-    await db.deleteFrom('flight.defect').where('defect_id', 'in', createdDefectIds).execute()
+    await db.deleteFrom('flight.defect').where('defectId', 'in', createdDefectIds).execute()
     createdDefectIds.length = 0
   }
   if (createdHilIds.length) {
-    await db.deleteFrom('flight.aircraft_hil').where('hil_id', 'in', createdHilIds).execute()
+    await db.deleteFrom('flight.aircraftHil').where('hilId', 'in', createdHilIds).execute()
     createdHilIds.length = 0
   }
   if (createdNoteIds.length) {
-    await db.deleteFrom('flight.maintenance_note').where('note_id', 'in', createdNoteIds).execute()
+    await db.deleteFrom('flight.maintenanceNote').where('noteId', 'in', createdNoteIds).execute()
     createdNoteIds.length = 0
   }
 }

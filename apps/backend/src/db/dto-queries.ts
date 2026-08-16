@@ -1,7 +1,7 @@
 import type { Updateable } from 'kysely'
 
-import type { DtoSyllabus, DtoSyllabusFlights, DtoSyllabusFlightItems } from './schema.camel.d.ts'
-import { camelDb, type CamelRow } from './connection.ts'
+import type { DtoSyllabus, DtoSyllabusFlights, DtoSyllabusFlightItems } from './schema.d.ts'
+import { db, type DbRow } from './connection.ts'
 import { renderMarkdown } from '../util/markdown.ts'
 import type {
   TrainingProgram,
@@ -39,7 +39,7 @@ function renderMarkdownNullable(markdown: string | null): string | null {
   return renderMarkdown(markdown)
 }
 
-function mapProgram(r: CamelRow<'dto.trainingProgram'>): TrainingProgram {
+function mapProgram(r: DbRow<'dto.trainingProgram'>): TrainingProgram {
   return {
     programId: r.programId,
     name: r.name,
@@ -57,7 +57,7 @@ function mapProgram(r: CamelRow<'dto.trainingProgram'>): TrainingProgram {
  *   endpoints (e.g. getSyllabiByProgram) where the rendered HTML is never
  *   displayed, to avoid parsing markdown for every row in the list.
  */
-function mapSyllabus(r: CamelRow<'dto.syllabus'>, includeHtml = true): Syllabus {
+function mapSyllabus(r: DbRow<'dto.syllabus'>, includeHtml = true): Syllabus {
   return {
     syllabusId: r.syllabusId,
     programId: r.programId,
@@ -85,7 +85,7 @@ function mapSyllabus(r: CamelRow<'dto.syllabus'>, includeHtml = true): Syllabus 
   }
 }
 
-function mapFlight(r: CamelRow<'dto.syllabusFlights'>): SyllabusFlight {
+function mapFlight(r: DbRow<'dto.syllabusFlights'>): SyllabusFlight {
   return {
     flightId: r.flightId,
     syllabusId: r.syllabusId,
@@ -103,7 +103,7 @@ function mapFlight(r: CamelRow<'dto.syllabusFlights'>): SyllabusFlight {
   }
 }
 
-function mapItem(r: CamelRow<'dto.syllabusFlightItems'>): SyllabusFlightItem {
+function mapItem(r: DbRow<'dto.syllabusFlightItems'>): SyllabusFlightItem {
   return {
     itemId: r.itemId,
     syllabusFlightId: r.syllabusFlightId,
@@ -117,7 +117,7 @@ function mapItem(r: CamelRow<'dto.syllabusFlightItems'>): SyllabusFlightItem {
 // The two verifier columns come from a join on the member table, so they are not
 // part of the generated row type.
 function mapAttempt(
-  r: CamelRow<'dto.syllabusFlightAttempts'> & {
+  r: DbRow<'dto.syllabusFlightAttempts'> & {
     verifierFirstName?: string | null
     verifierLastName?: string | null
   },
@@ -145,14 +145,14 @@ function mapAttempt(
 // Training Programs
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getTrainingPrograms(): Promise<TrainingProgram[]> {
-  const rows = await camelDb.selectFrom('dto.trainingProgram').selectAll().orderBy('name').execute()
+  const rows = await db.selectFrom('dto.trainingProgram').selectAll().orderBy('name').execute()
   return rows.map(mapProgram)
 }
 
 export async function getTrainingProgramById(
   programId: string,
 ): Promise<TrainingProgram | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.trainingProgram')
     .selectAll()
     .where('programId', '=', programId)
@@ -164,7 +164,7 @@ export async function insertTrainingProgram(
   data: TrainingProgramUpsert,
   userId: string,
 ): Promise<TrainingProgram> {
-  const r = await camelDb
+  const r = await db
     .insertInto('dto.trainingProgram')
     .values({
       name: data.name,
@@ -182,7 +182,7 @@ export async function updateTrainingProgram(
   data: TrainingProgramUpsert,
   userId: string,
 ): Promise<TrainingProgram | undefined> {
-  const r = await camelDb
+  const r = await db
     .updateTable('dto.trainingProgram')
     .set({
       name: data.name,
@@ -200,7 +200,7 @@ export async function updateTrainingProgram(
 // Syllabi
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getSyllabiByProgram(programId: string): Promise<Syllabus[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.syllabus')
     .selectAll()
     .where('programId', '=', programId)
@@ -215,7 +215,7 @@ export async function getSyllabiByProgram(programId: string): Promise<Syllabus[]
 }
 
 export async function getSyllabusById(syllabusId: string): Promise<Syllabus | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.syllabus')
     .selectAll()
     .where('syllabusId', '=', syllabusId)
@@ -229,7 +229,7 @@ export async function getSyllabusWithFlights(
   const syllabus = await getSyllabusById(syllabusId)
   if (!syllabus) return undefined
 
-  const flightRows = await camelDb
+  const flightRows = await db
     .selectFrom('dto.syllabusFlights')
     .selectAll()
     .where('syllabusId', '=', syllabusId)
@@ -241,7 +241,7 @@ export async function getSyllabusWithFlights(
   }
 
   const flightIds = flightRows.map((f) => f.flightId)
-  const itemRows = await camelDb
+  const itemRows = await db
     .selectFrom('dto.syllabusFlightItems')
     .selectAll()
     .where('syllabusFlightId', 'in', flightIds)
@@ -265,7 +265,7 @@ export async function getSyllabusWithFlights(
 }
 
 export async function getLatestPublishedSyllabus(programId: string): Promise<Syllabus | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.syllabus')
     .selectAll()
     .where('programId', '=', programId)
@@ -282,7 +282,7 @@ export async function getLatestPublishedSyllabus(programId: string): Promise<Syl
 async function nextMinorVersion(
   programId: string,
 ): Promise<{ majorVersion: number; minorVersion: number; patchVersion: number }> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.syllabus')
     .select(['majorVersion', 'minorVersion', 'patchVersion'])
     .where('programId', '=', programId)
@@ -314,7 +314,7 @@ export async function insertSyllabus(
   userId: string,
 ): Promise<Syllabus> {
   const version = await nextMinorVersion(programId)
-  const r = await camelDb
+  const r = await db
     .insertInto('dto.syllabus')
     .values({
       programId: programId,
@@ -344,7 +344,7 @@ export async function updateSyllabus(
   },
   userId: string,
 ): Promise<Syllabus | undefined> {
-  let q = camelDb.updateTable('dto.syllabus').set({
+  let q = db.updateTable('dto.syllabus').set({
     description: data.description ?? null,
     updatedBy: userId,
     updatedAt: new Date(),
@@ -371,7 +371,7 @@ export async function submitSyllabusForApproval(
   userId: string,
 ): Promise<Syllabus | undefined> {
   const now = new Date()
-  const r = await camelDb
+  const r = await db
     .updateTable('dto.syllabus')
     .set({
       status: 'WAITING_FOR_APPROVAL',
@@ -390,7 +390,7 @@ export async function withdrawSyllabusFromApproval(
   syllabusId: string,
   userId: string,
 ): Promise<Syllabus | undefined> {
-  const r = await camelDb
+  const r = await db
     .updateTable('dto.syllabus')
     .set({
       status: 'DRAFT',
@@ -411,7 +411,7 @@ export async function publishSyllabus(
 ): Promise<Syllabus | undefined> {
   const now = new Date()
 
-  const published = await camelDb.transaction().execute(async (trx) => {
+  const published = await db.transaction().execute(async (trx) => {
     const row = await trx
       .updateTable('dto.syllabus')
       .set({
@@ -460,7 +460,7 @@ export async function patchSyllabusText(
 ): Promise<SyllabusWithFlights | undefined> {
   const now = new Date()
 
-  const patched = await camelDb.transaction().execute(async (trx) => {
+  const patched = await db.transaction().execute(async (trx) => {
     // Updateable<> rather than Record<string, unknown>: an untyped patch object is
     // the same trap as `any` — it hides column names from the compiler, and two of
     // these were still snake_case after the migration.
@@ -533,7 +533,7 @@ export async function patchSyllabusText(
 // Syllabus Flights
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getFlightsBySyllabus(syllabusId: string): Promise<SyllabusFlight[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.syllabusFlights')
     .selectAll()
     .where('syllabusId', '=', syllabusId)
@@ -543,7 +543,7 @@ export async function getFlightsBySyllabus(syllabusId: string): Promise<Syllabus
 }
 
 export async function getSyllabusFlightById(flightId: string): Promise<SyllabusFlight | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.syllabusFlights')
     .selectAll()
     .where('flightId', '=', flightId)
@@ -554,14 +554,14 @@ export async function getSyllabusFlightById(flightId: string): Promise<SyllabusF
 export async function getSyllabusFlightWithItems(
   flightId: string,
 ): Promise<SyllabusFlight | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.syllabusFlights')
     .selectAll()
     .where('flightId', '=', flightId)
     .executeTakeFirst()
   if (!r) return undefined
 
-  const itemRows = await camelDb
+  const itemRows = await db
     .selectFrom('dto.syllabusFlightItems')
     .selectAll()
     .where('syllabusFlightId', '=', flightId)
@@ -586,11 +586,11 @@ export async function upsertSyllabusFlights(
   }>,
 ): Promise<void> {
   // Delete all existing flights for this syllabus (cascades to items)
-  await camelDb.deleteFrom('dto.syllabusFlights').where('syllabusId', '=', syllabusId).execute()
+  await db.deleteFrom('dto.syllabusFlights').where('syllabusId', '=', syllabusId).execute()
 
   for (let i = 0; i < flights.length; i++) {
     const f = flights[i]
-    const flightRow = await camelDb
+    const flightRow = await db
       .insertInto('dto.syllabusFlights')
       .values({
         syllabusId: syllabusId,
@@ -608,7 +608,7 @@ export async function upsertSyllabusFlights(
       .executeTakeFirstOrThrow()
 
     if (f.items && f.items.length > 0) {
-      await camelDb
+      await db
         .insertInto('dto.syllabusFlightItems')
         .values(
           f.items.map((item, j) => ({
@@ -634,7 +634,7 @@ export async function importSyllabusFromJson(
 ): Promise<SyllabusWithFlights> {
   const version = await nextMinorVersion(programId)
 
-  const syllabusRow = await camelDb
+  const syllabusRow = await db
     .insertInto('dto.syllabus')
     .values({
       programId: programId,
@@ -679,7 +679,7 @@ export async function importSyllabusFromJson(
 export async function getActiveSyllabusForMember(
   memberId: string,
 ): Promise<MemberSyllabus | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.memberSyllabus')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -702,7 +702,7 @@ export async function assignSyllabusToMember(
   syllabusId: string,
   assignedBy: string,
 ): Promise<MemberSyllabus> {
-  const r = await camelDb
+  const r = await db
     .insertInto('dto.memberSyllabus')
     .values({
       memberId: memberId,
@@ -728,7 +728,7 @@ export async function getMemberSyllabusByIdWithFlights(
   | (MemberSyllabus & { memberName: string; syllabusDetail: SyllabusWithFlights | undefined })
   | undefined
 > {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.memberSyllabus')
     .innerJoin('member.register', 'member.register.memberId', 'dto.memberSyllabus.memberId')
     .select([
@@ -762,7 +762,7 @@ export async function getMemberSyllabusByIdWithFlights(
 export async function getMemberSyllabusOwnerId(
   memberSyllabusId: string,
 ): Promise<string | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.memberSyllabus')
     .select('memberId')
     .where('memberSyllabusId', '=', memberSyllabusId)
@@ -776,7 +776,7 @@ export async function getMemberSyllabusOwnerId(
 export async function getAttemptByFlightLogId(
   flightLogId: string,
 ): Promise<SyllabusFlightAttempt | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.syllabusFlightAttempts')
     .selectAll()
     .where('flightLogId', '=', flightLogId)
@@ -787,7 +787,7 @@ export async function getAttemptByFlightLogId(
 export async function getAttemptById(
   attemptId: string,
 ): Promise<SyllabusFlightAttempt | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.syllabusFlightAttempts')
     .selectAll()
     .where('attemptId', '=', attemptId)
@@ -811,7 +811,7 @@ export type AttemptWithFlightData = SyllabusFlightAttempt & {
 export async function getAttemptByIdWithFlightData(
   attemptId: string,
 ): Promise<AttemptWithFlightData | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.syllabusFlightAttempts')
     .innerJoin('flight.logs', 'flight.logs.flightId', 'dto.syllabusFlightAttempts.flightLogId')
     .leftJoin('member.register as v', 'v.memberId', 'dto.syllabusFlightAttempts.verifiedBy')
@@ -869,7 +869,7 @@ export async function copySyllabusAsDraft(
 
   const version = await nextMinorVersion(source.programId)
 
-  const newRow = await camelDb
+  const newRow = await db
     .insertInto('dto.syllabus')
     .values({
       programId: source.programId,
@@ -914,7 +914,7 @@ export async function copySyllabusAsDraft(
 export async function getAttemptsByMemberSyllabus(
   memberSyllabusId: string,
 ): Promise<SyllabusFlightAttempt[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.syllabusFlightAttempts')
     .selectAll()
     .where('memberSyllabusId', '=', memberSyllabusId)
@@ -934,7 +934,7 @@ export type AttemptWithFlightLogData = SyllabusFlightAttempt & {
 export async function getAttemptsByMemberSyllabusWithFlightLog(
   memberSyllabusId: string,
 ): Promise<AttemptWithFlightLogData[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.syllabusFlightAttempts')
     .innerJoin('flight.logs', 'flight.logs.flightId', 'dto.syllabusFlightAttempts.flightLogId')
     .select([
@@ -976,7 +976,7 @@ export type PendingVerificationItem = SyllabusFlightAttempt & {
 }
 
 export async function getPendingVerifications(): Promise<PendingVerificationItem[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.syllabusFlightAttempts')
     .innerJoin(
       'dto.memberSyllabus',
@@ -1025,7 +1025,7 @@ export async function getPendingVerifications(): Promise<PendingVerificationItem
 }
 
 export async function getPendingVerificationsCount(): Promise<number> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('dto.syllabusFlightAttempts')
     .select((eb) => eb.fn.count('attemptId').as('count'))
     .where((eb) =>
@@ -1041,7 +1041,7 @@ export async function insertAttempt(
   memberSyllabusId: string,
   instructorMemberId: string,
 ): Promise<SyllabusFlightAttempt> {
-  const r = await camelDb
+  const r = await db
     .insertInto('dto.syllabusFlightAttempts')
     .values({
       flightLogId: flightLogId,
@@ -1053,7 +1053,7 @@ export async function insertAttempt(
     .executeTakeFirstOrThrow()
 
   // Mark the flight log entry as a DTO training flight (used for invoicing)
-  await camelDb
+  await db
     .updateTable('flight.logs')
     .set({ isDtoTrainingFlight: true })
     .where('flightId', '=', flightLogId)
@@ -1066,7 +1066,7 @@ export async function updateAttemptSyllabusFlight(
   flightLogId: string,
   syllabusFlightId: string,
 ): Promise<SyllabusFlightAttempt | undefined> {
-  const r = await camelDb
+  const r = await db
     .updateTable('dto.syllabusFlightAttempts')
     .set({ syllabusFlightId: syllabusFlightId, updatedAt: new Date() })
     .where('flightLogId', '=', flightLogId)
@@ -1083,7 +1083,7 @@ export async function verifyAttempt(
 ): Promise<SyllabusFlightAttempt | undefined> {
   const now = new Date()
 
-  const r = await camelDb
+  const r = await db
     .updateTable('dto.syllabusFlightAttempts')
     .set({
       verificationResult: data.result,
@@ -1105,7 +1105,7 @@ export async function verifyAttempt(
   // Upsert item outcomes
   if (data.itemOutcomes && data.itemOutcomes.length > 0) {
     for (const o of data.itemOutcomes) {
-      await camelDb
+      await db
         .insertInto('dto.flightItemOutcomes')
         .values({
           attemptId: attemptId,
@@ -1124,7 +1124,7 @@ export async function verifyAttempt(
 
       // If outcome is MOVED_TO_HIL, add to HIL queue (if not already open)
       if (o.outcome === 'MOVED_TO_HIL') {
-        const memberSyllabus = await camelDb
+        const memberSyllabus = await db
           .selectFrom('dto.syllabusFlightAttempts')
           .innerJoin(
             'dto.memberSyllabus',
@@ -1137,7 +1137,7 @@ export async function verifyAttempt(
 
         if (memberSyllabus) {
           // Check if there's already an open HIL entry for this member+item
-          const existingHil = await camelDb
+          const existingHil = await db
             .selectFrom('dto.hilQueue')
             .select('hilId')
             .where('memberId', '=', memberSyllabus.memberId)
@@ -1146,7 +1146,7 @@ export async function verifyAttempt(
             .executeTakeFirst()
 
           if (!existingHil) {
-            await camelDb
+            await db
               .insertInto('dto.hilQueue')
               .values({
                 memberId: memberSyllabus.memberId,
@@ -1161,7 +1161,7 @@ export async function verifyAttempt(
 
       // If outcome resolves a HIL entry, close it
       if (o.outcome === 'COMPLETED' || o.outcome === 'FAILED') {
-        const memberSyllabus = await camelDb
+        const memberSyllabus = await db
           .selectFrom('dto.syllabusFlightAttempts')
           .innerJoin(
             'dto.memberSyllabus',
@@ -1173,7 +1173,7 @@ export async function verifyAttempt(
           .executeTakeFirst()
 
         if (memberSyllabus) {
-          await camelDb
+          await db
             .updateTable('dto.hilQueue')
             .set({
               resolvedAt: now,
@@ -1195,7 +1195,7 @@ export async function verifyAttempt(
 // Sets requires_reverification=true on any verified attempt for this flight.
 // Called after a flight log is edited so instructors know to re-verify.
 export async function invalidateApprovedAttempt(flightLogId: string): Promise<void> {
-  await camelDb
+  await db
     .updateTable('dto.syllabusFlightAttempts')
     .set({ requiresReverification: true, updatedAt: new Date() })
     .where('flightLogId', '=', flightLogId)
@@ -1207,7 +1207,7 @@ export async function invalidateApprovedAttempt(flightLogId: string): Promise<vo
 // Item Outcomes
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getItemOutcomesByAttempt(attemptId: string): Promise<FlightItemOutcome[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.flightItemOutcomes')
     .selectAll()
     .where('attemptId', '=', attemptId)
@@ -1226,7 +1226,7 @@ export async function getItemOutcomesByAttempts(
   attemptIds: string[],
 ): Promise<Map<string, FlightItemOutcome[]>> {
   if (attemptIds.length === 0) return new Map()
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.flightItemOutcomes')
     .selectAll()
     .where('attemptId', 'in', attemptIds)
@@ -1252,7 +1252,7 @@ export async function getItemOutcomesByAttempts(
 // HIL Queue
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getOpenHilForMember(memberId: string): Promise<HilEntry[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.hilQueue')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -1278,7 +1278,7 @@ export async function getOpenHilForMember(memberId: string): Promise<HilEntry[]>
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getStudentProgress(): Promise<StudentProgress[]> {
   // Get all active member syllabus assignments with member names and syllabus info
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('dto.memberSyllabus')
     .innerJoin('member.register', 'member.register.memberId', 'dto.memberSyllabus.memberId')
     .innerJoin('dto.syllabus', 'dto.syllabus.syllabusId', 'dto.memberSyllabus.syllabusId')
@@ -1300,7 +1300,7 @@ export async function getStudentProgress(): Promise<StudentProgress[]> {
 
   for (const row of rows) {
     // Get syllabus flights count
-    const flightCountRow = await camelDb
+    const flightCountRow = await db
       .selectFrom('dto.syllabusFlights')
       .select((eb) => eb.fn.count('flightId').as('count'))
       .where('syllabusId', '=', row.syllabusId)
@@ -1308,7 +1308,7 @@ export async function getStudentProgress(): Promise<StudentProgress[]> {
     const totalFlights = Number(flightCountRow.count)
 
     // Get completed flight attempts for this member's syllabus
-    const completedRows = await camelDb
+    const completedRows = await db
       .selectFrom('dto.syllabusFlightAttempts')
       .select(['syllabusFlightId', 'createdAt'])
       .where('memberSyllabusId', '=', row.memberSyllabusId)
@@ -1320,7 +1320,7 @@ export async function getStudentProgress(): Promise<StudentProgress[]> {
     const completedFlights = completedFlightIds.size
 
     // Sum block minutes from all approved attempts
-    const blockTimeSumRow = await camelDb
+    const blockTimeSumRow = await db
       .selectFrom('dto.syllabusFlightAttempts')
       .innerJoin('flight.logs', 'flight.logs.flightId', 'dto.syllabusFlightAttempts.flightLogId')
       .select((eb) => eb.fn.sum<number>('flight.logs.blockMins').as('totalBlockMins'))
@@ -1330,7 +1330,7 @@ export async function getStudentProgress(): Promise<StudentProgress[]> {
     const totalBlockTimeMins = Number(blockTimeSumRow?.totalBlockMins ?? 0)
 
     // Last DTO flight date
-    const lastAttemptRow = await camelDb
+    const lastAttemptRow = await db
       .selectFrom('dto.syllabusFlightAttempts')
       .select('createdAt')
       .where('memberSyllabusId', '=', row.memberSyllabusId)
@@ -1339,7 +1339,7 @@ export async function getStudentProgress(): Promise<StudentProgress[]> {
       .executeTakeFirst()
 
     // Check interim checkpoint
-    const interimFlightRow = await camelDb
+    const interimFlightRow = await db
       .selectFrom('dto.syllabusFlights')
       .select('flightId')
       .where('syllabusId', '=', row.syllabusId)

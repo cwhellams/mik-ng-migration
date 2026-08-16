@@ -89,7 +89,7 @@ describe('flight.vw_ajlb_live_sequence pagination reflow', () => {
       expect(after.logs.map((l) => l.ajlbRowNo)).toEqual([1, 2, 3, 4, 5])
       expect(after.logs.map((l) => l.flightId)).toEqual(before.logs.map((l) => l.flightId))
     } finally {
-      await db.deleteFrom('flight.defect').where('defect_id', '=', defect.defectId).execute()
+      await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
     }
   })
 
@@ -121,15 +121,15 @@ describe('flight.vw_ajlb_live_sequence pagination reflow', () => {
 
     try {
       const rows = await db
-        .selectFrom('flight.vw_ajlb_live_sequence')
-        .select(['item_type', 'item_id', 'ajlb_row_number'])
-        .where('aircraft_registration', '=', AIRCRAFT)
-        .where('ajlb_seq_no', '=', AJLB_SEQ_NO)
-        .where('item_id', 'in', [earlier.noteId, later.noteId])
-        .orderBy('ajlb_row_number', 'asc')
+        .selectFrom('flight.vwAjlbLiveSequence')
+        .select(['itemType', 'itemId', 'ajlbRowNumber'])
+        .where('aircraftRegistration', '=', AIRCRAFT)
+        .where('ajlbSeqNo', '=', AJLB_SEQ_NO)
+        .where('itemId', 'in', [earlier.noteId, later.noteId])
+        .orderBy('ajlbRowNumber', 'asc')
         .execute()
 
-      expect(rows.map((r) => r.item_id)).toEqual([earlier.noteId, later.noteId])
+      expect(rows.map((r) => r.itemId)).toEqual([earlier.noteId, later.noteId])
     } finally {
       await deleteMaintenanceNote(earlier.noteId)
       await deleteMaintenanceNote(later.noteId)

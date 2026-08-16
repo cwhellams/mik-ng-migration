@@ -14,14 +14,14 @@
  *    material used to encrypt push payloads, not personal data.
  */
 
-import { camelCaseNestedRows, camelDb } from './connection.ts'
+import { camelCaseNestedRows, db } from './connection.ts'
 import { sql } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 // ─── Flight logs (all crew roles) ────────────────────────────────────────────
 
 export async function getGdprFlightLogs(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('flight.logs')
     .selectAll()
     .where((eb) =>
@@ -40,7 +40,7 @@ export async function getGdprFlightLogs(memberId: string) {
 // ─── Bookings ─────────────────────────────────────────────────────────────────
 
 export async function getGdprBookings(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('schedule.bookings')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -51,7 +51,7 @@ export async function getGdprBookings(memberId: string) {
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 export async function getGdprInvoices(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('accts.invoice')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -62,7 +62,7 @@ export async function getGdprInvoices(memberId: string) {
 // ─── Annual fees ──────────────────────────────────────────────────────────────
 
 export async function getGdprAnnualFees(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('member.annualFees')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -73,7 +73,7 @@ export async function getGdprAnnualFees(memberId: string) {
 // ─── Shop orders (with items) ─────────────────────────────────────────────────
 
 export async function getGdprShopOrders(memberId: string) {
-  const orders = await camelDb
+  const orders = await db
     .selectFrom('shop.orders')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -83,7 +83,7 @@ export async function getGdprShopOrders(memberId: string) {
   if (orders.length === 0) return []
 
   const orderIds = orders.map((o) => o.orderId)
-  const items = await camelDb
+  const items = await db
     .selectFrom('shop.orderItems')
     .selectAll()
     .where('orderId', 'in', orderIds)
@@ -105,7 +105,7 @@ export async function getGdprShopOrders(memberId: string) {
 // ─── Prepaid packages (with usage log) ───────────────────────────────────────
 
 export async function getGdprPrepaidPackages(memberId: string) {
-  const packages = await camelDb
+  const packages = await db
     .selectFrom('prepaid.memberPackages')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -115,7 +115,7 @@ export async function getGdprPrepaidPackages(memberId: string) {
   if (packages.length === 0) return []
 
   const packageIds = packages.map((p) => p.memberPackageId)
-  const usageLogs = await camelDb
+  const usageLogs = await db
     .selectFrom('prepaid.usageLog')
     .selectAll()
     .where('memberPackageId', 'in', packageIds)
@@ -139,13 +139,13 @@ export async function getGdprPrepaidPackages(memberId: string) {
 
 export async function getGdprTraining(memberId: string) {
   const [syllabi, hilQueue] = await Promise.all([
-    camelDb
+    db
       .selectFrom('dto.memberSyllabus')
       .selectAll()
       .where('memberId', '=', memberId)
       .orderBy('assignedAt', 'desc')
       .execute(),
-    camelDb
+    db
       .selectFrom('dto.hilQueue')
       .selectAll()
       .where('memberId', '=', memberId)
@@ -158,7 +158,7 @@ export async function getGdprTraining(memberId: string) {
 // ─── Exam attempts ────────────────────────────────────────────────────────────
 
 export async function getGdprExamAttempts(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('exam.attempts')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -169,7 +169,7 @@ export async function getGdprExamAttempts(memberId: string) {
 // ─── Authentication / login events ───────────────────────────────────────────
 
 export async function getGdprLoginEvents(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('member.loginEvents')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -180,7 +180,7 @@ export async function getGdprLoginEvents(memberId: string) {
 // ─── Passkeys (without raw public key bytes) ──────────────────────────────────
 
 export async function getGdprPasskeys(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('member.passkeys')
     .select([
       'id',
@@ -204,7 +204,7 @@ export async function getGdprPasskeys(memberId: string) {
 // ─── Push subscriptions (without raw auth/p256dh key material) ───────────────
 
 export async function getGdprPushSubscriptions(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('member.pushSubscriptions')
     .select(['id', 'memberId', 'endpoint', 'userAgent', 'createdAt'])
     .where('memberId', '=', memberId)
@@ -216,7 +216,7 @@ export async function getGdprPushSubscriptions(memberId: string) {
 
 export async function getGdprPendingEmailChanges(memberId: string) {
   return (
-    camelDb
+    db
       .selectFrom('member.pendingEmailChanges')
       .select(['id', 'memberId', 'newEmail', 'createdAt', 'expiresAt', 'usedAt'])
       // token_hash intentionally excluded – it is a security credential
@@ -229,7 +229,7 @@ export async function getGdprPendingEmailChanges(memberId: string) {
 // ─── Incident / occurrence reports ────────────────────────────────────────────
 
 export async function getGdprIncidentReports(memberId: string) {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('flight.occurrences as o')
     .selectAll('o')
     .select((eb) =>
@@ -270,7 +270,7 @@ export async function getGdprIncidentReports(memberId: string) {
 // ─── Profile audit trail ──────────────────────────────────────────────────────
 
 export async function getGdprProfileAuditTrail(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('member.registerAudit')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -281,7 +281,7 @@ export async function getGdprProfileAuditTrail(memberId: string) {
 // ─── Flight-log audit trail (for flights the member was crew on) ──────────────
 
 export async function getGdprFlightLogAuditTrail(memberId: string) {
-  return camelDb
+  return db
     .selectFrom('flight.logsAudit as la')
     .selectAll('la')
     .innerJoin('flight.logs as fl', 'la.flightId', 'fl.flightId')

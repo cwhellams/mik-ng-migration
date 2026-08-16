@@ -141,11 +141,11 @@ describe('SimplBooks Member Sync Worker', () => {
       mockCreateSimplbooksSyncState.mockResolvedValue(syncId)
       mockGetLastSimplbooksSyncState.mockResolvedValue({
         id: 0,
-        last_synced_at: lastSyncedAt,
-        members_synced: 10,
-        sync_status: 'SUCCESS',
-        error_message: null,
-        created_at: lastSyncedAt,
+        lastSyncedAt: lastSyncedAt,
+        membersSynced: 10,
+        syncStatus: 'SUCCESS',
+        errorMessage: null,
+        createdAt: lastSyncedAt,
       })
       mockGetMembersToSync.mockResolvedValue(mockMembers as any)
       mockUpdateClient.mockResolvedValue(undefined)
@@ -548,11 +548,11 @@ describe('SimplBooks Member Sync Worker', () => {
       mockCreateSimplbooksSyncState.mockResolvedValue(syncId)
       mockGetLastSimplbooksSyncState.mockResolvedValue({
         id: 0,
-        last_synced_at: lastSyncedAt,
-        members_synced: 5,
-        sync_status: 'SUCCESS',
-        error_message: null,
-        created_at: lastSyncedAt,
+        lastSyncedAt: lastSyncedAt,
+        membersSynced: 5,
+        syncStatus: 'SUCCESS',
+        errorMessage: null,
+        createdAt: lastSyncedAt,
       })
       mockGetMembersToSync.mockResolvedValue([])
       mockUpdateSimplbooksSyncState.mockResolvedValue(undefined)

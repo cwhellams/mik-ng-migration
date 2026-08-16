@@ -1,7 +1,7 @@
 import { sql, type Kysely, type Transaction } from 'kysely'
 
-import { camelDb } from './connection.ts'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import { db } from './connection.ts'
+import type { DB } from './schema.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   ExpenseClaimStatus,
@@ -53,7 +53,7 @@ const toNullableNumber = (value: unknown): number | null => {
   return Number(value)
 }
 
-type Executor = Kysely<CamelDB> | Transaction<CamelDB>
+type Executor = Kysely<DB> | Transaction<DB>
 
 type ClaimRow = {
   id: string
@@ -304,7 +304,7 @@ async function insertLineItems(
 }
 
 export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.expenseCategory')
     .selectAll()
     .where('active', '=', true)
@@ -320,14 +320,14 @@ export async function getExpenseClaimsByMember(
 ): Promise<ExpenseClaimListResponse> {
   const offset = (filters.page - 1) * filters.pageSize
 
-  const countRow = await camelDb
+  const countRow = await db
     .selectFrom('accts.expenseClaim')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('memberId', '=', memberId)
     .$if(!!filters.status, (qb) => qb.where('status', '=', filters.status!))
     .executeTakeFirstOrThrow()
 
-  const rows = await claimSelect(camelDb)
+  const rows = await claimSelect(db)
     .where('claim.memberId', '=', memberId)
     .$if(!!filters.status, (qb) => qb.where('claim.status', '=', filters.status!))
     .orderBy('claim.createdAt', 'desc')
@@ -344,7 +344,7 @@ export async function getExpenseClaimsByMember(
 }
 
 export async function getPendingExpenseClaimsCount(): Promise<number> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('accts.expenseClaim')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('status', 'in', [ExpenseClaimStatus.SUBMITTED, ExpenseClaimStatus.PENDING_INFO])
@@ -358,13 +358,13 @@ export async function getAllExpenseClaims(
 ): Promise<ExpenseClaimListResponse> {
   const offset = (filters.page - 1) * filters.pageSize
 
-  const countRow = await camelDb
+  const countRow = await db
     .selectFrom('accts.expenseClaim')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .$if(!!filters.status, (qb) => qb.where('status', '=', filters.status!))
     .executeTakeFirstOrThrow()
 
-  const rows = await claimSelect(camelDb)
+  const rows = await claimSelect(db)
     .$if(!!filters.status, (qb) => qb.where('claim.status', '=', filters.status!))
     .orderBy('claim.createdAt', 'desc')
     .limit(filters.pageSize)
@@ -380,14 +380,14 @@ export async function getAllExpenseClaims(
 }
 
 export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | undefined> {
-  const claimRow = await claimSelect(camelDb).where('claim.id', '=', id).executeTakeFirst()
+  const claimRow = await claimSelect(db).where('claim.id', '=', id).executeTakeFirst()
 
   if (!claimRow) {
     return undefined
   }
 
   const [lineItems, messages, mileageLegs, attachments] = await Promise.all([
-    camelDb
+    db
       .selectFrom('accts.expenseClaimLineItem as li')
       .leftJoin('accts.items as item', 'item.id', 'li.itemId')
       .select([
@@ -410,7 +410,7 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
       .orderBy('li.sortOrder')
       .orderBy('li.id')
       .execute(),
-    camelDb
+    db
       .selectFrom('accts.expenseClaimMessage')
       .selectAll()
       .where('claimId', '=', id)
@@ -480,7 +480,7 @@ export async function createExpenseClaim(
     ? ((await getCurrentMileageAllowance())?.effectiveRatePerKm ?? 0.275) // fallback: 50% of 0.55
     : 0
 
-  const result = await camelDb.transaction().execute(async (txn) => {
+  const result = await db.transaction().execute(async (txn) => {
     const inserted = await txn
       .insertInto('accts.expenseClaim')
       .values({
@@ -529,7 +529,7 @@ export async function updateExpenseClaim(
     ? ((await getCurrentMileageAllowance())?.effectiveRatePerKm ?? 0.275)
     : 0
 
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     const patch: Record<string, unknown> = {
       updatedAt: new Date(),
       // Revert to DRAFT whenever the member saves changes, so they must explicitly re-submit.
@@ -581,7 +581,7 @@ export async function updateExpenseClaim(
 }
 
 export async function deleteExpenseClaim(id: string): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('accts.expenseClaim')
     .where('id', '=', id)
     .executeTakeFirstOrThrow()
@@ -592,7 +592,7 @@ export async function deleteExpenseClaim(id: string): Promise<boolean> {
 export async function retractExpenseClaim(
   id: string,
   userId: string,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<boolean> {
   const result = await executor
     .updateTable('accts.expenseClaim')
@@ -612,7 +612,7 @@ export async function retractExpenseClaim(
 export async function submitExpenseClaim(
   id: string,
   user: JWTUser,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<boolean> {
   const result = await executor
     .updateTable('accts.expenseClaim')
@@ -631,7 +631,7 @@ export async function submitExpenseClaim(
 export async function approveExpenseClaim(
   id: string,
   approverId: string,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<boolean> {
   const result = await executor
     .updateTable('accts.expenseClaim')
@@ -654,7 +654,7 @@ export async function rejectExpenseClaim(
   id: string,
   rejectorId: string,
   reason: string,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<boolean> {
   const result = await executor
     .updateTable('accts.expenseClaim')
@@ -674,7 +674,7 @@ export async function rejectExpenseClaim(
 export async function overrideFuelPrice(
   id: string,
   efnuPrice: number,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<boolean> {
   await executor
     .updateTable('accts.expenseClaimLineItem')
@@ -703,7 +703,7 @@ export async function overrideFuelPrice(
 export async function setExpenseClaimToDraft(
   id: string,
   adminId: string,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<boolean> {
   const result = await executor
     .updateTable('accts.expenseClaim')
@@ -735,7 +735,7 @@ export async function setExpenseClaimToDraft(
 
 export async function markExpenseClaimPendingInfo(
   id: string,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<boolean> {
   const result = await executor
     .updateTable('accts.expenseClaim')
@@ -752,7 +752,7 @@ export async function markExpenseClaimPendingInfo(
 export async function setExpenseReceipt(
   claimId: string,
   receipt: { storageKey: string; fileName: string; fileSize: number; mimeType: string } | null,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<void> {
   await executor
     .updateTable('accts.expenseClaim')
@@ -784,7 +784,7 @@ export async function addExpenseMessage(
   senderId: string,
   type: ExpenseMessageType,
   body: string,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<ExpenseClaimMessage> {
   const inserted = await executor
     .insertInto('accts.expenseClaimMessage')
@@ -803,7 +803,7 @@ export async function addExpenseMessage(
 export async function updateExpenseSimplbooksId(
   claimId: string,
   purchaseId: number,
-  executor: Executor = camelDb,
+  executor: Executor = db,
 ): Promise<boolean> {
   const result = await executor
     .updateTable('accts.expenseClaim')
@@ -861,7 +861,7 @@ export async function treasurerEditExpenseClaim(
 
   const auditRows: EditAuditRow[] = []
 
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     const claimPatch: Record<string, unknown> = {}
 
     const diffClaimField = (field: 'title' | 'aircraftId' | 'expenseDate', column: string) => {
@@ -988,7 +988,7 @@ export async function treasurerEditExpenseClaim(
 export async function getExpenseClaimEditAudit(
   claimId: string,
 ): Promise<ExpenseClaimEditAuditEntry[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.expenseClaimEditAudit')
     .selectAll()
     .where('claimId', '=', claimId)

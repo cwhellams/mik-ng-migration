@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 
 type SavedBooking = Omit<
   Selectable<ScheduleBookings>,
-  'calendar_sequence' | 'start_time_utc' | 'end_time_utc'
+  'calendarSequence' | 'startTimeUtc' | 'endTimeUtc'
 >
 
 // Mock the logger
@@ -65,33 +65,33 @@ describe('Booking Reminder Worker', () => {
     savedStlBookings = await db
       .selectFrom('schedule.bookings')
       .select([
-        'booking_id',
-        'member_id',
+        'bookingId',
+        'memberId',
         'registration',
-        'booking_type',
-        'booking_status',
-        'start_time_epoch',
-        'end_time_epoch',
-        'instructor_member_id',
-        'cancellation_note',
-        'cancellation_reason',
-        'cancelled_at',
-        'cancelled_by',
+        'bookingType',
+        'bookingStatus',
+        'startTimeEpoch',
+        'endTimeEpoch',
+        'instructorMemberId',
+        'cancellationNote',
+        'cancellationReason',
+        'cancelledAt',
+        'cancelledBy',
         'description',
-        'reminder_sent_at',
-        'created_by',
-        'created_at',
-        'updated_by',
-        'updated_at',
+        'reminderSentAt',
+        'createdBy',
+        'createdAt',
+        'updatedBy',
+        'updatedAt',
       ])
       .where((eb) =>
         eb.and([
-          eb('booking_id', 'like', 'stl%'),
+          eb('bookingId', 'like', 'stl%'),
           eb.or([
-            eb.and([eb('start_time_epoch', '<', endEpoch), eb('end_time_epoch', '>', startEpoch)]),
+            eb.and([eb('startTimeEpoch', '<', endEpoch), eb('endTimeEpoch', '>', startEpoch)]),
             eb.and([
-              eb('start_time_epoch', '<', farEndEpoch),
-              eb('end_time_epoch', '>', farStartEpoch),
+              eb('startTimeEpoch', '<', farEndEpoch),
+              eb('endTimeEpoch', '>', farStartEpoch),
             ]),
           ]),
         ]),
@@ -105,17 +105,14 @@ describe('Booking Reminder Worker', () => {
       .deleteFrom('schedule.bookings')
       .where((eb) =>
         eb.or([
-          eb('booking_id', 'like', 'rm%'),
+          eb('bookingId', 'like', 'rm%'),
           eb.and([
-            eb('booking_id', 'like', 'stl%'),
+            eb('bookingId', 'like', 'stl%'),
             eb.or([
+              eb.and([eb('startTimeEpoch', '<', endEpoch), eb('endTimeEpoch', '>', startEpoch)]),
               eb.and([
-                eb('start_time_epoch', '<', endEpoch),
-                eb('end_time_epoch', '>', startEpoch),
-              ]),
-              eb.and([
-                eb('start_time_epoch', '<', farEndEpoch),
-                eb('end_time_epoch', '>', farStartEpoch),
+                eb('startTimeEpoch', '<', farEndEpoch),
+                eb('endTimeEpoch', '>', farStartEpoch),
               ]),
             ]),
           ]),
@@ -129,23 +126,23 @@ describe('Booking Reminder Worker', () => {
     await db
       .insertInto('schedule.bookings')
       .values({
-        booking_id: testBookingId,
-        member_id: testMemberId,
+        bookingId: testBookingId,
+        memberId: testMemberId,
         registration: 'OH-STL',
-        booking_type: 'PRIVATE',
-        booking_status: 'CONFIRMED',
-        start_time_epoch: startEpoch,
-        end_time_epoch: endEpoch,
-        reminder_sent_at: null,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        bookingType: 'PRIVATE',
+        bookingStatus: 'CONFIRMED',
+        startTimeEpoch: startEpoch,
+        endTimeEpoch: endEpoch,
+        reminderSentAt: null,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
       .execute()
   })
 
   afterEach(async () => {
     if (testBookingId) {
-      await db.deleteFrom('schedule.bookings').where('booking_id', '=', testBookingId).execute()
+      await db.deleteFrom('schedule.bookings').where('bookingId', '=', testBookingId).execute()
     }
     if (savedStlBookings.length > 0) {
       await db.insertInto('schedule.bookings').values(savedStlBookings).execute()
@@ -212,8 +209,8 @@ describe('Booking Reminder Worker', () => {
       // Pre-stamp the reminder
       await db
         .updateTable('schedule.bookings')
-        .set({ reminder_sent_at: new Date().toISOString() })
-        .where('booking_id', '=', testBookingId)
+        .set({ reminderSentAt: new Date().toISOString() })
+        .where('bookingId', '=', testBookingId)
         .execute()
 
       const claimed = await claimUpcomingBookingsForReminder()
@@ -224,11 +221,11 @@ describe('Booking Reminder Worker', () => {
       await db
         .updateTable('schedule.bookings')
         .set({
-          booking_status: 'CANCELLED',
-          cancelled_at: new Date().toISOString(),
-          cancelled_by: 'k1mnimda',
+          bookingStatus: 'CANCELLED',
+          cancelledAt: new Date().toISOString(),
+          cancelledBy: 'k1mnimda',
         })
-        .where('booking_id', '=', testBookingId)
+        .where('bookingId', '=', testBookingId)
         .execute()
 
       const claimed = await claimUpcomingBookingsForReminder()
@@ -241,8 +238,8 @@ describe('Booking Reminder Worker', () => {
       const farEndEpoch = (Math.floor(dayjs().add(49, 'hour').unix() / 60) * 60).toString()
       await db
         .updateTable('schedule.bookings')
-        .set({ start_time_epoch: farEpoch, end_time_epoch: farEndEpoch })
-        .where('booking_id', '=', testBookingId)
+        .set({ startTimeEpoch: farEpoch, endTimeEpoch: farEndEpoch })
+        .where('bookingId', '=', testBookingId)
         .execute()
 
       const claimed = await claimUpcomingBookingsForReminder()
@@ -255,8 +252,8 @@ describe('Booking Reminder Worker', () => {
       const farEndEpoch = (Math.floor(dayjs().add(49, 'hour').unix() / 60) * 60).toString()
       await db
         .updateTable('schedule.bookings')
-        .set({ start_time_epoch: farEpoch, end_time_epoch: farEndEpoch })
-        .where('booking_id', '=', testBookingId)
+        .set({ startTimeEpoch: farEpoch, endTimeEpoch: farEndEpoch })
+        .where('bookingId', '=', testBookingId)
         .execute()
 
       // With default 24h window, the 48h booking should not be found

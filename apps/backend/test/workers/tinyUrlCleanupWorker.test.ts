@@ -70,25 +70,22 @@ describe('Tiny URL Cleanup Worker', () => {
 
     afterEach(async () => {
       // Clean up any test tiny URLs
-      await db
-        .deleteFrom('member.document_tiny_urls')
-        .where('created_by', '=', testMemberId)
-        .execute()
+      await db.deleteFrom('member.documentTinyUrls').where('createdBy', '=', testMemberId).execute()
     })
 
     it('should delete an expired tiny URL', async () => {
       const pastDate = new Date(Date.now() - 60_000) // expired 1 minute ago
 
       await db
-        .insertInto('member.document_tiny_urls')
+        .insertInto('member.documentTinyUrls')
         .values({
-          short_code: 'TEST',
+          shortCode: 'TEST',
           url: 'https://example.com/test',
-          expires_at: pastDate,
-          document_type: 'member',
-          document_id: 1,
-          aircraft_document_id: null,
-          created_by: testMemberId,
+          expiresAt: pastDate,
+          documentType: 'member',
+          documentId: 1,
+          aircraftDocumentId: null,
+          createdBy: testMemberId,
         })
         .execute()
 
@@ -96,9 +93,9 @@ describe('Tiny URL Cleanup Worker', () => {
       expect(deleted).toBeGreaterThanOrEqual(1)
 
       const remaining = await db
-        .selectFrom('member.document_tiny_urls')
-        .select('short_code')
-        .where('short_code', '=', 'TEST')
+        .selectFrom('member.documentTinyUrls')
+        .select('shortCode')
+        .where('shortCode', '=', 'TEST')
         .executeTakeFirst()
 
       expect(remaining).toBeUndefined()
@@ -108,15 +105,15 @@ describe('Tiny URL Cleanup Worker', () => {
       const futureDate = new Date(Date.now() + 300_000) // expires in 5 minutes
 
       await db
-        .insertInto('member.document_tiny_urls')
+        .insertInto('member.documentTinyUrls')
         .values({
-          short_code: 'LIVE',
+          shortCode: 'LIVE',
           url: 'https://example.com/live',
-          expires_at: futureDate,
-          document_type: 'member',
-          document_id: 1,
-          aircraft_document_id: null,
-          created_by: testMemberId,
+          expiresAt: futureDate,
+          documentType: 'member',
+          documentId: 1,
+          aircraftDocumentId: null,
+          createdBy: testMemberId,
         })
         .execute()
 
@@ -124,9 +121,9 @@ describe('Tiny URL Cleanup Worker', () => {
       expect(deleted).toBe(0)
 
       const remaining = await db
-        .selectFrom('member.document_tiny_urls')
-        .select('short_code')
-        .where('short_code', '=', 'LIVE')
+        .selectFrom('member.documentTinyUrls')
+        .select('shortCode')
+        .where('shortCode', '=', 'LIVE')
         .executeTakeFirst()
 
       expect(remaining).toBeDefined()
@@ -137,34 +134,31 @@ describe('Tiny URL Cleanup Worker', () => {
     const testMemberId = 'Matti1'
 
     afterEach(async () => {
-      await db
-        .deleteFrom('member.document_tiny_urls')
-        .where('created_by', '=', testMemberId)
-        .execute()
+      await db.deleteFrom('member.documentTinyUrls').where('createdBy', '=', testMemberId).execute()
     })
 
     it('should delete expired tiny URLs and log count', async () => {
       const pastDate = new Date(Date.now() - 60_000)
 
       await db
-        .insertInto('member.document_tiny_urls')
+        .insertInto('member.documentTinyUrls')
         .values({
-          short_code: 'EXP1',
+          shortCode: 'EXP1',
           url: 'https://example.com/exp1',
-          expires_at: pastDate,
-          document_type: 'member',
-          document_id: 1,
-          aircraft_document_id: null,
-          created_by: testMemberId,
+          expiresAt: pastDate,
+          documentType: 'member',
+          documentId: 1,
+          aircraftDocumentId: null,
+          createdBy: testMemberId,
         })
         .execute()
 
       await processExpiredTinyUrls()
 
       const remaining = await db
-        .selectFrom('member.document_tiny_urls')
-        .select('short_code')
-        .where('short_code', '=', 'EXP1')
+        .selectFrom('member.documentTinyUrls')
+        .select('shortCode')
+        .where('shortCode', '=', 'EXP1')
         .executeTakeFirst()
 
       expect(remaining).toBeUndefined()

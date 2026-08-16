@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 
 export interface CostCentre {
   code: string
@@ -6,11 +6,11 @@ export interface CostCentre {
 }
 
 export async function getCostCentres(): Promise<CostCentre[]> {
-  return camelDb.selectFrom('accts.costCentre').selectAll().orderBy('code').execute()
+  return db.selectFrom('accts.costCentre').selectAll().orderBy('code').execute()
 }
 
 export async function createCostCentre(code: string, description: string): Promise<CostCentre> {
-  return camelDb
+  return db
     .insertInto('accts.costCentre')
     .values({ code, description })
     .returningAll()
@@ -21,7 +21,7 @@ export async function updateCostCentre(
   code: string,
   description: string,
 ): Promise<CostCentre | undefined> {
-  return camelDb
+  return db
     .updateTable('accts.costCentre')
     .set({ description })
     .where('code', '=', code)
@@ -30,7 +30,7 @@ export async function updateCostCentre(
 }
 
 export async function deleteCostCentre(code: string): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('accts.costCentre')
     .where('code', '=', code)
     .executeTakeFirstOrThrow()

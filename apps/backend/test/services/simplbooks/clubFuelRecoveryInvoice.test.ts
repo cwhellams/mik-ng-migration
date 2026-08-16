@@ -52,15 +52,15 @@ describe('createClubFuelRecoveryInvoice (issue #955)', () => {
     jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksGet)
 
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', 'fuel')
       .executeTakeFirstOrThrow()
     const claim = await db
-      .insertInto('accts.expense_claim')
+      .insertInto('accts.expenseClaim')
       .values({
-        member_id: MEMBER_ID,
-        category_id: category.id,
+        memberId: MEMBER_ID,
+        categoryId: category.id,
         title: 'Club card fuel over the cap',
         status: ExpenseClaimStatus.APPROVED,
       })
@@ -70,16 +70,16 @@ describe('createClubFuelRecoveryInvoice (issue #955)', () => {
   })
 
   afterEach(async () => {
-    await db.deleteFrom('accts.expense_claim').where('id', '=', claimId).execute()
+    await db.deleteFrom('accts.expenseClaim').where('id', '=', claimId).execute()
     await db
-      .deleteFrom('accts.outbox_simplbooks')
-      .where('event_type', '=', SimplbooksEventType.SEND_INVOICE_PDF)
+      .deleteFrom('accts.outboxSimplbooks')
+      .where('eventType', '=', SimplbooksEventType.SEND_INVOICE_PDF)
       .where(sql<boolean>`payload ->> 'memberId' = ${MEMBER_ID}`)
       .execute()
     if (createdInvoiceIds.length > 0) {
       await db
         .deleteFrom('accts.invoice')
-        .where('member_id', '=', MEMBER_ID)
+        .where('memberId', '=', MEMBER_ID)
         .where('id', 'in', createdInvoiceIds)
         .execute()
       createdInvoiceIds.length = 0
@@ -90,8 +90,8 @@ describe('createClubFuelRecoveryInvoice (issue #955)', () => {
 
   function makeOutboxMsg(payload: Record<string, unknown> = {}): AcctsOutboxSimplbooks {
     return {
-      created_at_utc: new Date(),
-      event_type: SimplbooksEventType.CLUB_FUEL_RECOVERY,
+      createdAtUtc: new Date(),
+      eventType: SimplbooksEventType.CLUB_FUEL_RECOVERY,
       id: randomUUID(),
       payload: {
         claimId,

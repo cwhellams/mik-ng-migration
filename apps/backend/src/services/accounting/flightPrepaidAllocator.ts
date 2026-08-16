@@ -1,7 +1,7 @@
 import type { Kysely, Transaction } from 'kysely'
 
-import { camelDb } from '../../db/connection.ts'
-import type { DB as CamelDB } from '../../db/schema.camel.d.ts'
+import { db } from '../../db/connection.ts'
+import type { DB } from '../../db/schema.d.ts'
 import type {
   InvoicableFlight,
   PrepaidFlightGroup,
@@ -9,7 +9,7 @@ import type {
   PrepaidFlightUsage,
 } from '@mik/contracts/flight-log'
 
-type QueryExecutor = Kysely<CamelDB> | Transaction<CamelDB>
+type QueryExecutor = Kysely<DB> | Transaction<DB>
 
 type ActiveMemberPackage = {
   memberPackageId: number
@@ -30,7 +30,7 @@ export type PlannedPrepaidUsage = {
 }
 
 function getExecutor(executor?: QueryExecutor): QueryExecutor {
-  return executor ?? camelDb
+  return executor ?? db
 }
 
 export function getBillableMinutes(flight: InvoicableFlight): number {
@@ -257,7 +257,7 @@ export async function planPrepaidFlightUsage(
 export async function applyPrepaidFlightUsagePlan(
   plan: PlannedPrepaidUsage,
   invoiceId: string | number,
-  txn: Transaction<CamelDB>,
+  txn: Transaction<DB>,
 ): Promise<void> {
   const usages = plan.groups.flatMap((group) =>
     group.flights.flatMap((flight) =>

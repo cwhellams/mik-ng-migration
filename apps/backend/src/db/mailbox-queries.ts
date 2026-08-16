@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 
 export type MailboxSeverity = 'info' | 'warning' | 'error' | 'success'
 
@@ -41,7 +41,7 @@ export async function getMessagesForMember(
   options: { limit?: number; offset?: number } = {},
 ): Promise<MailboxMessageRow[]> {
   const { limit = DEFAULT_MAILBOX_LIST_LIMIT, offset = 0 } = options
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('member.mailboxMessages')
     .select(['id', 'recipientId', 'type', 'severity', 'title', 'body', 'createdAt', 'readAt'])
     .where('recipientId', '=', memberId)
@@ -55,7 +55,7 @@ export async function getMessagesForMember(
 
 /** Count of unread messages for a member, used for the profile-menu badge. */
 export async function getUnreadCountForMember(memberId: string): Promise<number> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('member.mailboxMessages')
     .select((eb) => eb.fn.countAll().as('count'))
     .where('recipientId', '=', memberId)
@@ -71,7 +71,7 @@ export async function getUnreadCountForMember(memberId: string): Promise<number>
  * by this member.
  */
 export async function markMessageRead(messageId: string, memberId: string): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .updateTable('member.mailboxMessages')
     .set({ readAt: new Date() })
     .where('id', '=', messageId)
@@ -82,7 +82,7 @@ export async function markMessageRead(messageId: string, memberId: string): Prom
     return true
   }
 
-  const existing = await camelDb
+  const existing = await db
     .selectFrom('member.mailboxMessages')
     .select('id')
     .where('id', '=', messageId)
@@ -93,7 +93,7 @@ export async function markMessageRead(messageId: string, memberId: string): Prom
 
 /** Mark every unread message read for a member. */
 export async function markAllMessagesRead(memberId: string): Promise<void> {
-  await camelDb
+  await db
     .updateTable('member.mailboxMessages')
     .set({ readAt: new Date() })
     .where('recipientId', '=', memberId)
@@ -119,7 +119,7 @@ export type CreateMailboxMessageInput = {
  * Idempotent when `dedupKey` is given: inserting the same key again is a no-op.
  */
 export async function createMailboxMessage(input: CreateMailboxMessageInput): Promise<void> {
-  await camelDb
+  await db
     .insertInto('member.mailboxMessages')
     .values({
       recipientId: input.recipientId,
@@ -135,7 +135,7 @@ export async function createMailboxMessage(input: CreateMailboxMessageInput): Pr
 
 /** Delete messages past their TTL. Returns the number of rows removed. */
 export async function deleteExpiredMailboxMessages(): Promise<number> {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('member.mailboxMessages')
     .where('expiresAt', '<', new Date())
     .executeTakeFirst()

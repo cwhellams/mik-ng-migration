@@ -2,28 +2,32 @@ import 'dotenv/config'
 
 import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals'
 
-import { camelDb, db } from '../../src/db/connection.ts'
+import { db } from '../../src/db/connection.ts'
 import { addExpenseAttachment } from '../../src/db/expense-attachment-queries.ts'
 import { insertOutboxItem } from '../../src/db/outbox-simplbooks-queries.ts'
 import { SimplbooksEventType } from '../../src/services/simplbooks/models.ts'
 
 /**
- * The seven-module cluster — expense, expense-attachment, inventory, meeting,
- * mileage, occurrence, outbox-simplbooks (plus shop, which reaches into the outbox)
- * — had to move to camelDb in one commit. A transaction belongs to one Kysely
- * instance, so a `db.transaction()` handed to a function querying `camelDb` runs on a
- * separate connection: its writes commit independently and survive the rollback, with
- * nothing failing and no test noticing.
+ * expense, expense-attachment, inventory, meeting, mileage, occurrence and
+ * outbox-simplbooks (plus shop, which reaches into the outbox) pass transactions
+ * across module boundaries.
  *
- * The pairing below is the one that matters most in this cluster. `shop-queries`
- * writes a shop order and enqueues its SimplBooks invoicing event in a single
- * transaction, so a split here means an invoice event for an order that was rolled
- * back — a member billed for something they never bought. This exercises the same
- * shape with fixtures that do not require a whole order.
+ * What this guards is that each module *uses the executor it was handed* rather than
+ * reaching for the module-level `db`. A `db.transaction()` runs on its own connection,
+ * so a function that quietly ignores the transaction it was given writes outside it:
+ * those writes commit independently and survive the rollback, with nothing failing and
+ * no test noticing.
  *
- * See test/db/transaction-cluster.test.ts for the equivalent guard on cluster B, and
- * DATA_LAYER.md for why the route using the wrong instance is a compile error rather
- * than something a test can catch.
+ * The pairing below is the one that matters most here. `shop-queries` writes a shop
+ * order and enqueues its SimplBooks invoicing event in a single transaction, so a split
+ * means an invoice event for an order that was rolled back — a member billed for
+ * something they never bought. This exercises the same shape with fixtures that do not
+ * require a whole order.
+ *
+ * See test/db/transaction-cluster.test.ts for the equivalent guard on the aircraft-hil
+ * cluster. (Both were written during issue #1115 phase 5, when a transaction
+ * additionally could not span the two Kysely instances that then existed. That hazard
+ * went with the second instance; the executor-plumbing one did not.)
  */
 describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => {
   const storageKey = `ut-cluster-a-${Date.now()}`
@@ -35,16 +39,16 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
   // a rollback guard that silently stops guarding.
   beforeAll(async () => {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .limit(1)
       .executeTakeFirstOrThrow()
 
     const claim = await db
-      .insertInto('accts.expense_claim')
+      .insertInto('accts.expenseClaim')
       .values({
-        member_id: 'Matti1',
-        category_id: category.id,
+        memberId: 'Matti1',
+        categoryId: category.id,
         title: 'transaction cluster A fixture',
         ccy: 'EUR',
         status: 'DRAFT',
@@ -55,16 +59,16 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
   })
 
   afterAll(async () => {
-    await db.deleteFrom('accts.expense_claim').where('id', '=', claimId).execute()
+    await db.deleteFrom('accts.expenseClaim').where('id', '=', claimId).execute()
   })
 
   afterEach(async () => {
     await db
-      .deleteFrom('accts.expense_claim_attachment')
-      .where('storage_key', '=', storageKey)
+      .deleteFrom('accts.expenseClaimAttachment')
+      .where('storageKey', '=', storageKey)
       .execute()
     await db
-      .deleteFrom('accts.outbox_simplbooks')
+      .deleteFrom('accts.outboxSimplbooks')
       .where('payload', '@>', JSON.stringify({ storageKey }) as never)
       .execute()
       .catch(() => undefined)
@@ -74,9 +78,9 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
     Number(
       (
         await db
-          .selectFrom('accts.expense_claim_attachment')
+          .selectFrom('accts.expenseClaimAttachment')
           .select((eb) => eb.fn.count('id').as('count'))
-          .where('storage_key', '=', storageKey)
+          .where('storageKey', '=', storageKey)
           .executeTakeFirstOrThrow()
       ).count,
     )
@@ -85,7 +89,7 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
     Number(
       (
         await db
-          .selectFrom('accts.outbox_simplbooks')
+          .selectFrom('accts.outboxSimplbooks')
           .select((eb) => eb.fn.count('id').as('count'))
           .where('payload', '@>', JSON.stringify({ storageKey }) as never)
           .executeTakeFirstOrThrow()
@@ -93,7 +97,7 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
     )
 
   it('commits both modules together', async () => {
-    await camelDb.transaction().execute(async (trx) => {
+    await db.transaction().execute(async (trx) => {
       await addExpenseAttachment(
         claimId,
         { storageKey, fileName: 'cluster-a.pdf', fileSize: 1, mimeType: 'application/pdf' },
@@ -106,13 +110,13 @@ describe('transaction cluster A: expense-attachment / outbox-simplbooks', () => 
     expect(await outboxCount()).toBe(1)
   })
 
-  // If either module were still on `db` while the caller opened a `camelDb`
-  // transaction, its write would land on a separate connection and outlive the
+  // If either module ignored the `trx` it is handed and reached for the module-level
+  // `db`, its write would land on a separate connection and outlive the
   // rollback — leaving, in the real shop-order path, an invoicing event for an order
   // that never existed.
   it('rolls both modules back when the transaction fails', async () => {
     await expect(
-      camelDb.transaction().execute(async (trx) => {
+      db.transaction().execute(async (trx) => {
         await addExpenseAttachment(
           claimId,
           { storageKey, fileName: 'cluster-a.pdf', fileSize: 1, mimeType: 'application/pdf' },

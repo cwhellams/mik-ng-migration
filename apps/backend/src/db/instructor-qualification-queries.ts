@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   InstructorQualification,
@@ -29,7 +29,7 @@ const INSTRUCTOR_ROLES = ['INSTRUCTOR', 'EXAMINER']
 
 /** Fetch the active instructor roster (memberId, firstName, lastName) ordered by last/first name. */
 async function getInstructorRoster() {
-  return camelDb
+  return db
     .selectFrom('member.register')
     .innerJoin('member.memberToRoles', 'member.register.memberId', 'member.memberToRoles.memberId')
     .select(['member.register.memberId', 'member.register.firstName', 'member.register.lastName'])
@@ -311,7 +311,7 @@ export interface ExpiringQualification {
 export async function getQualificationsByExpiryDate(
   expiryDate: string,
 ): Promise<ExpiringQualification[]> {
-  const members = await camelDb
+  const members = await db
     .selectFrom('member.register as r')
     .innerJoin('member.memberToRoles as mtr', 'r.memberId', 'mtr.memberId')
     .select(['r.memberId', 'r.firstName', 'r.lastName', 'r.email', 'r.langIso639'])

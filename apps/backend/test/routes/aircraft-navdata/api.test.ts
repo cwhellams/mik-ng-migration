@@ -55,9 +55,9 @@ const newRecord = {
 
 const cleanupTestNavdata = async () => {
   await db
-    .deleteFrom('flight.aircraft_navdata')
+    .deleteFrom('flight.aircraftNavdata')
     .where('cycle', 'like', '2604%')
-    .where('aircraft_registration', '=', TEST_REGISTRATION)
+    .where('aircraftRegistration', '=', TEST_REGISTRATION)
     .execute()
 }
 

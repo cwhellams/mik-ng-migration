@@ -1,7 +1,7 @@
 import type { Updateable } from 'kysely'
 
-import type { FlightAircraftDocumentsFiles, FlightAircraftDocumentType } from './schema.camel.d.ts'
-import type { CamelRow } from './connection.ts'
+import type { FlightAircraftDocumentsFiles, FlightAircraftDocumentType } from './schema.d.ts'
+import type { DbRow } from './connection.ts'
 import { sql } from 'kysely'
 import * as connection from './connection.ts'
 import type {
@@ -24,7 +24,7 @@ export const getAllAircraftDocuments = async (
     offset = 0,
   } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('flight.aircraftDocumentsFiles')
     .selectAll()
     .where('isActive', '=', true)
@@ -57,7 +57,7 @@ export const getAllAircraftDocuments = async (
   query = query.limit(limit).offset(offset)
 
   const records = await query.execute()
-  return records.map((record: CamelRow<'flight.aircraftDocumentsFiles'>) => ({
+  return records.map((record: DbRow<'flight.aircraftDocumentsFiles'>) => ({
     documentId: record.documentId,
     aircraftRegistration: record.aircraftRegistration,
     documentType: record.documentType,
@@ -83,7 +83,7 @@ export const countAircraftDocuments = async (
 ): Promise<number> => {
   const { aircraftRegistration, documentType, validOnly = false } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('flight.aircraftDocumentsFiles')
     .select((eb) => eb.fn.count('documentId').as('count'))
     .where('isActive', '=', true)
@@ -113,7 +113,7 @@ export const countAircraftDocuments = async (
 export const getAircraftDocumentById = async (
   documentId: number,
 ): Promise<AircraftDocumentAuditable | null> => {
-  const record = await connection.camelDb
+  const record = await connection.db
     .selectFrom('flight.aircraftDocumentsFiles')
     .selectAll()
     .where('documentId', '=', documentId)
@@ -149,7 +149,7 @@ export const addAircraftDocument = async (
 ): Promise<AircraftDocumentAuditable> => {
   const now = new Date()
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .insertInto('flight.aircraftDocumentsFiles')
     .values({
       aircraftRegistration: document.aircraftRegistration,
@@ -211,7 +211,7 @@ export const updateAircraftDocument = async (
   if (patch.mimeType !== undefined) updateData.mimeType = patch.mimeType
   if (patch.storageKey !== undefined) updateData.storageKey = patch.storageKey
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .updateTable('flight.aircraftDocumentsFiles')
     .set(updateData)
     .where('documentId', '=', documentId)
@@ -221,7 +221,7 @@ export const updateAircraftDocument = async (
 }
 
 export const removeAircraftDocument = async (documentId: number): Promise<boolean> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .deleteFrom('flight.aircraftDocumentsFiles')
     .where('documentId', '=', documentId)
     .executeTakeFirst()
@@ -230,7 +230,7 @@ export const removeAircraftDocument = async (documentId: number): Promise<boolea
 }
 
 export const getAircraftRegistrations = async (): Promise<string[]> => {
-  const records = await connection.camelDb
+  const records = await connection.db
     .selectFrom('flight.aircraft')
     .select('registration')
     .where('active', '=', true)
@@ -255,7 +255,7 @@ export interface ExpiringAircraftDocument {
 export const getAircraftDocumentsExpiringOn = async (
   targetDate: string,
 ): Promise<ExpiringAircraftDocument[]> => {
-  const records = await connection.camelDb
+  const records = await connection.db
     .selectFrom('flight.aircraftDocumentsFiles as d')
     .select(['d.documentId', 'd.aircraftRegistration', 'd.documentType', 'd.title', 'd.validTo'])
     .where('d.isActive', '=', true)
@@ -292,7 +292,7 @@ export const hasAircraftDocumentNotificationBeenSent = async (
   notificationType: 'REMINDER' | 'EXPIRED',
   daysThreshold: number = 0,
 ): Promise<boolean> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .selectFrom('flight.aircraftDocumentExpiryNotifications')
     .select('id')
     .where('documentId', '=', documentId)
@@ -308,7 +308,7 @@ export const recordAircraftDocumentNotificationSent = async (
   notificationType: 'REMINDER' | 'EXPIRED',
   daysThreshold: number = 0,
 ): Promise<void> => {
-  await connection.camelDb
+  await connection.db
     .insertInto('flight.aircraftDocumentExpiryNotifications')
     .values({
       documentId: documentId,

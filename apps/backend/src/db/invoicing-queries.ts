@@ -17,7 +17,7 @@ import {
 import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import { FlightLogStatus } from '@mik/contracts/flight-log'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
-import { camelDb, type CamelRow } from './connection.ts'
+import { db, type DbRow } from './connection.ts'
 import {
   HALF_YEAR_DISCOUNT_PERCENT,
   isAfterEquipmentFeeDiscountDate,
@@ -46,7 +46,7 @@ export async function getInvoices(
     scope,
   } = filters || {}
 
-  let query = camelDb.selectFrom('accts.invoice').selectAll()
+  let query = db.selectFrom('accts.invoice').selectAll()
 
   if (!isAdmin || scope === 'personal') {
     // If not admin, or the caller explicitly asked for personal-only results
@@ -86,7 +86,7 @@ export async function getInvoices(
   return rows.map(toInvoice)
 }
 
-const toInvoice = (row: CamelRow<'accts.invoice'>): Invoice => ({
+const toInvoice = (row: DbRow<'accts.invoice'>): Invoice => ({
   id: String(row.id),
   created_at: row.createdAt.toISOString(),
   created_by: row.createdBy,
@@ -104,12 +104,12 @@ const toInvoice = (row: CamelRow<'accts.invoice'>): Invoice => ({
   updated_by: row.updatedBy,
 })
 
-export async function getInvoiceItems(): Promise<Array<CamelRow<'accts.items'>>> {
-  return await camelDb.selectFrom('accts.items').selectAll().execute()
+export async function getInvoiceItems(): Promise<Array<DbRow<'accts.items'>>> {
+  return await db.selectFrom('accts.items').selectAll().execute()
 }
 
 export async function getAnnualEquipmentFee(): Promise<EquipmentFee | undefined> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('accts.items')
     .select('item')
     .where('code', '=', ART_EQUIP_FEE_CODE)
@@ -135,7 +135,7 @@ export async function getAnnualEquipmentFee(): Promise<EquipmentFee | undefined>
 }
 
 export async function getArticleFees(codes: string[]): Promise<ArticleFee[]> {
-  const results = await camelDb
+  const results = await db
     .selectFrom('accts.items')
     .select(['id', 'item', 'code', 'name'])
     .where('code', 'in', codes)
@@ -160,7 +160,7 @@ export async function getArticleFees(codes: string[]): Promise<ArticleFee[]> {
 }
 
 export async function hasRequestedEquipmentFee(year: number, memberId: string): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('member.annualFees')
     .select('memberId')
     .where('memberId', '=', memberId)
@@ -186,7 +186,7 @@ export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void
     return
   }
 
-  await camelDb
+  await db
     .insertInto('accts.items')
     .values(validItems)
     .onConflict((oc) =>
@@ -200,7 +200,7 @@ export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void
 }
 
 export async function deleteInvoiceItem(id: number): Promise<void> {
-  const result = await camelDb.deleteFrom('accts.items').where('id', '=', id).execute()
+  const result = await db.deleteFrom('accts.items').where('id', '=', id).execute()
 
   if (result.length === 0) {
     throw new Error(`Failed to delete invoice item with id ${id}`)
@@ -231,7 +231,7 @@ async function updateItemBooleanFlag(
   column: 'expenseClaimItem' | 'isFuelItem' | 'isKmItem' | 'isOtherItem',
   value: boolean,
 ): Promise<void> {
-  const result = await camelDb
+  const result = await db
     .updateTable('accts.items')
     .set({ [column]: value })
     .where('id', '=', id)
@@ -251,7 +251,7 @@ export async function getArticleIdsByCode(codes: string[]): Promise<Map<string, 
     return new Map()
   }
 
-  const results = await camelDb
+  const results = await db
     .selectFrom('accts.items')
     .select(['code', 'id'])
     .where('code', 'in', codes)
@@ -263,7 +263,7 @@ export async function getArticleIdsByCode(codes: string[]): Promise<Map<string, 
 export async function getRecurringFeesProcessing(
   feeType: FeeType,
 ): Promise<RecurringFeesProcessing[]> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('accts.recurringFeesProcessing')
     .selectAll()
     .where('feeType', '=', feeType)
@@ -287,7 +287,7 @@ export async function getRecurringFeesProcessing(
  * Note: `pmt_ref` stores the Simplbooks invoice reference, while `id` stores the Simplbooks invoice ID.
  */
 export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.invoice')
     .selectAll()
     .where('isPaid', '=', false)
@@ -303,7 +303,7 @@ export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
  */
 export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Promise<void> {
   const now = new Date().toISOString()
-  await camelDb.transaction().execute(async (trx) => {
+  await db.transaction().execute(async (trx) => {
     await trx
       .updateTable('accts.invoice')
       .set({
@@ -337,7 +337,7 @@ export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Prom
  * Grace period can be configured via OVERDUE_INVOICE_GRACE_PERIOD_DAYS env var (defaults to 0)
  */
 export async function getOverdueInvoicesWithoutReminder(): Promise<Invoice[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.invoice')
     .selectAll()
     .where('isPaid', '=', false)
@@ -353,7 +353,7 @@ export async function getOverdueInvoicesWithoutReminder(): Promise<Invoice[]> {
  * Mark that an overdue reminder email has been sent for an invoice
  */
 export async function markOverdueEmailSent(invoiceId: string): Promise<void> {
-  await camelDb
+  await db
     .updateTable('accts.invoice')
     .set({
       overdueEmailSentAt: new Date().toISOString(),
@@ -378,7 +378,7 @@ export async function getOverdueFlightInvoicesForMember(
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysOverdue)
 
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.invoice')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -395,7 +395,7 @@ export async function getOverdueFlightInvoicesForMember(
  * Get all members with suspended reservations (can_make_reservations = false)
  */
 export async function getMembersWithSuspendedReservations(): Promise<string[]> {
-  const members = await camelDb
+  const members = await db
     .selectFrom('member.register')
     .select('memberId')
     .where('canMakeReservations', '=', false)
@@ -424,7 +424,7 @@ export async function getOverdueFlightInvoicesPastDays(daysOverdue: number): Pro
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysOverdue)
 
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.invoice')
     .select(['memberId', 'id', 'totalSum', 'dueAt', 'currency'])
     .where('isPaid', '=', false)
@@ -449,7 +449,7 @@ export async function getOverdueFlightInvoicesPastDays(daysOverdue: number): Pro
 export async function getUnpaidOverdueInvoicesWithMemberInfo(): Promise<UnpaidOverdueInvoice[]> {
   const today = new Date().toISOString().split('T')[0]
 
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.invoice as inv')
     .innerJoin('member.register as m', 'm.memberId', 'inv.memberId')
     .select([

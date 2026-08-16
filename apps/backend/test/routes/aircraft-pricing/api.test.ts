@@ -146,11 +146,11 @@ describe('POST /aircraft-pricing', () => {
   afterEach(async () => {
     // Clean up test data
     await db
-      .deleteFrom('accts.aircraft_pricing')
+      .deleteFrom('accts.aircraftPricing')
       .where('registration', '=', newPricing.registration)
-      .where('valid_from', '=', newPricing.valid_from)
+      .where('validFrom', '=', newPricing.valid_from)
       .execute()
-    await db.updateTable('accts.aircraft_pricing').set({ valid_to: null }).execute()
+    await db.updateTable('accts.aircraftPricing').set({ validTo: null }).execute()
   })
 
   it('should return 401 for invalid token', async () => {
@@ -261,9 +261,9 @@ describe('POST /aircraft-pricing', () => {
 
     // Clean up
     await db
-      .deleteFrom('accts.aircraft_pricing')
+      .deleteFrom('accts.aircraftPricing')
       .where('registration', '=', openPricing.registration)
-      .where('valid_from', '=', openPricing.valid_from)
+      .where('validFrom', '=', openPricing.valid_from)
       .execute()
   })
 })
@@ -365,7 +365,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
 describe('DELETE /aircraft-pricing/:registration/:validFrom', () => {
   afterEach(async () => {
     // Clean up test data
-    await db.updateTable('accts.aircraft_pricing').set({ valid_to: null }).execute()
+    await db.updateTable('accts.aircraftPricing').set({ validTo: null }).execute()
   })
 
   it('should return 401 for invalid token', async () => {

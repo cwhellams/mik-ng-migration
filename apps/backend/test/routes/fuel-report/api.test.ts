@@ -38,7 +38,7 @@ const MEMBER_ID = 'Juha1'
 
 async function fuelCategoryId(): Promise<number> {
   const category = await db
-    .selectFrom('accts.expense_category')
+    .selectFrom('accts.expenseCategory')
     .select('id')
     .where('code', '=', 'fuel')
     .executeTakeFirstOrThrow()
@@ -47,7 +47,7 @@ async function fuelCategoryId(): Promise<number> {
 
 async function miscCategoryId(): Promise<number> {
   const category = await db
-    .selectFrom('accts.expense_category')
+    .selectFrom('accts.expenseCategory')
     .select('id')
     .where('code', '=', 'misc')
     .executeTakeFirstOrThrow()
@@ -67,29 +67,29 @@ async function insertClaimWithLineItem(
   },
 ): Promise<string> {
   const claim = await db
-    .insertInto('accts.expense_claim')
+    .insertInto('accts.expenseClaim')
     .values({
-      member_id: MEMBER_ID,
-      category_id: categoryId,
+      memberId: MEMBER_ID,
+      categoryId: categoryId,
       title: 'Fuel report test',
       status,
       ccy: line.ccy ?? 'EUR',
-      fx_rate: line.fxRate ?? null,
+      fxRate: line.fxRate ?? null,
     })
     .returning('id')
     .executeTakeFirstOrThrow()
 
   await db
-    .insertInto('accts.expense_claim_line_item')
+    .insertInto('accts.expenseClaimLineItem')
     .values({
-      claim_id: claim.id,
+      claimId: claim.id,
       description: 'Fuel report test line',
       quantity: line.quantity,
       unit: 'l',
-      unit_price: line.unitPrice,
-      fuel_type: 'JetA1',
+      unitPrice: line.unitPrice,
+      fuelType: 'JetA1',
       airport: line.airport ?? null,
-      fuel_date: line.fuelDate ?? null,
+      fuelDate: line.fuelDate ?? null,
     })
     .execute()
 
@@ -101,7 +101,7 @@ describe('GET /fuel-report', () => {
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
       insertedClaimIds.length = 0
     }
   })

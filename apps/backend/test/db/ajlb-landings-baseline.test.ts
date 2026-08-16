@@ -2,7 +2,7 @@ import 'dotenv/config'
 
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals'
 
-import { camelDb } from '../../src/db/connection.ts'
+import { db } from '../../src/db/connection.ts'
 import {
   deleteAircraftLandingsBaseline,
   getAircraftLandingsBaseline,
@@ -13,9 +13,9 @@ import type { JWTUser } from '../../src/routes/auth/token.ts'
 /**
  * These three functions were the last code in the backend talking to `connection.pool`
  * directly, and nothing covered them — the ajlb tests only exercise the CRUD helpers.
- * That mattered for the camelDb migration (issue #1115, phase 5), because moving them
+ * That mattered for the camelCase migration (issue #1115, phase 5), because moving them
  * off `pool.connect()` means replacing hand-rolled BEGIN/COMMIT/ROLLBACK with
- * `camelDb.transaction()`, and the backfill they run is three statements of recursive
+ * `db.transaction()`, and the backfill they run is three statements of recursive
  * CTE and window-function SQL whose behaviour no test pinned.
  *
  * The fixture is a private aircraft with three logbooks, so the recursive CTE in step 2
@@ -44,7 +44,7 @@ describe('aircraft landings baseline', () => {
   ] as const
 
   beforeAll(async () => {
-    await camelDb
+    await db
       .insertInto('flight.aircraft')
       .values({
         registration: REG,
@@ -69,7 +69,7 @@ describe('aircraft landings baseline', () => {
       .execute()
 
     for (const seqNo of [1, 2, 3]) {
-      await camelDb
+      await db
         .insertInto('flight.aircraftJourneyLogBook')
         .values({
           aircraftRegistration: REG,
@@ -90,7 +90,7 @@ describe('aircraft landings baseline', () => {
     }
 
     for (const f of flights) {
-      await camelDb
+      await db
         .insertInto('flight.logs')
         .values({
           flightId: f.id,
@@ -129,16 +129,16 @@ describe('aircraft landings baseline', () => {
   })
 
   afterAll(async () => {
-    await camelDb.deleteFrom('flight.logs').where('aircraftRegistration', '=', REG).execute()
-    await camelDb
+    await db.deleteFrom('flight.logs').where('aircraftRegistration', '=', REG).execute()
+    await db
       .deleteFrom('flight.aircraftLandingsBaseline')
       .where('aircraftRegistration', '=', REG)
       .execute()
-    await camelDb
+    await db
       .deleteFrom('flight.aircraftJourneyLogBook')
       .where('aircraftRegistration', '=', REG)
       .execute()
-    await camelDb.deleteFrom('flight.aircraft').where('registration', '=', REG).execute()
+    await db.deleteFrom('flight.aircraft').where('registration', '=', REG).execute()
   })
 
   beforeEach(async () => {
@@ -147,7 +147,7 @@ describe('aircraft landings baseline', () => {
 
   const startLandings = async () =>
     (
-      await camelDb
+      await db
         .selectFrom('flight.aircraftJourneyLogBook')
         .select(['seqNo', 'startLandings'])
         .where('aircraftRegistration', '=', REG)
@@ -157,7 +157,7 @@ describe('aircraft landings baseline', () => {
 
   const totalLandings = async () =>
     (
-      await camelDb
+      await db
         .selectFrom('flight.logs')
         .select(['flightId', 'ajlbTotalLandings'])
         .where('aircraftRegistration', '=', REG)
@@ -186,7 +186,7 @@ describe('aircraft landings baseline', () => {
     // What `ON DELETE SET NULL` on the member FK does when the member who set the
     // baseline is removed. Done directly here so the test does not have to delete a
     // member the rest of the fixture is still using.
-    await camelDb
+    await db
       .updateTable('flight.aircraftLandingsBaseline')
       .set({ createdBy: null, updatedBy: null })
       .where('aircraftRegistration', '=', REG)

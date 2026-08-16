@@ -1,9 +1,9 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { sql } from 'kysely'
 import type { TaxReportEntry, TaxReportFilters } from '@mik/contracts/tax-reports'
 
 export async function getTaxReport(filters: TaxReportFilters): Promise<TaxReportEntry[]> {
-  const result = await camelDb
+  const result = await db
     .selectFrom('flight.logs')
     .select([
       sql<string>`TO_CHAR(off_block_time_utc, 'YYYY-MM')`.as('month'),

@@ -191,8 +191,8 @@ describe('POST /triggerAnnualMembershipBillingProcess', () => {
     // Remove any existing fee processing record for the current year so the test
     // does not fail if test data already marks it as processed (e.g. V180__NonRenewalsData.sql)
     await db
-      .deleteFrom('accts.recurring_fees_processing')
-      .where('fee_type', '=', RecurringFeeType.ANNUAL_FEE)
+      .deleteFrom('accts.recurringFeesProcessing')
+      .where('feeType', '=', RecurringFeeType.ANNUAL_FEE)
       .where('year', '=', currentYear)
       .execute()
   })
@@ -200,15 +200,15 @@ describe('POST /triggerAnnualMembershipBillingProcess', () => {
   afterAll(async () => {
     // Restore the processed record so other tests that rely on this data still pass
     await db
-      .insertInto('accts.recurring_fees_processing')
+      .insertInto('accts.recurringFeesProcessing')
       .values({
-        fee_type: RecurringFeeType.ANNUAL_FEE,
+        feeType: RecurringFeeType.ANNUAL_FEE,
         year: currentYear,
         status: FeeProcessingStatus.PROCESSED,
-        created_by: 'k1mnimda',
-        updated_by: 'k1mnimda',
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
       })
-      .onConflict((oc) => oc.columns(['fee_type', 'year']).doNothing())
+      .onConflict((oc) => oc.columns(['feeType', 'year']).doNothing())
       .execute()
   })
 

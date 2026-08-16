@@ -10,7 +10,7 @@ export interface Airfield {
 // route param, so the string it used to pass was always undefined — and this
 // function ignored it regardless. The endpoint returns the whole static list.
 export async function getAirfields(): Promise<Airfield[]> {
-  const results = await connection.camelDb.selectFrom('static.airfields').selectAll().execute()
+  const results = await connection.db.selectFrom('static.airfields').selectAll().execute()
 
   return results.map((field) => ({
     ident: field.ident,

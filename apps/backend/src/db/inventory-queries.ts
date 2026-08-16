@@ -1,5 +1,5 @@
 import type { Updateable } from 'kysely'
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
@@ -12,11 +12,11 @@ import type {
   InventoryFilters,
   InventoryAuditLogEntry,
 } from '@mik/contracts/inventory'
-import type { Json, InventoryCategories, InventoryLocations } from './schema.camel.d.ts'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import type { Json, InventoryCategories, InventoryLocations } from './schema.d.ts'
+import type { DB } from './schema.d.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
 
-type Executor = Kysely<CamelDB> | Transaction<CamelDB>
+type Executor = Kysely<DB> | Transaction<DB>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -57,14 +57,14 @@ function toLocation(r: LocationRow): InventoryLocation {
 }
 
 export async function getLocations(activeOnly = true): Promise<InventoryLocation[]> {
-  let q = camelDb.selectFrom('inventory.locations').selectAll()
+  let q = db.selectFrom('inventory.locations').selectAll()
   if (activeOnly) q = q.where('isActive', '=', true)
   const rows = await q.orderBy('sortOrder').execute()
   return rows.map((r) => toLocation(r as unknown as LocationRow))
 }
 
 export async function getLocationById(id: string): Promise<InventoryLocation | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('inventory.locations')
     .selectAll()
     .where('locationId', '=', id)
@@ -87,7 +87,7 @@ export async function upsertLocation(
     if (data.isActive !== undefined) update.isActive = data.isActive
     if (data.sortOrder !== undefined) update.sortOrder = data.sortOrder
 
-    await camelDb
+    await db
       .updateTable('inventory.locations')
       .set(update)
       .where('locationId', '=', data.locationId)
@@ -95,7 +95,7 @@ export async function upsertLocation(
     return getLocationById(data.locationId) as Promise<InventoryLocation>
   } else {
     const id = generateShortId()
-    await camelDb
+    await db
       .insertInto('inventory.locations')
       .values({
         locationId: id,
@@ -142,14 +142,14 @@ function toCategory(r: CategoryRow): InventoryCategory {
 }
 
 export async function getCategories(activeOnly = true): Promise<InventoryCategory[]> {
-  let q = camelDb.selectFrom('inventory.categories').selectAll()
+  let q = db.selectFrom('inventory.categories').selectAll()
   if (activeOnly) q = q.where('isActive', '=', true)
   const rows = await q.orderBy('sortOrder').execute()
   return rows.map((r) => toCategory(r as unknown as CategoryRow))
 }
 
 export async function getCategoryById(id: string): Promise<InventoryCategory | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('inventory.categories')
     .selectAll()
     .where('categoryId', '=', id)
@@ -172,7 +172,7 @@ export async function upsertCategory(
     if (data.isActive !== undefined) update.isActive = data.isActive
     if (data.sortOrder !== undefined) update.sortOrder = data.sortOrder
 
-    await camelDb
+    await db
       .updateTable('inventory.categories')
       .set(update)
       .where('categoryId', '=', data.categoryId)
@@ -180,7 +180,7 @@ export async function upsertCategory(
     return getCategoryById(data.categoryId) as Promise<InventoryCategory>
   } else {
     const id = generateShortId()
-    await camelDb
+    await db
       .insertInto('inventory.categories')
       .values({
         categoryId: id,
@@ -249,7 +249,7 @@ function toItem(r: ItemRow, category?: CategoryRow, location?: LocationRow | nul
 }
 
 export async function getItems(filters?: InventoryFilters): Promise<InventoryItem[]> {
-  let q = camelDb
+  let q = db
     .selectFrom('inventory.items as i')
     .leftJoin('inventory.categories as c', 'c.categoryId', 'i.categoryId')
     .leftJoin('inventory.locations as l', 'l.locationId', 'i.locationId')
@@ -338,7 +338,7 @@ export async function getItems(filters?: InventoryFilters): Promise<InventoryIte
 }
 
 export async function getItemById(id: string): Promise<InventoryItem | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('inventory.items')
     .selectAll()
     .where('itemId', '=', id)
@@ -353,7 +353,7 @@ export async function getItemById(id: string): Promise<InventoryItem | undefined
 }
 
 async function getCategoryRowById(id: string): Promise<CategoryRow | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('inventory.categories')
     .selectAll()
     .where('categoryId', '=', id)
@@ -362,7 +362,7 @@ async function getCategoryRowById(id: string): Promise<CategoryRow | undefined> 
 }
 
 async function getLocationRowById(id: string): Promise<LocationRow | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('inventory.locations')
     .selectAll()
     .where('locationId', '=', id)
@@ -414,7 +414,7 @@ export async function upsertItem(data: InventoryItemUpsert, user: JWTUser): Prom
 
     // Item update and its audit entry must commit together — a partial write
     // would leave a gap in the audit trail.
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await txn
         .updateTable('inventory.items')
         .set(update as any)
@@ -427,7 +427,7 @@ export async function upsertItem(data: InventoryItemUpsert, user: JWTUser): Prom
     return getItemById(itemId) as Promise<InventoryItem>
   } else {
     const id = generateShortId()
-    await camelDb.transaction().execute(async (txn) => {
+    await db.transaction().execute(async (txn) => {
       await txn
         .insertInto('inventory.items')
         .values({
@@ -463,7 +463,7 @@ export async function adjustQuantity(
   notes: string | null | undefined,
   user: JWTUser,
 ): Promise<InventoryItem> {
-  await camelDb.transaction().execute(async (txn) => {
+  await db.transaction().execute(async (txn) => {
     // Apply the delta atomically in SQL so concurrent adjustments cannot lose
     // updates. The `quantity + delta >= 0` guard rejects an over-decrement at the
     // DB level, so no row is updated when the result would go negative.
@@ -530,7 +530,7 @@ async function writeAuditLog(
 }
 
 export async function getAuditLog(itemId: string): Promise<InventoryAuditLogEntry[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('inventory.auditLog')
     .selectAll()
     .where('itemId', '=', itemId)

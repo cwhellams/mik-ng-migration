@@ -1,6 +1,6 @@
 import { sql, type Kysely, type Transaction } from 'kysely'
-import { camelDb } from './connection.ts'
-import type { DB as CamelDB } from './schema.camel.d.ts'
+import { db } from './connection.ts'
+import type { DB } from './schema.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   MileageAllowance,
@@ -15,7 +15,7 @@ import {
 } from '@mik/contracts/expenses'
 import { decryptField } from '../lib/fieldEncryption.ts'
 
-type Executor = Kysely<CamelDB> | Transaction<CamelDB>
+type Executor = Kysely<DB> | Transaction<DB>
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ export function maskHetu(plain: string): string {
 // ─── Mileage allowance CRUD ───────────────────────────────────────────────────
 
 export async function getMileageAllowances(): Promise<MileageAllowance[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.mileageAllowance')
     .selectAll()
     .orderBy('taxYear', 'desc')
@@ -63,7 +63,7 @@ export async function getMileageAllowances(): Promise<MileageAllowance[]> {
 export async function getMileageAllowanceByYear(
   taxYear: number,
 ): Promise<MileageAllowance | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('accts.mileageAllowance')
     .selectAll()
     .where('taxYear', '=', taxYear)
@@ -74,7 +74,7 @@ export async function getMileageAllowanceByYear(
 export async function getCurrentMileageAllowance(): Promise<MileageAllowance | undefined> {
   const year = new Date().getFullYear()
   // Try current year; fall back to most recent past year
-  const row = await camelDb
+  const row = await db
     .selectFrom('accts.mileageAllowance')
     .selectAll()
     .where('taxYear', '<=', year)
@@ -89,7 +89,7 @@ export async function upsertMileageAllowance(
   user: JWTUser,
 ): Promise<MileageAllowance> {
   const now = new Date()
-  const row = await camelDb
+  const row = await db
     .insertInto('accts.mileageAllowance')
     .values({
       taxYear: data.taxYear,
@@ -191,7 +191,7 @@ export async function replaceMileageLegs(
 }
 
 export async function getMileageLegsByClaimId(claimId: string): Promise<MileageLeg[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.expenseMileageDetail')
     .selectAll()
     .where('claimId', '=', claimId)
@@ -208,7 +208,7 @@ export async function getMileageLegsByClaimId(claimId: string): Promise<MileageL
 
 /** Decrypted, unmasked HETU for a claim. Callers must be permission-gated and audit-log the access. */
 export async function getClaimHetuFull(claimId: string): Promise<string | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('accts.expenseClaim')
     .select('hetuEncrypted')
     .where('id', '=', claimId)
@@ -217,7 +217,7 @@ export async function getClaimHetuFull(claimId: string): Promise<string | undefi
 }
 
 export async function recordMileageHetuAccess(claimId: string, accessedBy: string): Promise<void> {
-  await camelDb
+  await db
     .insertInto('accts.mileageHetuAccessAudit')
     .values({
       claimId: claimId,
@@ -236,7 +236,7 @@ export type MileageHetuAccessLogEntry = {
 export async function getMileageHetuAccessLog(
   claimId: string,
 ): Promise<MileageHetuAccessLogEntry[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.mileageHetuAccessAudit as audit')
     .leftJoin('member.register as member', 'member.memberId', 'audit.accessedBy')
     .where('audit.claimId', '=', claimId)
@@ -263,7 +263,7 @@ export async function getMileageHetuAccessLog(
 export async function getMileageReportRows(
   filters: MileageReportFilters,
 ): Promise<MileageReportRow[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.expenseClaim as claim')
     .innerJoin('accts.expenseMileageDetail as detail', 'detail.claimId', 'claim.id')
     .innerJoin('accts.expenseCategory as category', 'category.id', 'claim.categoryId')
@@ -314,7 +314,7 @@ export async function purgeExpiredHetu(): Promise<number> {
   // Bounded to a 7-37 day window (instead of an open-ended "older than 7 days"
   // scan) so this daily job's cost stays flat as expense_claim grows over the
   // years.
-  const eligibleClaims = await camelDb
+  const eligibleClaims = await db
     .selectFrom('accts.expenseClaim as claim')
     .innerJoin('accts.expenseCategory as category', 'category.id', 'claim.categoryId')
     .select('claim.id')
@@ -328,7 +328,7 @@ export async function purgeExpiredHetu(): Promise<number> {
   const claimIds = eligibleClaims.map((row) => row.id)
   if (claimIds.length === 0) return 0
 
-  const result = await camelDb
+  const result = await db
     .updateTable('accts.expenseClaim')
     .set({ hetuEncrypted: null, updatedAt: new Date() })
     .where('hetuEncrypted', 'is not', null)

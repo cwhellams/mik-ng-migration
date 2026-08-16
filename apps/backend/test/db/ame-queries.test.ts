@@ -10,7 +10,7 @@ import {
 } from '../../src/db/ame-queries.ts'
 
 /**
- * ame-queries had no tests when it was migrated to camelDb (issue #1115, phase 5),
+ * ame-queries had no tests when it was migrated to camelCase (issue #1115, phase 5),
  * and it carries seven raw `sql` fragments — the same combination that let a broken
  * query reach CI green in meeting-queries, where the only two raw-SQL functions were
  * mocked in the route tests.

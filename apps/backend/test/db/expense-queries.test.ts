@@ -16,16 +16,16 @@ describe('getPendingExpenseClaimsCount', () => {
 
   async function insertClaim(status: ExpenseClaimStatus) {
     const category = await db
-      .selectFrom('accts.expense_category')
+      .selectFrom('accts.expenseCategory')
       .select('id')
       .where('code', '=', CATEGORY_CODE)
       .executeTakeFirstOrThrow()
 
     const claim = await db
-      .insertInto('accts.expense_claim')
+      .insertInto('accts.expenseClaim')
       .values({
-        member_id: MEMBER_ID,
-        category_id: category.id,
+        memberId: MEMBER_ID,
+        categoryId: category.id,
         title: 'Test claim',
         status,
       })
@@ -37,7 +37,7 @@ describe('getPendingExpenseClaimsCount', () => {
   }
 
   afterEach(async () => {
-    await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+    await db.deleteFrom('accts.expenseClaim').where('id', 'in', insertedClaimIds).execute()
     insertedClaimIds.length = 0
   })
 

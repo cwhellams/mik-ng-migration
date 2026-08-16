@@ -5,7 +5,7 @@ import { getNextCreditNoteSequenceNumber } from '../../src/db/outbox-simplbooks-
 describe('Outbox Simplbooks queries', () => {
   it('getNextCreditNoteSequenceNumber should return sequence number as string', async () => {
     const executeTakeFirstOrThrow = jest
-      // camelDb's plugin camelCases result keys, so this is the shape the real
+      // db's plugin camelCases result keys, so this is the shape the real
       // executor now returns
       .fn<() => Promise<{ nextSequenceNumber: bigint | number }>>()
       .mockResolvedValueOnce({ nextSequenceNumber: 12345 })

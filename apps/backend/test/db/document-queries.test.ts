@@ -6,7 +6,7 @@ import { db } from '../../src/db/connection.ts'
 import { countDocuments, getAllDocuments } from '../../src/db/document-queries.ts'
 
 /**
- * The module had no tests at all when it was migrated to camelDb (issue #1115,
+ * The module had no tests at all when it was migrated to camelCase (issue #1115,
  * phase 5). These cover the showArchived contract, which is where the list and the
  * count had drifted apart.
  */
@@ -20,20 +20,20 @@ describe('document-queries', () => {
         {
           title: 'Active doc',
           category,
-          document_url: 'https://example.com/a.pdf',
-          is_public: true,
-          is_archived: false,
-          created_by: 'Matti1',
-          updated_by: 'Matti1',
+          documentUrl: 'https://example.com/a.pdf',
+          isPublic: true,
+          isArchived: false,
+          createdBy: 'Matti1',
+          updatedBy: 'Matti1',
         },
         {
           title: 'Archived doc',
           category,
-          document_url: 'https://example.com/b.pdf',
-          is_public: true,
-          is_archived: true,
-          created_by: 'Matti1',
-          updated_by: 'Matti1',
+          documentUrl: 'https://example.com/b.pdf',
+          isPublic: true,
+          isArchived: true,
+          createdBy: 'Matti1',
+          updatedBy: 'Matti1',
         },
       ])
       .execute()

@@ -1,7 +1,7 @@
 import type { Updateable } from 'kysely'
 
-import type { ShopCategories, ShopDiscountCodes, ShopProducts } from './schema.camel.d.ts'
-import { camelDb } from './connection.ts'
+import type { ShopCategories, ShopDiscountCodes, ShopProducts } from './schema.d.ts'
+import { db } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
@@ -21,7 +21,7 @@ import type {
   OrderFilters,
 } from '@mik/contracts/shop'
 import { sql } from 'kysely'
-import type { Json, JsonValue } from './schema.camel.d.ts'
+import type { Json, JsonValue } from './schema.d.ts'
 import { insertOutboxItem } from './outbox-simplbooks-queries.ts'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
 import { problem } from '../routes/response.ts'
@@ -35,7 +35,7 @@ import { problem } from '../routes/response.ts'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getCategories(activeOnly = true): Promise<Category[]> {
-  let q = camelDb.selectFrom('shop.categories').selectAll()
+  let q = db.selectFrom('shop.categories').selectAll()
   if (activeOnly) q = q.where('isActive', '=', true)
   const rows = await q.orderBy('sortOrder').execute()
   return rows.map((r) => ({
@@ -52,7 +52,7 @@ export async function getCategories(activeOnly = true): Promise<Category[]> {
 }
 
 export async function getCategoryById(id: string): Promise<Category | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('shop.categories')
     .selectAll()
     .where('categoryId', '=', id)
@@ -73,7 +73,7 @@ export async function getCategoryById(id: string): Promise<Category | undefined>
 
 export async function insertCategory(data: CategoryUpsert, user: JWTUser): Promise<Category> {
   const id = generateShortId()
-  await camelDb
+  await db
     .insertInto('shop.categories')
     .values({
       categoryId: id,
@@ -101,12 +101,12 @@ export async function updateCategory(
   if (data.description !== undefined) update.description = data.description as JsonValue
   if (data.isActive !== undefined) update.isActive = data.isActive
   if (data.sortOrder !== undefined) update.sortOrder = data.sortOrder
-  await camelDb.updateTable('shop.categories').set(update).where('categoryId', '=', id).execute()
+  await db.updateTable('shop.categories').set(update).where('categoryId', '=', id).execute()
   return getCategoryById(id) as Promise<Category>
 }
 
 export async function deleteCategory(id: string): Promise<void> {
-  await camelDb.deleteFrom('shop.categories').where('categoryId', '=', id).execute()
+  await db.deleteFrom('shop.categories').where('categoryId', '=', id).execute()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ export async function deleteCategory(id: string): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getProducts(filters?: ProductFilters): Promise<Product[]> {
-  let q = camelDb.selectFrom('shop.products').selectAll()
+  let q = db.selectFrom('shop.products').selectAll()
   if (filters?.categoryId) q = q.where('categoryId', '=', filters.categoryId)
   if (filters?.published !== undefined) q = q.where('isPublished', '=', filters.published)
   if (filters?.active !== undefined) q = q.where('isActive', '=', filters.active)
@@ -138,7 +138,7 @@ export async function getProducts(filters?: ProductFilters): Promise<Product[]> 
 }
 
 export async function getProductById(id: string): Promise<Product | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('shop.products')
     .selectAll()
     .where('productId', '=', id)
@@ -156,7 +156,7 @@ async function fillProductOrderFlags(products: Product[]): Promise<void> {
   if (products.length === 0) return
 
   const productIds = products.map((product) => product.productId)
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('shop.orderItems')
     .select('productId')
     .where('productId', 'in', productIds)
@@ -174,7 +174,7 @@ async function fillFlightPackageStock(products: Product[]): Promise<void> {
   const pkgProducts = products.filter((p) => p.productType === 'FLIGHT_HOURS_PACKAGE')
   if (pkgProducts.length === 0) return
   const ids = pkgProducts.map((p) => p.productId)
-  const pkgs = await camelDb
+  const pkgs = await db
     .selectFrom('prepaid.packages')
     .select(['productId', 'totalPackagesAvailable', 'soldCount'])
     .where('productId', 'in', ids)
@@ -195,7 +195,7 @@ async function fillAircraftImages(products: Product[]): Promise<void> {
   )
   if (pkgProducts.length === 0) return
   const ids = pkgProducts.map((p) => p.productId)
-  const pkgs = await camelDb
+  const pkgs = await db
     .selectFrom('prepaid.packages')
     .select(['productId', 'aircraftRegistration'])
     .where('productId', 'in', ids)
@@ -203,7 +203,7 @@ async function fillAircraftImages(products: Product[]): Promise<void> {
   const regByProductId = new Map(pkgs.map((p) => [p.productId, p.aircraftRegistration]))
   const registrations = [...new Set(pkgs.map((p) => p.aircraftRegistration))]
   if (registrations.length === 0) return
-  const aircrafts = await camelDb
+  const aircrafts = await db
     .selectFrom('flight.aircraft')
     .select(['registration', 'imageUrl'])
     .where('registration', 'in', registrations)
@@ -249,7 +249,7 @@ function mapProduct(r: Record<string, unknown>): Product {
 
 export async function insertProduct(data: ProductUpsert, user: JWTUser): Promise<Product> {
   const id = generateShortId()
-  await camelDb
+  await db
     .insertInto('shop.products')
     .values({
       productId: id,
@@ -299,16 +299,16 @@ export async function updateProduct(
   if (data.tags !== undefined) update.tags = data.tags as unknown as string[]
   if (data.metadata !== undefined) update.metadata = data.metadata as JsonValue
   if (data.imageUrl !== undefined) update.imageUrl = data.imageUrl
-  await camelDb.updateTable('shop.products').set(update).where('productId', '=', id).execute()
+  await db.updateTable('shop.products').set(update).where('productId', '=', id).execute()
   return getProductById(id) as Promise<Product>
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await camelDb.deleteFrom('shop.products').where('productId', '=', id).execute()
+  await db.deleteFrom('shop.products').where('productId', '=', id).execute()
 }
 
 export async function hasProductOrders(productId: string): Promise<boolean> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('shop.orderItems')
     .select((eb) => [eb.fn.countAll<number>().as('count')])
     .where('productId', '=', productId)
@@ -322,7 +322,7 @@ export async function hasProductOrders(productId: string): Promise<boolean> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getProductProperties(productId: string) {
-  const props = await camelDb
+  const props = await db
     .selectFrom('shop.productProperties')
     .selectAll()
     .where('productId', '=', productId)
@@ -331,7 +331,7 @@ export async function getProductProperties(productId: string) {
 
   if (props.length === 0) return []
 
-  const opts = await camelDb
+  const opts = await db
     .selectFrom('shop.productPropertyOptions')
     .selectAll()
     .where(
@@ -368,7 +368,7 @@ export async function upsertProductProperty(
   let propertyId: number
 
   if (data.propertyId) {
-    await camelDb
+    await db
       .updateTable('shop.productProperties')
       .set({
         name: data.name as unknown as Json,
@@ -379,7 +379,7 @@ export async function upsertProductProperty(
       .execute()
     propertyId = data.propertyId
   } else {
-    const result = await camelDb
+    const result = await db
       .insertInto('shop.productProperties')
       .values({
         productId: productId,
@@ -394,7 +394,7 @@ export async function upsertProductProperty(
 
   for (const opt of data.options) {
     if (opt.optionId) {
-      await camelDb
+      await db
         .updateTable('shop.productPropertyOptions')
         .set({
           value: opt.value as unknown as Json,
@@ -405,7 +405,7 @@ export async function upsertProductProperty(
         .where('optionId', '=', opt.optionId)
         .execute()
     } else {
-      await camelDb
+      await db
         .insertInto('shop.productPropertyOptions')
         .values({
           propertyId: propertyId,
@@ -468,7 +468,7 @@ async function validateSelectedOptionsStock(
 }
 
 export async function deleteProductProperty(propertyId: number): Promise<void> {
-  await camelDb.deleteFrom('shop.productProperties').where('propertyId', '=', propertyId).execute()
+  await db.deleteFrom('shop.productProperties').where('propertyId', '=', propertyId).execute()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -476,7 +476,7 @@ export async function deleteProductProperty(propertyId: number): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getDiscountCodes(): Promise<DiscountCode[]> {
-  const rows = await camelDb.selectFrom('shop.discountCodes').selectAll().execute()
+  const rows = await db.selectFrom('shop.discountCodes').selectAll().execute()
   const categoryMap = await getDiscountCodeCategoryMap(rows.map((row) => row.codeId))
   return rows.map((row) =>
     mapDiscountCode({ ...row, categoryIds: categoryMap.get(row.codeId) ?? [] }),
@@ -484,7 +484,7 @@ export async function getDiscountCodes(): Promise<DiscountCode[]> {
 }
 
 export async function getDiscountCodeByCode(code: string): Promise<DiscountCode | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('shop.discountCodes')
     .selectAll()
     .where('code', '=', code)
@@ -497,7 +497,7 @@ export async function getDiscountCodeByCode(code: string): Promise<DiscountCode 
 }
 
 async function getDiscountCodeById(id: number): Promise<DiscountCode | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('shop.discountCodes')
     .selectAll()
     .where('codeId', '=', id)
@@ -514,7 +514,7 @@ async function getDiscountCodeCategoryMap(codeIds: number[]): Promise<Map<number
 
   let rows: Array<{ codeId: number; categoryId: string }>
   try {
-    rows = await camelDb
+    rows = await db
       .selectFrom('shop.discountCodeCategories')
       .select(['codeId', 'categoryId'])
       .where('codeId', 'in', codeIds)
@@ -522,7 +522,7 @@ async function getDiscountCodeCategoryMap(codeIds: number[]): Promise<Map<number
   } catch (error) {
     if (isMissingDiscountCodeCategoryTableError(error)) {
       await ensureDiscountCodeCategoryTable()
-      rows = await camelDb
+      rows = await db
         .selectFrom('shop.discountCodeCategories')
         .select(['codeId', 'categoryId'])
         .where('codeId', 'in', codeIds)
@@ -543,11 +543,11 @@ async function getDiscountCodeCategoryMap(codeIds: number[]): Promise<Map<number
 
 async function replaceDiscountCodeCategories(codeId: number, categoryIds: string[]): Promise<void> {
   try {
-    await camelDb.deleteFrom('shop.discountCodeCategories').where('codeId', '=', codeId).execute()
+    await db.deleteFrom('shop.discountCodeCategories').where('codeId', '=', codeId).execute()
   } catch (error) {
     if (isMissingDiscountCodeCategoryTableError(error)) {
       await ensureDiscountCodeCategoryTable()
-      await camelDb.deleteFrom('shop.discountCodeCategories').where('codeId', '=', codeId).execute()
+      await db.deleteFrom('shop.discountCodeCategories').where('codeId', '=', codeId).execute()
     } else {
       throw error
     }
@@ -556,14 +556,14 @@ async function replaceDiscountCodeCategories(codeId: number, categoryIds: string
   const uniqueCategoryIds = [...new Set(categoryIds)]
   if (!uniqueCategoryIds.length) return
 
-  await camelDb
+  await db
     .insertInto('shop.discountCodeCategories')
     .values(uniqueCategoryIds.map((categoryId) => ({ codeId: codeId, categoryId: categoryId })))
     .execute()
 }
 
 async function ensureDiscountCodeCategoryTable(): Promise<void> {
-  await camelDb.schema
+  await db.schema
     .createTable('shop.discountCodeCategories')
     .ifNotExists()
     .addColumn('code_id', 'integer', (col) => col.notNull())
@@ -641,7 +641,7 @@ export async function insertDiscountCode(
   data: DiscountCodeUpsert,
   user: JWTUser,
 ): Promise<DiscountCode> {
-  const result = await camelDb
+  const result = await db
     .insertInto('shop.discountCodes')
     .values({
       code: data.code,
@@ -684,7 +684,7 @@ export async function updateDiscountCode(
   if (data.validFrom !== undefined) update.validFrom = data.validFrom
   if (data.validUntil !== undefined) update.validUntil = data.validUntil
   if (data.isActive !== undefined) update.isActive = data.isActive
-  await camelDb.updateTable('shop.discountCodes').set(update).where('codeId', '=', id).execute()
+  await db.updateTable('shop.discountCodes').set(update).where('codeId', '=', id).execute()
 
   if (data.categoryIds !== undefined) {
     await replaceDiscountCodeCategories(id, data.categoryIds)
@@ -700,7 +700,7 @@ export async function updateDiscountCode(
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function getOrCreateCart(memberId: string): Promise<string> {
-  const existing = await camelDb
+  const existing = await db
     .selectFrom('shop.carts')
     .select('cartId')
     .where('memberId', '=', memberId)
@@ -708,18 +708,18 @@ async function getOrCreateCart(memberId: string): Promise<string> {
   if (existing) return existing.cartId
 
   const cartId = generateShortId()
-  await camelDb.insertInto('shop.carts').values({ cartId: cartId, memberId: memberId }).execute()
+  await db.insertInto('shop.carts').values({ cartId: cartId, memberId: memberId }).execute()
   return cartId
 }
 
 export async function getCart(memberId: string): Promise<Cart> {
   const cartId = await getOrCreateCart(memberId)
-  const cart = await camelDb
+  const cart = await db
     .selectFrom('shop.carts')
     .selectAll()
     .where('cartId', '=', cartId)
     .executeTakeFirstOrThrow()
-  const items = await camelDb
+  const items = await db
     .selectFrom('shop.cartItems')
     .selectAll()
     .where('cartId', '=', cartId)
@@ -728,7 +728,7 @@ export async function getCart(memberId: string): Promise<Cart> {
 
   const productIds = [...new Set(items.map((i) => i.productId))]
   const products = productIds.length
-    ? await camelDb
+    ? await db
         .selectFrom('shop.products')
         .selectAll()
         .where('productId', 'in', productIds)
@@ -768,7 +768,7 @@ export async function addCartItem(memberId: string, data: CartItemUpsert): Promi
   const selectedOptions = normalizeSelectedOptions(data.selectedOptions)
 
   // Check if same product and same selected options already in cart
-  const existingRows = await camelDb
+  const existingRows = await db
     .selectFrom('shop.cartItems')
     .selectAll()
     .where('cartId', '=', cartId)
@@ -809,7 +809,7 @@ export async function addCartItem(memberId: string, data: CartItemUpsert): Promi
 
   // For flight hour packages, also enforce overall per-member limit
   if (product?.productType === 'FLIGHT_HOURS_PACKAGE' && product.maxOrderQuantity != null) {
-    const row = await camelDb
+    const row = await db
       .selectFrom('prepaid.memberPackages')
       .select((eb) => [eb.fn.countAll<number>().as('count')])
       .where('memberId', '=', memberId)
@@ -825,13 +825,13 @@ export async function addCartItem(memberId: string, data: CartItemUpsert): Promi
   }
 
   if (existing) {
-    await camelDb
+    await db
       .updateTable('shop.cartItems')
       .set({ quantity: newCartQty, updatedAt: new Date() })
       .where('cartItemId', '=', existing.cartItemId)
       .execute()
   } else {
-    await camelDb
+    await db
       .insertInto('shop.cartItems')
       .values({
         cartId: cartId,
@@ -842,7 +842,7 @@ export async function addCartItem(memberId: string, data: CartItemUpsert): Promi
       .execute()
   }
 
-  await camelDb
+  await db
     .updateTable('shop.carts')
     .set({ updatedAt: new Date() })
     .where('cartId', '=', cartId)
@@ -857,14 +857,14 @@ export async function updateCartItem(
 ): Promise<Cart> {
   const cartId = await getOrCreateCart(memberId)
   if (quantity <= 0) {
-    await camelDb
+    await db
       .deleteFrom('shop.cartItems')
       .where('cartItemId', '=', cartItemId)
       .where('cartId', '=', cartId)
       .execute()
   } else {
     // Enforce limits when increasing quantity
-    const item = await camelDb
+    const item = await db
       .selectFrom('shop.cartItems')
       .select(['productId', 'selectedOptions'])
       .where('cartItemId', '=', cartItemId)
@@ -897,7 +897,7 @@ export async function updateCartItem(
         })
       }
       if (product?.productType === 'FLIGHT_HOURS_PACKAGE' && product.maxOrderQuantity != null) {
-        const row = await camelDb
+        const row = await db
           .selectFrom('prepaid.memberPackages')
           .select((eb) => [eb.fn.countAll<number>().as('count')])
           .where('memberId', '=', memberId)
@@ -912,14 +912,14 @@ export async function updateCartItem(
         }
       }
     }
-    await camelDb
+    await db
       .updateTable('shop.cartItems')
       .set({ quantity, updatedAt: new Date() })
       .where('cartItemId', '=', cartItemId)
       .where('cartId', '=', cartId)
       .execute()
   }
-  await camelDb
+  await db
     .updateTable('shop.carts')
     .set({ updatedAt: new Date() })
     .where('cartId', '=', cartId)
@@ -929,12 +929,12 @@ export async function updateCartItem(
 
 export async function removeCartItem(memberId: string, cartItemId: number): Promise<Cart> {
   const cartId = await getOrCreateCart(memberId)
-  await camelDb
+  await db
     .deleteFrom('shop.cartItems')
     .where('cartItemId', '=', cartItemId)
     .where('cartId', '=', cartId)
     .execute()
-  await camelDb
+  await db
     .updateTable('shop.carts')
     .set({ updatedAt: new Date() })
     .where('cartId', '=', cartId)
@@ -944,8 +944,8 @@ export async function removeCartItem(memberId: string, cartItemId: number): Prom
 
 export async function clearCart(memberId: string): Promise<Cart> {
   const cartId = await getOrCreateCart(memberId)
-  await camelDb.deleteFrom('shop.cartItems').where('cartId', '=', cartId).execute()
-  await camelDb
+  await db.deleteFrom('shop.cartItems').where('cartId', '=', cartId).execute()
+  await db
     .updateTable('shop.carts')
     .set({ discountCodeId: null, updatedAt: new Date() })
     .where('cartId', '=', cartId)
@@ -976,7 +976,7 @@ export async function applyDiscountToCart(
     }
   }
 
-  await camelDb
+  await db
     .updateTable('shop.carts')
     .set({ discountCodeId: discountCodeId, updatedAt: new Date() })
     .where('cartId', '=', cartId)
@@ -993,7 +993,7 @@ export async function getOrders(filters?: OrderFilters): Promise<OrderListRespon
   const pageSize = filters?.pageSize ?? 50
   const offset = (page - 1) * pageSize
 
-  let dataQuery = camelDb
+  let dataQuery = db
     .selectFrom('shop.orders as o')
     .leftJoin('member.register as m', 'm.memberId', 'o.memberId')
     .selectAll('o')
@@ -1004,7 +1004,7 @@ export async function getOrders(filters?: OrderFilters): Promise<OrderListRespon
       'm.email as memberEmail',
       'm.phoneNumber as memberPhoneNumber',
     ])
-  let countQuery = camelDb
+  let countQuery = db
     .selectFrom('shop.orders as o')
     .select((eb) => [eb.fn.countAll<number>().as('count')])
 
@@ -1079,7 +1079,7 @@ export async function getOrders(filters?: OrderFilters): Promise<OrderListRespon
 }
 
 export async function getOrderById(id: string): Promise<Order | undefined> {
-  const r = await camelDb
+  const r = await db
     .selectFrom('shop.orders as o')
     .leftJoin('member.register as m', 'm.memberId', 'o.memberId')
     .selectAll('o')
@@ -1094,7 +1094,7 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
     .executeTakeFirst()
   if (!r) return undefined
   const order = mapOrder(r)
-  order.items = await camelDb
+  order.items = await db
     .selectFrom('shop.orderItems')
     .selectAll()
     .where('orderId', '=', id)
@@ -1171,7 +1171,7 @@ export async function createOrderFromCart(
       )
     }
     if (product.productType === 'FLIGHT_HOURS_PACKAGE' && product.maxOrderQuantity != null) {
-      const row = await camelDb
+      const row = await db
         .selectFrom('prepaid.memberPackages')
         .select((eb) => [eb.fn.countAll<number>().as('count')])
         .where('memberId', '=', memberId)
@@ -1260,7 +1260,7 @@ export async function createOrderFromCart(
   if (discountAmount) totalAmount -= discountAmount
 
   const orderId = generateShortId()
-  await camelDb.transaction().execute(async (trx) => {
+  await db.transaction().execute(async (trx) => {
     await trx
       .insertInto('shop.orders')
       .values({
@@ -1388,7 +1388,7 @@ export async function updateOrderStatus(
   status: Order['status'],
   user: JWTUser,
 ): Promise<Order> {
-  await camelDb
+  await db
     .updateTable('shop.orders')
     .set({ status, updatedBy: user.memberId, updatedAt: new Date() })
     .where('orderId', '=', id)

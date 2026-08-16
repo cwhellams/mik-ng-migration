@@ -78,8 +78,8 @@ describe('POST /members – secretary notification', () => {
   it('Notifies secretaries when a new member is created', async () => {
     // Assign SECRETARY role to an existing test member (idempotent)
     await db
-      .insertInto('member.member_to_roles')
-      .values({ member_id: 'Matti1', role_id: 'SECRETARY', created_by: 'k1mnimda' })
+      .insertInto('member.memberToRoles')
+      .values({ memberId: 'Matti1', roleId: 'SECRETARY', createdBy: 'k1mnimda' })
       .onConflict((oc) => oc.doNothing())
       .execute()
 
@@ -87,7 +87,7 @@ describe('POST /members – secretary notification', () => {
     const secretary = await db
       .selectFrom('member.register')
       .select('email')
-      .where('member_id', '=', 'Matti1')
+      .where('memberId', '=', 'Matti1')
       .executeTakeFirstOrThrow()
 
     let createdMemberId: string | undefined
@@ -113,9 +113,9 @@ describe('POST /members – secretary notification', () => {
         await remove(createdMemberId, adminToken)
       }
       await db
-        .deleteFrom('member.member_to_roles')
-        .where('member_id', '=', 'Matti1')
-        .where('role_id', '=', 'SECRETARY')
+        .deleteFrom('member.memberToRoles')
+        .where('memberId', '=', 'Matti1')
+        .where('roleId', '=', 'SECRETARY')
         .execute()
     }
   })

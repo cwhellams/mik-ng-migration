@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 
 // Hardcoded primary key for the row the flight log wizard's "close your flight plan"
 // reminder looks up — an admin must keep a row with this exact label for the reminder
@@ -22,7 +22,7 @@ const mapRow = (row: {
 })
 
 export async function getUsefulPhoneNumbers(): Promise<UsefulPhoneNumber[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('static.usefulPhoneNumber')
     .selectAll()
     .orderBy('sortOrder')
@@ -32,7 +32,7 @@ export async function getUsefulPhoneNumbers(): Promise<UsefulPhoneNumber[]> {
 }
 
 export async function getFlightPlanCentrePhoneNumber(): Promise<UsefulPhoneNumber | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('static.usefulPhoneNumber')
     .selectAll()
     .where('label', '=', FLIGHT_PLAN_CENTER_KEY)
@@ -45,7 +45,7 @@ export async function createUsefulPhoneNumber(
   phoneNumber: string,
   sortOrder: number,
 ): Promise<UsefulPhoneNumber> {
-  const row = await camelDb
+  const row = await db
     .insertInto('static.usefulPhoneNumber')
     .values({ label, phoneNumber: phoneNumber, sortOrder: sortOrder })
     .returningAll()
@@ -58,7 +58,7 @@ export async function updateUsefulPhoneNumber(
   phoneNumber: string,
   sortOrder: number,
 ): Promise<UsefulPhoneNumber | undefined> {
-  const row = await camelDb
+  const row = await db
     .updateTable('static.usefulPhoneNumber')
     .set({ phoneNumber: phoneNumber, sortOrder: sortOrder })
     .where('label', '=', label)
@@ -68,7 +68,7 @@ export async function updateUsefulPhoneNumber(
 }
 
 export async function deleteUsefulPhoneNumber(label: string): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('static.usefulPhoneNumber')
     .where('label', '=', label)
     .executeTakeFirstOrThrow()

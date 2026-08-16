@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { BookingStatus } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
 
@@ -33,7 +33,7 @@ const mapRow = (r: {
 export async function getPushSubscriptionsByMemberId(
   memberId: string,
 ): Promise<PushSubscriptionRow[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('member.pushSubscriptions')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -55,7 +55,7 @@ export async function upsertPushSubscription(input: {
   keysP256dh: string
   userAgent: string | null
 }): Promise<string> {
-  const result = await camelDb
+  const result = await db
     .insertInto('member.pushSubscriptions')
     .values({
       memberId: input.memberId,
@@ -82,7 +82,7 @@ export async function deletePushSubscriptionByEndpoint(
   memberId: string,
   endpoint: string,
 ): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('member.pushSubscriptions')
     .where('memberId', '=', memberId)
     .where('endpoint', '=', endpoint)
@@ -92,12 +92,12 @@ export async function deletePushSubscriptionByEndpoint(
 
 /** Remove a subscription by endpoint regardless of owner (e.g. push provider reports it as gone). */
 export async function deletePushSubscriptionByEndpointGlobal(endpoint: string): Promise<void> {
-  await camelDb.deleteFrom('member.pushSubscriptions').where('endpoint', '=', endpoint).execute()
+  await db.deleteFrom('member.pushSubscriptions').where('endpoint', '=', endpoint).execute()
 }
 
 /** Remove all subscriptions for a member (used when the member is deactivated). */
 export async function deletePushSubscriptionsForMember(memberId: string): Promise<void> {
-  await camelDb.deleteFrom('member.pushSubscriptions').where('memberId', '=', memberId).execute()
+  await db.deleteFrom('member.pushSubscriptions').where('memberId', '=', memberId).execute()
 }
 
 export type PushReminderCandidate = {
@@ -133,7 +133,7 @@ export async function claimUpcomingBookingsForPushReminder(
     .unix()
     .toString()
 
-  const candidates = await camelDb
+  const candidates = await db
     .selectFrom('schedule.bookings')
     .select(['bookingId', 'memberId', 'registration', 'startTimeEpoch'])
     .where('startTimeEpoch', '>=', windowStart)
@@ -160,7 +160,7 @@ export async function claimUpcomingBookingsForPushReminder(
     return []
   }
 
-  const claimed = await camelDb
+  const claimed = await db
     .insertInto('schedule.pushReminderLog')
     .values(candidates.map((c) => ({ bookingId: c.bookingId, memberId: c.memberId })))
     .onConflict((oc) => oc.column('bookingId').doNothing())

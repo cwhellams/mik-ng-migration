@@ -225,13 +225,13 @@ describe('Flight Invoice Outbox Integration', () => {
     await db
       .insertInto('shop.categories')
       .values({
-        category_id: 'FLT_PKG',
+        categoryId: 'FLT_PKG',
         name: { en: 'Flight packages', fi: 'Lentopaketit', sv: 'Flygpaket' },
         description: null,
-        created_by: 'Matti1',
-        updated_by: 'Matti1',
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
       })
-      .onConflict((oc) => oc.column('category_id').doNothing())
+      .onConflict((oc) => oc.column('categoryId').doNothing())
       .execute()
 
     // ── Insert aircraft pricing records that cover all test dates ────────
@@ -240,32 +240,32 @@ describe('Flight Invoice Outbox Integration', () => {
     // Period 2 is adjacent to the V440 migration record (OH-IHQ from 2025-12-01).
     // Period 1 is adjacent to period 2.
     await db
-      .deleteFrom('accts.aircraft_pricing')
+      .deleteFrom('accts.aircraftPricing')
       .where('registration', '=', TEST_AIRCRAFT)
-      .where('valid_from', 'in', ['2025-06-16', '2024-01-01'])
+      .where('validFrom', 'in', ['2025-06-16', '2024-01-01'])
       .execute()
     // Period 2: 2025-06-16 → 2025-11-30 at 3.00 €/min
     await db
-      .insertInto('accts.aircraft_pricing')
+      .insertInto('accts.aircraftPricing')
       .values({
         registration: TEST_AIRCRAFT,
-        valid_from: '2025-06-16',
-        valid_to: '2025-11-30',
-        price_per_min: '3.00',
-        created_by: TEST_MEMBER_ID,
-        updated_by: TEST_MEMBER_ID,
+        validFrom: '2025-06-16',
+        validTo: '2025-11-30',
+        pricePerMin: '3.00',
+        createdBy: TEST_MEMBER_ID,
+        updatedBy: TEST_MEMBER_ID,
       })
       .execute()
     // Period 1: 2024-01-01 → 2025-06-15 at 2.50 €/min
     await db
-      .insertInto('accts.aircraft_pricing')
+      .insertInto('accts.aircraftPricing')
       .values({
         registration: TEST_AIRCRAFT,
-        valid_from: '2024-01-01',
-        valid_to: '2025-06-15',
-        price_per_min: '2.50',
-        created_by: TEST_MEMBER_ID,
-        updated_by: TEST_MEMBER_ID,
+        validFrom: '2024-01-01',
+        validTo: '2025-06-15',
+        pricePerMin: '2.50',
+        createdBy: TEST_MEMBER_ID,
+        updatedBy: TEST_MEMBER_ID,
       })
       .execute()
   })
@@ -282,9 +282,9 @@ describe('Flight Invoice Outbox Integration', () => {
 
     // Remove test aircraft pricing records
     await db
-      .deleteFrom('accts.aircraft_pricing')
+      .deleteFrom('accts.aircraftPricing')
       .where('registration', '=', TEST_AIRCRAFT)
-      .where('valid_from', 'in', ['2025-06-16', '2024-01-01'])
+      .where('validFrom', 'in', ['2025-06-16', '2024-01-01'])
       .execute()
 
     // Restore the seeded VIRHEMERKINTA article that was present before the test
@@ -325,15 +325,15 @@ describe('Flight Invoice Outbox Integration', () => {
     if (createdMemberPackageIds.length > 0) {
       await trySafe(() =>
         db
-          .deleteFrom('prepaid.usage_log')
-          .where('member_package_id', 'in', createdMemberPackageIds)
+          .deleteFrom('prepaid.usageLog')
+          .where('memberPackageId', 'in', createdMemberPackageIds)
           .execute()
           .then(() => undefined),
       )
       await trySafe(() =>
         db
-          .deleteFrom('prepaid.member_packages')
-          .where('member_package_id', 'in', createdMemberPackageIds)
+          .deleteFrom('prepaid.memberPackages')
+          .where('memberPackageId', 'in', createdMemberPackageIds)
           .execute()
           .then(() => undefined),
       )
@@ -344,14 +344,14 @@ describe('Flight Invoice Outbox Integration', () => {
       await trySafe(() =>
         db
           .deleteFrom('prepaid.packages')
-          .where('product_id', 'in', createdPrepaidProductIds)
+          .where('productId', 'in', createdPrepaidProductIds)
           .execute()
           .then(() => undefined),
       )
       await trySafe(() =>
         db
           .deleteFrom('shop.products')
-          .where('product_id', 'in', createdPrepaidProductIds)
+          .where('productId', 'in', createdPrepaidProductIds)
           .execute()
           .then(() => undefined),
       )
@@ -361,8 +361,8 @@ describe('Flight Invoice Outbox Integration', () => {
     for (const invoiceId of equipmentFeeInvoiceIds) {
       await trySafe(() =>
         db
-          .deleteFrom('member.annual_fees')
-          .where('invoice_id', '=', Number(invoiceId))
+          .deleteFrom('member.annualFees')
+          .where('invoiceId', '=', Number(invoiceId))
           .execute()
           .then(() => undefined),
       )
@@ -383,8 +383,8 @@ describe('Flight Invoice Outbox Integration', () => {
     for (const invoiceId of createdInvoiceIds) {
       await trySafe(() =>
         db
-          .deleteFrom('accts.outbox_simplbooks')
-          .where('event_type', '=', SimplbooksEventType.SEND_INVOICE_PDF)
+          .deleteFrom('accts.outboxSimplbooks')
+          .where('eventType', '=', SimplbooksEventType.SEND_INVOICE_PDF)
           .where(sql<SqlBool>`payload->>'invoiceId' = ${invoiceId}`)
           .execute()
           .then(() => undefined),
@@ -396,7 +396,7 @@ describe('Flight Invoice Outbox Integration', () => {
       await trySafe(() =>
         db
           .deleteFrom('flight.logs')
-          .where('flight_id', 'in', insertedFlightIds)
+          .where('flightId', 'in', insertedFlightIds)
           .execute()
           .then(() => undefined),
       )
@@ -406,7 +406,7 @@ describe('Flight Invoice Outbox Integration', () => {
     if (insertedOutboxIds.length > 0) {
       await trySafe(() =>
         db
-          .deleteFrom('accts.outbox_simplbooks')
+          .deleteFrom('accts.outboxSimplbooks')
           .where('id', 'in', insertedOutboxIds)
           .execute()
           .then(() => undefined),
@@ -491,40 +491,40 @@ describe('Flight Invoice Outbox Integration', () => {
     await db
       .insertInto('flight.logs')
       .values({
-        flight_id: flightId,
-        aircraft_registration: TEST_AIRCRAFT,
-        ajlb_seq_no: TEST_AJLB_SEQ_NO,
-        ajlb_blank_rows_before: 0,
-        ajlb_total_flight_mins: flightMins,
-        ajlb_page_number: 82,
-        ajlb_row_number: testIdCounter,
-        arrival_airport: arrivalAirport,
-        departure_airport: departureAirport,
-        billable_member_id: TEST_MEMBER_ID,
-        created_by: TEST_MEMBER_ID,
-        updated_by: TEST_MEMBER_ID,
-        flight_type: flightType,
-        fuel_remaining_litres: '20',
-        fuel_uplift_litres: null,
-        instrument_flying_mins: 0,
-        is_billable_flight: isBillableFlight,
-        is_dto_training_flight: false,
-        off_block_time_epoch: BASE_OFF_BLOCK_EPOCH + epochOffset,
-        takeoff_time_epoch: BASE_TAKEOFF_EPOCH + epochOffset,
-        landing_time_epoch: baseLandingEpoch(flightMins) + epochOffset,
-        on_block_time_epoch: baseOnBlockEpoch(flightMins) + epochOffset,
-        night_flying_mins: 0,
-        number_of_landings: 1,
-        persons_on_board: 2,
-        pic_last_name: 'Instructor',
-        pic_member_id: 'Liisa1',
-        pic_role: 'FI',
-        priv_or_com_flight: 'P',
+        flightId: flightId,
+        aircraftRegistration: TEST_AIRCRAFT,
+        ajlbSeqNo: TEST_AJLB_SEQ_NO,
+        ajlbBlankRowsBefore: 0,
+        ajlbTotalFlightMins: flightMins,
+        ajlbPageNumber: 82,
+        ajlbRowNumber: testIdCounter,
+        arrivalAirport: arrivalAirport,
+        departureAirport: departureAirport,
+        billableMemberId: TEST_MEMBER_ID,
+        createdBy: TEST_MEMBER_ID,
+        updatedBy: TEST_MEMBER_ID,
+        flightType: flightType,
+        fuelRemainingLitres: '20',
+        fuelUpliftLitres: null,
+        instrumentFlyingMins: 0,
+        isBillableFlight: isBillableFlight,
+        isDtoTrainingFlight: false,
+        offBlockTimeEpoch: BASE_OFF_BLOCK_EPOCH + epochOffset,
+        takeoffTimeEpoch: BASE_TAKEOFF_EPOCH + epochOffset,
+        landingTimeEpoch: baseLandingEpoch(flightMins) + epochOffset,
+        onBlockTimeEpoch: baseOnBlockEpoch(flightMins) + epochOffset,
+        nightFlyingMins: 0,
+        numberOfLandings: 1,
+        personsOnBoard: 2,
+        picLastName: 'Instructor',
+        picMemberId: 'Liisa1',
+        picRole: 'FI',
+        privOrComFlight: 'P',
         status: FlightLogStatus.VALIDATED,
-        total_time_in_service: null,
-        oil_uplift_litres: null,
-        non_billing_reason: isBillableFlight ? null : 'Test non-billable',
-        validation_remarks: null,
+        totalTimeInService: null,
+        oilUpliftLitres: null,
+        nonBillingReason: isBillableFlight ? null : 'Test non-billable',
+        validationRemarks: null,
       })
       .execute()
 
@@ -539,10 +539,10 @@ describe('Flight Invoice Outbox Integration', () => {
     await insertOutboxItem(SimplbooksEventType.FLIGHT_INVOICE, { flights })
 
     const row = await db
-      .selectFrom('accts.outbox_simplbooks')
+      .selectFrom('accts.outboxSimplbooks')
       .selectAll()
-      .where('event_type', '=', SimplbooksEventType.FLIGHT_INVOICE)
-      .orderBy('created_at_utc', 'desc')
+      .where('eventType', '=', SimplbooksEventType.FLIGHT_INVOICE)
+      .orderBy('createdAtUtc', 'desc')
       .limit(1)
       .executeTakeFirstOrThrow()
 
@@ -562,29 +562,29 @@ describe('Flight Invoice Outbox Integration', () => {
       .insertInto('accts.invoice')
       .values({
         id: invoiceId,
-        member_id: TEST_MEMBER_ID,
-        invoice_type: MIKInvoiceType.EQUIPMENT_FEE,
+        memberId: TEST_MEMBER_ID,
+        invoiceType: MIKInvoiceType.EQUIPMENT_FEE,
         description: `Test equipment fee ${year}`,
-        pmt_ref: `TSTEQ${year}`,
-        paid_at: null,
-        due_at: `${year}-12-31`,
-        sent_at: null,
+        pmtRef: `TSTEQ${year}`,
+        paidAt: null,
+        dueAt: `${year}-12-31`,
+        sentAt: null,
         currency: 'EUR',
-        total_sum: '135.00',
-        created_by: TEST_MEMBER_ID,
-        updated_by: TEST_MEMBER_ID,
+        totalSum: '135.00',
+        createdBy: TEST_MEMBER_ID,
+        updatedBy: TEST_MEMBER_ID,
       })
       .execute()
 
     await db
-      .insertInto('member.annual_fees')
+      .insertInto('member.annualFees')
       .values({
-        member_id: TEST_MEMBER_ID,
+        memberId: TEST_MEMBER_ID,
         year,
-        fee_type: RecurringFeeType.EQUIPMENT_FEE,
-        invoice_id: invoiceId,
-        created_by: TEST_MEMBER_ID,
-        updated_by: TEST_MEMBER_ID,
+        feeType: RecurringFeeType.EQUIPMENT_FEE,
+        invoiceId: invoiceId,
+        createdBy: TEST_MEMBER_ID,
+        updatedBy: TEST_MEMBER_ID,
       })
       .execute()
 
@@ -617,15 +617,15 @@ describe('Flight Invoice Outbox Integration', () => {
     await db
       .insertInto('shop.products')
       .values({
-        product_id: productId,
-        category_id: 'FLT_PKG',
-        simplbooks_item_id: simplbooksItemId,
+        productId: productId,
+        categoryId: 'FLT_PKG',
+        simplbooksItemId: simplbooksItemId,
         name: { en: productId, fi: productId, sv: productId },
         description: null,
         price: Number((minutes * perMinRate).toFixed(2)),
-        stock_quantity: 1,
-        created_by: TEST_MEMBER_ID,
-        updated_by: TEST_MEMBER_ID,
+        stockQuantity: 1,
+        createdBy: TEST_MEMBER_ID,
+        updatedBy: TEST_MEMBER_ID,
       })
       .execute()
 
@@ -636,34 +636,34 @@ describe('Flight Invoice Outbox Integration', () => {
     await db
       .insertInto('prepaid.packages')
       .values({
-        product_id: productId,
-        aircraft_registration: TEST_AIRCRAFT,
-        minutes_per_package: minutes,
-        per_min_rate: perMinRate,
-        total_packages_available: 10,
-        max_per_member: 10,
-        expires_at: expiresAt,
-        created_by: TEST_MEMBER_ID,
-        updated_by: TEST_MEMBER_ID,
+        productId: productId,
+        aircraftRegistration: TEST_AIRCRAFT,
+        minutesPerPackage: minutes,
+        perMinRate: perMinRate,
+        totalPackagesAvailable: 10,
+        maxPerMember: 10,
+        expiresAt: expiresAt,
+        createdBy: TEST_MEMBER_ID,
+        updatedBy: TEST_MEMBER_ID,
       })
       .execute()
 
     const row = await db
-      .insertInto('prepaid.member_packages')
+      .insertInto('prepaid.memberPackages')
       .values({
-        member_id: TEST_MEMBER_ID,
-        product_id: productId,
-        order_id: null,
-        total_minutes: minutes,
-        used_minutes: usedMinutes,
-        expires_at: expiresAt,
+        memberId: TEST_MEMBER_ID,
+        productId: productId,
+        orderId: null,
+        totalMinutes: minutes,
+        usedMinutes: usedMinutes,
+        expiresAt: expiresAt,
       })
-      .returning('member_package_id')
+      .returning('memberPackageId')
       .executeTakeFirstOrThrow()
 
-    createdMemberPackageIds.push(row.member_package_id)
+    createdMemberPackageIds.push(row.memberPackageId)
 
-    return { memberPackageId: row.member_package_id }
+    return { memberPackageId: row.memberPackageId }
   }
 
   /**
@@ -674,9 +674,9 @@ describe('Flight Invoice Outbox Integration', () => {
     const invoice = await db
       .selectFrom('accts.invoice')
       .select('id')
-      .where('member_id', '=', TEST_MEMBER_ID)
-      .where('invoice_type', '=', MIKInvoiceType.FLIGHT)
-      .orderBy('created_at', 'desc')
+      .where('memberId', '=', TEST_MEMBER_ID)
+      .where('invoiceType', '=', MIKInvoiceType.FLIGHT)
+      .orderBy('createdAt', 'desc')
       .limit(1)
       .executeTakeFirstOrThrow()
 
@@ -690,9 +690,9 @@ describe('Flight Invoice Outbox Integration', () => {
    */
   const getDryRunTasks = async (invoiceId: string) => {
     const row = await db
-      .selectFrom('accts.outbox_simplbooks')
+      .selectFrom('accts.outboxSimplbooks')
       .selectAll()
-      .where('event_type', '=', SimplbooksEventType.SEND_INVOICE_PDF)
+      .where('eventType', '=', SimplbooksEventType.SEND_INVOICE_PDF)
       .where(sql<SqlBool>`payload->>'invoiceId' = ${invoiceId}`)
       .executeTakeFirstOrThrow()
 
@@ -713,7 +713,7 @@ describe('Flight Invoice Outbox Integration', () => {
   ) => {
     // 1. Outbox row is SYNCED
     const outboxRow = await db
-      .selectFrom('accts.outbox_simplbooks')
+      .selectFrom('accts.outboxSimplbooks')
       .select('status')
       .where('id', '=', outboxId)
       .executeTakeFirstOrThrow()
@@ -722,28 +722,28 @@ describe('Flight Invoice Outbox Integration', () => {
     // 2. Invoice row exists with correct type
     const invoiceRow = await db
       .selectFrom('accts.invoice')
-      .select(['member_id', 'invoice_type'])
+      .select(['memberId', 'invoiceType'])
       .where('id', '=', invoiceId)
       .executeTakeFirstOrThrow()
-    expect(invoiceRow.member_id).toBe(TEST_MEMBER_ID)
-    expect(invoiceRow.invoice_type).toBe(MIKInvoiceType.FLIGHT)
+    expect(invoiceRow.memberId).toBe(TEST_MEMBER_ID)
+    expect(invoiceRow.invoiceType).toBe(MIKInvoiceType.FLIGHT)
 
     // 3. Each flight log is INVOICED with the correct invoice number
     for (const flightId of flightIds) {
       const flightRow = await db
         .selectFrom('flight.logs')
-        .select(['status', 'invoice_number'])
-        .where('flight_id', '=', flightId)
+        .select(['status', 'invoiceNumber'])
+        .where('flightId', '=', flightId)
         .executeTakeFirstOrThrow()
       expect(flightRow.status).toBe(FlightLogStatus.INVOICED)
-      expect(flightRow.invoice_number).toBe(invoiceId)
+      expect(flightRow.invoiceNumber).toBe(invoiceId)
     }
 
     // 4. SEND_INVOICE_PDF row in PENDING state
     const pdfRow = await db
-      .selectFrom('accts.outbox_simplbooks')
+      .selectFrom('accts.outboxSimplbooks')
       .select('status')
-      .where('event_type', '=', SimplbooksEventType.SEND_INVOICE_PDF)
+      .where('eventType', '=', SimplbooksEventType.SEND_INVOICE_PDF)
       .where(sql<SqlBool>`payload->>'invoiceId' = ${invoiceId}`)
       .executeTakeFirstOrThrow()
     expect(pdfRow.status).toBe(SimplbooksStatus.PENDING)
@@ -882,20 +882,20 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Verify prepaid usage_log entry was created
       const usageLogs = await db
-        .selectFrom('prepaid.usage_log')
+        .selectFrom('prepaid.usageLog')
         .selectAll()
-        .where('member_package_id', '=', memberPackageId)
+        .where('memberPackageId', '=', memberPackageId)
         .execute()
       expect(usageLogs).toHaveLength(1)
-      expect(usageLogs[0].minutes_used).toBe(90)
+      expect(usageLogs[0].minutesUsed).toBe(90)
 
       // Verify member_packages.used_minutes updated
       const pkg = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', memberPackageId)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', memberPackageId)
         .executeTakeFirstOrThrow()
-      expect(pkg.used_minutes).toBe(90)
+      expect(pkg.usedMinutes).toBe(90)
     })
 
     it('S2-2: partially prepaid (balance exhausted) — prepaid + credit + standard remainder', async () => {
@@ -931,11 +931,11 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Package should be fully drained
       const pkg = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', memberPackageId)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', memberPackageId)
         .executeTakeFirstOrThrow()
-      expect(pkg.used_minutes).toBe(40)
+      expect(pkg.usedMinutes).toBe(40)
     })
 
     it('S2-3: local short flight with prepaid — top-up mins folded into prepaid', async () => {
@@ -979,11 +979,11 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Package used_minutes updated to 20 (15 flight + 5 top-up)
       const pkg = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', memberPackageId)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', memberPackageId)
         .executeTakeFirstOrThrow()
-      expect(pkg.used_minutes).toBe(20)
+      expect(pkg.usedMinutes).toBe(20)
     })
 
     it('S2-4: multiple packages drained first-to-expire first', async () => {
@@ -1023,25 +1023,25 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // First package fully drained (30 min)
       const p1 = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', pkg1Id)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', pkg1Id)
         .executeTakeFirstOrThrow()
-      expect(p1.used_minutes).toBe(30)
+      expect(p1.usedMinutes).toBe(30)
 
       // Second package partially drained (30 min of 40)
       const p2 = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', pkg2Id)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', pkg2Id)
         .executeTakeFirstOrThrow()
-      expect(p2.used_minutes).toBe(30)
+      expect(p2.usedMinutes).toBe(30)
 
       // Two usage_log entries (one per package)
       const usageLogs = await db
-        .selectFrom('prepaid.usage_log')
+        .selectFrom('prepaid.usageLog')
         .selectAll()
-        .where('member_package_id', 'in', [pkg1Id, pkg2Id])
+        .where('memberPackageId', 'in', [pkg1Id, pkg2Id])
         .execute()
       expect(usageLogs).toHaveLength(2)
     })
@@ -1081,11 +1081,11 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Package used_minutes updated
       const pkg = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', memberPackageId)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', memberPackageId)
         .executeTakeFirstOrThrow()
-      expect(pkg.used_minutes).toBe(90)
+      expect(pkg.usedMinutes).toBe(90)
     })
 
     it('S2-6: two flights, two packages different rates, prepaid exhausted — remainder at standard rate; first-to-expire consumed first', async () => {
@@ -1178,25 +1178,25 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Pkg1 fully drained
       const p1 = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', pkg1Id)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', pkg1Id)
         .executeTakeFirstOrThrow()
-      expect(p1.used_minutes).toBe(40)
+      expect(p1.usedMinutes).toBe(40)
 
       // Pkg2 fully drained
       const p2 = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', pkg2Id)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', pkg2Id)
         .executeTakeFirstOrThrow()
-      expect(p2.used_minutes).toBe(30)
+      expect(p2.usedMinutes).toBe(30)
 
       // 3 usage_log entries: flight1→pkg1(40), flight1→pkg2(20), flight2→pkg2(10)
       const usageLogs = await db
-        .selectFrom('prepaid.usage_log')
+        .selectFrom('prepaid.usageLog')
         .selectAll()
-        .where('member_package_id', 'in', [pkg1Id, pkg2Id])
+        .where('memberPackageId', 'in', [pkg1Id, pkg2Id])
         .execute()
       expect(usageLogs).toHaveLength(3)
     })
@@ -1264,11 +1264,11 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Package drained by block time (100 min), not flight time (90 min)
       const pkg = await db
-        .selectFrom('prepaid.member_packages')
-        .select(['used_minutes'])
-        .where('member_package_id', '=', memberPackageId)
+        .selectFrom('prepaid.memberPackages')
+        .select(['usedMinutes'])
+        .where('memberPackageId', '=', memberPackageId)
         .executeTakeFirstOrThrow()
-      expect(pkg.used_minutes).toBe(100)
+      expect(pkg.usedMinutes).toBe(100)
     })
   })
 
@@ -1663,12 +1663,12 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Verify package was actually consumed via DB
       const usageLog = await db
-        .selectFrom('prepaid.usage_log')
+        .selectFrom('prepaid.usageLog')
         .selectAll()
-        .where('member_package_id', '=', memberPackageId)
+        .where('memberPackageId', '=', memberPackageId)
         .execute()
       expect(usageLog).toHaveLength(1)
-      expect(usageLog[0].minutes_used).toBe(60)
+      expect(usageLog[0].minutesUsed).toBe(60)
 
       expect(tasks).toMatchSnapshot()
     })

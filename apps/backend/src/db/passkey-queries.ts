@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 
 const CHALLENGE_TTL_SECONDS = 5 * 60 // 5 minutes — WebAuthn ceremonies are quick
 
@@ -43,7 +43,7 @@ const mapRow = (r: {
 })
 
 export async function getPasskeysByMemberId(memberId: string): Promise<PasskeyRow[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('member.passkeys')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -55,7 +55,7 @@ export async function getPasskeysByMemberId(memberId: string): Promise<PasskeyRo
 export async function getPasskeyByCredentialId(
   credentialId: string,
 ): Promise<PasskeyRow | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('member.passkeys')
     .selectAll()
     .where('credentialId', '=', credentialId)
@@ -65,7 +65,7 @@ export async function getPasskeyByCredentialId(
 
 /** Look up a passkey by its id (regardless of owning member). */
 export async function getPasskeyById(id: string): Promise<PasskeyRow | undefined> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('member.passkeys')
     .selectAll()
     .where('id', '=', id)
@@ -83,7 +83,7 @@ export async function insertPasskey(input: {
   backedUp: boolean
   name: string | null
 }): Promise<string> {
-  const result = await camelDb
+  const result = await db
     .insertInto('member.passkeys')
     .values({
       memberId: input.memberId,
@@ -111,7 +111,7 @@ export async function insertPasskey(input: {
  * possible and the library accepts it.
  */
 export async function updatePasskeyCounter(id: string, counter: number): Promise<void> {
-  await camelDb
+  await db
     .updateTable('member.passkeys')
     .set({ counter, lastUsedAt: new Date() })
     .where('id', '=', id)
@@ -119,7 +119,7 @@ export async function updatePasskeyCounter(id: string, counter: number): Promise
 }
 
 export async function renamePasskey(id: string, memberId: string, name: string): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .updateTable('member.passkeys')
     .set({ name })
     .where('id', '=', id)
@@ -130,7 +130,7 @@ export async function renamePasskey(id: string, memberId: string, name: string):
 
 /** Delete a passkey owned by the given member. Returns true if a row was removed. */
 export async function deletePasskey(id: string, memberId: string): Promise<boolean> {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('member.passkeys')
     .where('id', '=', id)
     .where('memberId', '=', memberId)
@@ -140,7 +140,7 @@ export async function deletePasskey(id: string, memberId: string): Promise<boole
 
 /** Admin variant: delete a passkey by id without scoping to member. */
 export async function deletePasskeyById(id: string): Promise<boolean> {
-  const result = await camelDb.deleteFrom('member.passkeys').where('id', '=', id).executeTakeFirst()
+  const result = await db.deleteFrom('member.passkeys').where('id', '=', id).executeTakeFirst()
   return Number(result.numDeletedRows) > 0
 }
 
@@ -165,7 +165,7 @@ export async function storeChallenge(input: {
   // (email, purpose), so an INSERT … ON CONFLICT replaces any previous
   // challenge atomically — no race window between DELETE and INSERT.
   if (input.memberId) {
-    await camelDb
+    await db
       .insertInto('member.webauthnChallenges')
       .values({
         memberId: input.memberId,
@@ -187,7 +187,7 @@ export async function storeChallenge(input: {
       )
       .execute()
   } else if (input.email) {
-    await camelDb
+    await db
       .insertInto('member.webauthnChallenges')
       .values({
         memberId: null,
@@ -222,7 +222,7 @@ export async function claimChallenge(input: {
     return undefined
   }
 
-  let query = camelDb
+  let query = db
     .deleteFrom('member.webauthnChallenges')
     .where('purpose', '=', input.purpose)
     .where('expiresAt', '>', new Date())
@@ -239,8 +239,5 @@ export async function claimChallenge(input: {
 
 /** Periodic cleanup helper — also called opportunistically during reads. */
 export async function deleteExpiredChallenges(): Promise<void> {
-  await camelDb
-    .deleteFrom('member.webauthnChallenges')
-    .where('expiresAt', '<=', new Date())
-    .execute()
+  await db.deleteFrom('member.webauthnChallenges').where('expiresAt', '<=', new Date()).execute()
 }

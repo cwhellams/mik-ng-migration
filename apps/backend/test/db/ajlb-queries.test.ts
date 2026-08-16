@@ -91,9 +91,9 @@ describe('Db ajlb CRUD tests', () => {
 
   beforeAll(async () => {
     const maxSeqResult = await db
-      .selectFrom('flight.aircraft_journey_log_book')
-      .select(({ fn }) => fn.max<number>('seq_no').as('maxSeqNo'))
-      .where('aircraft_registration', '=', 'OH-STL')
+      .selectFrom('flight.aircraftJourneyLogBook')
+      .select(({ fn }) => fn.max<number>('seqNo').as('maxSeqNo'))
+      .where('aircraftRegistration', '=', 'OH-STL')
       .executeTakeFirst()
     const seqNo = (maxSeqResult?.maxSeqNo ?? 0) + 1
 

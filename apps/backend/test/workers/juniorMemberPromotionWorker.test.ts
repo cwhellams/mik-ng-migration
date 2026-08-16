@@ -57,11 +57,11 @@ describe('Junior Member Promotion Worker', () => {
     await db
       .updateTable('member.register')
       .set({
-        member_type: MIKMemberTypes.JUNIOR,
-        is_membership_expired: false,
-        updated_by: 'k1mnimda',
+        memberType: MIKMemberTypes.JUNIOR,
+        isMembershipExpired: false,
+        updatedBy: 'k1mnimda',
       })
-      .where('member_id', '=', testMemberId)
+      .where('memberId', '=', testMemberId)
       .execute()
   })
 
@@ -70,11 +70,11 @@ describe('Junior Member Promotion Worker', () => {
     await db
       .updateTable('member.register')
       .set({
-        member_type: MIKMemberTypes.JUNIOR,
-        is_membership_expired: false,
-        updated_by: 'k1mnimda',
+        memberType: MIKMemberTypes.JUNIOR,
+        isMembershipExpired: false,
+        updatedBy: 'k1mnimda',
       })
-      .where('member_id', '=', testMemberId)
+      .where('memberId', '=', testMemberId)
       .execute()
   })
 
@@ -125,8 +125,8 @@ describe('Junior Member Promotion Worker', () => {
 
       await db
         .updateTable('member.register')
-        .set({ date_of_birth: dobStr, updated_by: 'k1mnimda' })
-        .where('member_id', '=', testMemberId)
+        .set({ dateOfBirth: dobStr, updatedBy: 'k1mnimda' })
+        .where('memberId', '=', testMemberId)
         .execute()
 
       const members = await getJuniorMembersTurning18Today()
@@ -145,8 +145,8 @@ describe('Junior Member Promotion Worker', () => {
 
       await db
         .updateTable('member.register')
-        .set({ date_of_birth: dobStr, updated_by: 'k1mnimda' })
-        .where('member_id', '=', testMemberId)
+        .set({ dateOfBirth: dobStr, updatedBy: 'k1mnimda' })
+        .where('memberId', '=', testMemberId)
         .execute()
 
       const members = await getJuniorMembersTurning18Today()
@@ -164,11 +164,11 @@ describe('Junior Member Promotion Worker', () => {
       await db
         .updateTable('member.register')
         .set({
-          member_type: MIKMemberTypes.FLYING,
-          date_of_birth: dobStr,
-          updated_by: 'k1mnimda',
+          memberType: MIKMemberTypes.FLYING,
+          dateOfBirth: dobStr,
+          updatedBy: 'k1mnimda',
         })
-        .where('member_id', '=', testMemberId)
+        .where('memberId', '=', testMemberId)
         .execute()
 
       const members = await getJuniorMembersTurning18Today()
@@ -185,8 +185,8 @@ describe('Junior Member Promotion Worker', () => {
 
       await db
         .updateTable('member.register')
-        .set({ date_of_birth: dobStr, updated_by: 'k1mnimda' })
-        .where('member_id', '=', testMemberId)
+        .set({ dateOfBirth: dobStr, updatedBy: 'k1mnimda' })
+        .where('memberId', '=', testMemberId)
         .execute()
 
       const members = await getJuniorMembersTurning18Today()
@@ -204,8 +204,8 @@ describe('Junior Member Promotion Worker', () => {
       // Capture current approval state so we can restore it unconditionally
       const original = await db
         .selectFrom('member.register')
-        .select(['date_of_birth', 'membership_approved_at', 'membership_approved_by'])
-        .where('member_id', '=', unapprovedMemberId)
+        .select(['dateOfBirth', 'membershipApprovedAt', 'membershipApprovedBy'])
+        .where('memberId', '=', unapprovedMemberId)
         .executeTakeFirstOrThrow()
 
       try {
@@ -214,12 +214,12 @@ describe('Junior Member Promotion Worker', () => {
         await db
           .updateTable('member.register')
           .set({
-            date_of_birth: dobStr,
-            membership_approved_at: null,
-            membership_approved_by: null,
-            updated_by: 'k1mnimda',
+            dateOfBirth: dobStr,
+            membershipApprovedAt: null,
+            membershipApprovedBy: null,
+            updatedBy: 'k1mnimda',
           })
-          .where('member_id', '=', unapprovedMemberId)
+          .where('memberId', '=', unapprovedMemberId)
           .execute()
 
         const members = await getJuniorMembersTurning18Today()
@@ -231,12 +231,12 @@ describe('Junior Member Promotion Worker', () => {
         await db
           .updateTable('member.register')
           .set({
-            date_of_birth: original.date_of_birth,
-            membership_approved_at: original.membership_approved_at,
-            membership_approved_by: original.membership_approved_by,
-            updated_by: 'k1mnimda',
+            dateOfBirth: original.dateOfBirth,
+            membershipApprovedAt: original.membershipApprovedAt,
+            membershipApprovedBy: original.membershipApprovedBy,
+            updatedBy: 'k1mnimda',
           })
-          .where('member_id', '=', unapprovedMemberId)
+          .where('memberId', '=', unapprovedMemberId)
           .execute()
       }
     })
@@ -249,11 +249,11 @@ describe('Junior Member Promotion Worker', () => {
       await db
         .updateTable('member.register')
         .set({
-          date_of_birth: dobStr,
-          is_membership_expired: true,
-          updated_by: 'k1mnimda',
+          dateOfBirth: dobStr,
+          isMembershipExpired: true,
+          updatedBy: 'k1mnimda',
         })
-        .where('member_id', '=', testMemberId)
+        .where('memberId', '=', testMemberId)
         .execute()
 
       const members = await getJuniorMembersTurning18Today()
@@ -269,12 +269,12 @@ describe('Junior Member Promotion Worker', () => {
 
       const member = await db
         .selectFrom('member.register')
-        .select(['member_type', 'updated_by'])
-        .where('member_id', '=', testMemberId)
+        .select(['memberType', 'updatedBy'])
+        .where('memberId', '=', testMemberId)
         .executeTakeFirstOrThrow()
 
-      expect(member.member_type).toBe(MIKMemberTypes.FLYING)
-      expect(member.updated_by).toBe('k1mnimda')
+      expect(member.memberType).toBe(MIKMemberTypes.FLYING)
+      expect(member.updatedBy).toBe('k1mnimda')
     })
   })
 
@@ -286,8 +286,8 @@ describe('Junior Member Promotion Worker', () => {
 
       await db
         .updateTable('member.register')
-        .set({ date_of_birth: dobStr, updated_by: 'k1mnimda' })
-        .where('member_id', '=', testMemberId)
+        .set({ dateOfBirth: dobStr, updatedBy: 'k1mnimda' })
+        .where('memberId', '=', testMemberId)
         .execute()
 
       await processJuniorPromotions(mockSendEmail)
@@ -295,11 +295,11 @@ describe('Junior Member Promotion Worker', () => {
       // Check member was promoted
       const member = await db
         .selectFrom('member.register')
-        .select('member_type')
-        .where('member_id', '=', testMemberId)
+        .select('memberType')
+        .where('memberId', '=', testMemberId)
         .executeTakeFirstOrThrow()
 
-      expect(member.member_type).toBe(MIKMemberTypes.FLYING)
+      expect(member.memberType).toBe(MIKMemberTypes.FLYING)
 
       // Check email was sent
       expect(mockSendEmail).toHaveBeenCalledTimes(1)
@@ -319,8 +319,8 @@ describe('Junior Member Promotion Worker', () => {
 
       await db
         .updateTable('member.register')
-        .set({ date_of_birth: dobStr, updated_by: 'k1mnimda' })
-        .where('member_id', '=', testMemberId)
+        .set({ dateOfBirth: dobStr, updatedBy: 'k1mnimda' })
+        .where('memberId', '=', testMemberId)
         .execute()
 
       await processJuniorPromotions(mockSendEmail)
@@ -331,11 +331,11 @@ describe('Junior Member Promotion Worker', () => {
       // Member should still be JUNIOR
       const member = await db
         .selectFrom('member.register')
-        .select('member_type')
-        .where('member_id', '=', testMemberId)
+        .select('memberType')
+        .where('memberId', '=', testMemberId)
         .executeTakeFirstOrThrow()
 
-      expect(member.member_type).toBe(MIKMemberTypes.JUNIOR)
+      expect(member.memberType).toBe(MIKMemberTypes.JUNIOR)
     })
   })
 })

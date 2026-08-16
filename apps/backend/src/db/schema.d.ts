@@ -129,15 +129,15 @@ export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SKIP
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
 
 export interface AcctsAircraftPricing {
-  created_at: Generated<Timestamp>
-  created_by: string | null
+  createdAt: Generated<Timestamp>
+  createdBy: string | null
   notes: string | null
-  price_per_min: Numeric
+  pricePerMin: Numeric
   registration: string
-  updated_at: Generated<Timestamp | null>
-  updated_by: string | null
-  valid_from: string
-  valid_to: string | null
+  updatedAt: Generated<Timestamp | null>
+  updatedBy: string | null
+  validFrom: string
+  validTo: string | null
 }
 
 export interface AcctsCostCentre {
@@ -149,135 +149,135 @@ export interface AcctsExpenseCategory {
   active: Generated<boolean>
   code: string
   id: Generated<number>
-  label_en: string
-  label_fi: string
-  label_sv: string
-  requires_aircraft: Generated<boolean>
-  requires_flight: Generated<boolean>
+  labelEn: string
+  labelFi: string
+  labelSv: string
+  requiresAircraft: Generated<boolean>
+  requiresFlight: Generated<boolean>
 }
 
 export interface AcctsExpenseClaim {
-  aircraft_id: string | null
-  approved_at: Timestamp | null
-  approved_by: string | null
-  category_id: number
+  aircraftId: string | null
+  approvedAt: Timestamp | null
+  approvedBy: string | null
+  categoryId: number
   ccy: Generated<string>
-  created_at: Generated<Timestamp>
+  createdAt: Generated<Timestamp>
   description: string | null
-  expense_date: string | null
-  flight_log_id: string | null
-  fuel_litres: Numeric | null
-  fuel_type: string | null
-  fx_rate: Numeric | null
+  expenseDate: string | null
+  flightLogId: string | null
+  fuelLitres: Numeric | null
+  fuelType: string | null
+  fxRate: Numeric | null
   /**
    * AES-256-GCM encrypted Finnish social security number (HETU) for mileage claims — GDPR sensitive
    */
-  hetu_encrypted: string | null
+  hetuEncrypted: string | null
   iban: string | null
-  iban_account_name: string | null
+  ibanAccountName: string | null
   id: Generated<string>
-  member_id: string
-  receipt_file_name: string | null
-  receipt_file_size: Int8 | null
-  receipt_mime_type: string | null
-  receipt_storage_key: string | null
-  receipt_uploaded_at: Timestamp | null
-  refuel_outside_finland: Generated<boolean>
-  rejected_at: Timestamp | null
-  rejected_by: string | null
-  rejection_reason: string | null
-  simplbooks_purchase_id: Int8 | null
+  memberId: string
+  receiptFileName: string | null
+  receiptFileSize: Int8 | null
+  receiptMimeType: string | null
+  receiptStorageKey: string | null
+  receiptUploadedAt: Timestamp | null
+  refuelOutsideFinland: Generated<boolean>
+  rejectedAt: Timestamp | null
+  rejectedBy: string | null
+  rejectionReason: string | null
+  simplbooksPurchaseId: Int8 | null
   status: Generated<string>
-  submitted_at: Timestamp | null
+  submittedAt: Timestamp | null
   title: string
-  updated_at: Generated<Timestamp>
+  updatedAt: Generated<Timestamp>
 }
 
 export interface AcctsExpenseClaimAttachment {
-  claim_id: string
-  file_name: string
-  file_size: Int8
+  claimId: string
+  fileName: string
+  fileSize: Int8
   id: Generated<number>
-  mime_type: string
-  sort_order: Generated<number>
-  storage_key: string
-  uploaded_at: Generated<Timestamp>
+  mimeType: string
+  sortOrder: Generated<number>
+  storageKey: string
+  uploadedAt: Generated<Timestamp>
 }
 
 export interface AcctsExpenseClaimEditAudit {
-  claim_id: string
-  edited_at: Generated<Timestamp>
-  edited_by: string
-  field_name: string
+  claimId: string
+  editedAt: Generated<Timestamp>
+  editedBy: string
+  fieldName: string
   id: Generated<number>
   /**
    * NULL for claim-level field changes (title, aircraft, expense date)
    */
-  line_item_id: number | null
-  new_value: string | null
-  old_value: string | null
+  lineItemId: number | null
+  newValue: string | null
+  oldValue: string | null
 }
 
 export interface AcctsExpenseClaimLineItem {
   airport: string | null
-  claim_id: string
-  cost_centre_code: string | null
+  claimId: string
+  costCentreCode: string | null
   description: string
-  fuel_date: string | null
-  fuel_type: string | null
+  fuelDate: string | null
+  fuelType: string | null
   id: Generated<number>
-  item_id: number | null
+  itemId: number | null
   /**
    * Fuel bought with the club's card, not reimbursed to the member
    */
-  paid_with_club_card: Generated<boolean>
+  paidWithClubCard: Generated<boolean>
   quantity: Generated<Numeric>
-  sort_order: Generated<number>
-  total_cost: Numeric | null
+  sortOrder: Generated<number>
+  totalCost: Numeric | null
   unit: Generated<string>
-  unit_price: Numeric
+  unitPrice: Numeric
 }
 
 export interface AcctsExpenseClaimMessage {
   body: string
-  claim_id: string
+  claimId: string
   id: Generated<number>
-  message_type: string
-  sender_id: string
-  sent_at: Generated<Timestamp>
+  messageType: string
+  senderId: string
+  sentAt: Generated<Timestamp>
 }
 
 export interface AcctsExpenseMileageDetail {
   /**
    * True when the journey exceeded the km soft-limit and board approval has been confirmed
    */
-  board_approved: Generated<boolean>
-  claim_id: string
-  created_at: Generated<Timestamp>
+  boardApproved: Generated<boolean>
+  claimId: string
+  createdAt: Generated<Timestamp>
   /**
    * Server-computed start->end distance with no waypoints, for comparison against distance_km
    */
-  direct_distance_km: Numeric | null
-  distance_km: Numeric
+  directDistanceKm: Numeric | null
+  distanceKm: Numeric
   /**
    * Structured end address label (from geocoding search)
    */
-  end_address: string | null
-  end_lat: Numeric | null
-  end_lon: Numeric | null
+  endAddress: string | null
+  endLat: Numeric | null
+  endLon: Numeric | null
   id: Generated<number>
   /**
    * Date of the journey
    */
-  journey_date: string
+  journeyDate: string
   /**
    * Required when distance_km exceeds direct_distance_km by more than 20%
    */
-  justification_note: string | null
+  justificationNote: string | null
   /**
    * Effective rate at time of claim creation (rate_per_km * (1 - discount_pct/100))
    */
-  rate_per_km: Numeric
+  ratePerKm: Numeric
   /**
    * Legacy free-text route, only populated on claims created before issue #1021
    */
@@ -285,10 +285,10 @@ export interface AcctsExpenseMileageDetail {
   /**
    * Structured start address label (from geocoding search)
    */
-  start_address: string | null
-  start_lat: Numeric | null
-  start_lon: Numeric | null
-  updated_at: Generated<Timestamp>
+  startAddress: string | null
+  startLat: Numeric | null
+  startLon: Numeric | null
+  updatedAt: Generated<Timestamp>
   /**
    * Ordered [{label, lat, lon}, ...] intermediate stops for non-direct routes
    */
@@ -296,74 +296,74 @@ export interface AcctsExpenseMileageDetail {
 }
 
 export interface AcctsInvoice {
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   currency: Generated<string>
   description: string | null
-  due_at: string
+  dueAt: string
   id: Int8
-  invoice_type: InvoiceType
-  is_paid: Generated<boolean>
-  member_id: string
-  overdue_email_sent_at: Timestamp | null
-  paid_at: string | null
-  pmt_ref: string
-  sent_at: string | null
-  total_sum: Numeric | null
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  invoiceType: InvoiceType
+  isPaid: Generated<boolean>
+  memberId: string
+  overdueEmailSentAt: Timestamp | null
+  paidAt: string | null
+  pmtRef: string
+  sentAt: string | null
+  totalSum: Numeric | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface AcctsItems {
   code: string
-  expense_claim_item: Generated<boolean>
+  expenseClaimItem: Generated<boolean>
   id: number
-  is_fuel_item: Generated<boolean>
-  is_km_item: Generated<boolean>
-  is_other_item: Generated<boolean>
+  isFuelItem: Generated<boolean>
+  isKmItem: Generated<boolean>
+  isOtherItem: Generated<boolean>
   item: Json | null
   name: string
 }
 
 export interface AcctsLocalFuelPrice {
-  created_at: Generated<Timestamp>
-  created_by: string
-  fuel_type: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  fuelType: string
   id: Generated<number>
   /**
    * Total price including fuel tax, EUR per litre
    */
-  price_eur_per_litre: Numeric
+  priceEurPerLitre: Numeric
   /**
    * Effective from this date until the next row for the same fuel_type
    */
-  valid_from: string
+  validFrom: string
 }
 
 export interface AcctsMileageAllowance {
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   /**
    * Percentage of the official rate that the club actually pays (default 50%)
    */
-  discount_pct: Generated<Numeric>
+  discountPct: Generated<Numeric>
   id: Generated<number>
   /**
    * Official rate €/km as published by the Finnish Tax Administration
    */
-  rate_per_km: Numeric
-  tax_year: number
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  ratePerKm: Numeric
+  taxYear: number
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface AcctsMileageHetuAccessAudit {
-  accessed_at: Generated<Timestamp>
+  accessedAt: Generated<Timestamp>
   /**
    * Member who revealed the HETU (must hold expense.hetu_admin)
    */
-  accessed_by: string
-  claim_id: string
+  accessedBy: string
+  claimId: string
   /**
    * Where the reveal happened, e.g. CLAIM_REVEAL
    */
@@ -372,223 +372,223 @@ export interface AcctsMileageHetuAccessAudit {
 }
 
 export interface AcctsOutboxSimplbooks {
-  created_at_utc: Generated<Timestamp>
-  error_message: string | null
-  event_type: string
+  createdAtUtc: Generated<Timestamp>
+  errorMessage: string | null
+  eventType: string
   id: string
   payload: Json
-  processed_at: Timestamp | null
+  processedAt: Timestamp | null
   status: Generated<SimplbooksOutboxStatus>
-  updated_at_utc: Generated<Timestamp>
+  updatedAtUtc: Generated<Timestamp>
 }
 
 export interface AcctsRecurringFeesProcessing {
-  created_at: Generated<Timestamp>
-  created_by: string
-  fee_type: FeeType
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  feeType: FeeType
   status: Feeprocessstatus
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
   year: number
 }
 
 export interface ClubAmeEditSuggestion {
-  ame_id: string
-  created_at: Generated<Timestamp>
+  ameId: string
+  createdAt: Generated<Timestamp>
   id: Generated<string>
   location: string
-  medical_centre: string
-  medical_types: Generated<string[]>
+  medicalCentre: string
+  medicalTypes: Generated<string[]>
   name: string
   notes: string | null
   price: Numeric | null
-  rejection_reason: string | null
-  report_date: string
-  reviewed_at: Timestamp | null
-  reviewed_by: string | null
+  rejectionReason: string | null
+  reportDate: string
+  reviewedAt: Timestamp | null
+  reviewedBy: string | null
   status: Generated<string>
-  submitted_by: string
-  updated_at: Generated<Timestamp>
+  submittedBy: string
+  updatedAt: Generated<Timestamp>
 }
 
 export interface ClubAmeList {
-  approved_at: Timestamp | null
-  approved_by: string | null
-  created_at: Generated<Timestamp>
+  approvedAt: Timestamp | null
+  approvedBy: string | null
+  createdAt: Generated<Timestamp>
   id: Generated<string>
   location: string
-  medical_centre: string
-  medical_types: Generated<string[]>
+  medicalCentre: string
+  medicalTypes: Generated<string[]>
   name: string
   notes: string | null
   price: Numeric | null
-  rejected_at: Timestamp | null
-  rejected_by: string | null
-  rejection_reason: string | null
-  report_date: string
+  rejectedAt: Timestamp | null
+  rejectedBy: string | null
+  rejectionReason: string | null
+  reportDate: string
   status: Generated<string>
-  submitted_by: string
-  updated_at: Generated<Timestamp>
+  submittedBy: string
+  updatedAt: Generated<Timestamp>
 }
 
 export interface ClubAmeRating {
-  ame_id: string
-  created_at: Generated<Timestamp>
+  ameId: string
+  createdAt: Generated<Timestamp>
   id: Generated<string>
-  member_id: string
+  memberId: string
   stars: number
-  updated_at: Generated<Timestamp>
+  updatedAt: Generated<Timestamp>
 }
 
 export interface ClubAmeRemovalRequest {
-  ame_id: string
-  created_at: Generated<Timestamp>
+  ameId: string
+  createdAt: Generated<Timestamp>
   id: Generated<string>
   reason: string
-  rejection_reason: string | null
-  reviewed_at: Timestamp | null
-  reviewed_by: string | null
+  rejectionReason: string | null
+  reviewedAt: Timestamp | null
+  reviewedBy: string | null
   status: Generated<string>
-  submitted_by: string
-  updated_at: Generated<Timestamp>
+  submittedBy: string
+  updatedAt: Generated<Timestamp>
 }
 
 export interface DtoFlightItemOutcomes {
-  attempt_id: string
-  created_at: Generated<Timestamp>
-  item_id: string
+  attemptId: string
+  createdAt: Generated<Timestamp>
+  itemId: string
   outcome: DtoItemOutcome
   remarks: string | null
-  updated_at: Generated<Timestamp>
+  updatedAt: Generated<Timestamp>
 }
 
 export interface DtoHilQueue {
-  hil_id: Generated<string>
-  item_id: string
-  member_id: string
+  hilId: Generated<string>
+  itemId: string
+  memberId: string
   notes: string | null
-  opened_at: Generated<Timestamp>
-  opened_on_attempt_id: string
-  resolution_outcome: DtoItemOutcome | null
-  resolved_at: Timestamp | null
-  resolved_on_attempt_id: string | null
-  syllabus_id: string
+  openedAt: Generated<Timestamp>
+  openedOnAttemptId: string
+  resolutionOutcome: DtoItemOutcome | null
+  resolvedAt: Timestamp | null
+  resolvedOnAttemptId: string | null
+  syllabusId: string
 }
 
 export interface DtoMemberSyllabus {
-  assigned_at: Generated<Timestamp>
-  assigned_by: string
-  deactivated_at: Timestamp | null
-  is_active: Generated<boolean>
-  member_id: string
-  member_syllabus_id: Generated<string>
-  syllabus_id: string
+  assignedAt: Generated<Timestamp>
+  assignedBy: string
+  deactivatedAt: Timestamp | null
+  isActive: Generated<boolean>
+  memberId: string
+  memberSyllabusId: Generated<string>
+  syllabusId: string
 }
 
 export interface DtoSyllabus {
-  approval_reference: string | null
-  created_at: Generated<Timestamp>
-  created_by: string
+  approvalReference: string | null
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
-  general_information: string | null
-  major_version: number
-  min_block_time_mins: number | null
-  minor_version: number
-  patch_version: Generated<number>
-  program_id: string
-  published_at: Timestamp | null
-  requirements_experience_credit: string | null
+  generalInformation: string | null
+  majorVersion: number
+  minBlockTimeMins: number | null
+  minorVersion: number
+  patchVersion: Generated<number>
+  programId: string
+  publishedAt: Timestamp | null
+  requirementsExperienceCredit: string | null
   status: Generated<DtoSyllabusStatus>
-  submitted_for_approval_at: Timestamp | null
-  syllabus_id: Generated<string>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  submittedForApprovalAt: Timestamp | null
+  syllabusId: Generated<string>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
   version: Generated<string | null>
 }
 
 export interface DtoSyllabusFlightAttempts {
-  attempt_id: Generated<string>
-  created_at: Generated<Timestamp>
-  flight_log_id: string
-  instructor_comments: string | null
-  instructor_member_id: string
-  member_syllabus_id: string
-  requires_reverification: Generated<boolean>
-  syllabus_flight_id: string
-  updated_at: Generated<Timestamp>
-  verification_result: DtoVerificationResult | null
-  verified_at: Timestamp | null
-  verified_by: string | null
+  attemptId: Generated<string>
+  createdAt: Generated<Timestamp>
+  flightLogId: string
+  instructorComments: string | null
+  instructorMemberId: string
+  memberSyllabusId: string
+  requiresReverification: Generated<boolean>
+  syllabusFlightId: string
+  updatedAt: Generated<Timestamp>
+  verificationResult: DtoVerificationResult | null
+  verifiedAt: Timestamp | null
+  verifiedBy: string | null
 }
 
 export interface DtoSyllabusFlightItems {
   description: string | null
-  item_id: Generated<string>
+  itemId: Generated<string>
   mandatory: Generated<boolean>
   name: string
-  sort_order: number
-  syllabus_flight_id: string
+  sortOrder: number
+  syllabusFlightId: string
 }
 
 export interface DtoSyllabusFlights {
   code: string
-  created_at: Generated<Timestamp>
+  createdAt: Generated<Timestamp>
   description: string | null
-  easa_fcl_reference: string | null
-  flight_id: Generated<string>
-  flight_type: DtoFlightType | null
-  is_interim_checkpoint: Generated<boolean>
+  easaFclReference: string | null
+  flightId: Generated<string>
+  flightType: DtoFlightType | null
+  isInterimCheckpoint: Generated<boolean>
   name: string
-  recommended_block_time_mins: number | null
-  sort_order: number
-  syllabus_id: string
+  recommendedBlockTimeMins: number | null
+  sortOrder: number
+  syllabusId: string
   tags: Generated<string[]>
-  updated_at: Generated<Timestamp>
+  updatedAt: Generated<Timestamp>
 }
 
 export interface DtoTrainingProgram {
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
   name: string
-  program_id: Generated<string>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  programId: Generated<string>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface EmtMessages {
   created: Generated<Timestamp>
-  global_position: Generated<Int8 | null>
-  is_archived: Generated<boolean>
-  message_data: Json
-  message_id: string
-  message_kind: Generated<string>
-  message_metadata: Json
-  message_schema_version: string
-  message_type: string
+  globalPosition: Generated<Int8 | null>
+  isArchived: Generated<boolean>
+  messageData: Json
+  messageId: string
+  messageKind: Generated<string>
+  messageMetadata: Json
+  messageSchemaVersion: string
+  messageType: string
   partition: Generated<string>
-  stream_id: string
-  stream_position: Int8
-  transaction_id: string
+  streamId: string
+  streamPosition: Int8
+  transactionId: string
 }
 
 export interface EmtProcessors {
-  created_at: Generated<Timestamp>
-  last_processed_checkpoint: string
-  last_processed_transaction_id: string
-  last_updated: Generated<Timestamp>
+  createdAt: Generated<Timestamp>
+  lastProcessedCheckpoint: string
+  lastProcessedTransactionId: string
+  lastUpdated: Generated<Timestamp>
   partition: Generated<string>
-  processor_id: string
-  processor_instance_id: Generated<string | null>
+  processorId: string
+  processorInstanceId: Generated<string | null>
   status: Generated<string>
   version: Generated<number>
 }
 
 export interface EmtProjections {
-  created_at: Generated<Timestamp>
+  createdAt: Generated<Timestamp>
   definition: Generated<Json>
   kind: string
-  last_updated: Generated<Timestamp>
+  lastUpdated: Generated<Timestamp>
   name: string
   partition: Generated<string>
   status: string
@@ -597,532 +597,532 @@ export interface EmtProjections {
 }
 
 export interface EmtStreams {
-  is_archived: Generated<boolean>
+  isArchived: Generated<boolean>
   partition: Generated<string>
-  stream_id: string
-  stream_metadata: Json
-  stream_position: Int8
-  stream_type: string
+  streamId: string
+  streamMetadata: Json
+  streamPosition: Int8
+  streamType: string
 }
 
 export interface ExamAttemptAnswers {
-  attempt_id: string
-  choice_id: string | null
-  created_at: Generated<Timestamp>
-  question_id: string
-  updated_at: Generated<Timestamp>
+  attemptId: string
+  choiceId: string | null
+  createdAt: Generated<Timestamp>
+  questionId: string
+  updatedAt: Generated<Timestamp>
 }
 
 export interface ExamAttemptQuestions {
-  attempt_id: string
-  question_id: string
-  sort_order: Generated<number>
+  attemptId: string
+  questionId: string
+  sortOrder: Generated<number>
 }
 
 export interface ExamAttempts {
-  abandon_reason: string | null
-  abandoned_at: Timestamp | null
-  attempt_id: string
-  correct_count: number | null
-  created_at: Generated<Timestamp>
-  graded_at: Timestamp | null
+  abandonedAt: Timestamp | null
+  abandonReason: string | null
+  attemptId: string
+  correctCount: number | null
+  createdAt: Generated<Timestamp>
+  gradedAt: Timestamp | null
   language: Generated<string>
-  member_id: string
+  memberId: string
   passed: boolean | null
-  score_percent: Numeric | null
+  scorePercent: Numeric | null
   status: Generated<ExamAttemptStatus>
-  submitted_at: Timestamp | null
-  total_count: number | null
-  updated_at: Generated<Timestamp>
-  version_id: string
+  submittedAt: Timestamp | null
+  totalCount: number | null
+  updatedAt: Generated<Timestamp>
+  versionId: string
 }
 
 export interface ExamChoices {
-  choice_id: string
-  is_correct: Generated<boolean>
-  question_id: string
-  sort_order: Generated<number>
+  choiceId: string
+  isCorrect: Generated<boolean>
+  questionId: string
+  sortOrder: Generated<number>
 }
 
 export interface ExamChoiceTranslations {
-  choice_id: string
+  choiceId: string
   language: string
   text: string
 }
 
 export interface ExamExams {
-  created_at: Generated<Timestamp>
-  created_by: string
-  exam_id: string
-  exam_type: Generated<ExamExamType>
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  examId: string
+  examType: Generated<ExamExamType>
   name: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface ExamExamVersions {
-  created_at: Generated<Timestamp>
-  created_by: string
-  default_language: Generated<string>
-  exam_id: string
-  pass_percent: Generated<Numeric>
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  defaultLanguage: Generated<string>
+  examId: string
+  passPercent: Generated<Numeric>
   /**
    * When set, each attempt draws this many randomly-selected questions from the version pool. NULL means all questions are used.
    */
-  question_count: number | null
+  questionCount: number | null
   status: Generated<ExamExamVersionStatus>
-  supported_languages: Generated<string[]>
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  version_id: string
-  version_number: Generated<number>
+  supportedLanguages: Generated<string[]>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+  versionId: string
+  versionNumber: Generated<number>
 }
 
 export interface ExamExamVersionTranslations {
   description: string | null
   language: string
   title: string
-  version_id: string
+  versionId: string
 }
 
 export interface ExamQuestions {
-  question_id: string
-  sort_order: Generated<number>
-  version_id: string
+  questionId: string
+  sortOrder: Generated<number>
+  versionId: string
 }
 
 export interface ExamQuestionTranslations {
   language: string
   prompt: string
-  question_id: string
+  questionId: string
   reasoning: string | null
 }
 
 export interface FlightAircraft {
   active: Generated<boolean>
-  created_at: Generated<Timestamp>
-  created_by: string
-  display_name: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  displayName: string
   equipment: string | null
-  fuel_types: string[]
+  fuelTypes: string[]
   hidden: Generated<boolean>
-  image_url: string | null
-  last_maintenance_date: string
-  last_maintenance_mins: number
-  last_maintenance_type: string
+  imageUrl: string | null
+  lastMaintenanceDate: string
+  lastMaintenanceMins: number
+  lastMaintenanceType: string
   location: string | null
-  maintenance_cycle: number
+  maintenanceCycle: number
   manufacturer: string
   model: string
-  next_maintenance_date: string | null
-  next_maintenance_mins: number
-  next_maintenance_type: string
+  nextMaintenanceDate: string | null
+  nextMaintenanceMins: number
+  nextMaintenanceType: string
   notes: Json | null
-  preferred_fuel_type: string | null
+  preferredFuelType: string | null
   registration: string
-  reserved_hours: number
+  reservedHours: number
   seats: number
-  total_percentage_hours: number
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  usable_fuel_litres: number
-  year_of_manufacture: number
+  totalPercentageHours: number
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+  usableFuelLitres: number
+  yearOfManufacture: number
 }
 
 export interface FlightAircraftCards {
-  aircraft_registration: string
-  card_id: Generated<number>
-  created_at: Generated<Timestamp>
-  created_by: string
+  aircraftRegistration: string
+  cardId: Generated<number>
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
   name: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  valid_from: string | null
-  valid_to: string | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+  validFrom: string | null
+  validTo: string | null
 }
 
 export interface FlightAircraftDocumentExpiryNotifications {
-  days_threshold: Generated<number>
-  document_id: number
+  daysThreshold: Generated<number>
+  documentId: number
   id: Generated<number>
-  notification_type: string
-  sent_at: Generated<Timestamp>
+  notificationType: string
+  sentAt: Generated<Timestamp>
 }
 
 export interface FlightAircraftDocumentsFiles {
-  aircraft_registration: string
-  created_at: Generated<Timestamp>
-  created_by: string
+  aircraftRegistration: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
-  document_id: Generated<number>
-  document_type: FlightAircraftDocumentType
-  document_url: string
-  file_name: string
-  file_size: number | null
-  is_active: Generated<boolean>
-  mime_type: string | null
-  storage_key: string | null
+  documentId: Generated<number>
+  documentType: FlightAircraftDocumentType
+  documentUrl: string
+  fileName: string
+  fileSize: number | null
+  isActive: Generated<boolean>
+  mimeType: string | null
+  storageKey: string | null
   title: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  valid_from: string | null
-  valid_to: string | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+  validFrom: string | null
+  validTo: string | null
 }
 
 export interface FlightAircraftHil {
-  aircraft_registration: string
-  created_at: Generated<Timestamp>
-  created_by: string
-  defect_cat: string | null
+  aircraftRegistration: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  defectCat: string | null
   description: string
-  due_date: Timestamp | null
-  hil_id: Generated<string>
-  hil_number: number
+  dueDate: Timestamp | null
+  hilId: Generated<string>
+  hilNumber: number
   name: string
-  open_date: Timestamp
-  resolved_note_id: string | null
+  openDate: Timestamp
+  resolvedNoteId: string | null
   restrictions: string | null
-  source_ref: string | null
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  sourceRef: string | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface FlightAircraftHilAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  hil_id: string
-  new_data: Json | null
-  operation_type: string
+  auditId: Generated<number>
+  changedAt: Generated<Timestamp>
+  changedBy: string
+  changedData: Json | null
+  hilId: string
+  newData: Json | null
+  operationType: string
 }
 
 export interface FlightAircraftHilExtension {
-  created_at: Generated<Timestamp>
-  created_by: string
-  extension_date: Timestamp
-  extension_due: Timestamp
-  extension_id: Generated<string>
-  hil_id: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  extensionDate: Timestamp
+  extensionDue: Timestamp
+  extensionId: Generated<string>
+  hilId: string
   name: string
 }
 
 export interface FlightAircraftHilExtensionAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  extension_id: string
-  new_data: Json | null
-  operation_type: string
+  auditId: Generated<number>
+  changedAt: Generated<Timestamp>
+  changedBy: string
+  changedData: Json | null
+  extensionId: string
+  newData: Json | null
+  operationType: string
 }
 
 export interface FlightAircraftJourneyLogBook {
-  aircraft_registration: string
-  created_at: Generated<Timestamp>
-  created_by: string
-  end_date: string | null
-  no_of_pages: number
-  rows_per_page: number
-  seq_no: number
-  start_date: string
-  start_flight_mins: number
-  start_flight_time: Generated<string>
-  start_landings: Generated<number>
-  start_page: number
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  aircraftRegistration: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  endDate: string | null
+  noOfPages: number
+  rowsPerPage: number
+  seqNo: number
+  startDate: string
+  startFlightMins: number
+  startFlightTime: Generated<string>
+  startLandings: Generated<number>
+  startPage: number
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface FlightAircraftLandingsBaseline {
-  aircraft_registration: string
-  baseline_landings: number
-  created_at: Generated<Timestamp>
-  created_by: string | null
-  updated_at: Generated<Timestamp>
-  updated_by: string | null
+  aircraftRegistration: string
+  baselineLandings: number
+  createdAt: Generated<Timestamp>
+  createdBy: string | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string | null
 }
 
 export interface FlightAircraftNavdata {
-  aircraft_registration: string
-  created_at: Generated<Timestamp>
-  created_by: string
+  aircraftRegistration: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   cycle: string
   expires: string
-  navdata_id: Generated<string>
-  update_date: string
-  updater_member_id: string
+  navdataId: Generated<string>
+  updateDate: string
+  updaterMemberId: string
 }
 
 export interface FlightDefect {
-  aircraft_registration: string
-  ajlb_seq_no: number
-  blank_rows_after: Generated<number>
-  created_at: Generated<Timestamp>
-  created_by: string
-  defect_id: Generated<string>
+  aircraftRegistration: string
+  ajlbSeqNo: number
+  blankRowsAfter: Generated<number>
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  defectId: Generated<string>
   description: string
-  flight_id: string | null
-  flight_mins: number
-  hil_id: string | null
-  resolved_note_id: string | null
+  flightId: string | null
+  flightMins: number
+  hilId: string | null
+  resolvedNoteId: string | null
   rows: Generated<number>
   status: Generated<FlightDefectStatus>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface FlightDefectAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  defect_id: string
-  new_data: Json | null
-  operation_type: string
+  auditId: Generated<number>
+  changedAt: Generated<Timestamp>
+  changedBy: string
+  changedData: Json | null
+  defectId: string
+  newData: Json | null
+  operationType: string
 }
 
 export interface FlightFlightCredits {
-  allocated_by_member_id: string
-  created_at: Generated<Timestamp>
-  credited_mins: number
-  flight_id: string
+  allocatedByMemberId: string
+  createdAt: Generated<Timestamp>
+  creditedMins: number
+  flightId: string
   note: string | null
-  updated_at: Generated<Timestamp>
+  updatedAt: Generated<Timestamp>
 }
 
 export interface FlightFuelTypes {
   name: string
-  sort_order: Generated<number>
+  sortOrder: Generated<number>
 }
 
 export interface FlightLogs {
-  aircraft_registration: string
-  ajlb_blank_rows_before: number
-  ajlb_page_number: number | null
-  ajlb_row_number: number | null
-  ajlb_seq_no: number
-  ajlb_total_flight_mins: number | null
-  ajlb_total_flight_time: Generated<string | null>
-  ajlb_total_landings: number | null
-  arrival_airport: string
-  billable_member_id: string
-  billing_remarks: string | null
-  block_mins: Generated<number>
-  block_time: Generated<string>
-  created_at: Generated<Timestamp>
-  created_by: string
-  crew2_last_name: string | null
-  crew2_member_id: Generated<string | null>
-  crew2_role: CrewRole | null
-  crew3_last_name: string | null
-  crew3_member_id: Generated<string | null>
-  crew3_role: CrewRole | null
-  crew4_last_name: string | null
-  crew4_member_id: Generated<string | null>
-  crew4_role: CrewRole | null
-  departure_airport: string
-  entry_error_fee: Generated<boolean>
-  entry_error_fee_applied_by_member_id: string | null
-  flight_id: string
-  flight_mins: Generated<number>
-  flight_time: Generated<string>
-  flight_type: string
-  fuel_remaining_litres: Numeric
-  fuel_uplift_litres: Numeric | null
-  incident_or_observations: string | null
-  instrument_flying_mins: number
-  invoice_number: Generated<string | null>
-  is_billable_flight: boolean
-  is_billed: Generated<boolean>
-  is_dto_training_flight: boolean
-  landing_time_epoch: Int8
-  landing_time_utc: Generated<Timestamp>
-  min_billable_exception_approved_by_member_id: string | null
-  min_billable_exception_reason: string | null
-  night_flying_mins: number
-  non_billing_approved_by_member_id: string | null
-  non_billing_reason: string | null
-  number_of_landings: number
-  number_of_night_landings: Generated<number>
-  off_block_time_epoch: Int8
-  off_block_time_utc: Generated<Timestamp>
-  oil_uplift_litres: Numeric | null
-  on_block_time_epoch: Int8
-  on_block_time_utc: Generated<Timestamp>
-  partially_billable_flight: Generated<boolean>
-  personal_remarks: string | null
-  persons_on_board: number
-  pic_last_name: string
-  pic_member_id: string
-  pic_role: CrewRole
-  priv_or_com_flight: string
+  aircraftRegistration: string
+  ajlbBlankRowsBefore: number
+  ajlbPageNumber: number | null
+  ajlbRowNumber: number | null
+  ajlbSeqNo: number
+  ajlbTotalFlightMins: number | null
+  ajlbTotalFlightTime: Generated<string | null>
+  ajlbTotalLandings: number | null
+  arrivalAirport: string
+  billableMemberId: string
+  billingRemarks: string | null
+  blockMins: Generated<number>
+  blockTime: Generated<string>
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  crew2LastName: string | null
+  crew2MemberId: Generated<string | null>
+  crew2Role: CrewRole | null
+  crew3LastName: string | null
+  crew3MemberId: Generated<string | null>
+  crew3Role: CrewRole | null
+  crew4LastName: string | null
+  crew4MemberId: Generated<string | null>
+  crew4Role: CrewRole | null
+  departureAirport: string
+  entryErrorFee: Generated<boolean>
+  entryErrorFeeAppliedByMemberId: string | null
+  flightId: string
+  flightMins: Generated<number>
+  flightTime: Generated<string>
+  flightType: string
+  fuelRemainingLitres: Numeric
+  fuelUpliftLitres: Numeric | null
+  incidentOrObservations: string | null
+  instrumentFlyingMins: number
+  invoiceNumber: Generated<string | null>
+  isBillableFlight: boolean
+  isBilled: Generated<boolean>
+  isDtoTrainingFlight: boolean
+  landingTimeEpoch: Int8
+  landingTimeUtc: Generated<Timestamp>
+  minBillableExceptionApprovedByMemberId: string | null
+  minBillableExceptionReason: string | null
+  nightFlyingMins: number
+  nonBillingApprovedByMemberId: string | null
+  nonBillingReason: string | null
+  numberOfLandings: number
+  numberOfNightLandings: Generated<number>
+  offBlockTimeEpoch: Int8
+  offBlockTimeUtc: Generated<Timestamp>
+  oilUpliftLitres: Numeric | null
+  onBlockTimeEpoch: Int8
+  onBlockTimeUtc: Generated<Timestamp>
+  partiallyBillableFlight: Generated<boolean>
+  personalRemarks: string | null
+  personsOnBoard: number
+  picLastName: string
+  picMemberId: string
+  picRole: CrewRole
+  privOrComFlight: string
   status: Generated<FlightLogStatus>
-  takeoff_time_epoch: Int8
-  takeoff_time_utc: Generated<Timestamp>
-  total_time_in_service: Numeric | null
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  validation_remarks: string | null
+  takeoffTimeEpoch: Int8
+  takeoffTimeUtc: Generated<Timestamp>
+  totalTimeInService: Numeric | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+  validationRemarks: string | null
 }
 
 export interface FlightLogsAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  flight_id: string
-  new_data: Json | null
-  operation_type: string
+  auditId: Generated<number>
+  changedAt: Generated<Timestamp>
+  changedBy: string
+  changedData: Json | null
+  flightId: string
+  newData: Json | null
+  operationType: string
 }
 
 export interface FlightMaintenanceNote {
-  aircraft_registration: string
-  ajlb_seq_no: number
-  blank_rows_after: Generated<number>
-  created_at: Generated<Timestamp>
-  created_by: string
+  aircraftRegistration: string
+  ajlbSeqNo: number
+  blankRowsAfter: Generated<number>
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string
-  flight_mins: number
-  note_id: Generated<string>
-  performed_by: string
+  flightMins: number
+  noteId: Generated<string>
+  performedBy: string
   rows: Generated<number>
-  updated_at: Generated<Timestamp>
-  updated_by: Generated<string>
+  updatedAt: Generated<Timestamp>
+  updatedBy: Generated<string>
 }
 
 export interface FlightMaintenanceNoteAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  new_data: Json | null
-  note_id: string
-  operation_type: string
+  auditId: Generated<number>
+  changedAt: Generated<Timestamp>
+  changedBy: string
+  changedData: Json | null
+  newData: Json | null
+  noteId: string
+  operationType: string
 }
 
 export interface FlightOccurrenceAccess {
-  access_id: Generated<number>
+  accessId: Generated<number>
   author: Generated<boolean>
-  manage_access: Generated<boolean>
-  member_id: string | null
-  report_id: string
-  role_id: string | null
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  write_access: Generated<boolean>
+  manageAccess: Generated<boolean>
+  memberId: string | null
+  reportId: string
+  roleId: string | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+  writeAccess: Generated<boolean>
 }
 
 export interface FlightOccurrenceAttachments {
-  attachment_id: Generated<number>
-  created_at: Generated<Timestamp>
-  created_by: string
-  file_name: string
-  file_size: number
-  mime_type: string
-  origin_status: Occurrencestatus
-  removed_at: Timestamp | null
-  removed_by: string | null
-  report_id: string
-  storage_key: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  attachmentId: Generated<number>
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  fileName: string
+  fileSize: number
+  mimeType: string
+  originStatus: Occurrencestatus
+  removedAt: Timestamp | null
+  removedBy: string | null
+  reportId: string
+  storageKey: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface FlightOccurrences {
-  animal_number: string | null
-  animal_size: string | null
-  animal_species: string | null
-  arrival_airport: string | null
+  animalNumber: string | null
+  animalSize: string | null
+  animalSpecies: string | null
+  arrivalAirport: string | null
   categories: Json
   comments: Generated<Json>
-  created_at: Generated<Timestamp>
-  created_by: string
-  dead_line: Timestamp | null
-  departure_airport: string | null
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  deadLine: Timestamp | null
+  departureAirport: string | null
   description: string
   handling: Generated<Json>
   headline: string
-  is_dto_report: boolean
-  is_weather_relevant: boolean | null
-  linked_report_id: string | null
+  isDtoReport: boolean
+  isWeatherRelevant: boolean | null
+  linkedReportId: string | null
   location: string
-  occurrence_date: Timestamp
-  processed_date: Timestamp | null
+  occurrenceDate: Timestamp
+  processedDate: Timestamp | null
   registration: string | null
-  report_date: Timestamp
-  report_id: string
+  reportDate: Timestamp
+  reportId: string
   status: Generated<Occurrencestatus>
-  technical_faults: boolean | null
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  technicalFaults: boolean | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface FlightVwAircraftGroundingStatus {
-  open_defect_count: Int8 | null
+  openDefectCount: Int8 | null
   registration: string | null
 }
 
 export interface FlightVwAjlbLiveRows {
-  aircraft_registration: string | null
-  ajlb_seq_no: number | null
-  is_content_row: boolean | null
-  item_id: string | null
-  item_type: string | null
-  page_number: number | null
-  row_number: number | null
+  aircraftRegistration: string | null
+  ajlbSeqNo: number | null
+  isContentRow: boolean | null
+  itemId: string | null
+  itemType: string | null
+  pageNumber: number | null
+  rowNumber: number | null
 }
 
 export interface FlightVwAjlbLiveSequence {
-  ac_total_flight_mins: Int8 | null
-  ac_total_landings: Int8 | null
-  aircraft_registration: string | null
-  ajlb_row_number: Int8 | null
-  ajlb_seq_no: number | null
-  anchor_flight_id: string | null
-  item_id: string | null
-  item_type: string | null
-  rows_consumed: number | null
-  rows_per_page: number | null
-  start_page: number | null
+  acTotalFlightMins: Int8 | null
+  acTotalLandings: Int8 | null
+  aircraftRegistration: string | null
+  ajlbRowNumber: Int8 | null
+  ajlbSeqNo: number | null
+  anchorFlightId: string | null
+  itemId: string | null
+  itemType: string | null
+  rowsConsumed: number | null
+  rowsPerPage: number | null
+  startPage: number | null
 }
 
 export interface FlightVwFlightLogs {
-  ac_total_flight_mins: number | null
-  ac_total_flight_time: string | null
-  ac_total_landings: number | null
-  flight_id: string | null
-  page_number: number | null
-  row_number: number | null
+  acTotalFlightMins: number | null
+  acTotalFlightTime: string | null
+  acTotalLandings: number | null
+  flightId: string | null
+  pageNumber: number | null
+  rowNumber: number | null
 }
 
 export interface FlightVwFlightTimeTotals {
-  aircraft_registration: string | null
-  ajlb_seq_no: number | null
+  aircraftRegistration: string | null
+  ajlbSeqNo: number | null
   current: boolean | null
-  last_page: number | null
-  new_flights_page: number | null
-  sum_new_flights: number | null
-  sum_new_time: string | null
-  sum_validated_flights: number | null
-  sum_validated_time: string | null
-  total_landings: number | null
-  unverified_total_flight_mins: number | null
-  unverified_total_flight_time: string | null
-  validated_on_block_time_utc: Timestamp | null
-  validated_total_flight_mins: number | null
-  validated_total_landings: number | null
-  verified_total_flight_time: string | null
+  lastPage: number | null
+  newFlightsPage: number | null
+  sumNewFlights: number | null
+  sumNewTime: string | null
+  sumValidatedFlights: number | null
+  sumValidatedTime: string | null
+  totalLandings: number | null
+  unverifiedTotalFlightMins: number | null
+  unverifiedTotalFlightTime: string | null
+  validatedOnBlockTimeUtc: Timestamp | null
+  validatedTotalFlightMins: number | null
+  validatedTotalLandings: number | null
+  verifiedTotalFlightTime: string | null
 }
 
 export interface FlywayDataHistory {
   checksum: number | null
   description: string
-  execution_time: number
-  installed_by: string
-  installed_on: Generated<Timestamp>
-  installed_rank: number
+  executionTime: number
+  installedBy: string
+  installedOn: Generated<Timestamp>
+  installedRank: number
   script: string
   success: boolean
   type: string
@@ -1132,10 +1132,10 @@ export interface FlywayDataHistory {
 export interface FlywaySchemaHistory {
   checksum: number | null
   description: string
-  execution_time: number
-  installed_by: string
-  installed_on: Generated<Timestamp>
-  installed_rank: number
+  executionTime: number
+  installedBy: string
+  installedOn: Generated<Timestamp>
+  installedRank: number
   script: string
   success: boolean
   type: string
@@ -1143,440 +1143,440 @@ export interface FlywaySchemaHistory {
 }
 
 export interface FuelPricesContent {
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   id: number
   markdown: Generated<string>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface InventoryAuditLog {
-  change_type: string
-  created_at: Generated<Timestamp>
-  item_id: string
-  log_id: Generated<number>
-  member_id: string
-  new_value: Json | null
+  changeType: string
+  createdAt: Generated<Timestamp>
+  itemId: string
+  logId: Generated<number>
+  memberId: string
+  newValue: Json | null
   notes: string | null
-  old_value: Json | null
+  oldValue: Json | null
 }
 
 export interface InventoryCategories {
-  category_id: string
-  created_at: Generated<Timestamp>
-  created_by: string
+  categoryId: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: Json | null
-  is_active: Generated<boolean>
+  isActive: Generated<boolean>
   name: Json
-  sort_order: Generated<number>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  sortOrder: Generated<number>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface InventoryItems {
-  category_id: string
+  categoryId: string
   condition: Generated<InventoryItemCondition>
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: Json | null
-  image_url: string | null
-  is_active: Generated<boolean>
-  item_id: string
-  item_type: Generated<InventoryItemType>
-  location_id: string | null
-  low_stock_threshold: number | null
+  imageUrl: string | null
+  isActive: Generated<boolean>
+  itemId: string
+  itemType: Generated<InventoryItemType>
+  locationId: string | null
+  lowStockThreshold: number | null
   name: Json
   notes: string | null
   quantity: Generated<number>
-  serial_number: string | null
+  serialNumber: string | null
   tags: Generated<string[]>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface InventoryLocations {
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: Json | null
-  is_active: Generated<boolean>
-  location_id: string
+  isActive: Generated<boolean>
+  locationId: string
   name: Json
-  sort_order: Generated<number>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  sortOrder: Generated<number>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface MemberAnnualFees {
-  created_at: Generated<Timestamp>
-  created_by: string
-  fee_type: FeeType
-  invoice_id: number
-  member_id: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  feeType: FeeType
+  invoiceId: number
+  memberId: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
   year: number
 }
 
 export interface MemberBrevoCampaignArchiveState {
-  campaigns_archived: Generated<number>
-  created_at: Generated<Timestamp>
-  error_message: string | null
+  campaignsArchived: Generated<number>
+  createdAt: Generated<Timestamp>
+  errorMessage: string | null
   id: Generated<number>
-  last_synced_at: Timestamp
-  sync_status: string
+  lastSyncedAt: Timestamp
+  syncStatus: string
 }
 
 export interface MemberBrevoSyncState {
-  created_at: Generated<Timestamp>
-  error_message: string | null
+  createdAt: Generated<Timestamp>
+  errorMessage: string | null
   id: Generated<number>
-  last_synced_at: Generated<Timestamp>
-  members_synced: Generated<number>
-  sync_status: Generated<string>
+  lastSyncedAt: Generated<Timestamp>
+  membersSynced: Generated<number>
+  syncStatus: Generated<string>
 }
 
 export interface MemberDocuments {
   category: string
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
-  document_id: Generated<number>
-  document_url: string | null
+  documentId: Generated<number>
+  documentUrl: string | null
   /**
    * Original filename of uploaded file
    */
-  file_name: string | null
+  fileName: string | null
   /**
    * File size in bytes
    */
-  file_size: number | null
-  is_archived: Generated<boolean>
-  is_public: Generated<boolean>
+  fileSize: number | null
+  isArchived: Generated<boolean>
+  isPublic: Generated<boolean>
   /**
    * MIME type of uploaded file
    */
-  mime_type: string | null
-  published_date: Generated<string>
+  mimeType: string | null
+  publishedDate: Generated<string>
   /**
    * Storage key for Digital Ocean Spaces
    */
-  storage_key: string | null
+  storageKey: string | null
   tags: string[] | null
   title: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface MemberDocumentTinyUrls {
-  access_count: Generated<number>
-  aircraft_document_id: number | null
-  created_at: Generated<Timestamp>
-  created_by: string
-  document_id: number | null
-  document_type: string
-  expires_at: Timestamp
-  last_accessed_at: Timestamp | null
-  short_code: string
+  accessCount: Generated<number>
+  aircraftDocumentId: number | null
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  documentId: number | null
+  documentType: string
+  expiresAt: Timestamp
+  lastAccessedAt: Timestamp | null
+  shortCode: string
   url: string
 }
 
 export interface MemberEvents {
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
-  end_time: Timestamp
-  event_id: Generated<string>
-  image_key: string | null
-  image_url: string | null
-  is_public: Generated<boolean>
+  endTime: Timestamp
+  eventId: Generated<string>
+  imageKey: string | null
+  imageUrl: string | null
+  isPublic: Generated<boolean>
   location: string | null
   performer: string | null
-  start_time: Timestamp
+  startTime: Timestamp
   title: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface MemberEventTranslations {
   description: string | null
-  event_id: string
+  eventId: string
   language: string
   title: string
 }
 
 export interface MemberLoginAttempts {
-  code_hash: string
-  created_at: Generated<Timestamp>
+  codeHash: string
+  createdAt: Generated<Timestamp>
   email: string
-  expires_at: Timestamp
-  failed_attempts: Generated<number>
+  expiresAt: Timestamp
+  failedAttempts: Generated<number>
   id: Generated<string>
-  ip_address: string | null
-  link_token_hash: string | null
-  used_at: Timestamp | null
+  ipAddress: string | null
+  linkTokenHash: string | null
+  usedAt: Timestamp | null
 }
 
 export interface MemberLoginEvents {
-  created_at: Generated<Timestamp>
-  event_type: AuthEventType
+  createdAt: Generated<Timestamp>
+  eventType: AuthEventType
   id: Generated<string>
-  ip_address: string | null
-  member_id: string | null
-  user_agent: string | null
+  ipAddress: string | null
+  memberId: string | null
+  userAgent: string | null
 }
 
 export interface MemberMailboxMessages {
   body: string | null
-  created_at: Generated<Timestamp>
-  dedup_key: string | null
-  expires_at: Generated<Timestamp>
+  createdAt: Generated<Timestamp>
+  dedupKey: string | null
+  expiresAt: Generated<Timestamp>
   id: Generated<Int8>
-  read_at: Timestamp | null
-  recipient_id: string
+  readAt: Timestamp | null
+  recipientId: string
   severity: Generated<string>
   title: string
   type: string
 }
 
 export interface MemberMeeting {
-  created_at: Generated<Timestamp>
-  created_by: string | null
+  createdAt: Generated<Timestamp>
+  createdBy: string | null
   description: string | null
-  document_search_filter: string | null
-  ended_at: Timestamp | null
-  meeting_id: Generated<string>
-  meeting_notes_document_id: number | null
-  meeting_url: string | null
-  started_at: Timestamp | null
+  documentSearchFilter: string | null
+  endedAt: Timestamp | null
+  meetingId: Generated<string>
+  meetingNotesDocumentId: number | null
+  meetingUrl: string | null
+  startedAt: Timestamp | null
   status: Generated<string>
   title: string
 }
 
 export interface MemberMeetingAttendance {
-  joined_at: Generated<Timestamp>
-  meeting_id: string
-  member_id: string
+  joinedAt: Generated<Timestamp>
+  meetingId: string
+  memberId: string
 }
 
 export interface MemberMeetingVote {
-  closed_at: Timestamp | null
-  closed_by: string | null
-  created_at: Generated<Timestamp>
-  created_by: string | null
+  closedAt: Timestamp | null
+  closedBy: string | null
+  createdAt: Generated<Timestamp>
+  createdBy: string | null
   description: string | null
-  display_order: Generated<number>
-  is_multi_select: Generated<boolean>
-  max_selections: number | null
-  meeting_id: string
+  displayOrder: Generated<number>
+  isMultiSelect: Generated<boolean>
+  maxSelections: number | null
+  meetingId: string
   status: Generated<string>
   topic: string
-  vote_id: Generated<string>
+  voteId: Generated<string>
 }
 
 export interface MemberMeetingVoteCounter {
-  assigned_at: Generated<Timestamp>
-  assigned_by: string | null
-  meeting_id: string
-  member_id: string
+  assignedAt: Generated<Timestamp>
+  assignedBy: string | null
+  meetingId: string
+  memberId: string
 }
 
 export interface MemberMemberToRoles {
-  created_at: Generated<Timestamp>
-  created_by: string
-  member_id: string
-  role_id: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  memberId: string
+  roleId: string
 }
 
 export interface MemberNonRenewalActions {
   /**
    * REMINDER_SENT = final reminder email sent; MEMBERSHIP_CANCELLED = membership deactivated
    */
-  action_type: NonRenewalActionType
+  actionType: NonRenewalActionType
   id: Generated<number>
-  member_id: string
+  memberId: string
   notes: string | null
-  performed_at: Generated<Timestamp>
-  performed_by: string
+  performedAt: Generated<Timestamp>
+  performedBy: string
 }
 
 export interface MemberPasskeys {
-  backed_up: Generated<boolean>
+  backedUp: Generated<boolean>
   counter: Generated<Int8>
-  created_at: Generated<Timestamp>
-  credential_id: string
-  device_type: string | null
+  createdAt: Generated<Timestamp>
+  credentialId: string
+  deviceType: string | null
   id: Generated<string>
-  last_used_at: Timestamp | null
-  member_id: string
+  lastUsedAt: Timestamp | null
+  memberId: string
   name: string | null
-  public_key: Buffer
+  publicKey: Buffer
   transports: Generated<string[]>
 }
 
 export interface MemberPendingEmailChanges {
-  created_at: Generated<Timestamp>
-  expires_at: Timestamp
+  createdAt: Generated<Timestamp>
+  expiresAt: Timestamp
   id: Generated<string>
-  member_id: string
-  new_email: string
-  token_hash: string
-  used_at: Timestamp | null
+  memberId: string
+  newEmail: string
+  tokenHash: string
+  usedAt: Timestamp | null
 }
 
 export interface MemberPushSubscriptions {
-  created_at: Generated<Timestamp>
+  createdAt: Generated<Timestamp>
   endpoint: string
   id: Generated<string>
-  keys_auth: string
-  keys_p256dh: string
-  member_id: string
-  user_agent: string | null
+  keysAuth: string
+  keysP256dh: string
+  memberId: string
+  userAgent: string | null
 }
 
 export interface MemberQualificationProofFiles {
-  document_category: Generated<string>
-  file_name: string
-  history_id: Int8 | null
+  documentCategory: Generated<string>
+  fileName: string
+  historyId: Int8 | null
   id: Generated<number>
-  member_id: string
-  mime_type: string
-  storage_key: string
-  uploaded_at: Generated<Timestamp>
-  uploaded_by: string
+  memberId: string
+  mimeType: string
+  storageKey: string
+  uploadedAt: Generated<Timestamp>
+  uploadedBy: string
 }
 
 export interface MemberRegister {
   /**
    * Registration application data: flight hours, aircraft types, motivation, cover letter, declarations, etc.
    */
-  application_data: Json | null
-  auto_renew_annual_membership: Generated<boolean | null>
-  auto_renew_equipment_fee: Generated<boolean | null>
-  billing_id: string | null
-  brevo_contact_id: Int8 | null
-  brevo_sync_status: Generated<string | null>
-  brevo_synced_at: Timestamp | null
-  can_make_reservations: Generated<boolean>
+  applicationData: Json | null
+  autoRenewAnnualMembership: Generated<boolean | null>
+  autoRenewEquipmentFee: Generated<boolean | null>
+  billingId: string | null
+  brevoContactId: Int8 | null
+  brevoSyncedAt: Timestamp | null
+  brevoSyncStatus: Generated<string | null>
+  canMakeReservations: Generated<boolean>
   country: Generated<string>
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   /**
    * User preferences for dashboard component order and visibility. Structure: {"components": [{"id": "weather", "visible": true, "order": 0}, ...]}
    */
-  dashboard_settings: Json | null
-  date_of_birth: string | null
-  default_instructor_member_id: string | null
+  dashboardSettings: Json | null
+  dateOfBirth: string | null
+  defaultInstructorMemberId: string | null
   email: string
-  email_verified_at: Timestamp | null
-  first_name: string
+  emailVerifiedAt: Timestamp | null
+  firstName: string
   iban: string | null
-  iban_account_name: string | null
-  ice_contact_name: string | null
-  ice_contact_phone_country: Generated<string>
-  ice_contact_phone_number: string | null
-  im_discord: string | null
-  im_facebook_messenger: string | null
-  im_signal: string | null
-  im_telegram: string | null
-  im_viber: string | null
-  im_whatsapp: string | null
-  is_membership_approved: Generated<boolean>
-  is_membership_expired: Generated<boolean | null>
-  is_training_program_pilot: Generated<boolean>
-  lang_iso639: Generated<MikLang>
-  last_name: string
-  licence_expiry_date: string | null
-  licence_id: string | null
+  ibanAccountName: string | null
+  iceContactName: string | null
+  iceContactPhoneCountry: Generated<string>
+  iceContactPhoneNumber: string | null
+  imDiscord: string | null
+  imFacebookMessenger: string | null
+  imSignal: string | null
+  imTelegram: string | null
+  imViber: string | null
+  imWhatsapp: string | null
+  isMembershipApproved: Generated<boolean>
+  isMembershipExpired: Generated<boolean | null>
+  isTrainingProgramPilot: Generated<boolean>
+  langIso639: Generated<MikLang>
+  lastName: string
+  licenceExpiryDate: string | null
+  licenceId: string | null
   /**
    * Aircraft mailing list subscriptions. Structure: ["list-id-1", "list-id-2"]
    */
-  mailing_lists: Json | null
-  medical_class1_expiry_date: string | null
-  medical_class2_expiry_date: string | null
-  medical_expiry_date: string | null
-  medical_lapl_expiry_date: string | null
-  member_id: string
-  member_since: Generated<string>
-  member_type: MemberType
-  membership_approved_at: Timestamp | null
-  membership_approved_by: string | null
-  must_update_profile: Generated<boolean>
-  phone_country: Generated<string>
-  phone_number: string | null
+  mailingLists: Json | null
+  medicalClass1ExpiryDate: string | null
+  medicalClass2ExpiryDate: string | null
+  medicalExpiryDate: string | null
+  medicalLaplExpiryDate: string | null
+  memberId: string
+  membershipApprovedAt: Timestamp | null
+  membershipApprovedBy: string | null
+  memberSince: Generated<string>
+  memberType: MemberType
+  mustUpdateProfile: Generated<boolean>
+  phoneCountry: Generated<string>
+  phoneNumber: string | null
   postcode: string | null
-  removal_reason: string | null
-  removed_at: Timestamp | null
-  removed_by: string | null
-  simplbooks_sync_status: Generated<string | null>
-  simplbooks_synced_at: Timestamp | null
-  street_address: string | null
-  town_city: string | null
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  removalReason: string | null
+  removedAt: Timestamp | null
+  removedBy: string | null
+  simplbooksSyncedAt: Timestamp | null
+  simplbooksSyncStatus: Generated<string | null>
+  streetAddress: string | null
+  townCity: string | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface MemberRegisterAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  member_id: string
-  new_data: Json | null
-  operation_type: string
+  auditId: Generated<number>
+  changedAt: Generated<Timestamp>
+  changedBy: string
+  changedData: Json | null
+  memberId: string
+  newData: Json | null
+  operationType: string
 }
 
 export interface MemberRoles {
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
-  is_public: Generated<boolean>
-  name_en: string
-  name_fi: string
-  name_sv: string
+  isPublic: Generated<boolean>
+  nameEn: string
+  nameFi: string
+  nameSv: string
   permissions: Json | null
-  role_id: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  roleId: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface MemberSimplbooksSyncState {
-  created_at: Generated<Timestamp>
-  error_message: string | null
+  createdAt: Generated<Timestamp>
+  errorMessage: string | null
   id: Generated<number>
-  last_synced_at: Generated<Timestamp>
-  members_synced: Generated<number>
-  sync_status: Generated<string>
+  lastSyncedAt: Generated<Timestamp>
+  membersSynced: Generated<number>
+  syncStatus: Generated<string>
 }
 
 export interface MemberVoteCast {
-  cast_at: Generated<Timestamp>
-  cast_id: Generated<string>
-  member_id: string
-  vote_id: string
+  castAt: Generated<Timestamp>
+  castId: Generated<string>
+  memberId: string
+  voteId: string
 }
 
 export interface MemberVoteOption {
-  display_order: Generated<number>
-  option_id: Generated<string>
-  option_text: string
-  vote_id: string
+  displayOrder: Generated<number>
+  optionId: Generated<string>
+  optionText: string
+  voteId: string
 }
 
 export interface MemberVoteSelection {
-  option_id: string
-  selected_at: Generated<Timestamp>
-  selection_id: Generated<string>
-  vote_id: string
+  optionId: string
+  selectedAt: Generated<Timestamp>
+  selectionId: Generated<string>
+  voteId: string
 }
 
 export interface MemberWebauthnChallenges {
   challenge: string
-  created_at: Generated<Timestamp>
+  createdAt: Generated<Timestamp>
   email: string | null
-  expires_at: Timestamp
+  expiresAt: Timestamp
   id: Generated<string>
-  member_id: string | null
+  memberId: string | null
   purpose: string
 }
 
@@ -1585,758 +1585,758 @@ export interface NotificationBanner {
   id: Generated<number>
   message: string | null
   severity: Generated<string>
-  updated_at: Generated<Timestamp>
-  updated_by: string | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string | null
 }
 
 export interface PrepaidMemberPackages {
-  created_at: Generated<Timestamp>
-  expires_at: string
-  is_expired: Generated<boolean>
-  member_id: string
-  member_package_id: Generated<number>
-  order_id: string | null
-  product_id: string
-  remaining_minutes: Generated<number | null>
-  total_minutes: number
-  updated_at: Generated<Timestamp>
-  used_minutes: Generated<number>
+  createdAt: Generated<Timestamp>
+  expiresAt: string
+  isExpired: Generated<boolean>
+  memberId: string
+  memberPackageId: Generated<number>
+  orderId: string | null
+  productId: string
+  remainingMinutes: Generated<number | null>
+  totalMinutes: number
+  updatedAt: Generated<Timestamp>
+  usedMinutes: Generated<number>
 }
 
 export interface PrepaidPackages {
-  aircraft_registration: string
-  created_at: Generated<Timestamp>
-  created_by: string
-  expires_at: string
-  is_active: Generated<boolean>
-  max_per_member: number | null
-  minutes_per_package: number
-  per_min_rate: Numeric
-  product_id: string
-  simplbooks_item_id: string | null
-  sold_count: Generated<number>
-  total_packages_available: number
-  total_price: Generated<Numeric | null>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  aircraftRegistration: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  expiresAt: string
+  isActive: Generated<boolean>
+  maxPerMember: number | null
+  minutesPerPackage: number
+  perMinRate: Numeric
+  productId: string
+  simplbooksItemId: string | null
+  soldCount: Generated<number>
+  totalPackagesAvailable: number
+  totalPrice: Generated<Numeric | null>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface PrepaidUsageLog {
-  applied_at: Generated<Timestamp>
-  flight_id: string | null
-  member_package_id: number
-  minutes_used: number
+  appliedAt: Generated<Timestamp>
+  flightId: string | null
+  memberPackageId: number
+  minutesUsed: number
   note: string | null
-  usage_id: Generated<number>
+  usageId: Generated<number>
 }
 
 export interface ScheduleBookings {
-  booking_id: string
-  booking_status: BookingStatus
-  booking_type: BookingType
-  calendar_sequence: Generated<number>
-  cancellation_note: string | null
-  cancellation_reason: CancellationReason | null
-  cancelled_at: Timestamp | null
-  cancelled_by: string | null
-  created_at: Generated<Timestamp>
-  created_by: string
+  bookingId: string
+  bookingStatus: BookingStatus
+  bookingType: BookingType
+  calendarSequence: Generated<number>
+  cancellationNote: string | null
+  cancellationReason: CancellationReason | null
+  cancelledAt: Timestamp | null
+  cancelledBy: string | null
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
-  end_time_epoch: Int8
-  end_time_utc: Generated<Timestamp>
-  instructor_member_id: string | null
-  member_id: string
+  endTimeEpoch: Int8
+  endTimeUtc: Generated<Timestamp>
+  instructorMemberId: string | null
+  memberId: string
   registration: string
-  reminder_sent_at: Timestamp | null
-  start_time_epoch: Int8
-  start_time_utc: Generated<Timestamp>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  reminderSentAt: Timestamp | null
+  startTimeEpoch: Int8
+  startTimeUtc: Generated<Timestamp>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface SchedulePushReminderLog {
-  booking_id: string
+  bookingId: string
   id: Generated<string>
-  member_id: string
-  sent_at: Generated<Timestamp>
+  memberId: string
+  sentAt: Generated<Timestamp>
 }
 
 export interface Secrets {
-  created_at: Generated<Timestamp>
-  created_by: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   id: Generated<Int8>
   /**
    * Class of the secret: MEMBER (visible to all flying members) or BOARD (visible only to board members with admin access)
    */
-  secret_class: Generated<SecretClassType>
+  secretClass: Generated<SecretClassType>
   /**
    * The name/description of the secret (e.g., "Club house key code")
    */
-  secret_key: string
+  secretKey: string
   /**
    * The actual secret value (e.g., door code, combination)
    */
-  secret_value: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  secretValue: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface ShopCartItems {
-  cart_id: string
-  cart_item_id: Generated<number>
-  created_at: Generated<Timestamp>
-  product_id: string
+  cartId: string
+  cartItemId: Generated<number>
+  createdAt: Generated<Timestamp>
+  productId: string
   quantity: Generated<number>
-  selected_options: Json | null
-  updated_at: Generated<Timestamp>
+  selectedOptions: Json | null
+  updatedAt: Generated<Timestamp>
 }
 
 export interface ShopCarts {
-  cart_id: string
-  created_at: Generated<Timestamp>
-  discount_code_id: number | null
-  member_id: string
-  updated_at: Generated<Timestamp>
+  cartId: string
+  createdAt: Generated<Timestamp>
+  discountCodeId: number | null
+  memberId: string
+  updatedAt: Generated<Timestamp>
 }
 
 export interface ShopCategories {
-  category_id: string
-  created_at: Generated<Timestamp>
-  created_by: string
+  categoryId: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: Json | null
-  is_active: Generated<boolean>
+  isActive: Generated<boolean>
   name: Json
-  sort_order: Generated<number>
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  sortOrder: Generated<number>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface ShopDiscountCodeCategories {
-  category_id: string
-  code_id: number
-  created_at: Generated<Timestamp>
+  categoryId: string
+  codeId: number
+  createdAt: Generated<Timestamp>
 }
 
 export interface ShopDiscountCodes {
   code: string
-  code_id: Generated<number>
-  created_at: Generated<Timestamp>
-  created_by: string
+  codeId: Generated<number>
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: string | null
-  discount_type: string
-  discount_value: Numeric
-  is_active: Generated<boolean>
-  max_uses: number | null
-  min_order_amount: Numeric | null
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  uses_count: Generated<number>
-  valid_from: Generated<Timestamp>
-  valid_until: Timestamp | null
+  discountType: string
+  discountValue: Numeric
+  isActive: Generated<boolean>
+  maxUses: number | null
+  minOrderAmount: Numeric | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+  usesCount: Generated<number>
+  validFrom: Generated<Timestamp>
+  validUntil: Timestamp | null
 }
 
 export interface ShopOrderItems {
-  order_id: string
-  order_item_id: Generated<number>
-  product_id: string
-  product_snapshot: Json
+  orderId: string
+  orderItemId: Generated<number>
+  productId: string
+  productSnapshot: Json
   quantity: number
-  selected_options: Json | null
-  total_price: Numeric
-  unit_price: Numeric
+  selectedOptions: Json | null
+  totalPrice: Numeric
+  unitPrice: Numeric
 }
 
 export interface ShopOrders {
-  created_at: Generated<Timestamp>
-  created_by: string
-  discount_amount: Numeric | null
-  discount_code_id: number | null
-  invoice_id: Int8 | null
-  member_id: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  discountAmount: Numeric | null
+  discountCodeId: number | null
+  invoiceId: Int8 | null
+  memberId: string
   notes: string | null
-  order_id: string
+  orderId: string
   status: Generated<ShopOrderStatus>
-  total_amount: Numeric
-  updated_at: Generated<Timestamp>
-  updated_by: string
+  totalAmount: Numeric
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface ShopProductProperties {
-  is_required: Generated<boolean>
+  isRequired: Generated<boolean>
   name: Json
-  product_id: string
-  property_id: Generated<number>
-  sort_order: Generated<number>
+  productId: string
+  propertyId: Generated<number>
+  sortOrder: Generated<number>
 }
 
 export interface ShopProductPropertyOptions {
-  is_active: Generated<boolean>
-  option_id: Generated<number>
-  property_id: number
-  sort_order: Generated<number>
-  stock_quantity: number | null
+  isActive: Generated<boolean>
+  optionId: Generated<number>
+  propertyId: number
+  sortOrder: Generated<number>
+  stockQuantity: number | null
   value: Json
 }
 
 export interface ShopProducts {
-  category_id: string
-  created_at: Generated<Timestamp>
-  created_by: string
+  categoryId: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
   description: Json | null
-  image_url: string | null
-  is_active: Generated<boolean>
-  is_published: Generated<boolean>
-  low_stock_threshold: number | null
-  max_order_quantity: number | null
+  imageUrl: string | null
+  isActive: Generated<boolean>
+  isPublished: Generated<boolean>
+  lowStockThreshold: number | null
+  maxOrderQuantity: number | null
   metadata: Json | null
   name: Json
   price: Numeric
-  product_id: string
-  product_type: Generated<ShopProductType>
-  simplbooks_item_id: string | null
-  stock_quantity: Generated<number>
+  productId: string
+  productType: Generated<ShopProductType>
+  simplbooksItemId: string | null
+  stockQuantity: Generated<number>
   tags: Generated<string[]>
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  vat_percent: Generated<Numeric>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+  vatPercent: Generated<Numeric>
 }
 
 export interface StaticAirfields {
   closed: boolean | null
   ident: string
-  iso_country: string | null
+  isoCountry: string | null
   name: string | null
 }
 
 export interface StaticUsefulPhoneNumber {
   label: string
-  phone_number: string
-  sort_order: Generated<number>
+  phoneNumber: string
+  sortOrder: Generated<number>
 }
 
 export interface StatsAirfieldEfficiencyByAcYr {
-  aircraft_registration: string | null
-  away_mins: Numeric | null
-  efficiency_pct: Numeric | null
-  efnu_efnu_mins: Numeric | null
-  inbound_outbound_mins: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  aircraftRegistration: string | null
+  awayMins: Numeric | null
+  efficiencyPct: Numeric | null
+  efnuEfnuMins: Numeric | null
+  inboundOutboundMins: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsAirfieldEfficiencyByAcYrMth {
-  aircraft_registration: string | null
-  away_mins: Numeric | null
-  efficiency_pct: Numeric | null
-  efnu_efnu_mins: Numeric | null
-  inbound_outbound_mins: Numeric | null
+  aircraftRegistration: string | null
+  awayMins: Numeric | null
+  efficiencyPct: Numeric | null
+  efnuEfnuMins: Numeric | null
+  inboundOutboundMins: Numeric | null
   mth: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsAirfieldEfficiencyByYr {
-  away_mins: Numeric | null
-  efficiency_pct: Numeric | null
-  efnu_efnu_mins: Numeric | null
-  inbound_outbound_mins: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  awayMins: Numeric | null
+  efficiencyPct: Numeric | null
+  efnuEfnuMins: Numeric | null
+  inboundOutboundMins: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsAirfieldEfficiencyByYrMth {
-  away_mins: Numeric | null
-  efficiency_pct: Numeric | null
-  efnu_efnu_mins: Numeric | null
-  inbound_outbound_mins: Numeric | null
+  awayMins: Numeric | null
+  efficiencyPct: Numeric | null
+  efnuEfnuMins: Numeric | null
+  inboundOutboundMins: Numeric | null
   mth: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsAogDaysByAcDt {
-  aircraft_registration: string | null
+  aircraftRegistration: string | null
   date: string | null
   reason: string | null
 }
 
 export interface StatsAogDaysByAcYr {
-  aircraft_registration: string | null
-  maintenance_days: Numeric | null
-  total_aog_days: Numeric | null
-  unserviceable_days: Numeric | null
+  aircraftRegistration: string | null
+  maintenanceDays: Numeric | null
+  totalAogDays: Numeric | null
+  unserviceableDays: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsAogDaysByAcYrMth {
-  aircraft_registration: string | null
-  maintenance_days: Int8 | null
+  aircraftRegistration: string | null
+  maintenanceDays: Int8 | null
   mth: Numeric | null
-  total_aog_days: Int8 | null
-  unserviceable_days: Int8 | null
+  totalAogDays: Int8 | null
+  unserviceableDays: Int8 | null
   yr: Numeric | null
 }
 
 export interface StatsAogIntervals {
-  aircraft_registration: string | null
-  from_ts: Timestamp | null
+  aircraftRegistration: string | null
+  fromTs: Timestamp | null
   reason: string | null
-  to_ts: Timestamp | null
+  toTs: Timestamp | null
 }
 
 export interface StatsDtoTotalFlightTimeByAc {
-  aircraft_registration: string
+  aircraftRegistration: string
   date: string
-  flight_type: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  flightType: string
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
 }
 
 export interface StatsDtoTotalFlightTimeByAcYr {
-  aircraft_registration: string
-  flight_type: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  aircraftRegistration: string
+  flightType: string
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
   yr: number
 }
 
 export interface StatsDtoTotalFlightTimeByAcYrMth {
-  aircraft_registration: string
-  flight_type: string
+  aircraftRegistration: string
+  flightType: string
   mth: number
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
   yr: number
 }
 
 export interface StatsLongestShortestAvgFlightByAcYr {
-  aircraft_registration: string
-  average_flight: number
-  longest_flight: number
-  median_flight: number
-  shortest_flight: number
+  aircraftRegistration: string
+  averageFlight: number
+  longestFlight: number
+  medianFlight: number
+  shortestFlight: number
   yr: number
 }
 
 export interface StatsMemberCountByType {
-  member_count: number
-  member_type: string
+  memberCount: number
+  memberType: string
 }
 
 export interface StatsNonBillableTotalFlightTimeByAc {
-  aircraft_registration: string
+  aircraftRegistration: string
   date: string
-  flight_type: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  flightType: string
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
 }
 
 export interface StatsNonBillableTotalFlightTimeByAcYr {
-  aircraft_registration: string
-  flight_type: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  aircraftRegistration: string
+  flightType: string
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
   yr: number
 }
 
 export interface StatsNonBillableTotalFlightTimeByAcYrMth {
-  aircraft_registration: string
-  flight_type: string
+  aircraftRegistration: string
+  flightType: string
   mth: number
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
   yr: number
 }
 
 export interface StatsOccurrencesPer100hByAcYr {
-  aircraft_registration: string | null
-  occurrence_count: Int8 | null
-  occurrences_per_100h: Numeric | null
-  total_flight_mins: Int8 | null
+  aircraftRegistration: string | null
+  occurrenceCount: Int8 | null
+  occurrencesPer100h: Numeric | null
+  totalFlightMins: Int8 | null
   yr: Numeric | null
 }
 
 export interface StatsPobDistributionByAcYr {
-  aircraft_registration: string | null
-  cross_country_flight_count: Int8 | null
-  flight_count: Int8 | null
-  pob_bucket: string | null
-  total_flight_mins: Int8 | null
+  aircraftRegistration: string | null
+  crossCountryFlightCount: Int8 | null
+  flightCount: Int8 | null
+  pobBucket: string | null
+  totalFlightMins: Int8 | null
   yr: Numeric | null
 }
 
 export interface StatsReservationEfficiencyByAcYr {
-  aircraft_registration: string | null
-  efficiency_pct: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  aircraftRegistration: string | null
+  efficiencyPct: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsReservationEfficiencyByAcYrMth {
-  aircraft_registration: string | null
-  efficiency_pct: Numeric | null
+  aircraftRegistration: string | null
+  efficiencyPct: Numeric | null
   mth: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsReservationEfficiencyByMemberYr {
-  efficiency_pct: Numeric | null
+  efficiencyPct: Numeric | null
   member: string | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsReservationEfficiencyByMemberYrMth {
-  efficiency_pct: Numeric | null
+  efficiencyPct: Numeric | null
   member: string | null
   mth: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsReservationEfficiencyByYr {
-  efficiency_pct: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  efficiencyPct: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsReservationEfficiencyByYrMth {
-  efficiency_pct: Numeric | null
+  efficiencyPct: Numeric | null
   mth: Numeric | null
-  total_flight_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalFlightMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsSchoolFlightEfficiencyByAcYr {
-  aircraft_registration: string | null
-  efficiency_pct: Numeric | null
-  total_block_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  aircraftRegistration: string | null
+  efficiencyPct: Numeric | null
+  totalBlockMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsSchoolFlightEfficiencyByAcYrMth {
-  aircraft_registration: string | null
-  efficiency_pct: Numeric | null
+  aircraftRegistration: string | null
+  efficiencyPct: Numeric | null
   mth: Numeric | null
-  total_block_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalBlockMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsSchoolFlightEfficiencyByInstructorYr {
-  efficiency_pct: Numeric | null
+  efficiencyPct: Numeric | null
   instructor: string | null
-  total_block_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalBlockMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsSchoolFlightEfficiencyByInstructorYrMth {
-  efficiency_pct: Numeric | null
+  efficiencyPct: Numeric | null
   instructor: string | null
   mth: Numeric | null
-  total_block_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalBlockMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsSchoolFlightEfficiencyByYr {
-  efficiency_pct: Numeric | null
-  total_block_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  efficiencyPct: Numeric | null
+  totalBlockMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsSchoolFlightEfficiencyByYrMth {
-  efficiency_pct: Numeric | null
+  efficiencyPct: Numeric | null
   mth: Numeric | null
-  total_block_mins: Numeric | null
-  total_reserved_mins: Numeric | null
+  totalBlockMins: Numeric | null
+  totalReservedMins: Numeric | null
   yr: Numeric | null
 }
 
 export interface StatsTotalCommercialFlightTimeByAcYrMth {
-  aircraft_registration: string
+  aircraftRegistration: string
   mth: number
-  total_commercial_flight_mins: number
+  totalCommercialFlightMins: number
   yr: number
 }
 
 export interface StatsTotalFlightTimeByAcDt {
-  aircraft_registration: string
+  aircraftRegistration: string
   date: string
-  total_flight_mins: number
+  totalFlightMins: number
 }
 
 export interface StatsTotalFlightTimeByAcFt {
-  aircraft_registration: string
+  aircraftRegistration: string
   date: string
-  flight_type: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  flightType: string
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
 }
 
 export interface StatsTotalFlightTimeByAcYr {
-  aircraft_registration: string | null
-  total_flight_mins: Int8 | null
+  aircraftRegistration: string | null
+  totalFlightMins: Int8 | null
   yr: Numeric | null
 }
 
 export interface StatsTotalFlightTimeByAcYrFt {
-  aircraft_registration: string
-  flight_type: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  aircraftRegistration: string
+  flightType: string
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
   yr: number
 }
 
 export interface StatsTotalFlightTimeByAcYrMthFt {
-  aircraft_registration: string
-  flight_type: string
+  aircraftRegistration: string
+  flightType: string
   mth: number
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
   yr: number
 }
 
 export interface StatsTotalFlightTimeByPilot {
   date: string
   pilot: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
 }
 
 export interface StatsTotalFlightTimeByPilotYr {
   pilot: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
   yr: number
 }
 
 export interface StatsTotalFlightTimeByPilotYrMth {
   mth: number
   pilot: string
-  total_flight_mins: number
-  total_ifr_mins: number
-  total_nf_mins: number
+  totalFlightMins: number
+  totalIfrMins: number
+  totalNfMins: number
   yr: number
 }
 
 export interface StatsTotalFuelUpliftByAcYrMth {
-  aircraft_registration: string
+  aircraftRegistration: string
   mth: number
-  total_fuel_uplift: number
+  totalFuelUplift: number
   yr: number
 }
 
 export interface StatsTotalLandingsByAcYr {
-  aircraft_registration: string
-  total_landings: number
+  aircraftRegistration: string
+  totalLandings: number
   yr: number
 }
 
 export interface StatsTotalOilUpliftByAcYrMth {
-  aircraft_registration: string
+  aircraftRegistration: string
   mth: number
-  total_oil_uplift: number
+  totalOilUplift: number
   yr: number
 }
 
 export interface StatsVisitedAirfieldsByAc {
-  aircraft_registration: string
+  aircraftRegistration: string
   airfield: string
-  total_visits: number
+  totalVisits: number
   yr: number
 }
 
 export interface DB {
-  'accts.aircraft_pricing': AcctsAircraftPricing
-  'accts.cost_centre': AcctsCostCentre
-  'accts.expense_category': AcctsExpenseCategory
-  'accts.expense_claim': AcctsExpenseClaim
-  'accts.expense_claim_attachment': AcctsExpenseClaimAttachment
-  'accts.expense_claim_edit_audit': AcctsExpenseClaimEditAudit
-  'accts.expense_claim_line_item': AcctsExpenseClaimLineItem
-  'accts.expense_claim_message': AcctsExpenseClaimMessage
-  'accts.expense_mileage_detail': AcctsExpenseMileageDetail
+  'accts.aircraftPricing': AcctsAircraftPricing
+  'accts.costCentre': AcctsCostCentre
+  'accts.expenseCategory': AcctsExpenseCategory
+  'accts.expenseClaim': AcctsExpenseClaim
+  'accts.expenseClaimAttachment': AcctsExpenseClaimAttachment
+  'accts.expenseClaimEditAudit': AcctsExpenseClaimEditAudit
+  'accts.expenseClaimLineItem': AcctsExpenseClaimLineItem
+  'accts.expenseClaimMessage': AcctsExpenseClaimMessage
+  'accts.expenseMileageDetail': AcctsExpenseMileageDetail
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
-  'accts.local_fuel_price': AcctsLocalFuelPrice
-  'accts.mileage_allowance': AcctsMileageAllowance
-  'accts.mileage_hetu_access_audit': AcctsMileageHetuAccessAudit
-  'accts.outbox_simplbooks': AcctsOutboxSimplbooks
-  'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
-  'club.ame_edit_suggestion': ClubAmeEditSuggestion
-  'club.ame_list': ClubAmeList
-  'club.ame_rating': ClubAmeRating
-  'club.ame_removal_request': ClubAmeRemovalRequest
-  'dto.flight_item_outcomes': DtoFlightItemOutcomes
-  'dto.hil_queue': DtoHilQueue
-  'dto.member_syllabus': DtoMemberSyllabus
+  'accts.localFuelPrice': AcctsLocalFuelPrice
+  'accts.mileageAllowance': AcctsMileageAllowance
+  'accts.mileageHetuAccessAudit': AcctsMileageHetuAccessAudit
+  'accts.outboxSimplbooks': AcctsOutboxSimplbooks
+  'accts.recurringFeesProcessing': AcctsRecurringFeesProcessing
+  'club.ameEditSuggestion': ClubAmeEditSuggestion
+  'club.ameList': ClubAmeList
+  'club.ameRating': ClubAmeRating
+  'club.ameRemovalRequest': ClubAmeRemovalRequest
+  'dto.flightItemOutcomes': DtoFlightItemOutcomes
+  'dto.hilQueue': DtoHilQueue
+  'dto.memberSyllabus': DtoMemberSyllabus
   'dto.syllabus': DtoSyllabus
-  'dto.syllabus_flight_attempts': DtoSyllabusFlightAttempts
-  'dto.syllabus_flight_items': DtoSyllabusFlightItems
-  'dto.syllabus_flights': DtoSyllabusFlights
-  'dto.training_program': DtoTrainingProgram
-  emt_messages: EmtMessages
-  emt_processors: EmtProcessors
-  emt_projections: EmtProjections
-  emt_streams: EmtStreams
-  'exam.attempt_answers': ExamAttemptAnswers
-  'exam.attempt_questions': ExamAttemptQuestions
+  'dto.syllabusFlightAttempts': DtoSyllabusFlightAttempts
+  'dto.syllabusFlightItems': DtoSyllabusFlightItems
+  'dto.syllabusFlights': DtoSyllabusFlights
+  'dto.trainingProgram': DtoTrainingProgram
+  emtMessages: EmtMessages
+  emtProcessors: EmtProcessors
+  emtProjections: EmtProjections
+  emtStreams: EmtStreams
+  'exam.attemptAnswers': ExamAttemptAnswers
+  'exam.attemptQuestions': ExamAttemptQuestions
   'exam.attempts': ExamAttempts
-  'exam.choice_translations': ExamChoiceTranslations
   'exam.choices': ExamChoices
-  'exam.exam_version_translations': ExamExamVersionTranslations
-  'exam.exam_versions': ExamExamVersions
+  'exam.choiceTranslations': ExamChoiceTranslations
   'exam.exams': ExamExams
-  'exam.question_translations': ExamQuestionTranslations
+  'exam.examVersions': ExamExamVersions
+  'exam.examVersionTranslations': ExamExamVersionTranslations
   'exam.questions': ExamQuestions
+  'exam.questionTranslations': ExamQuestionTranslations
   'flight.aircraft': FlightAircraft
-  'flight.aircraft_cards': FlightAircraftCards
-  'flight.aircraft_document_expiry_notifications': FlightAircraftDocumentExpiryNotifications
-  'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
-  'flight.aircraft_hil': FlightAircraftHil
-  'flight.aircraft_hil_audit': FlightAircraftHilAudit
-  'flight.aircraft_hil_extension': FlightAircraftHilExtension
-  'flight.aircraft_hil_extension_audit': FlightAircraftHilExtensionAudit
-  'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
-  'flight.aircraft_landings_baseline': FlightAircraftLandingsBaseline
-  'flight.aircraft_navdata': FlightAircraftNavdata
+  'flight.aircraftCards': FlightAircraftCards
+  'flight.aircraftDocumentExpiryNotifications': FlightAircraftDocumentExpiryNotifications
+  'flight.aircraftDocumentsFiles': FlightAircraftDocumentsFiles
+  'flight.aircraftHil': FlightAircraftHil
+  'flight.aircraftHilAudit': FlightAircraftHilAudit
+  'flight.aircraftHilExtension': FlightAircraftHilExtension
+  'flight.aircraftHilExtensionAudit': FlightAircraftHilExtensionAudit
+  'flight.aircraftJourneyLogBook': FlightAircraftJourneyLogBook
+  'flight.aircraftLandingsBaseline': FlightAircraftLandingsBaseline
+  'flight.aircraftNavdata': FlightAircraftNavdata
   'flight.defect': FlightDefect
-  'flight.defect_audit': FlightDefectAudit
-  'flight.flight_credits': FlightFlightCredits
-  'flight.fuel_types': FlightFuelTypes
+  'flight.defectAudit': FlightDefectAudit
+  'flight.flightCredits': FlightFlightCredits
+  'flight.fuelTypes': FlightFuelTypes
   'flight.logs': FlightLogs
-  'flight.logs_audit': FlightLogsAudit
-  'flight.maintenance_note': FlightMaintenanceNote
-  'flight.maintenance_note_audit': FlightMaintenanceNoteAudit
-  'flight.occurrence_access': FlightOccurrenceAccess
-  'flight.occurrence_attachments': FlightOccurrenceAttachments
+  'flight.logsAudit': FlightLogsAudit
+  'flight.maintenanceNote': FlightMaintenanceNote
+  'flight.maintenanceNoteAudit': FlightMaintenanceNoteAudit
+  'flight.occurrenceAccess': FlightOccurrenceAccess
+  'flight.occurrenceAttachments': FlightOccurrenceAttachments
   'flight.occurrences': FlightOccurrences
-  'flight.vw_aircraft_grounding_status': FlightVwAircraftGroundingStatus
-  'flight.vw_ajlb_live_rows': FlightVwAjlbLiveRows
-  'flight.vw_ajlb_live_sequence': FlightVwAjlbLiveSequence
-  'flight.vw_flight_logs': FlightVwFlightLogs
-  'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
-  flyway_data_history: FlywayDataHistory
-  flyway_schema_history: FlywaySchemaHistory
-  fuel_prices_content: FuelPricesContent
-  'inventory.audit_log': InventoryAuditLog
+  'flight.vwAircraftGroundingStatus': FlightVwAircraftGroundingStatus
+  'flight.vwAjlbLiveRows': FlightVwAjlbLiveRows
+  'flight.vwAjlbLiveSequence': FlightVwAjlbLiveSequence
+  'flight.vwFlightLogs': FlightVwFlightLogs
+  'flight.vwFlightTimeTotals': FlightVwFlightTimeTotals
+  flywayDataHistory: FlywayDataHistory
+  flywaySchemaHistory: FlywaySchemaHistory
+  fuelPricesContent: FuelPricesContent
+  'inventory.auditLog': InventoryAuditLog
   'inventory.categories': InventoryCategories
   'inventory.items': InventoryItems
   'inventory.locations': InventoryLocations
-  'member.annual_fees': MemberAnnualFees
-  'member.brevo_campaign_archive_state': MemberBrevoCampaignArchiveState
-  'member.brevo_sync_state': MemberBrevoSyncState
-  'member.document_tiny_urls': MemberDocumentTinyUrls
+  'member.annualFees': MemberAnnualFees
+  'member.brevoCampaignArchiveState': MemberBrevoCampaignArchiveState
+  'member.brevoSyncState': MemberBrevoSyncState
   'member.documents': MemberDocuments
-  'member.event_translations': MemberEventTranslations
+  'member.documentTinyUrls': MemberDocumentTinyUrls
   'member.events': MemberEvents
-  'member.login_attempts': MemberLoginAttempts
-  'member.login_events': MemberLoginEvents
-  'member.mailbox_messages': MemberMailboxMessages
+  'member.eventTranslations': MemberEventTranslations
+  'member.loginAttempts': MemberLoginAttempts
+  'member.loginEvents': MemberLoginEvents
+  'member.mailboxMessages': MemberMailboxMessages
   'member.meeting': MemberMeeting
-  'member.meeting_attendance': MemberMeetingAttendance
-  'member.meeting_vote': MemberMeetingVote
-  'member.meeting_vote_counter': MemberMeetingVoteCounter
-  'member.member_to_roles': MemberMemberToRoles
-  'member.non_renewal_actions': MemberNonRenewalActions
+  'member.meetingAttendance': MemberMeetingAttendance
+  'member.meetingVote': MemberMeetingVote
+  'member.meetingVoteCounter': MemberMeetingVoteCounter
+  'member.memberToRoles': MemberMemberToRoles
+  'member.nonRenewalActions': MemberNonRenewalActions
   'member.passkeys': MemberPasskeys
-  'member.pending_email_changes': MemberPendingEmailChanges
-  'member.push_subscriptions': MemberPushSubscriptions
-  'member.qualification_proof_files': MemberQualificationProofFiles
+  'member.pendingEmailChanges': MemberPendingEmailChanges
+  'member.pushSubscriptions': MemberPushSubscriptions
+  'member.qualificationProofFiles': MemberQualificationProofFiles
   'member.register': MemberRegister
-  'member.register_audit': MemberRegisterAudit
+  'member.registerAudit': MemberRegisterAudit
   'member.roles': MemberRoles
-  'member.simplbooks_sync_state': MemberSimplbooksSyncState
-  'member.vote_cast': MemberVoteCast
-  'member.vote_option': MemberVoteOption
-  'member.vote_selection': MemberVoteSelection
-  'member.webauthn_challenges': MemberWebauthnChallenges
-  notification_banner: NotificationBanner
-  'prepaid.member_packages': PrepaidMemberPackages
+  'member.simplbooksSyncState': MemberSimplbooksSyncState
+  'member.voteCast': MemberVoteCast
+  'member.voteOption': MemberVoteOption
+  'member.voteSelection': MemberVoteSelection
+  'member.webauthnChallenges': MemberWebauthnChallenges
+  notificationBanner: NotificationBanner
+  'prepaid.memberPackages': PrepaidMemberPackages
   'prepaid.packages': PrepaidPackages
-  'prepaid.usage_log': PrepaidUsageLog
+  'prepaid.usageLog': PrepaidUsageLog
   'schedule.bookings': ScheduleBookings
-  'schedule.push_reminder_log': SchedulePushReminderLog
+  'schedule.pushReminderLog': SchedulePushReminderLog
   secrets: Secrets
-  'shop.cart_items': ShopCartItems
+  'shop.cartItems': ShopCartItems
   'shop.carts': ShopCarts
   'shop.categories': ShopCategories
-  'shop.discount_code_categories': ShopDiscountCodeCategories
-  'shop.discount_codes': ShopDiscountCodes
-  'shop.order_items': ShopOrderItems
+  'shop.discountCodeCategories': ShopDiscountCodeCategories
+  'shop.discountCodes': ShopDiscountCodes
+  'shop.orderItems': ShopOrderItems
   'shop.orders': ShopOrders
-  'shop.product_properties': ShopProductProperties
-  'shop.product_property_options': ShopProductPropertyOptions
+  'shop.productProperties': ShopProductProperties
+  'shop.productPropertyOptions': ShopProductPropertyOptions
   'shop.products': ShopProducts
   'static.airfields': StaticAirfields
-  'static.useful_phone_number': StaticUsefulPhoneNumber
-  'stats.airfield_efficiency_by_ac_yr': StatsAirfieldEfficiencyByAcYr
-  'stats.airfield_efficiency_by_ac_yr_mth': StatsAirfieldEfficiencyByAcYrMth
-  'stats.airfield_efficiency_by_yr': StatsAirfieldEfficiencyByYr
-  'stats.airfield_efficiency_by_yr_mth': StatsAirfieldEfficiencyByYrMth
-  'stats.aog_days_by_ac_dt': StatsAogDaysByAcDt
-  'stats.aog_days_by_ac_yr': StatsAogDaysByAcYr
-  'stats.aog_days_by_ac_yr_mth': StatsAogDaysByAcYrMth
-  'stats.aog_intervals': StatsAogIntervals
-  'stats.dto_total_flight_time_by_ac': StatsDtoTotalFlightTimeByAc
-  'stats.dto_total_flight_time_by_ac_yr': StatsDtoTotalFlightTimeByAcYr
-  'stats.dto_total_flight_time_by_ac_yr_mth': StatsDtoTotalFlightTimeByAcYrMth
-  'stats.longest_shortest_avg_flight_by_ac_yr': StatsLongestShortestAvgFlightByAcYr
-  'stats.member_count_by_type': StatsMemberCountByType
-  'stats.non_billable_total_flight_time_by_ac': StatsNonBillableTotalFlightTimeByAc
-  'stats.non_billable_total_flight_time_by_ac_yr': StatsNonBillableTotalFlightTimeByAcYr
-  'stats.non_billable_total_flight_time_by_ac_yr_mth': StatsNonBillableTotalFlightTimeByAcYrMth
-  'stats.occurrences_per_100h_by_ac_yr': StatsOccurrencesPer100hByAcYr
-  'stats.pob_distribution_by_ac_yr': StatsPobDistributionByAcYr
-  'stats.reservation_efficiency_by_ac_yr': StatsReservationEfficiencyByAcYr
-  'stats.reservation_efficiency_by_ac_yr_mth': StatsReservationEfficiencyByAcYrMth
-  'stats.reservation_efficiency_by_member_yr': StatsReservationEfficiencyByMemberYr
-  'stats.reservation_efficiency_by_member_yr_mth': StatsReservationEfficiencyByMemberYrMth
-  'stats.reservation_efficiency_by_yr': StatsReservationEfficiencyByYr
-  'stats.reservation_efficiency_by_yr_mth': StatsReservationEfficiencyByYrMth
-  'stats.school_flight_efficiency_by_ac_yr': StatsSchoolFlightEfficiencyByAcYr
-  'stats.school_flight_efficiency_by_ac_yr_mth': StatsSchoolFlightEfficiencyByAcYrMth
-  'stats.school_flight_efficiency_by_instructor_yr': StatsSchoolFlightEfficiencyByInstructorYr
-  'stats.school_flight_efficiency_by_instructor_yr_mth': StatsSchoolFlightEfficiencyByInstructorYrMth
-  'stats.school_flight_efficiency_by_yr': StatsSchoolFlightEfficiencyByYr
-  'stats.school_flight_efficiency_by_yr_mth': StatsSchoolFlightEfficiencyByYrMth
-  'stats.total_commercial_flight_time_by_ac_yr_mth': StatsTotalCommercialFlightTimeByAcYrMth
-  'stats.total_flight_time_by_ac_dt': StatsTotalFlightTimeByAcDt
-  'stats.total_flight_time_by_ac_ft': StatsTotalFlightTimeByAcFt
-  'stats.total_flight_time_by_ac_yr': StatsTotalFlightTimeByAcYr
-  'stats.total_flight_time_by_ac_yr_ft': StatsTotalFlightTimeByAcYrFt
-  'stats.total_flight_time_by_ac_yr_mth_ft': StatsTotalFlightTimeByAcYrMthFt
-  'stats.total_flight_time_by_pilot': StatsTotalFlightTimeByPilot
-  'stats.total_flight_time_by_pilot_yr': StatsTotalFlightTimeByPilotYr
-  'stats.total_flight_time_by_pilot_yr_mth': StatsTotalFlightTimeByPilotYrMth
-  'stats.total_fuel_uplift_by_ac_yr_mth': StatsTotalFuelUpliftByAcYrMth
-  'stats.total_landings_by_ac_yr': StatsTotalLandingsByAcYr
-  'stats.total_oil_uplift_by_ac_yr_mth': StatsTotalOilUpliftByAcYrMth
-  'stats.visited_airfields_by_ac': StatsVisitedAirfieldsByAc
+  'static.usefulPhoneNumber': StaticUsefulPhoneNumber
+  'stats.airfieldEfficiencyByAcYr': StatsAirfieldEfficiencyByAcYr
+  'stats.airfieldEfficiencyByAcYrMth': StatsAirfieldEfficiencyByAcYrMth
+  'stats.airfieldEfficiencyByYr': StatsAirfieldEfficiencyByYr
+  'stats.airfieldEfficiencyByYrMth': StatsAirfieldEfficiencyByYrMth
+  'stats.aogDaysByAcDt': StatsAogDaysByAcDt
+  'stats.aogDaysByAcYr': StatsAogDaysByAcYr
+  'stats.aogDaysByAcYrMth': StatsAogDaysByAcYrMth
+  'stats.aogIntervals': StatsAogIntervals
+  'stats.dtoTotalFlightTimeByAc': StatsDtoTotalFlightTimeByAc
+  'stats.dtoTotalFlightTimeByAcYr': StatsDtoTotalFlightTimeByAcYr
+  'stats.dtoTotalFlightTimeByAcYrMth': StatsDtoTotalFlightTimeByAcYrMth
+  'stats.longestShortestAvgFlightByAcYr': StatsLongestShortestAvgFlightByAcYr
+  'stats.memberCountByType': StatsMemberCountByType
+  'stats.nonBillableTotalFlightTimeByAc': StatsNonBillableTotalFlightTimeByAc
+  'stats.nonBillableTotalFlightTimeByAcYr': StatsNonBillableTotalFlightTimeByAcYr
+  'stats.nonBillableTotalFlightTimeByAcYrMth': StatsNonBillableTotalFlightTimeByAcYrMth
+  'stats.occurrencesPer100hByAcYr': StatsOccurrencesPer100hByAcYr
+  'stats.pobDistributionByAcYr': StatsPobDistributionByAcYr
+  'stats.reservationEfficiencyByAcYr': StatsReservationEfficiencyByAcYr
+  'stats.reservationEfficiencyByAcYrMth': StatsReservationEfficiencyByAcYrMth
+  'stats.reservationEfficiencyByMemberYr': StatsReservationEfficiencyByMemberYr
+  'stats.reservationEfficiencyByMemberYrMth': StatsReservationEfficiencyByMemberYrMth
+  'stats.reservationEfficiencyByYr': StatsReservationEfficiencyByYr
+  'stats.reservationEfficiencyByYrMth': StatsReservationEfficiencyByYrMth
+  'stats.schoolFlightEfficiencyByAcYr': StatsSchoolFlightEfficiencyByAcYr
+  'stats.schoolFlightEfficiencyByAcYrMth': StatsSchoolFlightEfficiencyByAcYrMth
+  'stats.schoolFlightEfficiencyByInstructorYr': StatsSchoolFlightEfficiencyByInstructorYr
+  'stats.schoolFlightEfficiencyByInstructorYrMth': StatsSchoolFlightEfficiencyByInstructorYrMth
+  'stats.schoolFlightEfficiencyByYr': StatsSchoolFlightEfficiencyByYr
+  'stats.schoolFlightEfficiencyByYrMth': StatsSchoolFlightEfficiencyByYrMth
+  'stats.totalCommercialFlightTimeByAcYrMth': StatsTotalCommercialFlightTimeByAcYrMth
+  'stats.totalFlightTimeByAcDt': StatsTotalFlightTimeByAcDt
+  'stats.totalFlightTimeByAcFt': StatsTotalFlightTimeByAcFt
+  'stats.totalFlightTimeByAcYr': StatsTotalFlightTimeByAcYr
+  'stats.totalFlightTimeByAcYrFt': StatsTotalFlightTimeByAcYrFt
+  'stats.totalFlightTimeByAcYrMthFt': StatsTotalFlightTimeByAcYrMthFt
+  'stats.totalFlightTimeByPilot': StatsTotalFlightTimeByPilot
+  'stats.totalFlightTimeByPilotYr': StatsTotalFlightTimeByPilotYr
+  'stats.totalFlightTimeByPilotYrMth': StatsTotalFlightTimeByPilotYrMth
+  'stats.totalFuelUpliftByAcYrMth': StatsTotalFuelUpliftByAcYrMth
+  'stats.totalLandingsByAcYr': StatsTotalLandingsByAcYr
+  'stats.totalOilUpliftByAcYrMth': StatsTotalOilUpliftByAcYrMth
+  'stats.visitedAirfieldsByAc': StatsVisitedAirfieldsByAc
 }

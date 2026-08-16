@@ -1,11 +1,11 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 
 /**
  * Delete any unused (not yet verified) pending email change requests for a member.
  * Called before creating a new request to ensure only one is active at a time.
  */
 export async function invalidatePreviousEmailChanges(memberId: string): Promise<void> {
-  await camelDb
+  await db
     .deleteFrom('member.pendingEmailChanges')
     .where('memberId', '=', memberId)
     .where('usedAt', 'is', null)
@@ -24,7 +24,7 @@ export async function createPendingEmailChange(
 ): Promise<string> {
   await invalidatePreviousEmailChanges(memberId)
 
-  const result = await camelDb
+  const result = await db
     .insertInto('member.pendingEmailChanges')
     .values({
       memberId: memberId,
@@ -46,7 +46,7 @@ export async function createPendingEmailChange(
  * Returns the claimed row, or undefined if no match.
  */
 export async function claimPendingEmailChangeByTokenHash(tokenHash: string, memberId: string) {
-  return camelDb
+  return db
     .updateTable('member.pendingEmailChanges')
     .set({ usedAt: new Date() })
     .where('tokenHash', '=', tokenHash)

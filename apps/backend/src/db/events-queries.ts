@@ -1,7 +1,7 @@
 import type { Updateable } from 'kysely'
 
-import type { MemberEvents } from './schema.camel.d.ts'
-import { camelDb } from './connection.ts'
+import type { MemberEvents } from './schema.d.ts'
+import { db } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   ClubEvent,
@@ -36,7 +36,7 @@ const getTranslationsByEventId = async (
   const map = new Map<string, EventTranslations>()
   if (eventIds.length === 0) return map
 
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('member.eventTranslations')
     .select(['eventId', 'language', 'title', 'description'])
     .where('eventId', 'in', eventIds)
@@ -72,7 +72,7 @@ const toEvent = (row: EventRow, translations: EventTranslations = {}): ClubEvent
 export const getAllEvents = async (filters: EventFilters = {}): Promise<ClubEvent[]> => {
   const { from, to, publicOnly = false, limit = 200, offset = 0 } = filters
 
-  let query = camelDb
+  let query = db
     .selectFrom('member.events')
     .selectAll()
     .orderBy('startTime', 'asc')
@@ -97,7 +97,7 @@ export const getAllEvents = async (filters: EventFilters = {}): Promise<ClubEven
 }
 
 export const getEventById = async (eventId: string): Promise<ClubEvent | undefined> => {
-  const row = await camelDb
+  const row = await db
     .selectFrom('member.events')
     .selectAll()
     .where('eventId', '=', eventId)
@@ -110,7 +110,7 @@ export const getEventById = async (eventId: string): Promise<ClubEvent | undefin
 }
 
 export const getEventImageKey = async (eventId: string): Promise<string | null | undefined> => {
-  const row = await camelDb
+  const row = await db
     .selectFrom('member.events')
     .select('imageKey')
     .where('eventId', '=', eventId)
@@ -124,7 +124,7 @@ export const setEventImage = async (
   imageUrl: string,
   imageKey: string,
 ): Promise<ClubEvent | undefined> => {
-  const row = await camelDb
+  const row = await db
     .updateTable('member.events')
     .set({ imageUrl: imageUrl, imageKey: imageKey, updatedAt: new Date() })
     .where('eventId', '=', eventId)
@@ -137,7 +137,7 @@ export const setEventImage = async (
 }
 
 export const clearEventImage = async (eventId: string): Promise<ClubEvent | undefined> => {
-  const row = await camelDb
+  const row = await db
     .updateTable('member.events')
     .set({ imageUrl: null, imageKey: null, updatedAt: new Date() })
     .where('eventId', '=', eventId)
@@ -155,7 +155,7 @@ const upsertEventTranslation = async (
   title: string,
   description: string | null,
 ): Promise<void> => {
-  await camelDb
+  await db
     .insertInto('member.eventTranslations')
     .values({ eventId: eventId, language, title, description })
     .onConflict((oc) => oc.columns(['eventId', 'language']).doUpdateSet({ title, description }))
@@ -163,7 +163,7 @@ const upsertEventTranslation = async (
 }
 
 const deleteEventTranslation = async (eventId: string, language: 'fi' | 'sv'): Promise<void> => {
-  await camelDb
+  await db
     .deleteFrom('member.eventTranslations')
     .where('eventId', '=', eventId)
     .where('language', '=', language)
@@ -193,7 +193,7 @@ const applyTranslations = async (
 }
 
 export const createEvent = async (data: EventCreate, user: JWTUser): Promise<ClubEvent> => {
-  const row = await camelDb
+  const row = await db
     .insertInto('member.events')
     .values({
       title: data.title,
@@ -235,7 +235,7 @@ export const updateEvent = async (
   if (data.endTime !== undefined) updates.endTime = new Date(data.endTime)
   if (data.isPublic !== undefined) updates.isPublic = data.isPublic
 
-  const row = await camelDb
+  const row = await db
     .updateTable('member.events')
     .set(updates)
     .where('eventId', '=', eventId)
@@ -250,7 +250,7 @@ export const updateEvent = async (
 }
 
 export const deleteEvent = async (eventId: string): Promise<boolean> => {
-  const result = await camelDb
+  const result = await db
     .deleteFrom('member.events')
     .where('eventId', '=', eventId)
     .executeTakeFirst()

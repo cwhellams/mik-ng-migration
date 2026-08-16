@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { ExpenseClaimStatus } from '@mik/contracts/expenses'
 import type { FuelReportEntry, FuelReportFilters } from '@mik/contracts/fuel-report'
 
@@ -12,7 +12,7 @@ const REPORTABLE_STATUSES = [
 ]
 
 export async function getRecentFuelings(filters: FuelReportFilters): Promise<FuelReportEntry[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('accts.expenseClaimLineItem as li')
     .innerJoin('accts.expenseClaim as c', 'c.id', 'li.claimId')
     .innerJoin('accts.expenseCategory as cat', 'cat.id', 'c.categoryId')

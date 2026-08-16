@@ -13,7 +13,7 @@ const user = { memberId: 'Juha1' } as JWTUser
 
 describe('local-fuel-price-queries', () => {
   afterEach(async () => {
-    await db.deleteFrom('accts.local_fuel_price').where('fuel_type', '=', 'JetA1').execute()
+    await db.deleteFrom('accts.localFuelPrice').where('fuelType', '=', 'JetA1').execute()
   })
 
   // Regression: the mapper used to build createdAt as
@@ -28,12 +28,12 @@ describe('local-fuel-price-queries', () => {
     )
 
     const stored = await db
-      .selectFrom('accts.local_fuel_price')
-      .select('created_at')
-      .where('fuel_type', '=', 'JetA1')
+      .selectFrom('accts.localFuelPrice')
+      .select('createdAt')
+      .where('fuelType', '=', 'JetA1')
       .executeTakeFirstOrThrow()
 
-    expect(created.createdAt).toBe(stored.created_at.toISOString())
+    expect(created.createdAt).toBe(stored.createdAt.toISOString())
   })
 
   it('returns the most recent price effective on or before the given date', async () => {
@@ -67,10 +67,10 @@ describe('local-fuel-price-queries', () => {
     expect(updated.priceEurPerLitre).toBe(2.75)
 
     const rows = await db
-      .selectFrom('accts.local_fuel_price')
+      .selectFrom('accts.localFuelPrice')
       .selectAll()
-      .where('fuel_type', '=', 'JetA1')
-      .where('valid_from', '=', '2026-01-01')
+      .where('fuelType', '=', 'JetA1')
+      .where('validFrom', '=', '2026-01-01')
       .execute()
     expect(rows).toHaveLength(1)
     expect((await getEffectiveLocalFuelPrice('JetA1', '2026-03-01'))?.priceEurPerLitre).toBe(2.75)

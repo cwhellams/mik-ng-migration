@@ -1,5 +1,5 @@
 import { getMemberById } from '../../db/member-queries.ts'
-import { camelDb } from '../../db/connection.ts'
+import { db } from '../../db/connection.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail, type EmailAttachment } from '../../lib/sendGmail.ts'
 import { getInvoice, getInvoicePdf } from './simplbooksApiClient.ts'
@@ -303,7 +303,7 @@ export async function sendDryRunInvoiceEmail(
     throw new Error(`Member with ID ${memberId} not found`)
   }
 
-  const localInvoice = await camelDb
+  const localInvoice = await db
     .selectFrom('accts.invoice')
     .selectAll()
     .where('id', '=', String(invoiceId))

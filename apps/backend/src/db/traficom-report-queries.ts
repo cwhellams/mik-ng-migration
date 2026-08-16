@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import { sql } from 'kysely'
 import {
   TraficomReportFilter,
@@ -44,7 +44,7 @@ export async function getTraficomReport(
   const yearStart = `${filters.year}-01-01`
   const yearEnd = `${filters.year}-12-31`
 
-  const result = await camelDb
+  const result = await db
     .selectFrom('flight.logs')
     .select([
       'aircraftRegistration',

@@ -34,7 +34,7 @@ Every time the DB schema is modified you have to rerun code generation to keep o
 1. Ensure you have the Postgres up and running using the latest scripts in ./sql
 2. The default .env file should already contain a DATABASE_URL entry which matches the settings from the start script
 3. Run codegen `pnpm schema`
-4. This outputs **two** files — `src/db/schema.d.ts` (snake_case) and `src/db/schema.camel.d.ts` (camelCase) — because the data layer currently has two Kysely instances while the phase 5 migration is in progress (issue #1115; see `src/db/DATA_LAYER.md`). **Commit both**, along with the Flyway schemas, to keep everything in sync. Committing only `schema.d.ts` leaves the camelCase types stale, and the domains already migrated to `camelDb` will typecheck against a schema that no longer matches the database.
+4. This outputs one file, `src/db/schema.d.ts`, generated with `--camel-case`: the data layer is a single Kysely instance and column names are camelCase in both directions — you write `noteId`, Postgres receives `note_id` (see `src/db/DATA_LAYER.md`). **Commit it** along with the Flyway schemas, to keep everything in sync. A stale `schema.d.ts` still typechecks, against a database it no longer matches.
 5. Run tests and fix all places not compatible with new schema anymore. Kysely will be bootstrapped with the generated DB model and intelli-sense / code-completion should work when writing kysely statements
 
 # Scripts

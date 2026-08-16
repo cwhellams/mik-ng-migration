@@ -1,4 +1,4 @@
-import { camelDb } from './connection.ts'
+import { db } from './connection.ts'
 import type { ProofFile, ProofDocumentCategory } from '@mik/contracts/instructor-qualifications'
 
 function mapProofRow(row: {
@@ -34,7 +34,7 @@ export async function addQualificationProof(
   historyId: number | null = null,
   documentCategory: ProofDocumentCategory = 'LICENSE',
 ): Promise<ProofFile> {
-  const row = await camelDb
+  const row = await db
     .insertInto('member.qualificationProofFiles')
     .values({
       memberId: memberId,
@@ -52,7 +52,7 @@ export async function addQualificationProof(
 }
 
 export async function getQualificationProofs(memberId: string): Promise<ProofFile[]> {
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('member.qualificationProofFiles')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -70,7 +70,7 @@ export async function getLatestProofByCategory(
   category: ProofDocumentCategory,
   asOf: Date,
 ): Promise<ProofFile | null> {
-  const row = await camelDb
+  const row = await db
     .selectFrom('member.qualificationProofFiles')
     .selectAll()
     .where('memberId', '=', memberId)
@@ -105,7 +105,7 @@ export async function getLatestProofIdsByMembers(
 
   const cutoff = asOf ?? new Date()
 
-  const rows = await camelDb
+  const rows = await db
     .selectFrom('member.qualificationProofFiles')
     .select(['id', 'memberId', 'documentCategory', 'uploadedAt'])
     .where('memberId', 'in', memberIds)

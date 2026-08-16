@@ -470,10 +470,10 @@ describe('PATCH /flight-log/', () => {
     await db
       .updateTable('flight.logs')
       .set({
-        non_billing_approved_by_member_id: null,
-        entry_error_fee_applied_by_member_id: null,
+        nonBillingApprovedByMemberId: null,
+        entryErrorFeeAppliedByMemberId: null,
       })
-      .where('flight_id', '=', 'da40tndra')
+      .where('flightId', '=', 'da40tndra')
       .execute()
   })
 
@@ -745,10 +745,10 @@ describe('PATCH /flight-log/', () => {
     await db
       .updateTable('flight.logs')
       .set({
-        non_billing_approved_by_member_id: null,
-        entry_error_fee_applied_by_member_id: null,
+        nonBillingApprovedByMemberId: null,
+        entryErrorFeeAppliedByMemberId: null,
       })
-      .where('flight_id', '=', 'da40tndra')
+      .where('flightId', '=', 'da40tndra')
       .execute()
   })
 })
@@ -761,9 +761,9 @@ describe('POST /flight-log/validate', () => {
   beforeAll(async () => {
     const massFlights = await db
       .selectFrom('flight.logs')
-      .select(['flight_id as flightId', 'status'])
-      .where('flight_id', 'like', 'mass%')
-      .orderBy('off_block_time_utc', 'asc')
+      .select(['flightId', 'status'])
+      .where('flightId', 'like', 'mass%')
+      .orderBy('offBlockTimeUtc', 'asc')
       .execute()
 
     const firstNewMassFlightIdx = massFlights.findIndex((flight) => flight.status === 'NEW')
@@ -965,7 +965,7 @@ describe('GET /flight-log/stats', () => {
 
   afterAll(async () => {
     if (createdFlightId) {
-      await db.deleteFrom('flight.logs').where('flight_id', '=', createdFlightId).execute()
+      await db.deleteFrom('flight.logs').where('flightId', '=', createdFlightId).execute()
     }
   })
 

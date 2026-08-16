@@ -8,7 +8,7 @@ import { getMeetingAttendees, getVoteCounters } from '../../src/db/meeting-queri
 /**
  * These two are the only meeting queries built from raw `sql` rather than the query
  * builder, and the route tests mock both — so nothing executed them against a real
- * database. The camelDb migration (issue #1115, phase 5) rewrote the column names
+ * database. The camelCase migration (issue #1115, phase 5) rewrote the column names
  * *inside* the SQL text to camelCase, which Postgres rejects outright
  * ("column r.firstname does not exist"), and the whole suite stayed green.
  *
@@ -24,24 +24,24 @@ describe('meeting-queries raw SQL', () => {
     const meeting = await db
       .insertInto('member.meeting')
       .values({ title: 'raw sql fixture', status: 'DRAFT' })
-      .returning('meeting_id')
+      .returning('meetingId')
       .executeTakeFirstOrThrow()
-    meetingId = meeting.meeting_id
+    meetingId = meeting.meetingId
 
     await db
-      .insertInto('member.meeting_attendance')
-      .values({ meeting_id: meetingId, member_id: memberId, joined_at: new Date() })
+      .insertInto('member.meetingAttendance')
+      .values({ meetingId: meetingId, memberId: memberId, joinedAt: new Date() })
       .execute()
     await db
-      .insertInto('member.meeting_vote_counter')
-      .values({ meeting_id: meetingId, member_id: memberId, assigned_at: new Date() })
+      .insertInto('member.meetingVoteCounter')
+      .values({ meetingId: meetingId, memberId: memberId, assignedAt: new Date() })
       .execute()
   })
 
   afterAll(async () => {
-    await db.deleteFrom('member.meeting_vote_counter').where('meeting_id', '=', meetingId).execute()
-    await db.deleteFrom('member.meeting_attendance').where('meeting_id', '=', meetingId).execute()
-    await db.deleteFrom('member.meeting').where('meeting_id', '=', meetingId).execute()
+    await db.deleteFrom('member.meetingVoteCounter').where('meetingId', '=', meetingId).execute()
+    await db.deleteFrom('member.meetingAttendance').where('meetingId', '=', meetingId).execute()
+    await db.deleteFrom('member.meeting').where('meetingId', '=', meetingId).execute()
   })
 
   it('reads attendees, with the joined member name mapped to camelCase', async () => {

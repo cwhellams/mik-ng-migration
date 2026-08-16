@@ -410,8 +410,8 @@ describe('PATCH /members/me', () => {
   it('should clear mustUpdateProfile when saving own profile', async () => {
     await db
       .updateTable('member.register')
-      .set({ must_update_profile: true })
-      .where('member_id', '=', 'Matti1')
+      .set({ mustUpdateProfile: true })
+      .where('memberId', '=', 'Matti1')
       .execute()
 
     const response = await patch(memberToken, { firstName: 'Matti' })
@@ -421,24 +421,24 @@ describe('PATCH /members/me', () => {
 
     const member = await db
       .selectFrom('member.register')
-      .select('must_update_profile')
-      .where('member_id', '=', 'Matti1')
+      .select('mustUpdateProfile')
+      .where('memberId', '=', 'Matti1')
       .executeTakeFirstOrThrow()
 
-    expect(member.must_update_profile).toBe(false)
+    expect(member.mustUpdateProfile).toBe(false)
   })
 
   it('should NOT clear mustUpdateProfile when saving only non-identity fields', async () => {
     const original = await db
       .selectFrom('member.register')
-      .select('ice_contact_name')
-      .where('member_id', '=', 'Matti1')
+      .select('iceContactName')
+      .where('memberId', '=', 'Matti1')
       .executeTakeFirstOrThrow()
 
     await db
       .updateTable('member.register')
-      .set({ must_update_profile: true })
-      .where('member_id', '=', 'Matti1')
+      .set({ mustUpdateProfile: true })
+      .where('memberId', '=', 'Matti1')
       .execute()
 
     // iceContactName is editable via PATCH /me but is not one of the profile
@@ -450,16 +450,16 @@ describe('PATCH /members/me', () => {
 
     const member = await db
       .selectFrom('member.register')
-      .select('must_update_profile')
-      .where('member_id', '=', 'Matti1')
+      .select('mustUpdateProfile')
+      .where('memberId', '=', 'Matti1')
       .executeTakeFirstOrThrow()
-    expect(member.must_update_profile).toBe(true)
+    expect(member.mustUpdateProfile).toBe(true)
 
     // cleanup — restore the flag and the mutated field so shared-DB snapshots elsewhere are unaffected
     await db
       .updateTable('member.register')
-      .set({ must_update_profile: false, ice_contact_name: original.ice_contact_name })
-      .where('member_id', '=', 'Matti1')
+      .set({ mustUpdateProfile: false, iceContactName: original.iceContactName })
+      .where('memberId', '=', 'Matti1')
       .execute()
   })
 
@@ -998,7 +998,7 @@ describe('PATCH /members/id', () => {
 
     afterEach(async () => {
       // Clean up inserted booking and restore canMakeReservations
-      await db.deleteFrom('schedule.bookings').where('booking_id', '=', insertedBookingId).execute()
+      await db.deleteFrom('schedule.bookings').where('bookingId', '=', insertedBookingId).execute()
       await patch(testMemberId, { canMakeReservations: true }, adminToken)
       // Restore any testdata bookings for this member that were cancelled as a side-effect of
       // the true→false canMakeReservations transition (stl*/ihq* are shared testdata used by
@@ -1011,11 +1011,11 @@ describe('PATCH /members/id', () => {
           cancelled_by: null,
           description: null,
           // Restore updated_by to the original creator so other tests see clean seed data
-          updated_by: eb.ref('created_by'),
+          updated_by: eb.ref('createdBy'),
         }))
-        .where('member_id', '=', testMemberId)
-        .where((eb) => eb.or([eb('booking_id', 'like', 'stl%'), eb('booking_id', 'like', 'ihq%')]))
-        .where('booking_status', '=', BookingStatus.CANCELLED)
+        .where('memberId', '=', testMemberId)
+        .where((eb) => eb.or([eb('bookingId', 'like', 'stl%'), eb('bookingId', 'like', 'ihq%')]))
+        .where('bookingStatus', '=', BookingStatus.CANCELLED)
         .execute()
     })
 
@@ -1074,7 +1074,7 @@ describe('PATCH /members/id', () => {
       } finally {
         await db
           .deleteFrom('schedule.bookings')
-          .where('booking_id', '=', secondBooking.bookingId)
+          .where('bookingId', '=', secondBooking.bookingId)
           .execute()
       }
     })
@@ -1095,15 +1095,15 @@ describe('POST /members/must-update-profile', () => {
   const flags = async () =>
     db
       .selectFrom('member.register')
-      .select(['member_id', 'must_update_profile'])
-      .where('member_id', 'in', memberIds)
+      .select(['memberId', 'mustUpdateProfile'])
+      .where('memberId', 'in', memberIds)
       .execute()
 
   afterEach(async () => {
     await db
       .updateTable('member.register')
-      .set({ must_update_profile: false })
-      .where('member_id', 'in', memberIds)
+      .set({ mustUpdateProfile: false })
+      .where('memberId', 'in', memberIds)
       .execute()
   })
 
@@ -1128,14 +1128,14 @@ describe('POST /members/must-update-profile', () => {
     expect(setResponse.body).toEqual({ updated: memberIds.length })
 
     const afterSet = await flags()
-    expect(afterSet.every((m) => m.must_update_profile === true)).toBe(true)
+    expect(afterSet.every((m) => m.mustUpdateProfile === true)).toBe(true)
 
     const clearResponse = await postBulk({ memberIds, mustUpdateProfile: false }, adminToken)
     expect(clearResponse.status).toBe(200)
     expect(clearResponse.body).toEqual({ updated: memberIds.length })
 
     const afterClear = await flags()
-    expect(afterClear.every((m) => m.must_update_profile === false)).toBe(true)
+    expect(afterClear.every((m) => m.mustUpdateProfile === false)).toBe(true)
   })
 
   it('should set the flag for a single member (one-element array)', async () => {
@@ -1145,10 +1145,10 @@ describe('POST /members/must-update-profile', () => {
 
     const member = await db
       .selectFrom('member.register')
-      .select('must_update_profile')
-      .where('member_id', '=', 'Matti1')
+      .select('mustUpdateProfile')
+      .where('memberId', '=', 'Matti1')
       .executeTakeFirstOrThrow()
-    expect(member.must_update_profile).toBe(true)
+    expect(member.mustUpdateProfile).toBe(true)
   })
 
   it('should report only the count of members that actually exist', async () => {
@@ -1475,12 +1475,12 @@ describe('Membership approval tests', () => {
     await db
       .updateTable('member.register')
       .set({
-        membership_approved_at: null,
-        membership_approved_by: null,
+        membershipApprovedAt: null,
+        membershipApprovedBy: null,
       })
-      .where('member_id', '=', 'Marja1')
+      .where('memberId', '=', 'Marja1')
       .execute()
-    await db.deleteFrom('member.member_to_roles').where('member_id', '=', 'Marja1').execute()
+    await db.deleteFrom('member.memberToRoles').where('memberId', '=', 'Marja1').execute()
   })
 
   it('POST approval should return not found when member does not exist', async () => {
@@ -1598,14 +1598,14 @@ describe('POST /members/:memberId/deactivate', () => {
 
       const member = await db
         .selectFrom('member.register')
-        .select('member_type')
-        .where('member_id', '=', alreadyRemovedMemberId)
+        .select('memberType')
+        .where('memberId', '=', alreadyRemovedMemberId)
         .executeTakeFirst()
-      expect(member?.member_type).toBe(MIKMemberTypes.REMOVED)
+      expect(member?.memberType).toBe(MIKMemberTypes.REMOVED)
     } finally {
       await db
         .deleteFrom('member.register')
-        .where('member_id', '=', alreadyRemovedMemberId)
+        .where('memberId', '=', alreadyRemovedMemberId)
         .execute()
     }
   })
@@ -1639,7 +1639,7 @@ describe('POST /members/me/cancel-membership', () => {
 
   afterAll(async () => {
     // The member was deactivated (not hard deleted) by the cancel route, clean up the record
-    await db.deleteFrom('member.register').where('member_id', '=', cancelMemberId).execute()
+    await db.deleteFrom('member.register').where('memberId', '=', cancelMemberId).execute()
   })
 
   it('should return 404 when authenticated user member not found', async () => {
@@ -1836,19 +1836,19 @@ describe('POST /members/:memberId/send-renewal-reminder', () => {
 
     // Verify the action was recorded
     const action = await db
-      .selectFrom('member.non_renewal_actions')
+      .selectFrom('member.nonRenewalActions')
       .selectAll()
-      .where('member_id', '=', 'Matti1')
-      .where('action_type', '=', 'REMINDER_SENT')
-      .orderBy('performed_at', 'desc')
+      .where('memberId', '=', 'Matti1')
+      .where('actionType', '=', 'REMINDER_SENT')
+      .orderBy('performedAt', 'desc')
       .executeTakeFirst()
 
     expect(action).toBeDefined()
-    expect(action?.performed_by).toBe('k1mnimda')
+    expect(action?.performedBy).toBe('k1mnimda')
 
     // cleanup
     if (action) {
-      await db.deleteFrom('member.non_renewal_actions').where('id', '=', action.id).execute()
+      await db.deleteFrom('member.nonRenewalActions').where('id', '=', action.id).execute()
     }
   })
 })
@@ -1881,10 +1881,10 @@ describe('POST /members/me/email-change/request', () => {
 
   afterAll(async () => {
     await db
-      .deleteFrom('member.pending_email_changes')
-      .where('member_id', '=', emailChangeMemberId)
+      .deleteFrom('member.pendingEmailChanges')
+      .where('memberId', '=', emailChangeMemberId)
       .execute()
-    await db.deleteFrom('member.register').where('member_id', '=', emailChangeMemberId).execute()
+    await db.deleteFrom('member.register').where('memberId', '=', emailChangeMemberId).execute()
   })
 
   it('should return 401 without auth', async () => {
@@ -1906,7 +1906,7 @@ describe('POST /members/me/email-change/request', () => {
     const member = await db
       .selectFrom('member.register')
       .select('email')
-      .where('member_id', '=', emailChangeMemberId)
+      .where('memberId', '=', emailChangeMemberId)
       .executeTakeFirstOrThrow()
     const response = await request(app)
       .post('/members/me/email-change/request')
@@ -1961,10 +1961,10 @@ describe('POST /members/me/email-change/verify', () => {
 
   afterAll(async () => {
     await db
-      .deleteFrom('member.pending_email_changes')
-      .where('member_id', '=', verifyMemberId)
+      .deleteFrom('member.pendingEmailChanges')
+      .where('memberId', '=', verifyMemberId)
       .execute()
-    await db.deleteFrom('member.register').where('member_id', '=', verifyMemberId).execute()
+    await db.deleteFrom('member.register').where('memberId', '=', verifyMemberId).execute()
   })
 
   it('should return 401 without auth', async () => {
@@ -2058,12 +2058,12 @@ describe('POST /members/me/email-change/verify', () => {
 
     // The original token should still be unused (not consumed by the foreign user)
     const pendingRow = await db
-      .selectFrom('member.pending_email_changes')
+      .selectFrom('member.pendingEmailChanges')
       .selectAll()
-      .where('token_hash', '=', tokenHash)
+      .where('tokenHash', '=', tokenHash)
       .executeTakeFirst()
     expect(pendingRow).toBeDefined()
-    expect(pendingRow?.used_at).toBeNull()
+    expect(pendingRow?.usedAt).toBeNull()
   })
 })
 

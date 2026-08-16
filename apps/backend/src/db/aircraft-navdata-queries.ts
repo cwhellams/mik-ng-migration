@@ -1,4 +1,4 @@
-import type { CamelRow } from './connection.ts'
+import type { DbRow } from './connection.ts'
 import * as connection from './connection.ts'
 import { sql } from 'kysely'
 import type { Navdata, NavdataCreate, NavdataFilters } from '@mik/contracts/aircraft-navdata'
@@ -8,7 +8,7 @@ import { problem } from '../routes/response.ts'
 export const getAllNavdata = async (filters: Partial<NavdataFilters> = {}): Promise<Navdata[]> => {
   const { aircraftRegistration, limit = 100, offset = 0 } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('flight.aircraftNavdata as nd')
     .leftJoin('member.register as m', 'm.memberId', 'nd.updaterMemberId')
     .select([
@@ -38,7 +38,7 @@ export const getAllNavdata = async (filters: Partial<NavdataFilters> = {}): Prom
 export const countNavdata = async (filters: Partial<NavdataFilters> = {}): Promise<number> => {
   const { aircraftRegistration } = filters
 
-  let query = connection.camelDb
+  let query = connection.db
     .selectFrom('flight.aircraftNavdata')
     .select((eb) => eb.fn.count('navdataId').as('count'))
 
@@ -51,7 +51,7 @@ export const countNavdata = async (filters: Partial<NavdataFilters> = {}): Promi
 }
 
 export const getLatestNavdata = async (aircraftRegistration: string): Promise<Navdata | null> => {
-  const record = await connection.camelDb
+  const record = await connection.db
     .selectFrom('flight.aircraftNavdata as nd')
     .leftJoin('member.register as m', 'm.memberId', 'nd.updaterMemberId')
     .select([
@@ -78,7 +78,7 @@ export const getLatestNavdata = async (aircraftRegistration: string): Promise<Na
 export const addNavdata = async (data: NavdataCreate, jwt: JWTUser): Promise<Navdata> => {
   const now = new Date()
 
-  const result = await connection.camelDb
+  const result = await connection.db
     .insertInto('flight.aircraftNavdata')
     .values({
       aircraftRegistration: data.aircraftRegistration,
@@ -104,7 +104,7 @@ export const addNavdata = async (data: NavdataCreate, jwt: JWTUser): Promise<Nav
 }
 
 export const getNavdataById = async (navdataId: string): Promise<Navdata | null> => {
-  const record = await connection.camelDb
+  const record = await connection.db
     .selectFrom('flight.aircraftNavdata as nd')
     .leftJoin('member.register as m', 'm.memberId', 'nd.updaterMemberId')
     .select([
@@ -126,7 +126,7 @@ export const getNavdataById = async (navdataId: string): Promise<Navdata | null>
 }
 
 export const removeNavdata = async (navdataId: string): Promise<boolean> => {
-  const result = await connection.camelDb
+  const result = await connection.db
     .deleteFrom('flight.aircraftNavdata')
     .where('navdataId', '=', navdataId)
     .executeTakeFirst()
@@ -136,7 +136,7 @@ export const removeNavdata = async (navdataId: string): Promise<boolean> => {
 
 // updaterName is the raw-sql concat alias, not a column on the table.
 const mapRecord = (
-  record: CamelRow<'flight.aircraftNavdata'> & { updaterName?: string | null },
+  record: DbRow<'flight.aircraftNavdata'> & { updaterName?: string | null },
 ): Navdata => ({
   navdataId: record.navdataId,
   aircraftRegistration: record.aircraftRegistration,
