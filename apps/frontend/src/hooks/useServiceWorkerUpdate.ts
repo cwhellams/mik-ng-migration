@@ -10,13 +10,18 @@ export function useServiceWorkerUpdate(): UseServiceWorkerUpdateReturn {
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        // Service worker has been updated and is now in control
-        // Show a toast to notify user of the update
-        setIsUpdateAvailable(true)
-      })
-    }
+    if (!('serviceWorker' in navigator)) return
+
+    // Held rather than re-read on cleanup, so the listener is always removed
+    // from the container it was added to.
+    const container = navigator.serviceWorker
+
+    // Service worker has been updated and is now in control
+    // Show a toast to notify user of the update
+    const onControllerChange = () => setIsUpdateAvailable(true)
+
+    container.addEventListener('controllerchange', onControllerChange)
+    return () => container.removeEventListener('controllerchange', onControllerChange)
   }, [])
 
   const dismissUpdate = () => {

@@ -12,6 +12,7 @@ import {
   auditFields,
   INSTRUCTOR_MEMBER_ID,
   MEMBER_ID,
+  monthsFromToday,
   NO_PERMISSIONS_MEMBER_ID,
 } from './cast'
 import {
@@ -45,8 +46,11 @@ export const aMember = (overrides: Partial<Member> = {}): Member => ({
   iceContactPhoneCountry: 'FI',
 
   licenceId: 'FI.FCL.123456',
-  licenceExpiry: '2026-03-20',
-  medicalExpiry: '2026-06-01',
+  // Relative, not pinned like the audit fields — see `monthsFromToday`. Matti is
+  // the everyman *current* member; a fixed date here quietly turned him into a
+  // grounded one.
+  licenceExpiry: monthsFromToday(18),
+  medicalExpiry: monthsFromToday(9),
 
   isTrainingProgramPilot: true,
   isMembershipApproved: true,

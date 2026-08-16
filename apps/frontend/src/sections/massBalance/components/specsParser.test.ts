@@ -133,12 +133,30 @@ describe('isPointInFlightEnvelope', () => {
       expect(isPointInFlightEnvelope(specs, 900, 250)).toBe(false)
     })
 
-    it('rejects a loading exactly at maximum take-off weight', () => {
-      // Current behaviour, and inconsistent with the no-polygon fallback below,
-      // which accepts exactly MTOW. The ray-casting test uses strict `>`
-      // comparisons, so points sitting exactly on the top edge never register a
-      // crossing. It errs on the safe side (a legal load reads as illegal).
-      expect(isPointInFlightEnvelope(specs, 1280, 250)).toBe(false)
+    it('accepts a loading exactly at maximum take-off weight', () => {
+      // On the envelope's top edge, which is a limit and therefore inclusive —
+      // as it already was in the no-polygon fallback below. Ray casting alone
+      // never registers a crossing for a point on a horizontal edge, so the
+      // boundary is tested explicitly.
+      expect(isPointInFlightEnvelope(specs, 1280, 250)).toBe(true)
+    })
+
+    it('accepts a loading on each of the other envelope edges', () => {
+      expect(isPointInFlightEnvelope(specs, 1000, 240)).toBe(true) // forward, below 1080 kg
+      expect(isPointInFlightEnvelope(specs, 1180, 243)).toBe(true) // forward, sloping section
+      expect(isPointInFlightEnvelope(specs, 1000, 253)).toBe(true) // aft
+      expect(isPointInFlightEnvelope(specs, 940, 250)).toBe(true) // bottom
+    })
+
+    it('accepts a loading on an envelope vertex', () => {
+      expect(isPointInFlightEnvelope(specs, 1280, 246)).toBe(true)
+      expect(isPointInFlightEnvelope(specs, 940, 240)).toBe(true)
+    })
+
+    it('still rejects a loading just outside an edge', () => {
+      expect(isPointInFlightEnvelope(specs, 1280.01, 250)).toBe(false)
+      expect(isPointInFlightEnvelope(specs, 1000, 253.01)).toBe(false)
+      expect(isPointInFlightEnvelope(specs, 939.99, 250)).toBe(false)
     })
   })
 

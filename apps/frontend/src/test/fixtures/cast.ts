@@ -31,6 +31,23 @@ export const AIRCRAFT_REGISTRATION = 'OH-STL'
  */
 export const FIXTURE_TIMESTAMP = '2025-01-01T00:00:00.000Z'
 
+/**
+ * A date `months` from today, as `YYYY-MM-DD`.
+ *
+ * The deliberate exception to `FIXTURE_TIMESTAMP`'s rule. Currency dates —
+ * licence and medical expiry — are not arbitrary values a fixture can pin: they
+ * decide whether the member may fly at all, and `aMember()` is meant to be a
+ * *current* member. Written as fixed dates they silently expired, and code that
+ * reads them (`EditBookingModal` blocks a booking outright on an expired
+ * medical) began exercising the lapsed-member path in tests that had nothing to
+ * do with currency. Any test that cares about a specific date still overrides it.
+ */
+export const monthsFromToday = (months: number): string => {
+  const date = new Date()
+  date.setUTCMonth(date.getUTCMonth() + months)
+  return date.toISOString().slice(0, 10)
+}
+
 /** Audit fields every `Auditable` entity carries. Mirrors `test/util/helpers.ts` on the backend. */
 export const auditFields = (by: string = ADMIN_MEMBER_ID): Auditable => ({
   createdAt: FIXTURE_TIMESTAMP,

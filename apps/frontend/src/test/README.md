@@ -66,9 +66,10 @@ hooks you want to `rerender` with new arguments. A hook that needs no providers 
 
 Two things to know before writing a hook test:
 
-- **`useApi` redirects by calling `navigate()` in its render body.** That only settles because the
-  redirect unmounts the caller, so a bare `renderHook` left mounted across the redirect spins
-  forever. Test redirect behaviour through a `<Routes>` tree (see `useApi.test.tsx`).
+- **`useApi` redirects to `/login` from an effect, once per lost session.** It used to do it from
+  the render body, where it only settled because the redirect unmounted the caller — a hook left
+  mounted across the redirect spun forever. Redirect behaviour is still best observed through a
+  `<Routes>` tree (see `useApi.test.tsx`).
 - **MSW cannot parse a multipart upload with `request.formData()`** — the body carries a jsdom
   `File`, which undici's parser rejects. Read `await request.text()` and parse the fields
   (see `useAircraftDocumentUpload.test.tsx`).
@@ -117,9 +118,15 @@ it.each(Object.values(authScenarios))('$name', async (scenario) => { ... })
 ## The route permission matrix
 
 `src/test/routeMatrix.tsx` holds every route in `AppRoutes.tsx` with the permission gate it carries,
-plus the harness that visits one. The four `src/AppRoutes.permissions.<identity>.test.tsx` files
+plus the harness that visits one. The five `src/AppRoutes.permissions.<identity>.test.tsx` files
 each run the whole table against one identity — split across files because tests inside a file run
-in sequence, and rendering every page four times over is the most expensive thing in the suite.
+in sequence, and rendering every page five times over is the most expensive thing in the suite.
+
+Four of them assert `<Forbidden />` or not. The fifth, `anonymous`, asserts something else: a
+signed-out visitor never reaches `<Forbidden />`, they are sent to `/login` the moment
+`GET /v1/members/roles` comes back 401. So that run asserts the **destination**, and the routes that
+are meant to be reachable signed out — the six under `AuthLayout`, plus the 404 fallback — are listed
+in `PUBLIC_PATHS` and asserted to make no API call at all.
 
 If you add or re-gate a route, update `ROUTES` in `routeMatrix.tsx`. `AppRoutes.permissions.test.tsx`
 fails loudly when the number of `<RequirePermission>` gates in the source stops matching the table,
@@ -127,6 +134,10 @@ and the admin run fails if a listed path no longer resolves.
 
 The matrix asserts the **gate**, not the page: pages render against a catch-all API stub, and one
 that cannot cope with it is caught by an error boundary and counted as "the gate let us through".
+The boundary sits above the whole router, so a page that throws takes its layout down with it — in
+the anonymous run that means 15 routes settle at the boundary before the 401 lands, and their
+redirect goes unobserved. They are counted and bounded by a ratchet rather than asserted; a page
+that renders its content keeps the layout mounted and so still fails the redirect assertion.
 
 ## Fixtures
 
@@ -145,6 +156,14 @@ The entities are the **same cast the backend suite uses** — member `Matti1`, a
 aircraft `OH-STL` — seeded by `sql/schema/testdata/`. Keeping the names identical on both sides
 means a developer reading a frontend test recognises the entities from the backend one. See
 `fixtures/cast.ts`.
+
+Dates in fixtures are **fixed** (`FIXTURE_TIMESTAMP`) so nothing depends on the wall clock. The one
+exception is `aMember()`'s `licenceExpiry` and `medicalExpiry`, which are relative
+(`monthsFromToday`). Those two are not arbitrary values: they decide whether the member may fly, and
+`aMember()` is meant to be a _current_ member. As fixed dates they expired in 2026 and quietly
+turned Matti into a grounded pilot — `EditBookingModal` blocks booking outright on a lapsed medical
+— so tests with nothing to do with currency started exercising the lapsed path. Override either
+field when the test is about currency.
 
 ## Component tests
 
@@ -166,4 +185,8 @@ repeatedly there:
 - Assert on real strings (the harness pins English), not on `t()` keys.
 - Prefer role-based queries (`getByRole`) over test IDs.
 - Anything with a permission gate gets tested against the scenarios above, not just the happy path.
-- Coverage is reported, not enforced. Thresholds arrive with the ratchet in phase 6 of #1116.
+- Coverage is reported, not enforced. Thresholds arrive with the ratchet in phase 6 of #1116, and
+  will be **per directory** rather than one global bar — `src/sections` is 90% of the codebase and
+  much of its coverage comes from the route matrix rendering pages it does not assert on, so a
+  global number would ratchet against page rendering while letting `hooks/` and `components/`
+  regress freely. The measurements behind that decision are in `vitest.config.ts`.

@@ -1,12 +1,14 @@
 import { MIKPermissions } from '@mik/contracts/members'
-import { screen } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { Component, type ReactNode } from 'react'
+import { useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import AppRoutes from '../AppRoutes'
 import { useRoles } from '../hooks/useRoles'
 import { authScenarios, renderAs, type AuthScenario } from './auth'
+import { apiUrl, problemResponse } from './msw/handlers'
 import { server } from './msw/server'
 
 /**
@@ -327,10 +329,14 @@ export const GATED_ROUTES = ROUTES.filter((route) => route.permissions)
 export const UNGATED_ROUTES = ROUTES.filter((route) => !route.permissions)
 
 /**
- * The four identities the matrix runs. `authScenarios.anonymous` is deliberately
- * absent: a signed-out visit makes `useApi` redirect to /login from inside its
- * render body, which re-navigates on every render for as long as the caller
- * stays mounted (see the phase 2 notes on #1116).
+ * The four signed-in identities, asserted with `expectedForbidden`.
+ *
+ * `authScenarios.anonymous` is the fifth run but not a member of this list: a
+ * signed-out visitor is never shown `<Forbidden />`, they are redirected, so
+ * that run has its own harness (`runAnonymousRouteMatrix`) and its own
+ * expectation. It was excluded entirely until #1132 §2 moved `useApi`'s
+ * redirect out of the render body — before that it re-navigated on every render
+ * for as long as the caller stayed mounted, and hung the run.
  */
 export const MATRIX_SCENARIOS = [
   authScenarios.admin,
@@ -338,6 +344,21 @@ export const MATRIX_SCENARIOS = [
   authScenarios.user,
   authScenarios.none,
 ] as const
+
+/**
+ * The routes served by `AuthLayout`, which a signed-out visitor is meant to
+ * reach — they are how you sign in — plus `/*`, the 404 fallback, which sits
+ * outside both layouts. Nothing under here calls the API, so nothing redirects.
+ */
+export const PUBLIC_PATHS = new Set([
+  '/login',
+  '/login/sent',
+  '/login/validate',
+  '/register',
+  '/register/verify',
+  '/logout',
+  '/*',
+])
 
 /** Catches a page that cannot cope with the stubbed API, so the gate stays testable. */
 class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -431,5 +452,100 @@ export const runRouteMatrix = (scenario: AuthScenario) => {
         `${route.url} did not resolve`,
       ).toBeNull()
     }
+  })
+}
+
+/** Reports the router's current path, from outside `<Routes>` so it survives a redirect. */
+const LocationProbe = () => {
+  const { pathname } = useLocation()
+  return <span data-testid='pathname'>{pathname}</span>
+}
+
+const currentPath = () => screen.getByTestId('pathname').textContent
+
+/**
+ * Runs the whole route table as a visitor who is not signed in.
+ *
+ * The four signed-in runs assert `<Forbidden />`; this one cannot, because a
+ * signed-out visitor never gets that far. Every route under `MainLayout` renders
+ * the layout, the layout calls `useRoles`, `GET /v1/members/roles` comes back
+ * 401, and `useApi` sends them to /login. So the assertion is the destination:
+ * an authenticated route redirects, a public one does not.
+ *
+ * For a public route the assertion is that no roles request was made at all,
+ * which is stronger than watching the clock for a redirect that never comes: no
+ * request means nothing could redirect it later either.
+ */
+export const runAnonymousRouteMatrix = () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  /** Routes whose page could not render, so the redirect could not be observed. */
+  const inconclusive: string[] = []
+
+  it.each(ROUTES.map((route) => [route.path, route] as const))('%s', async (path, route) => {
+    const rolesRequests: string[] = []
+    server.use(
+      http.all('*/api/*', () => HttpResponse.json([])),
+      http.get(apiUrl('v1/members/roles'), ({ request }) => {
+        rolesRequests.push(request.url)
+        return problemResponse(401, 'Unauthorized')
+      }),
+    )
+
+    renderAs(
+      authScenarios.anonymous,
+      <>
+        <LocationProbe />
+        <PageBoundary>
+          <AppRoutes />
+        </PageBoundary>
+      </>,
+      { route: route.url, serverClock: false },
+    )
+
+    if (PUBLIC_PATHS.has(path)) {
+      // Let whatever the page fetches on mount actually go out, so "no roles
+      // request" is a finding rather than a race won.
+      await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+      expect(rolesRequests, `${route.url} asked the API who the visitor is`).toEqual([])
+      expect(currentPath(), `${route.url} redirected a signed-out visitor away`).toBe(route.url)
+      return
+    }
+
+    // Two ways this can settle. Either the layout's 401 lands and the visitor is
+    // redirected — the outcome under test — or the page throws against the
+    // catch-all stub first. In that second case the boundary, which sits above
+    // the whole router, replaces the tree: there is no layout left to ask who
+    // the visitor is and no router left to redirect.
+    //
+    // The boundary cannot hide a leak. A page that renders its content keeps the
+    // layout mounted, so it settles as neither, and the wait below fails.
+    const settled = () =>
+      currentPath() === '/login'
+        ? 'redirected'
+        : screen.queryByText('page failed to render')
+          ? 'boundary'
+          : null
+
+    await waitFor(() =>
+      expect(
+        settled(),
+        `${route.url} served a signed-out visitor instead of sending them to /login`,
+      ).not.toBeNull(),
+    )
+
+    // Counted rather than asserted: nothing leaked, but the gate went unobserved.
+    if (settled() === 'boundary') inconclusive.push(route.url)
+  })
+
+  it('leaves no more routes unobserved than the stub already accounts for', () => {
+    // A ratchet, not a target. If this trips upward, a page that used to render
+    // against the catch-all stub has stopped doing so and its redirect is no
+    // longer being checked — fix the page or widen the stub rather than the bound.
+    expect(inconclusive.length, `unobserved: ${inconclusive.join(', ')}`).toBeLessThanOrEqual(15)
   })
 }

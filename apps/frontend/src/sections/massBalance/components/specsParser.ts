@@ -109,8 +109,53 @@ export async function loadAircraftSpecs(registration: string): Promise<AircraftS
 }
 
 /**
+ * Tolerance for "this loading sits on that envelope edge", as a perpendicular
+ * distance in the kg/cm space the envelope is plotted in. Envelope vertices are
+ * published to a tenth of a unit and loadings are summed from figures of the
+ * same precision, so anything this close is on the line rather than near it.
+ */
+const EDGE_TOLERANCE = 1e-6
+
+/**
+ * True when (px, py) lies on the segment (x1, y1)–(x2, y2), within
+ * EDGE_TOLERANCE.
+ */
+const isPointOnSegment = (
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): boolean => {
+  // Outside the segment's bounding box it cannot be on the segment — this is
+  // what keeps the collinearity test below from matching the whole infinite line.
+  if (
+    px < Math.min(x1, x2) - EDGE_TOLERANCE ||
+    px > Math.max(x1, x2) + EDGE_TOLERANCE ||
+    py < Math.min(y1, y2) - EDGE_TOLERANCE ||
+    py > Math.max(y1, y2) + EDGE_TOLERANCE
+  ) {
+    return false
+  }
+
+  const length = Math.hypot(x2 - x1, y2 - y1)
+  // A repeated vertex is a zero-length segment; compare against the point itself.
+  if (length === 0) return Math.hypot(px - x1, py - y1) <= EDGE_TOLERANCE
+
+  // |cross product| / |segment| is the perpendicular distance to the line.
+  const cross = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1)
+  return Math.abs(cross) / length <= EDGE_TOLERANCE
+}
+
+/**
  * Validates if a weight and CG point is within the aircraft's flight envelope
  * Uses point-in-polygon algorithm for complex envelopes, falls back to simple rectangle for basic limits
+ *
+ * The envelope is closed: a loading sitting exactly on the boundary — most
+ * obviously one at exactly maximum take-off weight — is within limits, matching
+ * the rectangle fallback's inclusive comparisons.
+ *
  * @param aircraft - Aircraft specifications containing flight envelope data
  * @param weight - Aircraft weight in kg
  * @param cg - Center of gravity position in cm
@@ -142,6 +187,12 @@ export const isPointInFlightEnvelope = (
       yi = vertices[i].weight
     const xj = vertices[j].momentArm,
       yj = vertices[j].weight
+
+    // Ray casting cannot answer for a point on the boundary: its strict `>`
+    // comparisons never register a crossing for a point on a horizontal edge,
+    // so a loading at exactly MTOW came back as outside the envelope. Boundary
+    // cases are settled here instead, before the crossing count.
+    if (isPointOnSegment(cg, weight, xi, yi, xj, yj)) return true
 
     if (yi > weight !== yj > weight && cg < ((xj - xi) * (weight - yi)) / (yj - yi) + xi) {
       inside = !inside

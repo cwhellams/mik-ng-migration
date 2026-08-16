@@ -37,6 +37,8 @@ export function getPreferredExamLanguage(
   const configuredLanguages = getConfiguredExamLanguages(config, availableLanguages)
   if (configuredLanguages.length === 0) return undefined
 
+  // Ends with the full configured list, so once that list is non-empty the
+  // `find` below always matches — no separate fallback is needed.
   const candidates = [
     resolveExamUiLanguage(preferredLanguage),
     'en',
@@ -44,12 +46,10 @@ export function getPreferredExamLanguage(
     ...configuredLanguages,
   ]
 
-  return (
-    candidates.find(
-      (language): language is ExamLanguage =>
-        typeof language === 'string' &&
-        isExamLanguage(language) &&
-        configuredLanguages.includes(language),
-    ) ?? configuredLanguages[0]
+  return candidates.find(
+    (language): language is ExamLanguage =>
+      typeof language === 'string' &&
+      isExamLanguage(language) &&
+      configuredLanguages.includes(language),
   )
 }

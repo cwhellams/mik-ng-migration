@@ -1,10 +1,6 @@
 import dayjs from 'dayjs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-// timezoneUtils calls `.utc()`, which only exists once dayjs's utc plugin has
-// been registered — and that happens as a side effect of importing utils/date.
-// In the app that import always precedes any render; here it has to be explicit.
-import '../../../utils/date'
 import { getTimeExample, getTimezoneDisplay } from './timezoneUtils'
 
 // Tests run with TZ=Europe/Helsinki (see vitest.config.ts): UTC+3 in summer,
@@ -38,14 +34,20 @@ describe('getTimeExample', () => {
     expect(getTimeExample(true, WINTER_DAY)).toBe('09:15')
   })
 
-  it('shows the same local clock time whichever flight date is selected', () => {
+  it('shifts the local example to the offset in effect on the flight date', () => {
     freezeAt(SUMMER_NOON)
 
-    // The current local hour and minute are copied onto the reference date, so
-    // the result never actually varies with the flight date — despite the
-    // function's stated intent of accounting for DST on that date.
-    expect(getTimeExample(false, WINTER_DAY)).toBe(getTimeExample(false, null))
-    expect(getTimeExample(false, WINTER_DAY)).toBe('12:15')
+    // 09:15 UTC is 12:15 in Helsinki today (UTC+3, summer), but 11:15 on a
+    // winter flight date (UTC+2) — which is the offset getTimezoneDisplay
+    // labels the field with.
+    expect(getTimeExample(false, WINTER_DAY)).toBe('11:15')
+    expect(getTimezoneDisplay(false, WINTER_DAY)).toBe('UTC+2')
+  })
+
+  it('leaves the example alone for a flight date on the same offset', () => {
+    freezeAt(SUMMER_NOON)
+
+    expect(getTimeExample(false, dayjs('2025-07-20T00:00:00'))).toBe('12:15')
   })
 })
 

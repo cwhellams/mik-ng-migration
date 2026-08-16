@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr'
 import { PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
@@ -196,12 +197,34 @@ export default function useApi<
   // Only redirect when SWR has settled (isValidating = false) to avoid
   // redirecting during a transient re-validation.
   const isLoggedOut = error?.response?.status === 401 && !rest.isValidating
-  if (isLoggedOut && !request.allowUnauthenticated && !request.skipRedirectOnUnauthorized) {
+  const shouldRedirect =
+    isLoggedOut && !request.allowUnauthenticated && !request.skipRedirectOnUnauthorized
+
+  // Redirecting is a side effect, so it belongs in an effect rather than the
+  // render body. Calling navigate() during render used to terminate only
+  // because the redirect swaps MainLayout for AuthLayout and so unmounts the
+  // caller; a hook whose component survived the route change re-navigated on
+  // every render, forever.
+  //
+  // The ref makes it fire once per lost session rather than once per render:
+  // navigating changes `location.pathname`, which would otherwise re-run this
+  // effect and overwrite `target` with '/login' itself.
+  const hasRedirected = useRef(false)
+
+  useEffect(() => {
+    if (!shouldRedirect) {
+      // Session restored (or never lost) — re-arm for the next time.
+      hasRedirected.current = false
+      return
+    }
+    if (hasRedirected.current) return
+    hasRedirected.current = true
+
     // authentication is required
     navigate('/login', {
       state: { target: location.pathname },
     })
-  }
+  }, [shouldRedirect, navigate, location.pathname])
 
   const mutation = useSWRMutation<
     AxiosResponse,

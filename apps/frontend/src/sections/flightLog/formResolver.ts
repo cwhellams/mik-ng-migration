@@ -57,39 +57,43 @@ export const buildFlightLogResolver = (
     ]
 
     const additionalErrors: Record<string, { type: string; message: string }> = {}
-    for (const { memberId, role, field } of crewSlots) {
-      if (!memberId || (role !== 'FI' && role !== 'FE')) continue
-      const roleErrorMessage =
-        role === 'FI'
-          ? t('flightLog.error.memberNotInstructor')
-          : t('flightLog.error.memberNotExaminer')
 
-      if (!memberList?.members) {
-        additionalErrors[field] = {
-          type: 'custom',
-          message: roleErrorMessage,
-        }
-        continue
-      }
+    // Role checks need the member list to check against. While it is still
+    // loading they are skipped rather than failed — failing would report "member
+    // is not an instructor" about a member whose qualifications have not been
+    // loaded yet. That is safe for the reason given above the function: the crew
+    // pickers offer nobody until the list arrives, so an unqualified selection
+    // cannot have been made in the first place.
+    const members = memberList?.members
+    if (members) {
+      for (const { memberId, role, field } of crewSlots) {
+        if (!memberId || (role !== 'FI' && role !== 'FE')) continue
+        const roleErrorMessage =
+          role === 'FI'
+            ? t('flightLog.error.memberNotInstructor')
+            : t('flightLog.error.memberNotExaminer')
 
-      const member = memberList.members.find((m) => m.memberId === memberId)
-      if (!member) {
-        additionalErrors[field] = {
-          type: 'custom',
-          message: roleErrorMessage,
+        // A selected member absent from the loaded list still fails: there is no
+        // record to read a qualification off, and one was expected.
+        const member = members.find((m) => m.memberId === memberId)
+        if (!member) {
+          additionalErrors[field] = {
+            type: 'custom',
+            message: roleErrorMessage,
+          }
+          continue
         }
-        continue
-      }
 
-      if (role === 'FI' && !member.roles.includes('INSTRUCTOR')) {
-        additionalErrors[field] = {
-          type: 'custom',
-          message: roleErrorMessage,
-        }
-      } else if (role === 'FE' && !member.roles.includes('EXAMINER')) {
-        additionalErrors[field] = {
-          type: 'custom',
-          message: roleErrorMessage,
+        if (role === 'FI' && !member.roles.includes('INSTRUCTOR')) {
+          additionalErrors[field] = {
+            type: 'custom',
+            message: roleErrorMessage,
+          }
+        } else if (role === 'FE' && !member.roles.includes('EXAMINER')) {
+          additionalErrors[field] = {
+            type: 'custom',
+            message: roleErrorMessage,
+          }
         }
       }
     }
