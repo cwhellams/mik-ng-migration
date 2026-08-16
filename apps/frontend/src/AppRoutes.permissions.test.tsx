@@ -67,18 +67,23 @@ describe('route table', () => {
     // everything outside this set sends a signed-out visitor to /login.
     //
     // So an ungated route is a decision about which members may see a page, never
-    // about whether the public may. Only the routes below are reachable without a
-    // session, and all of them are how you get one (plus the 404 fallback, which
-    // sits outside both layouts).
-    expect([...PUBLIC_PATHS].sort()).toEqual([
-      '/*',
-      '/login',
-      '/login/sent',
-      '/login/validate',
-      '/logout',
-      '/register',
-      '/register/verify',
-    ])
+    // about whether the public may.
+    //
+    // Read out of AppRoutes.tsx rather than written down here, so adding a route
+    // under AuthLayout fails with "this route is public and PUBLIC_PATHS does not
+    // say so" instead of a bare waitFor timeout in the anonymous run.
+    const source = readFileSync(resolve(process.cwd(), 'src/AppRoutes.tsx'), 'utf-8')
+    const authLayoutBlock = source.match(/<Route element=\{<AuthLayout \/>\}>([\s\S]*?)<\/Route>/)
+    expect(authLayoutBlock, 'could not find the AuthLayout block in AppRoutes.tsx').not.toBeNull()
+
+    const authLayoutPaths = [...(authLayoutBlock?.[1] ?? '').matchAll(/path='([^']+)'/g)].map(
+      (match) => match[1],
+    )
+    expect(authLayoutPaths.length, 'AuthLayout parsed as empty — the regex has rotted').toBe(6)
+
+    // Plus '/*', the 404 fallback, which sits outside both layouts and so makes
+    // no API call either.
+    expect([...PUBLIC_PATHS].sort()).toEqual([...authLayoutPaths, '/*'].sort())
 
     for (const path of PUBLIC_PATHS) {
       expect(

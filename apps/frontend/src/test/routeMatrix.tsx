@@ -7,9 +7,10 @@ import { beforeEach, expect, it, vi } from 'vitest'
 
 import AppRoutes from '../AppRoutes'
 import { useRoles } from '../hooks/useRoles'
-import { authScenarios, renderAs, type AuthScenario } from './auth'
+import { authScenarios, renderAs, signInAs, type AuthScenario } from './auth'
 import { apiUrl, problemResponse } from './msw/handlers'
 import { server } from './msw/server'
+import { renderWithProviders } from './renderWithProviders'
 
 /**
  * Every leaf route in `AppRoutes.tsx`, with the permission gate it carries.
@@ -489,17 +490,28 @@ export const runAnonymousRouteMatrix = () => {
   const inconclusive: string[] = []
 
   it.each(ROUTES.map((route) => [route.path, route] as const))('%s', async (path, route) => {
+    // Handler precedence is the whole reason these three steps are separate, and
+    // why `renderAs` is unpacked into signInAs + renderWithProviders here.
+    // `server.use()` prepends, so a *later* call wins — and within one call the
+    // *earlier* argument wins. Registering the recorder alongside the catch-all
+    // and before signInAs (as `visitRoute` does) would leave it shadowed twice
+    // over and silently never called.
+    server.use(http.all('*/api/*', () => HttpResponse.json([])))
+
+    // Installs the anonymous identity's own 401s for /me, /roles and /refresh,
+    // beating the catch-all above.
+    signInAs(authScenarios.anonymous.member)
+
+    // Last, so it beats both. Answers exactly as signInAs would, and records.
     const rolesRequests: string[] = []
     server.use(
-      http.all('*/api/*', () => HttpResponse.json([])),
       http.get(apiUrl('v1/members/roles'), ({ request }) => {
         rolesRequests.push(request.url)
         return problemResponse(401, 'Unauthorized')
       }),
     )
 
-    renderAs(
-      authScenarios.anonymous,
+    renderWithProviders(
       <>
         <LocationProbe />
         <PageBoundary>
@@ -508,6 +520,7 @@ export const runAnonymousRouteMatrix = () => {
       </>,
       {
         route: route.url,
+        sudo: authScenarios.anonymous.sudo,
         serverClock: false,
         // A page that throws while React is rendering concurrently makes React
         // discard that render, retry the root synchronously — where the boundary
@@ -557,6 +570,18 @@ export const runAnonymousRouteMatrix = () => {
 
     // Counted rather than asserted: nothing leaked, but the gate went unobserved.
     if (settled() === 'boundary') inconclusive.push(route.url)
+
+    // The positive half of the public-route assertion, and what keeps it honest.
+    // A protected route that got as far as redirecting must have asked the roles
+    // endpoint who the visitor is — so if the recorder is ever shadowed again and
+    // stops seeing requests, these 86 routes fail loudly instead of the 7 public
+    // ones quietly passing against an empty array.
+    if (settled() === 'redirected') {
+      expect(
+        rolesRequests,
+        `${route.url} redirected without asking who the visitor is`,
+      ).not.toEqual([])
+    }
   })
 
   it('leaves no more routes unobserved than the stub already accounts for', () => {

@@ -49,6 +49,23 @@ describe('getTimeExample', () => {
 
     expect(getTimeExample(false, dayjs('2025-07-20T00:00:00'))).toBe('12:15')
   })
+
+  it('does not double-count the hour when now sits just before a DST transition', () => {
+    // Helsinki springs forward at 01:00Z on 2025-03-30. Freeze 30 minutes before
+    // that, still on UTC+2, and ask for a flight date on UTC+3. Shifting the
+    // local-mode instant by +1h would carry it past the transition and format it
+    // with the *post*-transition offset, counting the hour twice: 04:30.
+    freezeAt('2025-03-30T00:30:00Z') // 02:30 local, UTC+2
+
+    expect(getTimeExample(false, dayjs('2025-06-02T00:00:00'))).toBe('03:30')
+  })
+
+  it('does not double-count the hour around the autumn transition either', () => {
+    // Falls back at 01:00Z on 2025-10-26: UTC+3 before, UTC+2 after.
+    freezeAt('2025-10-26T00:30:00Z') // 03:30 local, UTC+3
+
+    expect(getTimeExample(false, dayjs('2025-12-01T00:00:00'))).toBe('02:30')
+  })
 })
 
 describe('getTimezoneDisplay', () => {

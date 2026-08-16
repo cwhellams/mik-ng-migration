@@ -467,6 +467,41 @@ describe('useApi redirect to login', () => {
 
     expect(await screen.findByText('at /login from /club/members')).toBeInTheDocument()
   })
+
+  it('keeps the original target when a later revalidation 401s again', async () => {
+    // A latch that re-arms whenever `shouldRedirect` drops would break here:
+    // `isValidating` flickers true on any revalidation, and when this one
+    // settles still-401 the second navigate would run from /login and overwrite
+    // `target` with '/login' itself. Guarding on the current pathname has no
+    // such state to reset.
+    server.use(
+      http.post(apiUrl('auth/refresh'), () => problemResponse(401, 'Refresh token expired')),
+      http.get(apiUrl('v1/thing'), () => problemResponse(401, 'Token expired')),
+    )
+
+    const visited: string[] = []
+    const Persistent = () => {
+      const { mutate } = useApi<Payload>({ url: 'v1/thing' })
+      const { pathname, state } = useLocation()
+      if (visited.at(-1) !== pathname) visited.push(pathname)
+      return (
+        <button onClick={() => mutate()}>
+          {`at ${pathname} from ${(state as { target?: string })?.target ?? 'nowhere'}`}
+        </button>
+      )
+    }
+
+    const { user } = renderWithProviders(<Persistent />, { route: '/club/members' })
+
+    await screen.findByRole('button', { name: 'at /login from /club/members' })
+
+    // Force the revalidation that flickers isValidating.
+    await user.click(screen.getByRole('button'))
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    expect(screen.getByRole('button', { name: 'at /login from /club/members' })).toBeInTheDocument()
+    expect(visited).toEqual(['/club/members', '/login'])
+  })
 })
 
 describe('useApi retry policy', () => {

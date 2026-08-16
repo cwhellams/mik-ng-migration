@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr'
 import { PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
@@ -9,6 +9,9 @@ import { useThemeMode } from '../theme/ThemeContext'
 import { validateApiPath } from '@mik/contracts/sanitizers'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
+
+/** Where a lost session sends the user, and the one place this hook won't redirect from. */
+const LOGIN_PATH = '/login'
 
 // withCredentials ensures the browser sends httpOnly cookies on every request.
 export const api = axios.create({
@@ -206,22 +209,22 @@ export default function useApi<
   // caller; a hook whose component survived the route change re-navigated on
   // every render, forever.
   //
-  // The ref makes it fire once per lost session rather than once per render:
-  // navigating changes `location.pathname`, which would otherwise re-run this
-  // effect and overwrite `target` with '/login' itself.
-  const hasRedirected = useRef(false)
-
+  // Being at /login already is the whole termination condition. Navigating makes
+  // `location.pathname` — a dependency — become '/login', so the effect re-runs
+  // and does nothing. A caller that stays mounted therefore redirects once, and
+  // `target` keeps the page the user was actually on rather than being
+  // overwritten with '/login' itself.
+  //
+  // This is deliberately not a `useRef` latch. `isValidating` flickers true on
+  // any background revalidation, which drops `shouldRedirect` to false and would
+  // re-arm such a latch; when the revalidation settled still-401 it would fire a
+  // second navigate, from /login, clobbering `target`. Reading the current
+  // pathname has no equivalent stale state to reset.
   useEffect(() => {
-    if (!shouldRedirect) {
-      // Session restored (or never lost) — re-arm for the next time.
-      hasRedirected.current = false
-      return
-    }
-    if (hasRedirected.current) return
-    hasRedirected.current = true
+    if (!shouldRedirect || location.pathname === LOGIN_PATH) return
 
     // authentication is required
-    navigate('/login', {
+    navigate(LOGIN_PATH, {
       state: { target: location.pathname },
     })
   }, [shouldRedirect, navigate, location.pathname])
