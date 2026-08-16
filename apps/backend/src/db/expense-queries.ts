@@ -1,7 +1,7 @@
 import { sql, type Kysely, type Transaction } from 'kysely'
 
-import { db } from './connection.ts'
-import type { DB } from './schema.js'
+import { camelDb } from './connection.ts'
+import type { DB as CamelDB } from './schema.camel.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   ExpenseClaimStatus,
@@ -53,44 +53,44 @@ const toNullableNumber = (value: unknown): number | null => {
   return Number(value)
 }
 
-type Executor = Kysely<DB> | Transaction<DB>
+type Executor = Kysely<CamelDB> | Transaction<CamelDB>
 
 type ClaimRow = {
   id: string
-  member_id: string
-  category_id: number
-  category_code: string | null
-  aircraft_id: string | null
-  flight_log_id: unknown
+  memberId: string
+  categoryId: number
+  categoryCode: string | null
+  aircraftId: string | null
+  flightLogId: unknown
   title: string
   description: string | null
   status: string
-  fuel_litres: unknown
-  fuel_type: string | null
-  refuel_outside_finland: boolean
-  expense_date: string | null
+  fuelLitres: unknown
+  fuelType: string | null
+  refuelOutsideFinland: boolean
+  expenseDate: string | null
   iban: string | null
-  iban_account_name: string | null
+  ibanAccountName: string | null
   ccy: string
-  fx_rate: unknown
-  receipt_storage_key: string | null
-  receipt_file_name: string | null
-  receipt_file_size: number | null
-  receipt_mime_type: string | null
-  receipt_uploaded_at: unknown
-  submitted_at: unknown
-  approved_at: unknown
-  approved_by: string | null
-  rejected_at: unknown
-  rejected_by: string | null
-  rejection_reason: string | null
-  simplbooks_purchase_id: unknown
-  hetu_encrypted: string | null
-  created_at: unknown
-  updated_at: unknown
-  member_name: string | null
-  member_email: string | null
-  total_amount: unknown
+  fxRate: unknown
+  receiptStorageKey: string | null
+  receiptFileName: string | null
+  receiptFileSize: number | null
+  receiptMimeType: string | null
+  receiptUploadedAt: unknown
+  submittedAt: unknown
+  approvedAt: unknown
+  approvedBy: string | null
+  rejectedAt: unknown
+  rejectedBy: string | null
+  rejectionReason: string | null
+  simplbooksPurchaseId: unknown
+  hetuEncrypted: string | null
+  createdAt: unknown
+  updatedAt: unknown
+  memberName: string | null
+  memberEmail: string | null
+  totalAmount: unknown
 }
 
 const hasOwn = <T extends object>(obj: T, key: keyof any): boolean =>
@@ -107,69 +107,69 @@ const computeRefuelOutsideFinland = (lineItems: ExpenseLineItem[]): boolean =>
 const mapCategory = (row: {
   id: number
   code: string
-  label_en: string
-  label_fi: string
-  label_sv: string
-  requires_aircraft: boolean
-  requires_flight: boolean
+  labelEn: string
+  labelFi: string
+  labelSv: string
+  requiresAircraft: boolean
+  requiresFlight: boolean
   active: boolean
 }): ExpenseCategory => ({
   id: row.id,
   code: row.code,
-  labelEn: row.label_en,
-  labelFi: row.label_fi,
-  labelSv: row.label_sv,
-  requiresAircraft: row.requires_aircraft,
-  requiresFlight: row.requires_flight,
+  labelEn: row.labelEn,
+  labelFi: row.labelFi,
+  labelSv: row.labelSv,
+  requiresAircraft: row.requiresAircraft,
+  requiresFlight: row.requiresFlight,
   active: row.active,
 })
 
 const mapLineItem = (row: {
   id: number
-  item_id: number | null
-  item_code?: string | null
+  itemId: number | null
+  itemCode?: string | null
   description: string
   quantity: unknown
   unit: string
-  unit_price: unknown
-  total_cost?: unknown
-  sort_order: number
-  cost_centre_code?: string | null
-  fuel_type?: string | null
-  fuel_date?: string | null
+  unitPrice: unknown
+  totalCost?: unknown
+  sortOrder: number
+  costCentreCode?: string | null
+  fuelType?: string | null
+  fuelDate?: string | null
   airport?: string | null
-  paid_with_club_card?: boolean | null
+  paidWithClubCard?: boolean | null
 }): ExpenseLineItem => ({
   id: row.id,
-  itemId: row.item_id,
-  itemCode: row.item_code ?? undefined,
+  itemId: row.itemId,
+  itemCode: row.itemCode ?? undefined,
   description: row.description,
-  date: row.fuel_date ?? undefined,
+  date: row.fuelDate ?? undefined,
   quantity: Number(row.quantity),
   unit: row.unit as ExpenseLineItem['unit'],
-  unitPrice: Number(row.unit_price),
-  totalCost: toNullableNumber(row.total_cost),
-  sortOrder: row.sort_order,
-  costCentreCode: row.cost_centre_code ?? undefined,
-  fuelType: (row.fuel_type as ExpenseLineItem['fuelType']) ?? undefined,
+  unitPrice: Number(row.unitPrice),
+  totalCost: toNullableNumber(row.totalCost),
+  sortOrder: row.sortOrder,
+  costCentreCode: row.costCentreCode ?? undefined,
+  fuelType: (row.fuelType as ExpenseLineItem['fuelType']) ?? undefined,
   airport: row.airport ?? undefined,
-  paidWithClubCard: row.paid_with_club_card ?? false,
+  paidWithClubCard: row.paidWithClubCard ?? false,
 })
 
 const mapMessage = (row: {
   id: number
-  claim_id: string
-  sender_id: string
-  message_type: string
+  claimId: string
+  senderId: string
+  messageType: string
   body: string
-  sent_at: unknown
+  sentAt: unknown
 }): ExpenseClaimMessage => ({
   id: row.id,
-  claimId: row.claim_id,
-  senderId: row.sender_id,
-  messageType: row.message_type as ExpenseMessageType,
+  claimId: row.claimId,
+  senderId: row.senderId,
+  messageType: row.messageType as ExpenseMessageType,
   body: row.body,
-  sentAt: toIsoString(row.sent_at),
+  sentAt: toIsoString(row.sentAt),
 })
 
 const mapClaim = (
@@ -180,43 +180,43 @@ const mapClaim = (
   >,
 ): ExpenseClaim => ({
   id: row.id,
-  memberId: row.member_id,
-  categoryId: row.category_id,
-  categoryCode: row.category_code ?? undefined,
-  aircraftId: row.aircraft_id,
-  flightLogId: (row.flight_log_id as string | null) ?? undefined,
+  memberId: row.memberId,
+  categoryId: row.categoryId,
+  categoryCode: row.categoryCode ?? undefined,
+  aircraftId: row.aircraftId,
+  flightLogId: (row.flightLogId as string | null) ?? undefined,
   title: row.title,
   description: row.description,
   status: row.status as ExpenseClaimStatus,
-  fuelLitres: toNullableNumber(row.fuel_litres),
-  fuelType: row.fuel_type,
-  refuelOutsideFinland: row.refuel_outside_finland,
-  expenseDate: row.expense_date ?? undefined,
+  fuelLitres: toNullableNumber(row.fuelLitres),
+  fuelType: row.fuelType,
+  refuelOutsideFinland: row.refuelOutsideFinland,
+  expenseDate: row.expenseDate ?? undefined,
   iban: row.iban,
-  ibanAccountName: row.iban_account_name,
+  ibanAccountName: row.ibanAccountName,
   currency: row.ccy ?? 'EUR',
-  fxRate: toNullableNumber(row.fx_rate),
-  submittedAt: toNullableIsoString(row.submitted_at),
-  approvedAt: toNullableIsoString(row.approved_at),
-  approvedBy: row.approved_by,
-  rejectedAt: toNullableIsoString(row.rejected_at),
-  rejectedBy: row.rejected_by,
-  rejectionReason: row.rejection_reason,
-  simplbooksPurchaseId: toNullableNumber(row.simplbooks_purchase_id),
-  createdAt: toIsoString(row.created_at),
-  updatedAt: toIsoString(row.updated_at),
-  memberName: row.member_name ?? undefined,
-  memberEmail: row.member_email ?? undefined,
-  hetu: row.hetu_encrypted ? maskHetu(decryptField(row.hetu_encrypted)) : undefined,
-  totalAmount: toNullableNumber(row.total_amount) ?? 0,
-  receipt: row.receipt_storage_key
+  fxRate: toNullableNumber(row.fxRate),
+  submittedAt: toNullableIsoString(row.submittedAt),
+  approvedAt: toNullableIsoString(row.approvedAt),
+  approvedBy: row.approvedBy,
+  rejectedAt: toNullableIsoString(row.rejectedAt),
+  rejectedBy: row.rejectedBy,
+  rejectionReason: row.rejectionReason,
+  simplbooksPurchaseId: toNullableNumber(row.simplbooksPurchaseId),
+  createdAt: toIsoString(row.createdAt),
+  updatedAt: toIsoString(row.updatedAt),
+  memberName: row.memberName ?? undefined,
+  memberEmail: row.memberEmail ?? undefined,
+  hetu: row.hetuEncrypted ? maskHetu(decryptField(row.hetuEncrypted)) : undefined,
+  totalAmount: toNullableNumber(row.totalAmount) ?? 0,
+  receipt: row.receiptStorageKey
     ? {
-        storageKey: row.receipt_storage_key,
-        fileName: row.receipt_file_name ?? '',
-        fileSize: row.receipt_file_size ?? 0,
-        mimeType: row.receipt_mime_type ?? '',
-        uploadedAt: row.receipt_uploaded_at
-          ? toIsoString(row.receipt_uploaded_at)
+        storageKey: row.receiptStorageKey,
+        fileName: row.receiptFileName ?? '',
+        fileSize: row.receiptFileSize ?? 0,
+        mimeType: row.receiptMimeType ?? '',
+        uploadedAt: row.receiptUploadedAt
+          ? toIsoString(row.receiptUploadedAt)
           : new Date().toISOString(),
       }
     : undefined,
@@ -225,51 +225,51 @@ const mapClaim = (
 
 const claimSelect = (executor: Executor) =>
   executor
-    .selectFrom('accts.expense_claim as claim')
-    .innerJoin('accts.expense_category as category', 'category.id', 'claim.category_id')
-    .leftJoin('member.register as member', 'member.member_id', 'claim.member_id')
+    .selectFrom('accts.expenseClaim as claim')
+    .innerJoin('accts.expenseCategory as category', 'category.id', 'claim.categoryId')
+    .leftJoin('member.register as member', 'member.memberId', 'claim.memberId')
     .select([
       'claim.id',
-      'claim.member_id',
-      'claim.category_id',
-      'category.code as category_code',
-      'claim.aircraft_id',
-      'claim.flight_log_id',
+      'claim.memberId',
+      'claim.categoryId',
+      'category.code as categoryCode',
+      'claim.aircraftId',
+      'claim.flightLogId',
       'claim.title',
       'claim.description',
       'claim.status',
-      'claim.fuel_litres',
-      'claim.fuel_type',
-      'claim.refuel_outside_finland',
-      'claim.expense_date',
+      'claim.fuelLitres',
+      'claim.fuelType',
+      'claim.refuelOutsideFinland',
+      'claim.expenseDate',
       'claim.iban',
-      'claim.iban_account_name',
+      'claim.ibanAccountName',
       'claim.ccy',
-      'claim.fx_rate',
-      'claim.receipt_storage_key',
-      'claim.receipt_file_name',
-      'claim.receipt_file_size',
-      'claim.receipt_mime_type',
-      'claim.receipt_uploaded_at',
-      'claim.submitted_at',
-      'claim.approved_at',
-      'claim.approved_by',
-      'claim.rejected_at',
-      'claim.rejected_by',
-      'claim.rejection_reason',
-      'claim.simplbooks_purchase_id',
-      'claim.hetu_encrypted',
-      'claim.created_at',
-      'claim.updated_at',
-      'member.email as member_email',
+      'claim.fxRate',
+      'claim.receiptStorageKey',
+      'claim.receiptFileName',
+      'claim.receiptFileSize',
+      'claim.receiptMimeType',
+      'claim.receiptUploadedAt',
+      'claim.submittedAt',
+      'claim.approvedAt',
+      'claim.approvedBy',
+      'claim.rejectedAt',
+      'claim.rejectedBy',
+      'claim.rejectionReason',
+      'claim.simplbooksPurchaseId',
+      'claim.hetuEncrypted',
+      'claim.createdAt',
+      'claim.updatedAt',
+      'member.email as memberEmail',
       sql<string>`trim(concat(coalesce(member.first_name, ''), ' ', coalesce(member.last_name, '')))`.as(
-        'member_name',
+        'memberName',
       ),
       sql<number>`round(coalesce((
         select sum(coalesce(li.total_cost, li.quantity * li.unit_price)) * coalesce(claim.fx_rate, 1.0)
         from accts.expense_claim_line_item li
         where li.claim_id = claim.id
-      ), 0)::numeric, 2)`.as('total_amount'),
+      ), 0)::numeric, 2)`.as('totalAmount'),
     ])
 
 async function insertLineItems(
@@ -282,30 +282,30 @@ async function insertLineItems(
   }
 
   await executor
-    .insertInto('accts.expense_claim_line_item')
+    .insertInto('accts.expenseClaimLineItem')
     .values(
       items.map((item) => ({
-        claim_id: claimId,
-        item_id: item.itemId ?? null,
+        claimId: claimId,
+        itemId: item.itemId ?? null,
         description: item.description,
         quantity: item.quantity,
         unit: item.unit,
-        unit_price: item.unitPrice,
-        total_cost: item.totalCost ?? null,
-        sort_order: item.sortOrder,
-        cost_centre_code: item.costCentreCode ?? null,
-        fuel_type: item.fuelType ?? null,
-        fuel_date: item.date ?? null,
+        unitPrice: item.unitPrice,
+        totalCost: item.totalCost ?? null,
+        sortOrder: item.sortOrder,
+        costCentreCode: item.costCentreCode ?? null,
+        fuelType: item.fuelType ?? null,
+        fuelDate: item.date ?? null,
         airport: item.airport ?? null,
-        paid_with_club_card: item.paidWithClubCard ?? false,
+        paidWithClubCard: item.paidWithClubCard ?? false,
       })),
     )
     .execute()
 }
 
 export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
-  const rows = await db
-    .selectFrom('accts.expense_category')
+  const rows = await camelDb
+    .selectFrom('accts.expenseCategory')
     .selectAll()
     .where('active', '=', true)
     .orderBy('id')
@@ -320,17 +320,17 @@ export async function getExpenseClaimsByMember(
 ): Promise<ExpenseClaimListResponse> {
   const offset = (filters.page - 1) * filters.pageSize
 
-  const countRow = await db
-    .selectFrom('accts.expense_claim')
+  const countRow = await camelDb
+    .selectFrom('accts.expenseClaim')
     .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .$if(!!filters.status, (qb) => qb.where('status', '=', filters.status!))
     .executeTakeFirstOrThrow()
 
-  const rows = await claimSelect(db)
-    .where('claim.member_id', '=', memberId)
+  const rows = await claimSelect(camelDb)
+    .where('claim.memberId', '=', memberId)
     .$if(!!filters.status, (qb) => qb.where('claim.status', '=', filters.status!))
-    .orderBy('claim.created_at', 'desc')
+    .orderBy('claim.createdAt', 'desc')
     .limit(filters.pageSize)
     .offset(offset)
     .execute()
@@ -344,8 +344,8 @@ export async function getExpenseClaimsByMember(
 }
 
 export async function getPendingExpenseClaimsCount(): Promise<number> {
-  const row = await db
-    .selectFrom('accts.expense_claim')
+  const row = await camelDb
+    .selectFrom('accts.expenseClaim')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('status', 'in', [ExpenseClaimStatus.SUBMITTED, ExpenseClaimStatus.PENDING_INFO])
     .executeTakeFirstOrThrow()
@@ -358,15 +358,15 @@ export async function getAllExpenseClaims(
 ): Promise<ExpenseClaimListResponse> {
   const offset = (filters.page - 1) * filters.pageSize
 
-  const countRow = await db
-    .selectFrom('accts.expense_claim')
+  const countRow = await camelDb
+    .selectFrom('accts.expenseClaim')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .$if(!!filters.status, (qb) => qb.where('status', '=', filters.status!))
     .executeTakeFirstOrThrow()
 
-  const rows = await claimSelect(db)
+  const rows = await claimSelect(camelDb)
     .$if(!!filters.status, (qb) => qb.where('claim.status', '=', filters.status!))
-    .orderBy('claim.created_at', 'desc')
+    .orderBy('claim.createdAt', 'desc')
     .limit(filters.pageSize)
     .offset(offset)
     .execute()
@@ -380,41 +380,41 @@ export async function getAllExpenseClaims(
 }
 
 export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | undefined> {
-  const claimRow = await claimSelect(db).where('claim.id', '=', id).executeTakeFirst()
+  const claimRow = await claimSelect(camelDb).where('claim.id', '=', id).executeTakeFirst()
 
   if (!claimRow) {
     return undefined
   }
 
   const [lineItems, messages, mileageLegs, attachments] = await Promise.all([
-    db
-      .selectFrom('accts.expense_claim_line_item as li')
-      .leftJoin('accts.items as item', 'item.id', 'li.item_id')
+    camelDb
+      .selectFrom('accts.expenseClaimLineItem as li')
+      .leftJoin('accts.items as item', 'item.id', 'li.itemId')
       .select([
         'li.id',
-        'li.item_id',
-        'item.code as item_code',
+        'li.itemId',
+        'item.code as itemCode',
         'li.description',
         'li.quantity',
         'li.unit',
-        'li.unit_price',
-        'li.total_cost',
-        'li.sort_order',
-        'li.cost_centre_code',
-        'li.fuel_type',
-        'li.fuel_date',
+        'li.unitPrice',
+        'li.totalCost',
+        'li.sortOrder',
+        'li.costCentreCode',
+        'li.fuelType',
+        'li.fuelDate',
         'li.airport',
-        'li.paid_with_club_card',
+        'li.paidWithClubCard',
       ])
-      .where('li.claim_id', '=', id)
-      .orderBy('li.sort_order')
+      .where('li.claimId', '=', id)
+      .orderBy('li.sortOrder')
       .orderBy('li.id')
       .execute(),
-    db
-      .selectFrom('accts.expense_claim_message')
+    camelDb
+      .selectFrom('accts.expenseClaimMessage')
       .selectAll()
-      .where('claim_id', '=', id)
-      .orderBy('sent_at')
+      .where('claimId', '=', id)
+      .orderBy('sentAt')
       .execute(),
     getMileageLegsByClaimId(id),
     getExpenseAttachments(id),
@@ -422,7 +422,7 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
 
   const mappedLineItems = lineItems.map(mapLineItem)
   const fuelReimbursementSummary =
-    claimRow.category_code === 'fuel' && mappedLineItems.length
+    claimRow.categoryCode === 'fuel' && mappedLineItems.length
       ? await computeFuelReimbursementSummary(mappedLineItems, claimRow as ClaimRow)
       : undefined
 
@@ -450,7 +450,7 @@ async function computeFuelReimbursementSummary(
       .map((item) => item.date)
       .filter((date): date is string => !!date)
       .sort()[0] ??
-    claimRow.expense_date ??
+    claimRow.expenseDate ??
     undefined
   const fuelType = lineItems.find((item) => item.fuelType)?.fuelType as FuelType | undefined
 
@@ -480,27 +480,27 @@ export async function createExpenseClaim(
     ? ((await getCurrentMileageAllowance())?.effectiveRatePerKm ?? 0.275) // fallback: 50% of 0.55
     : 0
 
-  const result = await db.transaction().execute(async (txn) => {
+  const result = await camelDb.transaction().execute(async (txn) => {
     const inserted = await txn
-      .insertInto('accts.expense_claim')
+      .insertInto('accts.expenseClaim')
       .values({
-        member_id: user.memberId,
-        category_id: data.categoryId,
-        aircraft_id: data.aircraftId ?? null,
-        flight_log_id: data.flightLogId ?? null,
+        memberId: user.memberId,
+        categoryId: data.categoryId,
+        aircraftId: data.aircraftId ?? null,
+        flightLogId: data.flightLogId ?? null,
         title: data.title,
         description: data.description ?? null,
         status: ExpenseClaimStatus.DRAFT,
-        fuel_litres: data.fuelLitres ?? null,
-        fuel_type: data.fuelType ?? null,
-        refuel_outside_finland: computeRefuelOutsideFinland(data.lineItems),
-        expense_date: data.expenseDate,
+        fuelLitres: data.fuelLitres ?? null,
+        fuelType: data.fuelType ?? null,
+        refuelOutsideFinland: computeRefuelOutsideFinland(data.lineItems),
+        expenseDate: data.expenseDate,
         iban: data.iban,
-        iban_account_name: data.ibanAccountName,
+        ibanAccountName: data.ibanAccountName,
         ccy: data.currency ?? 'EUR',
-        fx_rate: data.fxRate ?? null,
-        hetu_encrypted: data.hetu ? encryptField(data.hetu) : null,
-        updated_at: new Date(),
+        fxRate: data.fxRate ?? null,
+        hetuEncrypted: data.hetu ? encryptField(data.hetu) : null,
+        updatedAt: new Date(),
       })
       .returning('id')
       .executeTakeFirstOrThrow()
@@ -529,9 +529,9 @@ export async function updateExpenseClaim(
     ? ((await getCurrentMileageAllowance())?.effectiveRatePerKm ?? 0.275)
     : 0
 
-  await db.transaction().execute(async (txn) => {
+  await camelDb.transaction().execute(async (txn) => {
     const patch: Record<string, unknown> = {
-      updated_at: new Date(),
+      updatedAt: new Date(),
       // Revert to DRAFT whenever the member saves changes, so they must explicitly re-submit.
       // Safe because only DRAFT and PENDING_INFO claims reach this path (enforced by the API route).
       status: ExpenseClaimStatus.DRAFT,
@@ -555,10 +555,10 @@ export async function updateExpenseClaim(
     if (data.hetu) patch.hetu_encrypted = encryptField(data.hetu)
     if (data.lineItems) patch.refuel_outside_finland = computeRefuelOutsideFinland(data.lineItems)
 
-    await txn.updateTable('accts.expense_claim').set(patch).where('id', '=', id).execute()
+    await txn.updateTable('accts.expenseClaim').set(patch).where('id', '=', id).execute()
 
     if (data.lineItems) {
-      await txn.deleteFrom('accts.expense_claim_line_item').where('claim_id', '=', id).execute()
+      await txn.deleteFrom('accts.expenseClaimLineItem').where('claimId', '=', id).execute()
       await insertLineItems(txn, id, data.lineItems)
     }
 
@@ -567,11 +567,11 @@ export async function updateExpenseClaim(
     }
 
     await txn
-      .insertInto('accts.expense_claim_message')
+      .insertInto('accts.expenseClaimMessage')
       .values({
-        claim_id: id,
-        sender_id: user.memberId,
-        message_type: ExpenseMessageType.SYSTEM,
+        claimId: id,
+        senderId: user.memberId,
+        messageType: ExpenseMessageType.SYSTEM,
         body: 'Claim updated by member.',
       })
       .execute()
@@ -581,8 +581,8 @@ export async function updateExpenseClaim(
 }
 
 export async function deleteExpenseClaim(id: string): Promise<boolean> {
-  const result = await db
-    .deleteFrom('accts.expense_claim')
+  const result = await camelDb
+    .deleteFrom('accts.expenseClaim')
     .where('id', '=', id)
     .executeTakeFirstOrThrow()
 
@@ -592,17 +592,17 @@ export async function deleteExpenseClaim(id: string): Promise<boolean> {
 export async function retractExpenseClaim(
   id: string,
   userId: string,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<boolean> {
   const result = await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set({
       status: ExpenseClaimStatus.DRAFT,
-      submitted_at: null,
-      updated_at: new Date(),
+      submittedAt: null,
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
-    .where('member_id', '=', userId)
+    .where('memberId', '=', userId)
     .where('status', '=', ExpenseClaimStatus.SUBMITTED)
     .executeTakeFirstOrThrow()
 
@@ -612,17 +612,17 @@ export async function retractExpenseClaim(
 export async function submitExpenseClaim(
   id: string,
   user: JWTUser,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<boolean> {
   const result = await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set({
       status: ExpenseClaimStatus.SUBMITTED,
-      submitted_at: new Date(),
-      updated_at: new Date(),
+      submittedAt: new Date(),
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
-    .where('member_id', '=', user.memberId)
+    .where('memberId', '=', user.memberId)
     .executeTakeFirstOrThrow()
 
   return result.numUpdatedRows > BigInt(0)
@@ -631,18 +631,18 @@ export async function submitExpenseClaim(
 export async function approveExpenseClaim(
   id: string,
   approverId: string,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<boolean> {
   const result = await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set({
       status: ExpenseClaimStatus.APPROVED,
-      approved_at: new Date(),
-      approved_by: approverId,
-      rejected_at: null,
-      rejected_by: null,
-      rejection_reason: null,
-      updated_at: new Date(),
+      approvedAt: new Date(),
+      approvedBy: approverId,
+      rejectedAt: null,
+      rejectedBy: null,
+      rejectionReason: null,
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
     .executeTakeFirstOrThrow()
@@ -654,16 +654,16 @@ export async function rejectExpenseClaim(
   id: string,
   rejectorId: string,
   reason: string,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<boolean> {
   const result = await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set({
       status: ExpenseClaimStatus.REJECTED,
-      rejected_at: new Date(),
-      rejected_by: rejectorId,
-      rejection_reason: reason,
-      updated_at: new Date(),
+      rejectedAt: new Date(),
+      rejectedBy: rejectorId,
+      rejectionReason: reason,
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
     .executeTakeFirstOrThrow()
@@ -674,25 +674,25 @@ export async function rejectExpenseClaim(
 export async function overrideFuelPrice(
   id: string,
   efnuPrice: number,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<boolean> {
   await executor
-    .updateTable('accts.expense_claim_line_item')
+    .updateTable('accts.expenseClaimLineItem')
     .set({
-      unit_price: sql<number>`LEAST(unit_price, ${efnuPrice})`,
+      unitPrice: sql<number>`LEAST(unit_price, ${efnuPrice})`,
       // Only recompute the persisted total for line items the cap actually affects,
       // otherwise an already-exact total gets reconstructed from unit_price and drifts.
-      total_cost: sql<number>`CASE WHEN unit_price > ${efnuPrice} THEN quantity * ${efnuPrice} ELSE total_cost END`,
+      totalCost: sql<number>`CASE WHEN unit_price > ${efnuPrice} THEN quantity * ${efnuPrice} ELSE total_cost END`,
     })
-    .where('claim_id', '=', id)
+    .where('claimId', '=', id)
     .execute()
 
   const note = `EFNU fuel price cap of ${efnuPrice.toFixed(2)} EUR/L has been applied to this claim.`
   const result = await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set({
       description: sql<string>`coalesce(description, '') || ${'\n\n' + note}`,
-      updated_at: new Date(),
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
     .executeTakeFirstOrThrow()
@@ -703,29 +703,29 @@ export async function overrideFuelPrice(
 export async function setExpenseClaimToDraft(
   id: string,
   adminId: string,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<boolean> {
   const result = await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set({
       status: ExpenseClaimStatus.DRAFT,
-      submitted_at: null,
-      approved_at: null,
-      approved_by: null,
-      rejected_at: null,
-      rejected_by: null,
-      rejection_reason: null,
-      updated_at: new Date(),
+      submittedAt: null,
+      approvedAt: null,
+      approvedBy: null,
+      rejectedAt: null,
+      rejectedBy: null,
+      rejectionReason: null,
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
     .executeTakeFirstOrThrow()
 
   await executor
-    .insertInto('accts.expense_claim_message')
+    .insertInto('accts.expenseClaimMessage')
     .values({
-      claim_id: id,
-      sender_id: adminId,
-      message_type: ExpenseMessageType.SYSTEM,
+      claimId: id,
+      senderId: adminId,
+      messageType: ExpenseMessageType.SYSTEM,
       body: 'Claim returned to draft by administrator.',
     })
     .execute()
@@ -735,13 +735,13 @@ export async function setExpenseClaimToDraft(
 
 export async function markExpenseClaimPendingInfo(
   id: string,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<boolean> {
   const result = await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set({
       status: ExpenseClaimStatus.PENDING_INFO,
-      updated_at: new Date(),
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
     .executeTakeFirstOrThrow()
@@ -752,27 +752,27 @@ export async function markExpenseClaimPendingInfo(
 export async function setExpenseReceipt(
   claimId: string,
   receipt: { storageKey: string; fileName: string; fileSize: number; mimeType: string } | null,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<void> {
   await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set(
       receipt
         ? {
-            receipt_storage_key: receipt.storageKey,
-            receipt_file_name: receipt.fileName,
-            receipt_file_size: receipt.fileSize,
-            receipt_mime_type: receipt.mimeType,
-            receipt_uploaded_at: new Date(),
-            updated_at: new Date(),
+            receiptStorageKey: receipt.storageKey,
+            receiptFileName: receipt.fileName,
+            receiptFileSize: receipt.fileSize,
+            receiptMimeType: receipt.mimeType,
+            receiptUploadedAt: new Date(),
+            updatedAt: new Date(),
           }
         : {
-            receipt_storage_key: null,
-            receipt_file_name: null,
-            receipt_file_size: null,
-            receipt_mime_type: null,
-            receipt_uploaded_at: null,
-            updated_at: new Date(),
+            receiptStorageKey: null,
+            receiptFileName: null,
+            receiptFileSize: null,
+            receiptMimeType: null,
+            receiptUploadedAt: null,
+            updatedAt: new Date(),
           },
     )
     .where('id', '=', claimId)
@@ -784,14 +784,14 @@ export async function addExpenseMessage(
   senderId: string,
   type: ExpenseMessageType,
   body: string,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<ExpenseClaimMessage> {
   const inserted = await executor
-    .insertInto('accts.expense_claim_message')
+    .insertInto('accts.expenseClaimMessage')
     .values({
-      claim_id: claimId,
-      sender_id: senderId,
-      message_type: type,
+      claimId: claimId,
+      senderId: senderId,
+      messageType: type,
       body,
     })
     .returningAll()
@@ -803,14 +803,14 @@ export async function addExpenseMessage(
 export async function updateExpenseSimplbooksId(
   claimId: string,
   purchaseId: number,
-  executor: Executor = db,
+  executor: Executor = camelDb,
 ): Promise<boolean> {
   const result = await executor
-    .updateTable('accts.expense_claim')
+    .updateTable('accts.expenseClaim')
     .set({
-      simplbooks_purchase_id: purchaseId,
+      simplbooksPurchaseId: purchaseId,
       status: ExpenseClaimStatus.SYNCED,
-      updated_at: new Date(),
+      updatedAt: new Date(),
     })
     .where('id', '=', claimId)
     .executeTakeFirstOrThrow()
@@ -838,12 +838,12 @@ const LINE_ITEM_FIELD_COLUMNS: Record<string, string> = {
 }
 
 type EditAuditRow = {
-  claim_id: string
-  line_item_id: number | null
-  field_name: string
-  old_value: string | null
-  new_value: string | null
-  edited_by: string
+  claimId: string
+  lineItemId: number | null
+  fieldName: string
+  oldValue: string | null
+  newValue: string | null
+  editedBy: string
 }
 
 const toAuditString = (value: unknown): string | null =>
@@ -861,7 +861,7 @@ export async function treasurerEditExpenseClaim(
 
   const auditRows: EditAuditRow[] = []
 
-  await db.transaction().execute(async (txn) => {
+  await camelDb.transaction().execute(async (txn) => {
     const claimPatch: Record<string, unknown> = {}
 
     const diffClaimField = (field: 'title' | 'aircraftId' | 'expenseDate', column: string) => {
@@ -870,12 +870,12 @@ export async function treasurerEditExpenseClaim(
       const oldValue = (existing[field] ?? null) as unknown
       if (newValue === oldValue) return
       auditRows.push({
-        claim_id: claimId,
-        line_item_id: null,
-        field_name: field,
-        old_value: toAuditString(oldValue),
-        new_value: toAuditString(newValue),
-        edited_by: treasurer.memberId,
+        claimId: claimId,
+        lineItemId: null,
+        fieldName: field,
+        oldValue: toAuditString(oldValue),
+        newValue: toAuditString(newValue),
+        editedBy: treasurer.memberId,
       })
       claimPatch[column] = newValue
     }
@@ -887,7 +887,7 @@ export async function treasurerEditExpenseClaim(
     if (Object.keys(claimPatch).length > 0) {
       claimPatch.updated_at = new Date()
       await txn
-        .updateTable('accts.expense_claim')
+        .updateTable('accts.expenseClaim')
         .set(claimPatch)
         .where('id', '=', claimId)
         .execute()
@@ -904,12 +904,12 @@ export async function treasurerEditExpenseClaim(
         const oldValue = (existingLineItem as Record<string, unknown>)[field] ?? null
         if (newValue === oldValue) continue
         auditRows.push({
-          claim_id: claimId,
-          line_item_id: lineItemPatch.id,
-          field_name: field,
-          old_value: toAuditString(oldValue),
-          new_value: toAuditString(newValue),
-          edited_by: treasurer.memberId,
+          claimId: claimId,
+          lineItemId: lineItemPatch.id,
+          fieldName: field,
+          oldValue: toAuditString(oldValue),
+          newValue: toAuditString(newValue),
+          editedBy: treasurer.memberId,
         })
         liPatch[column] = newValue
       }
@@ -928,22 +928,22 @@ export async function treasurerEditExpenseClaim(
         existingLineItem.totalCost != null
       ) {
         auditRows.push({
-          claim_id: claimId,
-          line_item_id: lineItemPatch.id,
-          field_name: 'totalCost',
-          old_value: toAuditString(existingLineItem.totalCost),
-          new_value: null,
-          edited_by: treasurer.memberId,
+          claimId: claimId,
+          lineItemId: lineItemPatch.id,
+          fieldName: 'totalCost',
+          oldValue: toAuditString(existingLineItem.totalCost),
+          newValue: null,
+          editedBy: treasurer.memberId,
         })
         liPatch.total_cost = null
       }
 
       if (Object.keys(liPatch).length > 0) {
         await txn
-          .updateTable('accts.expense_claim_line_item')
+          .updateTable('accts.expenseClaimLineItem')
           .set(liPatch)
           .where('id', '=', lineItemPatch.id)
-          .where('claim_id', '=', claimId)
+          .where('claimId', '=', claimId)
           .execute()
       }
     }
@@ -958,22 +958,22 @@ export async function treasurerEditExpenseClaim(
     const newRefuelOutsideFinland = computeRefuelOutsideFinland(mergedLineItems)
     if (newRefuelOutsideFinland !== existing.refuelOutsideFinland) {
       auditRows.push({
-        claim_id: claimId,
-        line_item_id: null,
-        field_name: 'refuelOutsideFinland',
-        old_value: toAuditString(existing.refuelOutsideFinland),
-        new_value: toAuditString(newRefuelOutsideFinland),
-        edited_by: treasurer.memberId,
+        claimId: claimId,
+        lineItemId: null,
+        fieldName: 'refuelOutsideFinland',
+        oldValue: toAuditString(existing.refuelOutsideFinland),
+        newValue: toAuditString(newRefuelOutsideFinland),
+        editedBy: treasurer.memberId,
       })
       await txn
-        .updateTable('accts.expense_claim')
-        .set({ refuel_outside_finland: newRefuelOutsideFinland, updated_at: new Date() })
+        .updateTable('accts.expenseClaim')
+        .set({ refuelOutsideFinland: newRefuelOutsideFinland, updatedAt: new Date() })
         .where('id', '=', claimId)
         .execute()
     }
 
     if (auditRows.length > 0) {
-      await txn.insertInto('accts.expense_claim_edit_audit').values(auditRows).execute()
+      await txn.insertInto('accts.expenseClaimEditAudit').values(auditRows).execute()
     }
   })
 
@@ -988,19 +988,19 @@ export async function treasurerEditExpenseClaim(
 export async function getExpenseClaimEditAudit(
   claimId: string,
 ): Promise<ExpenseClaimEditAuditEntry[]> {
-  const rows = await db
-    .selectFrom('accts.expense_claim_edit_audit')
+  const rows = await camelDb
+    .selectFrom('accts.expenseClaimEditAudit')
     .selectAll()
-    .where('claim_id', '=', claimId)
-    .orderBy('edited_at', 'desc')
+    .where('claimId', '=', claimId)
+    .orderBy('editedAt', 'desc')
     .execute()
 
   return rows.map((row) => ({
-    fieldName: row.field_name,
-    oldValue: row.old_value,
-    newValue: row.new_value,
-    lineItemId: row.line_item_id,
-    editedBy: row.edited_by,
-    editedAt: toIsoString(row.edited_at),
+    fieldName: row.fieldName,
+    oldValue: row.oldValue,
+    newValue: row.newValue,
+    lineItemId: row.lineItemId,
+    editedBy: row.editedBy,
+    editedAt: toIsoString(row.editedAt),
   }))
 }

@@ -1,7 +1,7 @@
 import type { Kysely, Transaction } from 'kysely'
 
-import { db } from '../../db/connection.ts'
-import type { DB } from '../../db/schema.js'
+import { camelDb } from '../../db/connection.ts'
+import type { DB as CamelDB } from '../../db/schema.camel.d.ts'
 import type {
   InvoicableFlight,
   PrepaidFlightGroup,
@@ -9,7 +9,7 @@ import type {
   PrepaidFlightUsage,
 } from '@mik/contracts/flight-log'
 
-type QueryExecutor = Kysely<DB> | Transaction<DB>
+type QueryExecutor = Kysely<CamelDB> | Transaction<CamelDB>
 
 type ActiveMemberPackage = {
   memberPackageId: number
@@ -30,7 +30,7 @@ export type PlannedPrepaidUsage = {
 }
 
 function getExecutor(executor?: QueryExecutor): QueryExecutor {
-  return executor ?? db
+  return executor ?? camelDb
 }
 
 export function getBillableMinutes(flight: InvoicableFlight): number {
@@ -69,25 +69,25 @@ async function loadActivePackagesForMember(
   const today = new Date().toISOString().slice(0, 10)
 
   let query = executor
-    .selectFrom('prepaid.member_packages as mp')
-    .innerJoin('prepaid.packages as p', 'p.product_id', 'mp.product_id')
+    .selectFrom('prepaid.memberPackages as mp')
+    .innerJoin('prepaid.packages as p', 'p.productId', 'mp.productId')
     .select([
-      'mp.member_package_id',
-      'mp.product_id',
-      'mp.total_minutes',
-      'mp.used_minutes',
-      'mp.expires_at',
-      'p.aircraft_registration',
-      'p.per_min_rate',
+      'mp.memberPackageId',
+      'mp.productId',
+      'mp.totalMinutes',
+      'mp.usedMinutes',
+      'mp.expiresAt',
+      'p.aircraftRegistration',
+      'p.perMinRate',
     ])
-    .where('mp.member_id', '=', memberId)
-    .where('mp.is_expired', '=', false)
-    .where('mp.expires_at', '>=', today)
-    .where('p.is_active', '=', true)
-    .where((eb) => eb('mp.total_minutes', '>', eb.ref('mp.used_minutes')))
-    .orderBy('p.aircraft_registration', 'asc')
-    .orderBy('mp.expires_at', 'asc')
-    .orderBy('mp.member_package_id', 'asc')
+    .where('mp.memberId', '=', memberId)
+    .where('mp.isExpired', '=', false)
+    .where('mp.expiresAt', '>=', today)
+    .where('p.isActive', '=', true)
+    .where((eb) => eb('mp.totalMinutes', '>', eb.ref('mp.usedMinutes')))
+    .orderBy('p.aircraftRegistration', 'asc')
+    .orderBy('mp.expiresAt', 'asc')
+    .orderBy('mp.memberPackageId', 'asc')
 
   if (options?.lockRows) {
     query = query.forUpdate()
@@ -96,28 +96,28 @@ async function loadActivePackagesForMember(
   const rows = await query.execute()
 
   // Fetch simplbooks_item_id separately to avoid FOR UPDATE on the nullable side of an outer join
-  const productIds = [...new Set(rows.map((r) => r.product_id))]
+  const productIds = [...new Set(rows.map((r) => r.productId))]
   const simplbooksItemIdByProductId = new Map<string, string | null>()
   if (productIds.length > 0) {
     const productRows = await getExecutor(options?.executor)
       .selectFrom('shop.products')
-      .select(['product_id', 'simplbooks_item_id'])
-      .where('product_id', 'in', productIds)
+      .select(['productId', 'simplbooksItemId'])
+      .where('productId', 'in', productIds)
       .execute()
     for (const pr of productRows) {
-      simplbooksItemIdByProductId.set(pr.product_id, pr.simplbooks_item_id ?? null)
+      simplbooksItemIdByProductId.set(pr.productId, pr.simplbooksItemId ?? null)
     }
   }
 
   return rows.map((row) => ({
-    memberPackageId: row.member_package_id,
-    aircraftRegistration: row.aircraft_registration,
-    totalMinutes: row.total_minutes,
-    usedMinutes: row.used_minutes,
-    remainingMinutes: row.total_minutes - row.used_minutes,
-    perMinRate: Number(row.per_min_rate),
-    expiresAt: row.expires_at,
-    simplbooksItemId: simplbooksItemIdByProductId.get(row.product_id) ?? null,
+    memberPackageId: row.memberPackageId,
+    aircraftRegistration: row.aircraftRegistration,
+    totalMinutes: row.totalMinutes,
+    usedMinutes: row.usedMinutes,
+    remainingMinutes: row.totalMinutes - row.usedMinutes,
+    perMinRate: Number(row.perMinRate),
+    expiresAt: row.expiresAt,
+    simplbooksItemId: simplbooksItemIdByProductId.get(row.productId) ?? null,
   }))
 }
 
@@ -257,7 +257,7 @@ export async function planPrepaidFlightUsage(
 export async function applyPrepaidFlightUsagePlan(
   plan: PlannedPrepaidUsage,
   invoiceId: string | number,
-  txn: Transaction<DB>,
+  txn: Transaction<CamelDB>,
 ): Promise<void> {
   const usages = plan.groups.flatMap((group) =>
     group.flights.flatMap((flight) =>
@@ -274,18 +274,18 @@ export async function applyPrepaidFlightUsagePlan(
 
   const packageIds = [...new Set(usages.map((usage) => usage.memberPackageId))]
   const rows = await txn
-    .selectFrom('prepaid.member_packages')
-    .select(['member_package_id', 'total_minutes', 'used_minutes'])
-    .where('member_package_id', 'in', packageIds)
+    .selectFrom('prepaid.memberPackages')
+    .select(['memberPackageId', 'totalMinutes', 'usedMinutes'])
+    .where('memberPackageId', 'in', packageIds)
     .forUpdate()
     .execute()
 
   const packageState = new Map(
     rows.map((row) => [
-      row.member_package_id,
+      row.memberPackageId,
       {
-        totalMinutes: row.total_minutes,
-        usedMinutes: row.used_minutes,
+        totalMinutes: row.totalMinutes,
+        usedMinutes: row.usedMinutes,
       },
     ]),
   )
@@ -310,23 +310,23 @@ export async function applyPrepaidFlightUsagePlan(
 
     const nextUsedMinutes = current.usedMinutes + minutesUsed
     await txn
-      .updateTable('prepaid.member_packages')
+      .updateTable('prepaid.memberPackages')
       .set({
-        used_minutes: nextUsedMinutes,
-        is_expired: nextUsedMinutes >= current.totalMinutes,
-        updated_at: new Date(),
+        usedMinutes: nextUsedMinutes,
+        isExpired: nextUsedMinutes >= current.totalMinutes,
+        updatedAt: new Date(),
       })
-      .where('member_package_id', '=', memberPackageId)
+      .where('memberPackageId', '=', memberPackageId)
       .execute()
   }
 
   for (const usage of usages) {
     await txn
-      .insertInto('prepaid.usage_log')
+      .insertInto('prepaid.usageLog')
       .values({
-        member_package_id: usage.memberPackageId,
-        flight_id: usage.flightId,
-        minutes_used: usage.minutesUsed,
+        memberPackageId: usage.memberPackageId,
+        flightId: usage.flightId,
+        minutesUsed: usage.minutesUsed,
         note: `Flight ${usage.flightId}, invoice ${invoiceId}`,
       })
       .execute()

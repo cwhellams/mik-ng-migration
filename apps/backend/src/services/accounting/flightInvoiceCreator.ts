@@ -17,12 +17,12 @@ import {
   type PlannedPrepaidUsage,
 } from './flightPrepaidAllocator.ts'
 import type { Kysely, Transaction } from 'kysely'
-import type { DB } from '../../db/schema.js'
+import type { DB as CamelDB } from '../../db/schema.camel.d.ts'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-type QueryExecutor = Kysely<DB> | Transaction<DB>
+type QueryExecutor = Kysely<CamelDB> | Transaction<CamelDB>
 
 export async function createPlannedFlightInvoicePayload(
   payload: FlightInvoicePayload,

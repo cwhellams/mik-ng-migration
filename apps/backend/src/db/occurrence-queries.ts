@@ -1,4 +1,4 @@
-import { sql, type ExpressionBuilder, type Kysely, type Selectable, type Transaction } from 'kysely'
+import { sql, type ExpressionBuilder, type Kysely, type Transaction } from 'kysely'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   OccurrenceCategory,
@@ -13,48 +13,50 @@ import {
 } from '@mik/contracts/occurrences'
 import { generateShortId } from '../util/nanoId.ts'
 import * as connection from './connection.ts'
-import type { DB, FlightOccurrences, FlightOccurrenceAttachments } from './schema.js'
+import type { DB as CamelDB } from './schema.camel.d.ts'
+import { camelCaseNestedRows } from './connection.ts'
+import type { CamelRow } from './connection.ts'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 import { storageService } from '../services/storage.ts'
 
-type Executor = Kysely<DB> | Transaction<DB>
+type Executor = Kysely<CamelDB> | Transaction<CamelDB>
 
 const toOccurrence = (
-  row: Selectable<FlightOccurrences>,
+  row: CamelRow<'flight.occurrences'>,
   access: OccurrenceAccess[],
   attachments: OccurrenceAttachment[],
 ): Occurrence => {
   const status = row.status as OccurrenceStatus
 
   return {
-    id: row.report_id,
-    occurrenceDate: row.occurrence_date.toISOString(),
-    reportDate: row.report_date.toISOString(),
-    deadLine: row.dead_line?.toISOString(),
-    processedDate: row.processed_date?.toISOString(),
+    id: row.reportId,
+    occurrenceDate: row.occurrenceDate.toISOString(),
+    reportDate: row.reportDate.toISOString(),
+    deadLine: row.deadLine?.toISOString(),
+    processedDate: row.processedDate?.toISOString(),
     status,
     headline: row.headline,
     aircraftRegistration: row.registration,
-    aircraftTechnicalFault: row.technical_faults,
+    aircraftTechnicalFault: row.technicalFaults,
     categories: row.categories as OccurrenceCategory[],
     description: row.description,
     location: row.location,
-    isWeatherRelevant: row.is_weather_relevant,
-    animalNumber: row.animal_number,
-    animalSize: row.animal_size,
-    animalSpecies: row.animal_species,
-    arrivalAirport: row.arrival_airport,
-    departureAirport: row.departure_airport,
-    isDtoReport: row.is_dto_report,
-    linkedReportId: row.linked_report_id,
+    isWeatherRelevant: row.isWeatherRelevant,
+    animalNumber: row.animalNumber,
+    animalSize: row.animalSize,
+    animalSpecies: row.animalSpecies,
+    arrivalAirport: row.arrivalAirport,
+    departureAirport: row.departureAirport,
+    isDtoReport: row.isDtoReport,
+    linkedReportId: row.linkedReportId,
     access,
     comments: row.comments as OccurrenceComment[],
     handling: row.handling as OccurrenceHandling,
     attachments,
-    createdAt: row.created_at.toISOString(),
-    createdBy: row.created_by,
-    updatedAt: row.updated_at.toISOString(),
-    updatedBy: row.updated_by,
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy,
+    updatedAt: row.updatedAt.toISOString(),
+    updatedBy: row.updatedBy,
   }
 }
 
@@ -66,52 +68,52 @@ export const getOccurrence = async (
   },
   access: 'read' | 'write' | 'manage',
 ): Promise<Occurrence | undefined> => {
-  const result = await connection.db
+  const result = await connection.camelDb
     .selectFrom('flight.occurrences')
     .selectAll()
     .select((eb) =>
       jsonArrayFrom(
         eb
-          .selectFrom('flight.occurrence_access')
-          .selectAll('flight.occurrence_access')
+          .selectFrom('flight.occurrenceAccess')
+          .selectAll('flight.occurrenceAccess')
           .leftJoin(
             'member.register',
-            'flight.occurrence_access.member_id',
-            'member.register.member_id',
+            'flight.occurrenceAccess.memberId',
+            'member.register.memberId',
           )
-          .select('member.register.last_name')
-          .whereRef('flight.occurrence_access.report_id', '=', 'flight.occurrences.report_id'),
+          .select('member.register.lastName')
+          .whereRef('flight.occurrenceAccess.reportId', '=', 'flight.occurrences.reportId'),
       ).as('access'),
     )
     .select((eb) =>
       jsonArrayFrom(
         eb
-          .selectFrom('flight.occurrence_attachments')
-          .selectAll('flight.occurrence_attachments')
+          .selectFrom('flight.occurrenceAttachments')
+          .selectAll('flight.occurrenceAttachments')
           .leftJoin(
             'member.register',
-            'flight.occurrence_attachments.created_by',
-            'member.register.member_id',
+            'flight.occurrenceAttachments.createdBy',
+            'member.register.memberId',
           )
-          .select('member.register.last_name')
-          .whereRef('flight.occurrence_attachments.report_id', '=', 'flight.occurrences.report_id')
-          .where('flight.occurrence_attachments.removed_at', 'is', null)
-          .orderBy('flight.occurrence_attachments.created_at'),
+          .select('member.register.lastName')
+          .whereRef('flight.occurrenceAttachments.reportId', '=', 'flight.occurrences.reportId')
+          .where('flight.occurrenceAttachments.removedAt', 'is', null)
+          .orderBy('flight.occurrenceAttachments.createdAt'),
       ).as('attachments'),
     )
-    .where('flight.occurrences.report_id', '=', reportId)
+    .where('flight.occurrences.reportId', '=', reportId)
     .where((eb) =>
       eb.exists(
         eb
-          .selectFrom('flight.occurrence_access')
+          .selectFrom('flight.occurrenceAccess')
           .selectAll()
-          .whereRef('flight.occurrence_access.report_id', '=', 'flight.occurrences.report_id')
+          .whereRef('flight.occurrenceAccess.reportId', '=', 'flight.occurrences.reportId')
           .where((eb) => hasAccess(eb, limitations))
           .$if(access == 'write', (qb) =>
-            qb.where('flight.occurrence_access.write_access', '=', true),
+            qb.where('flight.occurrenceAccess.writeAccess', '=', true),
           )
           .$if(access == 'manage', (qb) =>
-            qb.where('flight.occurrence_access.manage_access', '=', true),
+            qb.where('flight.occurrenceAccess.manageAccess', '=', true),
           ),
       ),
     )
@@ -123,31 +125,31 @@ export const getOccurrence = async (
 
   return toOccurrence(
     result,
-    result.access.map((a) => ({
-      accessId: a.access_id,
-      memberId: a.member_id,
-      lastName: a.last_name,
-      roleId: a.role_id,
+    camelCaseNestedRows(result.access).map((a) => ({
+      accessId: a.accessId,
+      memberId: a.memberId,
+      lastName: a.lastName,
+      roleId: a.roleId,
       author: a.author,
-      write: a.write_access,
-      manage: a.manage_access,
-      at: new Date(a.updated_at).toISOString(),
-      by: a.updated_by,
+      write: a.writeAccess,
+      manage: a.manageAccess,
+      at: new Date(a.updatedAt).toISOString(),
+      by: a.updatedBy,
     })),
-    result.attachments.map((a) => ({
-      attachmentId: a.attachment_id,
-      fileName: a.file_name,
-      mimeType: a.mime_type,
-      fileSize: a.file_size,
-      originStatus: a.origin_status as OccurrenceStatus,
-      at: new Date(a.created_at).toISOString(),
-      by: a.last_name ?? a.created_by,
+    camelCaseNestedRows(result.attachments).map((a) => ({
+      attachmentId: a.attachmentId,
+      fileName: a.fileName,
+      mimeType: a.mimeType,
+      fileSize: a.fileSize,
+      originStatus: a.originStatus as OccurrenceStatus,
+      at: new Date(a.createdAt).toISOString(),
+      by: a.lastName ?? a.createdBy,
     })),
   )
 }
 
 const hasAccess = (
-  eb: ExpressionBuilder<DB, 'flight.occurrence_access'>,
+  eb: ExpressionBuilder<CamelDB, 'flight.occurrenceAccess'>,
   limitations: {
     memberId?: string
     roles?: string[]
@@ -160,19 +162,19 @@ const hasAccess = (
 
     if (roles.length === 0) {
       // no roles, just member access
-      return eb('flight.occurrence_access.member_id', '=', limitations.memberId)
+      return eb('flight.occurrenceAccess.memberId', '=', limitations.memberId)
     } else {
       return eb.or([
-        eb('flight.occurrence_access.member_id', '=', limitations.memberId),
+        eb('flight.occurrenceAccess.memberId', '=', limitations.memberId),
         eb.and([
-          eb('flight.occurrence_access.role_id', 'in', roles),
-          eb('flight.occurrence_access.manage_access', 'is', false),
+          eb('flight.occurrenceAccess.roleId', 'in', roles),
+          eb('flight.occurrenceAccess.manageAccess', 'is', false),
         ]),
       ])
     }
   } else {
     // admin roles are granted only by roles
-    return eb('flight.occurrence_access.role_id', 'in', roles.length > 0 ? roles : ['-'])
+    return eb('flight.occurrenceAccess.roleId', 'in', roles.length > 0 ? roles : ['-'])
   }
 }
 
@@ -183,24 +185,24 @@ export async function getOccurrences(
     roles: string[]
   },
 ): Promise<Occurrence[]> {
-  const results = await connection.db
+  const results = await connection.camelDb
     .selectFrom('flight.occurrences')
     .selectAll()
     .innerJoin(
-      'flight.occurrence_access',
-      'flight.occurrences.report_id',
-      'flight.occurrence_access.report_id',
+      'flight.occurrenceAccess',
+      'flight.occurrences.reportId',
+      'flight.occurrenceAccess.reportId',
     )
     .where((eb) => hasAccess(eb, limitations))
     .$if(filters.status !== undefined, (qb) => qb.where('status', '=', filters.status!))
     .$if(filters.ignoreStatuses ? filters.ignoreStatuses.length > 0 : false, (qb) =>
       qb.where((eb) => eb('status', 'not in', filters.ignoreStatuses!)),
     )
-    .distinctOn('flight.occurrences.report_id')
-    .orderBy('flight.occurrences.report_id')
-    .orderBy('report_date', 'desc')
+    .distinctOn('flight.occurrences.reportId')
+    .orderBy('flight.occurrences.reportId')
+    .orderBy('reportDate', 'desc')
     // keep the anonymized report with the same report date ordered first
-    .orderBy('created_at', 'desc')
+    .orderBy('createdAt', 'desc')
     .execute()
 
   return results.map((r) => toOccurrence(r, [], []))
@@ -216,7 +218,7 @@ export async function createOccurrence(
     comments: OccurrenceComment[]
   },
   user: JWTUser,
-  executor: Executor = connection.db,
+  executor: Executor = connection.camelDb,
 ): Promise<Occurrence> {
   const now = new Date()
 
@@ -234,31 +236,31 @@ export async function createOccurrence(
   await executor
     .insertInto('flight.occurrences')
     .values({
-      report_id: created.id,
-      occurrence_date: created.occurrenceDate,
-      report_date: created.reportDate,
-      dead_line: created.deadLine,
+      reportId: created.id,
+      occurrenceDate: created.occurrenceDate,
+      reportDate: created.reportDate,
+      deadLine: created.deadLine,
       status: created.status,
       headline: created.headline,
       location: created.location,
       description: created.description,
       categories: JSON.stringify(created.categories),
-      is_weather_relevant: created.isWeatherRelevant,
-      animal_number: created.animalNumber,
-      animal_size: created.animalSize,
-      animal_species: created.animalSpecies,
+      isWeatherRelevant: created.isWeatherRelevant,
+      animalNumber: created.animalNumber,
+      animalSize: created.animalSize,
+      animalSpecies: created.animalSpecies,
       registration: created.aircraftRegistration,
-      technical_faults: created.aircraftTechnicalFault,
-      arrival_airport: created.arrivalAirport,
-      departure_airport: created.departureAirport,
-      is_dto_report: created.isDtoReport,
-      linked_report_id: created.linkedReportId,
+      technicalFaults: created.aircraftTechnicalFault,
+      arrivalAirport: created.arrivalAirport,
+      departureAirport: created.departureAirport,
+      isDtoReport: created.isDtoReport,
+      linkedReportId: created.linkedReportId,
       comments: JSON.stringify(created.comments),
       handling: JSON.stringify(created.handling),
-      created_at: created.createdAt,
-      created_by: created.createdBy,
-      updated_at: created.updatedAt,
-      updated_by: created.updatedBy,
+      createdAt: created.createdAt,
+      createdBy: created.createdBy,
+      updatedAt: created.updatedAt,
+      updatedBy: created.updatedBy,
     })
     .execute()
 
@@ -278,7 +280,7 @@ export async function updateOccurrence(
     }
   >,
   user: JWTUser,
-  executor: Executor = connection.db,
+  executor: Executor = connection.camelDb,
 ): Promise<Occurrence> {
   const now = new Date().toISOString()
   const updated: Occurrence = {
@@ -291,29 +293,29 @@ export async function updateOccurrence(
   await executor
     .updateTable('flight.occurrences')
     .set({
-      occurrence_date: patch.occurrenceDate,
-      dead_line: patch.deadLine,
+      occurrenceDate: patch.occurrenceDate,
+      deadLine: patch.deadLine,
       status: patch.status,
       headline: patch.headline,
       location: patch.location,
       description: patch.description,
       categories: patch.categories ? JSON.stringify(patch.categories) : undefined,
-      is_weather_relevant: patch.isWeatherRelevant,
-      animal_number: patch.animalNumber,
-      animal_size: patch.animalSize,
-      animal_species: patch.animalSpecies,
+      isWeatherRelevant: patch.isWeatherRelevant,
+      animalNumber: patch.animalNumber,
+      animalSize: patch.animalSize,
+      animalSpecies: patch.animalSpecies,
       registration: patch.aircraftRegistration,
-      technical_faults: patch.aircraftTechnicalFault,
-      arrival_airport: patch.arrivalAirport,
-      departure_airport: patch.departureAirport,
-      is_dto_report: patch.isDtoReport,
-      linked_report_id: patch.linkedReportId,
+      technicalFaults: patch.aircraftTechnicalFault,
+      arrivalAirport: patch.arrivalAirport,
+      departureAirport: patch.departureAirport,
+      isDtoReport: patch.isDtoReport,
+      linkedReportId: patch.linkedReportId,
       comments: updated.comments ? JSON.stringify(updated.comments) : undefined,
       handling: updated.handling ? JSON.stringify(updated.handling) : undefined,
-      updated_by: updated.updatedBy,
-      updated_at: updated.updatedAt,
+      updatedBy: updated.updatedBy,
+      updatedAt: updated.updatedAt,
     })
-    .where('report_id', '=', existing.id)
+    .where('reportId', '=', existing.id)
     .execute()
 
   return updated
@@ -322,35 +324,35 @@ export async function updateOccurrence(
 export const addOccurrenceAccess = async (
   reportId: string,
   user: JWTUser,
-  executor: Executor = connection.db,
+  executor: Executor = connection.camelDb,
   ...access: OccurrenceAccess[]
 ): Promise<OccurrenceAccess[]> => {
   const inserted = await executor
-    .insertInto('flight.occurrence_access')
+    .insertInto('flight.occurrenceAccess')
     .values(
       access.map((access) => ({
-        report_id: reportId,
-        member_id: access.memberId,
-        role_id: access.roleId,
+        reportId: reportId,
+        memberId: access.memberId,
+        roleId: access.roleId,
         author: access.author,
-        write_access: access.write,
-        manage_access: access.manage,
-        updated_at: new Date(),
-        updated_by: user.memberId,
+        writeAccess: access.write,
+        manageAccess: access.manage,
+        updatedAt: new Date(),
+        updatedBy: user.memberId,
       })),
     )
     .returningAll()
     .execute()
 
   return inserted.map((a) => ({
-    accessId: a.access_id,
-    memberId: a.member_id,
-    roleId: a.role_id,
+    accessId: a.accessId,
+    memberId: a.memberId,
+    roleId: a.roleId,
     author: a.author,
-    write: a.write_access,
-    manage: a.manage_access,
-    at: a.updated_at.toISOString(),
-    by: a.updated_by,
+    write: a.writeAccess,
+    manage: a.manageAccess,
+    at: a.updatedAt.toISOString(),
+    by: a.updatedBy,
   }))
 }
 
@@ -358,25 +360,25 @@ export const updateOccurrenceAccess = async (
   reportId: string,
   access: OccurrenceAccess,
   user: JWTUser,
-  executor: Executor = connection.db,
+  executor: Executor = connection.camelDb,
 ) =>
   executor
-    .updateTable('flight.occurrence_access')
+    .updateTable('flight.occurrenceAccess')
     .set({
-      write_access: access.write,
-      manage_access: access.manage,
-      updated_at: new Date(),
-      updated_by: user.memberId,
+      writeAccess: access.write,
+      manageAccess: access.manage,
+      updatedAt: new Date(),
+      updatedBy: user.memberId,
     })
-    .where('report_id', '=', reportId)
-    .where('access_id', '=', access.accessId!)
+    .where('reportId', '=', reportId)
+    .where('accessId', '=', access.accessId!)
     .execute()
 
 export const deleteOccurrenceAccess = async (reportId: string, ...accessIds: number[]) =>
-  await connection.db
-    .deleteFrom('flight.occurrence_access')
-    .where('report_id', '=', reportId)
-    .where('access_id', 'in', accessIds)
+  await connection.camelDb
+    .deleteFrom('flight.occurrenceAccess')
+    .where('reportId', '=', reportId)
+    .where('accessId', 'in', accessIds)
     .execute()
 
 interface NewOccurrenceAttachment {
@@ -391,37 +393,37 @@ const insertOccurrenceAttachment = async (
   reportId: string,
   attachment: NewOccurrenceAttachment,
   createdBy: string,
-  executor: Executor = connection.db,
-): Promise<Selectable<FlightOccurrenceAttachments>> => {
+  executor: Executor = connection.camelDb,
+): Promise<CamelRow<'flight.occurrenceAttachments'>> => {
   const now = new Date()
   return executor
-    .insertInto('flight.occurrence_attachments')
+    .insertInto('flight.occurrenceAttachments')
     .values({
-      report_id: reportId,
-      file_name: attachment.fileName,
-      mime_type: attachment.mimeType,
-      file_size: attachment.fileSize,
-      storage_key: attachment.storageKey,
-      origin_status: attachment.originStatus,
-      created_at: now,
-      created_by: createdBy,
-      updated_at: now,
-      updated_by: createdBy,
+      reportId: reportId,
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType,
+      fileSize: attachment.fileSize,
+      storageKey: attachment.storageKey,
+      originStatus: attachment.originStatus,
+      createdAt: now,
+      createdBy: createdBy,
+      updatedAt: now,
+      updatedBy: createdBy,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
 }
 
 const mapAttachmentRow = (
-  row: Selectable<FlightOccurrenceAttachments>,
+  row: CamelRow<'flight.occurrenceAttachments'>,
   by: string,
 ): OccurrenceAttachment => ({
-  attachmentId: row.attachment_id,
-  fileName: row.file_name,
-  mimeType: row.mime_type,
-  fileSize: row.file_size,
-  originStatus: row.origin_status as OccurrenceStatus,
-  at: row.created_at.toISOString(),
+  attachmentId: row.attachmentId,
+  fileName: row.fileName,
+  mimeType: row.mimeType,
+  fileSize: row.fileSize,
+  originStatus: row.originStatus as OccurrenceStatus,
+  at: row.createdAt.toISOString(),
   by,
 })
 
@@ -434,14 +436,14 @@ export const addOccurrenceAttachment = async (
   user: JWTUser,
   maxAttachments: number,
 ): Promise<OccurrenceAttachment | undefined> =>
-  connection.db.transaction().execute(async (trx) => {
+  connection.camelDb.transaction().execute(async (trx) => {
     await sql`select pg_advisory_xact_lock(hashtext(${reportId}))`.execute(trx)
 
     const { count } = await trx
-      .selectFrom('flight.occurrence_attachments')
+      .selectFrom('flight.occurrenceAttachments')
       .select((eb) => eb.fn.countAll().as('count'))
-      .where('report_id', '=', reportId)
-      .where('removed_at', 'is', null)
+      .where('reportId', '=', reportId)
+      .where('removedAt', 'is', null)
       .executeTakeFirstOrThrow()
     if (Number(count) >= maxAttachments) {
       return undefined
@@ -452,20 +454,20 @@ export const addOccurrenceAttachment = async (
   })
 
 export const getOccurrenceAttachment = async (reportId: string, attachmentId: number) =>
-  connection.db
-    .selectFrom('flight.occurrence_attachments')
+  connection.camelDb
+    .selectFrom('flight.occurrenceAttachments')
     .selectAll()
-    .where('report_id', '=', reportId)
-    .where('attachment_id', '=', attachmentId)
-    .where('removed_at', 'is', null)
+    .where('reportId', '=', reportId)
+    .where('attachmentId', '=', attachmentId)
+    .where('removedAt', 'is', null)
     .executeTakeFirst()
 
 export const countOccurrenceAttachments = async (reportId: string): Promise<number> => {
-  const result = await connection.db
-    .selectFrom('flight.occurrence_attachments')
+  const result = await connection.camelDb
+    .selectFrom('flight.occurrenceAttachments')
     .select((eb) => eb.fn.countAll().as('count'))
-    .where('report_id', '=', reportId)
-    .where('removed_at', 'is', null)
+    .where('reportId', '=', reportId)
+    .where('removedAt', 'is', null)
     .executeTakeFirstOrThrow()
   return Number(result.count)
 }
@@ -476,21 +478,21 @@ export const removeOccurrenceAttachment = async (
   bucketName: string,
   user: JWTUser,
 ): Promise<void> => {
-  const removed = await connection.db
-    .updateTable('flight.occurrence_attachments')
+  const removed = await connection.camelDb
+    .updateTable('flight.occurrenceAttachments')
     .set({
-      removed_at: new Date(),
-      removed_by: user.memberId,
-      updated_at: new Date(),
-      updated_by: user.memberId,
+      removedAt: new Date(),
+      removedBy: user.memberId,
+      updatedAt: new Date(),
+      updatedBy: user.memberId,
     })
-    .where('report_id', '=', reportId)
-    .where('attachment_id', '=', attachmentId)
-    .returning('storage_key')
+    .where('reportId', '=', reportId)
+    .where('attachmentId', '=', attachmentId)
+    .returning('storageKey')
     .executeTakeFirst()
 
   if (removed) {
-    await storageService.deleteFile(removed.storage_key, bucketName)
+    await storageService.deleteFile(removed.storageKey, bucketName)
   }
 }
 
@@ -501,41 +503,41 @@ export const copyOccurrenceAttachments = async (
   fromReportId: string,
   toReportId: string,
   bucketName: string,
-  executor: Executor = connection.db,
+  executor: Executor = connection.camelDb,
 ): Promise<OccurrenceAttachment[]> => {
   const source = await executor
-    .selectFrom('flight.occurrence_attachments')
-    .selectAll('flight.occurrence_attachments')
+    .selectFrom('flight.occurrenceAttachments')
+    .selectAll('flight.occurrenceAttachments')
     .leftJoin(
       'member.register',
-      'flight.occurrence_attachments.created_by',
-      'member.register.member_id',
+      'flight.occurrenceAttachments.createdBy',
+      'member.register.memberId',
     )
-    .select('member.register.last_name')
-    .where('flight.occurrence_attachments.report_id', '=', fromReportId)
-    .where('flight.occurrence_attachments.removed_at', 'is', null)
+    .select('member.register.lastName')
+    .where('flight.occurrenceAttachments.reportId', '=', fromReportId)
+    .where('flight.occurrenceAttachments.removedAt', 'is', null)
     .execute()
 
   return Promise.all(
     source.map(async (attachment) => {
-      const destKey = attachment.storage_key.replace(
+      const destKey = attachment.storageKey.replace(
         `occurrences/${fromReportId}/`,
         `occurrences/${toReportId}/`,
       )
-      await storageService.copyFile(attachment.storage_key, destKey, bucketName)
+      await storageService.copyFile(attachment.storageKey, destKey, bucketName)
       const row = await insertOccurrenceAttachment(
         toReportId,
         {
-          fileName: attachment.file_name,
-          mimeType: attachment.mime_type,
-          fileSize: attachment.file_size,
+          fileName: attachment.fileName,
+          mimeType: attachment.mimeType,
+          fileSize: attachment.fileSize,
           storageKey: destKey,
-          originStatus: attachment.origin_status as OccurrenceStatus,
+          originStatus: attachment.originStatus as OccurrenceStatus,
         },
-        attachment.created_by,
+        attachment.createdBy,
         executor,
       )
-      return mapAttachmentRow(row, attachment.last_name ?? attachment.created_by)
+      return mapAttachmentRow(row, attachment.lastName ?? attachment.createdBy)
     }),
   )
 }

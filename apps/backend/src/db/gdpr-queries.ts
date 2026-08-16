@@ -14,7 +14,7 @@
  *    material used to encrypt push payloads, not personal data.
  */
 
-import { camelDb } from './connection.ts'
+import { camelCaseNestedRows, camelDb } from './connection.ts'
 import { sql } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
@@ -229,7 +229,7 @@ export async function getGdprPendingEmailChanges(memberId: string) {
 // ─── Incident / occurrence reports ────────────────────────────────────────────
 
 export async function getGdprIncidentReports(memberId: string) {
-  return camelDb
+  const rows = await camelDb
     .selectFrom('flight.occurrences as o')
     .selectAll('o')
     .select((eb) =>
@@ -257,6 +257,14 @@ export async function getGdprIncidentReports(memberId: string) {
     .distinctOn('o.reportId')
     .orderBy('o.reportId')
     .execute()
+
+  // The nested attachments come out of Postgres snake_case (see camelCaseNestedRows),
+  // so without this the member's data export mixes camelCase fields with snake_case
+  // ones inside `attachments`.
+  return rows.map((row) => ({
+    ...row,
+    attachments: camelCaseNestedRows(row.attachments),
+  }))
 }
 
 // ─── Profile audit trail ──────────────────────────────────────────────────────

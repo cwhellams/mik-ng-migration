@@ -16,13 +16,13 @@ router.use(validateUser(MIKPermissions.OUTBOX_ADMIN))
 function toOutboxItemDto(row: Awaited<ReturnType<typeof getOutboxItems>>[number]): OutboxItem {
   return {
     id: row.id,
-    event_type: row.event_type,
+    event_type: row.eventType,
     status: row.status as OutboxItem['status'],
     payload: row.payload,
-    created_at_utc: new Date(row.created_at_utc).toISOString(),
-    updated_at_utc: new Date(row.updated_at_utc).toISOString(),
-    processed_at: row.processed_at != null ? new Date(row.processed_at).toISOString() : null,
-    error_message: row.error_message ?? null,
+    created_at_utc: new Date(row.createdAtUtc).toISOString(),
+    updated_at_utc: new Date(row.updatedAtUtc).toISOString(),
+    processed_at: row.processedAt != null ? new Date(row.processedAt).toISOString() : null,
+    error_message: row.errorMessage ?? null,
   }
 }
 
