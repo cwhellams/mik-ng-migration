@@ -74,7 +74,7 @@ import {
 import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '@mik/contracts/schema'
-import { RegisterRequestSchema } from '@mik/contracts/auth'
+import { RegisterRequestSchema, juniorAgeIssues } from '@mik/contracts/auth'
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import { HttpStatusCode } from 'axios'
@@ -325,6 +325,21 @@ router.patch(
   async (req: Request, res: Response<Member>): Promise<void> => {
     // only subset of member fields are editable here, the rest are skipped
     const patch = MemberProfileSchema.partial().parse(req.body)
+
+    // memberType isn't editable here, but dateOfBirth is — a junior member could
+    // otherwise self-edit their way out of the age-15-17 window this schema doesn't
+    // check without knowing the member's current memberType.
+    if ('dateOfBirth' in patch) {
+      const existingMember = await getMemberById(req.user!.memberId)
+      const ageIssues = juniorAgeIssues(existingMember!.memberType, patch.dateOfBirth)
+      if (ageIssues.length > 0) {
+        return problem({
+          status: 400,
+          detail: ageIssues[0].message,
+          extensions: { errors: ageIssues },
+        })
+      }
+    }
 
     const mailingListSync = await captureMailingListSyncData(req.user!.memberId, patch.mailingLists)
 
@@ -698,6 +713,22 @@ router.patch(
     const existingMember = await getMemberById(memberId)
     if (!existingMember) {
       return problem({ status: 404 })
+    }
+
+    // memberType and dateOfBirth can each be patched independently (the admin edit UI
+    // sends them in separate requests), so RegisterRequestSchema's age check — which only
+    // ever sees both together at registration time — can't catch a patch that leaves the
+    // member JUNIOR with an out-of-range age. Validate the effective post-patch state.
+    const effectiveMemberType = patch.memberType ?? existingMember.memberType
+    const effectiveDateOfBirth =
+      'dateOfBirth' in patch ? patch.dateOfBirth : existingMember.dateOfBirth
+    const ageIssues = juniorAgeIssues(effectiveMemberType, effectiveDateOfBirth)
+    if (ageIssues.length > 0) {
+      return problem({
+        status: 400,
+        detail: ageIssues[0].message,
+        extensions: { errors: ageIssues },
+      })
     }
 
     if (patch.email) {

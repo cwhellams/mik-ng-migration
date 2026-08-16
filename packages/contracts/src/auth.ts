@@ -34,6 +34,78 @@ export function calculateAge(dateOfBirth: string): number {
   return age
 }
 
+// Minimal issue shape both z.RefinementCtx#addIssue and a manually-thrown
+// ZodError-like Problem response can consume.
+export interface JuniorAgeIssue {
+  [x: string]: unknown
+  code: 'custom'
+  message: string
+  path: string[]
+}
+
+// Checks the JUNIOR-membership age window (15-17 inclusive) for a given
+// memberType/dateOfBirth pair. Returns the issues to raise, or an empty
+// array when the pair is fine (including when memberType isn't JUNIOR).
+// Shared by RegisterRequestSchema's superRefine and by backend routes that can
+// leave a member in this state outside registration (e.g. admin edits that
+// change memberType or dateOfBirth independently of each other).
+export function juniorAgeIssues(
+  memberType: MIKMemberTypes,
+  dateOfBirth: string | null | undefined,
+): JuniorAgeIssue[] {
+  if (memberType !== MIKMemberTypes.JUNIOR) return []
+
+  if (!dateOfBirth) {
+    return [
+      {
+        code: z.ZodIssueCode.custom,
+        message: 'Date of birth is required for junior membership',
+        path: ['dateOfBirth'],
+      },
+    ]
+  }
+
+  const age = calculateAge(dateOfBirth)
+  if (isNaN(age)) {
+    return [
+      {
+        code: z.ZodIssueCode.custom,
+        message: 'Date of birth must be a valid date',
+        path: ['dateOfBirth'],
+      },
+    ]
+  }
+  if (age < 0) {
+    return [
+      {
+        code: z.ZodIssueCode.custom,
+        message: 'Date of birth must not be in the future',
+        path: ['dateOfBirth'],
+      },
+    ]
+  }
+
+  const issues: JuniorAgeIssue[] = []
+  if (age >= 18) {
+    issues.push({
+      code: z.ZodIssueCode.custom,
+      message: 'Junior membership is only available for members under 18 years old',
+      path: ['dateOfBirth'],
+    })
+  }
+  // Finnish Guardianship Services Act (laki holhoustoimesta, 442/1999) § 25 lets a
+  // person who has turned 15 join an association without guardian consent — below
+  // that, membership isn't something the applicant can request on their own.
+  if (age < 15) {
+    issues.push({
+      code: z.ZodIssueCode.custom,
+      message: 'Junior membership is only available for members aged 15 or older',
+      path: ['dateOfBirth'],
+    })
+  }
+  return issues
+}
+
 // register
 
 export const RegisterRequestSchema = MemberProfileSchema.extend({
@@ -70,49 +142,8 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
     .regex(/^[A-Z]{2}$/, 'member.countryInvalid')
     .default('FI'),
 }).superRefine((data, ctx) => {
-  if (data.memberType === MIKMemberTypes.JUNIOR) {
-    if (!data.dateOfBirth) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Date of birth is required for junior membership',
-        path: ['dateOfBirth'],
-      })
-      return
-    }
-    const age = calculateAge(data.dateOfBirth)
-    if (isNaN(age)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Date of birth must be a valid date',
-        path: ['dateOfBirth'],
-      })
-      return
-    }
-    if (age < 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Date of birth must not be in the future',
-        path: ['dateOfBirth'],
-      })
-      return
-    }
-    if (age >= 18) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Junior membership is only available for members under 18 years old',
-        path: ['dateOfBirth'],
-      })
-    }
-    // Finnish Guardianship Services Act (laki holhoustoimesta, 442/1999) § 25 lets a
-    // person who has turned 15 join an association without guardian consent — below
-    // that, membership isn't something the applicant can request on their own.
-    if (age < 15) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Junior membership is only available for members aged 15 or older',
-        path: ['dateOfBirth'],
-      })
-    }
+  for (const issue of juniorAgeIssues(data.memberType, data.dateOfBirth)) {
+    ctx.addIssue(issue)
   }
 
   // Postcode must be digits-only whenever provided (all member types)

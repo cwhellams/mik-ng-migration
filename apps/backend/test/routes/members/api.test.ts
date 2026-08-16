@@ -1081,6 +1081,135 @@ describe('PATCH /members/id', () => {
   })
 })
 
+describe('PATCH /members/id junior membership minimum age', () => {
+  const patch = async (id: string, payload: Partial<Member>, token: string) =>
+    request(app).patch(`/members/${id}`).set('Cookie', `accessToken=${token}`).send(payload)
+
+  let adultMemberId: string
+  let juniorMemberId: string
+
+  beforeAll(async () => {
+    adultMemberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email: `junior-age-adult-${Date.now()}@test.com`,
+      firstName: 'AgeTest',
+      lastName: 'Adult',
+      lang: MIKLang.FI,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+      dateOfBirth: dayjs().subtract(30, 'year').format('YYYY-MM-DD'),
+    })
+
+    juniorMemberId = await addMember({
+      memberType: MIKMemberTypes.JUNIOR,
+      email: `junior-age-junior-${Date.now()}@test.com`,
+      firstName: 'AgeTest',
+      lastName: 'Junior',
+      lang: MIKLang.FI,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+      dateOfBirth: dayjs().subtract(16, 'year').format('YYYY-MM-DD'),
+    })
+  })
+
+  afterAll(async () => {
+    await db
+      .deleteFrom('member.register')
+      .where('memberId', 'in', [adultMemberId, juniorMemberId])
+      .execute()
+    await db
+      .deleteFrom('member.registerAudit')
+      .where('memberId', 'in', [adultMemberId, juniorMemberId])
+      .execute()
+  })
+
+  it('rejects switching a member to JUNIOR when their stored date of birth makes them an adult', async () => {
+    const response = await patch(adultMemberId, { memberType: MIKMemberTypes.JUNIOR }, adminToken)
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toMatch(/under 18/)
+  })
+
+  it('rejects editing a JUNIOR member date of birth below the minimum age of 15', async () => {
+    const response = await patch(
+      juniorMemberId,
+      { dateOfBirth: dayjs().subtract(10, 'year').format('YYYY-MM-DD') },
+      adminToken,
+    )
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toMatch(/15 or older/)
+  })
+
+  it('allows editing a JUNIOR member date of birth to a valid age', async () => {
+    const response = await patch(
+      juniorMemberId,
+      { dateOfBirth: dayjs().subtract(16, 'year').format('YYYY-MM-DD') },
+      adminToken,
+    )
+
+    expect(response.status).toBe(200)
+  })
+})
+
+describe('PATCH /members/me junior membership minimum age', () => {
+  const patch = async (token: string, payload: Partial<Member>) =>
+    request(app).patch('/members/me').set('Cookie', `accessToken=${token}`).send(payload)
+
+  let juniorSelfId: string
+  let juniorSelfToken: string
+
+  beforeAll(async () => {
+    juniorSelfId = await addMember({
+      memberType: MIKMemberTypes.JUNIOR,
+      email: `junior-age-self-${Date.now()}@test.com`,
+      firstName: 'AgeTest',
+      lastName: 'JuniorSelf',
+      lang: MIKLang.FI,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+      dateOfBirth: dayjs().subtract(16, 'year').format('YYYY-MM-DD'),
+    })
+
+    juniorSelfToken = generateAccessToken({
+      memberId: juniorSelfId,
+      lastName: 'JuniorSelf',
+      email: `junior-age-self-${Date.now()}@test.com`,
+      roles: ['MEMBER'],
+      permissions: [MIKPermissions.MEMBER],
+      canMakeReservations: false,
+    })
+  })
+
+  afterAll(async () => {
+    await db.deleteFrom('member.register').where('memberId', '=', juniorSelfId).execute()
+    await db.deleteFrom('member.registerAudit').where('memberId', '=', juniorSelfId).execute()
+  })
+
+  it('rejects a JUNIOR member editing their own date of birth below the minimum age of 15', async () => {
+    const response = await patch(juniorSelfToken, {
+      dateOfBirth: dayjs().subtract(10, 'year').format('YYYY-MM-DD'),
+    })
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toMatch(/15 or older/)
+  })
+
+  it('allows a JUNIOR member editing their own date of birth to a valid age', async () => {
+    const response = await patch(juniorSelfToken, {
+      dateOfBirth: dayjs().subtract(17, 'year').format('YYYY-MM-DD'),
+    })
+
+    expect(response.status).toBe(200)
+  })
+})
+
 describe('POST /members/must-update-profile', () => {
   const memberIds = ['Matti1', 'Liisa1']
 
