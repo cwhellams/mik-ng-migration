@@ -96,9 +96,9 @@ export const router = Router()
 router.use(validateUser(MIKPermissions.MEMBER))
 
 router.get('/flight-time/aircraft', async (req: Request, res: Response<TotalFlightTimeByAc[]>) => {
-  const { aircraft_registration, date } = req.query
+  const { aircraftRegistration, date } = req.query
   const data = await getTotalFlightTimeByAc({
-    aircraft_registration: aircraft_registration as string | undefined,
+    aircraftRegistration: aircraftRegistration as string | undefined,
     date: date as string | undefined,
   })
   res.status(200).json(data)
@@ -108,8 +108,8 @@ router.get(
   '/flight-time/aircraft/calendar',
   async (req: Request, res: Response<TotalFlightTimeByAcCalendar[]>) => {
     const data = await getTotalFlightTimeByAcDt({
-      date_from: req.query.date_from as string | undefined,
-      date_to: req.query.date_to as string | undefined,
+      dateFrom: req.query.dateFrom as string | undefined,
+      dateTo: req.query.dateTo as string | undefined,
     })
 
     res.status(200).json(Object.values(data))
@@ -119,12 +119,12 @@ router.get(
 router.get(
   '/flight-time/aircraft/year',
   async (req: Request, res: Response<TotalFlightTimeByAcYrFt[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getTotalFlightTimeByAcYrFt({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -133,12 +133,12 @@ router.get(
 router.get(
   '/flight-time/aircraft/year/month',
   async (req: Request, res: Response<TotalFlightTimeByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getTotalFlightTimeByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -148,9 +148,9 @@ router.get(
 router.get(
   '/dto/flight-time/aircraft',
   async (req: Request, res: Response<DtoFlightTimeByAc[]>) => {
-    const { aircraft_registration, date } = req.query
+    const { aircraftRegistration, date } = req.query
     const data = await getDtoFlightTimeByAc({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       date: date as string | undefined,
     })
     res.status(200).json(data)
@@ -160,9 +160,9 @@ router.get(
 router.get(
   '/non-billable/flight-time/aircraft',
   async (req: Request, res: Response<NonBillableFlightTimeByAc[]>) => {
-    const { aircraft_registration, date } = req.query
+    const { aircraftRegistration, date } = req.query
     const data = await getNonBillableFlightTimeByAc({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       date: date as string | undefined,
     })
     res.status(200).json(data)
@@ -172,12 +172,12 @@ router.get(
 router.get(
   '/non-billable/flight-time/aircraft/year',
   async (req: Request, res: Response<NonBillableFlightTimeByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getNonBillableFlightTimeByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -186,12 +186,12 @@ router.get(
 router.get(
   '/non-billable/flight-time/aircraft/year/month',
   async (req: Request, res: Response<NonBillableFlightTimeByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getNonBillableFlightTimeByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -199,23 +199,23 @@ router.get(
 )
 
 router.get('/visited-airfields', async (req: Request, res: Response<VisitedAirfieldsByAc[]>) => {
-  const { aircraft_registration, yr, yr_from, yr_to } = req.query
+  const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
   const data = await getVisitedAirfieldsByAc({
-    aircraft_registration: aircraft_registration as string | undefined,
+    aircraftRegistration: aircraftRegistration as string | undefined,
     yr: yr ? Number(yr) : undefined,
-    yr_from: yr_from ? Number(yr_from) : undefined,
-    yr_to: yr_to ? Number(yr_to) : undefined,
+    yrFrom: yrFrom ? Number(yrFrom) : undefined,
+    yrTo: yrTo ? Number(yrTo) : undefined,
   })
   res.status(200).json(data)
 })
 
 router.get('/landings/year', async (req: Request, res: Response<TotalLandingsByAcYr[]>) => {
-  const { aircraft_registration, yr, yr_from, yr_to } = req.query
+  const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
   const data = await getTotalLandingsByAcYr({
-    aircraft_registration: aircraft_registration as string | undefined,
+    aircraftRegistration: aircraftRegistration as string | undefined,
     yr: yr ? Number(yr) : undefined,
-    yr_from: yr_from ? Number(yr_from) : undefined,
-    yr_to: yr_to ? Number(yr_to) : undefined,
+    yrFrom: yrFrom ? Number(yrFrom) : undefined,
+    yrTo: yrTo ? Number(yrTo) : undefined,
   })
   res.status(200).json(data)
 })
@@ -223,12 +223,12 @@ router.get('/landings/year', async (req: Request, res: Response<TotalLandingsByA
 router.get(
   '/oil-uplift/year/month',
   async (req: Request, res: Response<TotalOilUpliftByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getTotalOilUpliftByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -238,12 +238,12 @@ router.get(
 router.get(
   '/fuel-uplift/year/month',
   async (req: Request, res: Response<TotalFuelUpliftByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getTotalFuelUpliftByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -253,12 +253,12 @@ router.get(
 router.get(
   '/flight-stats/year',
   async (req: Request, res: Response<LongestShortestAvgFlightByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getLongestShortestAvgFlightByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -281,12 +281,12 @@ router.get('/pilot/flight-time', async (req: Request, res: Response<TotalFlightT
 router.get(
   '/pilot/flight-time/year',
   async (req: Request, res: Response<TotalFlightTimeByPilotYr[]>) => {
-    const { pilot, yr, yr_from, yr_to } = req.query
+    const { pilot, yr, yrFrom, yrTo } = req.query
     const data = await getTotalFlightTimeByPilotYr({
       pilot: pilot as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -295,12 +295,12 @@ router.get(
 router.get(
   '/pilot/flight-time/year/month',
   async (req: Request, res: Response<TotalFlightTimeByPilotYrMth[]>) => {
-    const { pilot, yr, yr_from, yr_to, mth } = req.query
+    const { pilot, yr, yrFrom, yrTo, mth } = req.query
     const data = await getTotalFlightTimeByPilotYrMth({
       pilot: pilot as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -331,11 +331,11 @@ router.get('/my', async (req: Request, res: Response<MyStatistics>) => {
 router.get(
   '/reservation-efficiency/year',
   async (req: Request, res: Response<ReservationEfficiencyByYr[]>) => {
-    const { yr, yr_from, yr_to } = req.query
+    const { yr, yrFrom, yrTo } = req.query
     const data = await getReservationEfficiencyByYr({
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -344,11 +344,11 @@ router.get(
 router.get(
   '/reservation-efficiency/year/month',
   async (req: Request, res: Response<ReservationEfficiencyByYrMth[]>) => {
-    const { yr, yr_from, yr_to, mth } = req.query
+    const { yr, yrFrom, yrTo, mth } = req.query
     const data = await getReservationEfficiencyByYrMth({
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -358,12 +358,12 @@ router.get(
 router.get(
   '/reservation-efficiency/aircraft/year',
   async (req: Request, res: Response<ReservationEfficiencyByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getReservationEfficiencyByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -372,12 +372,12 @@ router.get(
 router.get(
   '/reservation-efficiency/aircraft/year/month',
   async (req: Request, res: Response<ReservationEfficiencyByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getReservationEfficiencyByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -387,12 +387,12 @@ router.get(
 router.get(
   '/reservation-efficiency/member/year',
   async (req: Request, res: Response<ReservationEfficiencyByMemberYr[]>) => {
-    const { member, yr, yr_from, yr_to } = req.query
+    const { member, yr, yrFrom, yrTo } = req.query
     const data = await getReservationEfficiencyByMemberYr({
       member: member as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -401,12 +401,12 @@ router.get(
 router.get(
   '/reservation-efficiency/member/year/month',
   async (req: Request, res: Response<ReservationEfficiencyByMemberYrMth[]>) => {
-    const { member, yr, yr_from, yr_to, mth } = req.query
+    const { member, yr, yrFrom, yrTo, mth } = req.query
     const data = await getReservationEfficiencyByMemberYrMth({
       member: member as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -416,11 +416,11 @@ router.get(
 router.get(
   '/airfield-efficiency/year',
   async (req: Request, res: Response<AirfieldEfficiencyByYr[]>) => {
-    const { yr, yr_from, yr_to } = req.query
+    const { yr, yrFrom, yrTo } = req.query
     const data = await getAirfieldEfficiencyByYr({
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -429,11 +429,11 @@ router.get(
 router.get(
   '/airfield-efficiency/year/month',
   async (req: Request, res: Response<AirfieldEfficiencyByYrMth[]>) => {
-    const { yr, yr_from, yr_to, mth } = req.query
+    const { yr, yrFrom, yrTo, mth } = req.query
     const data = await getAirfieldEfficiencyByYrMth({
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -443,12 +443,12 @@ router.get(
 router.get(
   '/airfield-efficiency/aircraft/year',
   async (req: Request, res: Response<AirfieldEfficiencyByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getAirfieldEfficiencyByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -457,12 +457,12 @@ router.get(
 router.get(
   '/airfield-efficiency/aircraft/year/month',
   async (req: Request, res: Response<AirfieldEfficiencyByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getAirfieldEfficiencyByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -473,11 +473,11 @@ router.get(
 router.get(
   '/school-flight-efficiency/year',
   async (req: Request, res: Response<SchoolFlightEfficiencyByYr[]>) => {
-    const { yr, yr_from, yr_to } = req.query
+    const { yr, yrFrom, yrTo } = req.query
     const data = await getSchoolFlightEfficiencyByYr({
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -486,11 +486,11 @@ router.get(
 router.get(
   '/school-flight-efficiency/year/month',
   async (req: Request, res: Response<SchoolFlightEfficiencyByYrMth[]>) => {
-    const { yr, yr_from, yr_to, mth } = req.query
+    const { yr, yrFrom, yrTo, mth } = req.query
     const data = await getSchoolFlightEfficiencyByYrMth({
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -500,12 +500,12 @@ router.get(
 router.get(
   '/school-flight-efficiency/aircraft/year',
   async (req: Request, res: Response<SchoolFlightEfficiencyByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getSchoolFlightEfficiencyByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -514,12 +514,12 @@ router.get(
 router.get(
   '/school-flight-efficiency/aircraft/year/month',
   async (req: Request, res: Response<SchoolFlightEfficiencyByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getSchoolFlightEfficiencyByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -529,12 +529,12 @@ router.get(
 router.get(
   '/school-flight-efficiency/instructor/year',
   async (req: Request, res: Response<SchoolFlightEfficiencyByInstructorYr[]>) => {
-    const { instructor, yr, yr_from, yr_to } = req.query
+    const { instructor, yr, yrFrom, yrTo } = req.query
     const data = await getSchoolFlightEfficiencyByInstructorYr({
       instructor: instructor as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -543,12 +543,12 @@ router.get(
 router.get(
   '/school-flight-efficiency/instructor/year/month',
   async (req: Request, res: Response<SchoolFlightEfficiencyByInstructorYrMth[]>) => {
-    const { instructor, yr, yr_from, yr_to, mth } = req.query
+    const { instructor, yr, yrFrom, yrTo, mth } = req.query
     const data = await getSchoolFlightEfficiencyByInstructorYrMth({
       instructor: instructor as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -556,23 +556,23 @@ router.get(
 )
 
 router.get('/aog/aircraft/year', async (req: Request, res: Response<AogDaysByAcYr[]>) => {
-  const { aircraft_registration, yr, yr_from, yr_to } = req.query
+  const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
   const data = await getAogDaysByAcYr({
-    aircraft_registration: aircraft_registration as string | undefined,
+    aircraftRegistration: aircraftRegistration as string | undefined,
     yr: yr ? Number(yr) : undefined,
-    yr_from: yr_from ? Number(yr_from) : undefined,
-    yr_to: yr_to ? Number(yr_to) : undefined,
+    yrFrom: yrFrom ? Number(yrFrom) : undefined,
+    yrTo: yrTo ? Number(yrTo) : undefined,
   })
   res.status(200).json(data)
 })
 
 router.get('/aog/aircraft/year/month', async (req: Request, res: Response<AogDaysByAcYrMth[]>) => {
-  const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+  const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
   const data = await getAogDaysByAcYrMth({
-    aircraft_registration: aircraft_registration as string | undefined,
+    aircraftRegistration: aircraftRegistration as string | undefined,
     yr: yr ? Number(yr) : undefined,
-    yr_from: yr_from ? Number(yr_from) : undefined,
-    yr_to: yr_to ? Number(yr_to) : undefined,
+    yrFrom: yrFrom ? Number(yrFrom) : undefined,
+    yrTo: yrTo ? Number(yrTo) : undefined,
     mth: mth ? Number(mth) : undefined,
   })
   res.status(200).json(data)
@@ -581,12 +581,12 @@ router.get('/aog/aircraft/year/month', async (req: Request, res: Response<AogDay
 router.get(
   '/pob-distribution/year',
   async (req: Request, res: Response<PobDistributionByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getPobDistributionByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -595,12 +595,12 @@ router.get(
 router.get(
   '/safety/occurrences-per-100h/aircraft/year',
   async (req: Request, res: Response<OccurrencesPerHundredHrsByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getOccurrencesPerHundredHrsByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -619,12 +619,12 @@ router.use(
 router.get(
   '/dto/flight-time/aircraft/year',
   async (req: Request, res: Response<DtoFlightTimeByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo } = req.query
     const data = await getDtoFlightTimeByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
     })
     res.status(200).json(data)
   },
@@ -633,12 +633,12 @@ router.get(
 router.get(
   '/dto/flight-time/aircraft/year/month',
   async (req: Request, res: Response<DtoFlightTimeByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getDtoFlightTimeByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
@@ -648,12 +648,12 @@ router.get(
 router.get(
   '/commercial/flight-time/aircraft/year/month',
   async (req: Request, res: Response<CommercialFlightTimeByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const { aircraftRegistration, yr, yrFrom, yrTo, mth } = req.query
     const data = await getCommercialFlightTimeByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
+      aircraftRegistration: aircraftRegistration as string | undefined,
       yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
+      yrFrom: yrFrom ? Number(yrFrom) : undefined,
+      yrTo: yrTo ? Number(yrTo) : undefined,
       mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)

@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb } from './connection.ts'
 import { sql } from 'kysely'
 import type { SelectQueryBuilder } from 'kysely'
 import type {
@@ -51,7 +51,7 @@ import type {
 // Helper function to apply year filters
 const applyYearFilter = <DB, TB extends keyof DB, O>(
   query: SelectQueryBuilder<DB, TB, O>,
-  filters?: { yr?: number; yr_from?: number; yr_to?: number },
+  filters?: { yr?: number; yrFrom?: number; yrTo?: number },
 ): SelectQueryBuilder<DB, TB, O> => {
   if (!filters) return query
 
@@ -59,33 +59,33 @@ const applyYearFilter = <DB, TB extends keyof DB, O>(
     return query.where('yr' as any, '=', filters.yr)
   }
 
-  if (filters.yr_from) {
-    query = query.where('yr' as any, '>=', filters.yr_from)
+  if (filters.yrFrom) {
+    query = query.where('yr' as any, '>=', filters.yrFrom)
   }
-  if (filters.yr_to) {
-    query = query.where('yr' as any, '<=', filters.yr_to)
+  if (filters.yrTo) {
+    query = query.where('yr' as any, '<=', filters.yrTo)
   }
 
   return query
 }
 
 export const getTotalFlightTimeByAcDt = async (filters?: {
-  aircraft_registration?: string
-  date_from?: string
-  date_to?: string
+  aircraftRegistration?: string
+  dateFrom?: string
+  dateTo?: string
 }): Promise<TotalFlightTimeByAcCalendar[]> => {
-  let query = db.selectFrom('stats.total_flight_time_by_ac_dt').selectAll()
+  let query = camelDb.selectFrom('stats.totalFlightTimeByAcDt').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
 
-  if (filters?.date_from) {
-    query = query.where('date', '>=', filters.date_from)
+  if (filters?.dateFrom) {
+    query = query.where('date', '>=', filters.dateFrom)
   }
 
-  if (filters?.date_to) {
-    query = query.where('date', '<=', filters.date_to)
+  if (filters?.dateTo) {
+    query = query.where('date', '<=', filters.dateTo)
   }
 
   return await query.execute()
@@ -93,41 +93,41 @@ export const getTotalFlightTimeByAcDt = async (filters?: {
 
 // V540: Total Flight Time Queries
 export const getTotalFlightTimeByAc = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   date?: string
-  date_from?: string
-  date_to?: string
+  dateFrom?: string
+  dateTo?: string
 }): Promise<TotalFlightTimeByAc[]> => {
-  let query = db.selectFrom('stats.total_flight_time_by_ac_ft').selectAll()
+  let query = camelDb.selectFrom('stats.totalFlightTimeByAcFt').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   if (filters?.date) {
     query = query.where('date', '=', filters.date)
   }
 
-  if (filters?.date_from) {
-    query = query.where('date', '>=', filters.date_from)
+  if (filters?.dateFrom) {
+    query = query.where('date', '>=', filters.dateFrom)
   }
 
-  if (filters?.date_to) {
-    query = query.where('date', '<=', filters.date_to)
+  if (filters?.dateTo) {
+    query = query.where('date', '<=', filters.dateTo)
   }
 
   return await query.execute()
 }
 
 export const getTotalFlightTimeByAcYrFt = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<TotalFlightTimeByAcYrFt[]> => {
-  let query = db.selectFrom('stats.total_flight_time_by_ac_yr_ft').selectAll()
+  let query = camelDb.selectFrom('stats.totalFlightTimeByAcYrFt').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
@@ -135,38 +135,38 @@ export const getTotalFlightTimeByAcYrFt = async (filters?: {
 }
 
 export const getTotalFlightTimeByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<TotalFlightTimeByAcYr[]> => {
-  let query = db
-    .selectFrom('stats.total_flight_time_by_ac_yr')
-    .select(['aircraft_registration', 'total_flight_mins', 'yr'])
+  let query = camelDb
+    .selectFrom('stats.totalFlightTimeByAcYr')
+    .select(['aircraftRegistration', 'totalFlightMins', 'yr'])
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
   const results = await query.execute()
   return results.map((row) => ({
     ...row,
-    total_flight_mins: row.total_flight_mins ? Number(row.total_flight_mins) : null,
+    totalFlightMins: row.totalFlightMins != null ? Number(row.totalFlightMins) : null,
   }))
 }
 
 export const getTotalFlightTimeByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<TotalFlightTimeByAcYrMth[]> => {
-  let query = db.selectFrom('stats.total_flight_time_by_ac_yr_mth_ft').selectAll()
+  let query = camelDb.selectFrom('stats.totalFlightTimeByAcYrMthFt').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -178,13 +178,13 @@ export const getTotalFlightTimeByAcYrMth = async (filters?: {
 
 // V560: Non-Billable Flight Time Queries
 export const getNonBillableFlightTimeByAc = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   date?: string
 }): Promise<NonBillableFlightTimeByAc[]> => {
-  let query = db.selectFrom('stats.non_billable_total_flight_time_by_ac').selectAll()
+  let query = camelDb.selectFrom('stats.nonBillableTotalFlightTimeByAc').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   if (filters?.date) {
     query = query.where('date', '=', filters.date)
@@ -194,15 +194,15 @@ export const getNonBillableFlightTimeByAc = async (filters?: {
 }
 
 export const getNonBillableFlightTimeByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<NonBillableFlightTimeByAcYr[]> => {
-  let query = db.selectFrom('stats.non_billable_total_flight_time_by_ac_yr').selectAll()
+  let query = camelDb.selectFrom('stats.nonBillableTotalFlightTimeByAcYr').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
@@ -210,16 +210,16 @@ export const getNonBillableFlightTimeByAcYr = async (filters?: {
 }
 
 export const getNonBillableFlightTimeByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<NonBillableFlightTimeByAcYrMth[]> => {
-  let query = db.selectFrom('stats.non_billable_total_flight_time_by_ac_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.nonBillableTotalFlightTimeByAcYrMth').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -231,15 +231,15 @@ export const getNonBillableFlightTimeByAcYrMth = async (filters?: {
 
 // V570: Various Aircraft Stats Queries
 export const getVisitedAirfieldsByAc = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<VisitedAirfieldsByAc[]> => {
-  let query = db.selectFrom('stats.visited_airfields_by_ac').selectAll()
+  let query = camelDb.selectFrom('stats.visitedAirfieldsByAc').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
@@ -247,15 +247,15 @@ export const getVisitedAirfieldsByAc = async (filters?: {
 }
 
 export const getTotalLandingsByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<TotalLandingsByAcYr[]> => {
-  let query = db.selectFrom('stats.total_landings_by_ac_yr').selectAll()
+  let query = camelDb.selectFrom('stats.totalLandingsByAcYr').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
@@ -263,16 +263,16 @@ export const getTotalLandingsByAcYr = async (filters?: {
 }
 
 export const getTotalOilUpliftByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<TotalOilUpliftByAcYrMth[]> => {
-  let query = db.selectFrom('stats.total_oil_uplift_by_ac_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.totalOilUpliftByAcYrMth').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -283,16 +283,16 @@ export const getTotalOilUpliftByAcYrMth = async (filters?: {
 }
 
 export const getTotalFuelUpliftByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<TotalFuelUpliftByAcYrMth[]> => {
-  let query = db.selectFrom('stats.total_fuel_uplift_by_ac_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.totalFuelUpliftByAcYrMth').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -303,15 +303,15 @@ export const getTotalFuelUpliftByAcYrMth = async (filters?: {
 }
 
 export const getLongestShortestAvgFlightByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<LongestShortestAvgFlightByAcYr[]> => {
-  let query = db.selectFrom('stats.longest_shortest_avg_flight_by_ac_yr').selectAll()
+  let query = camelDb.selectFrom('stats.longestShortestAvgFlightByAcYr').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
@@ -319,7 +319,7 @@ export const getLongestShortestAvgFlightByAcYr = async (filters?: {
 }
 
 export const getMemberCountByType = async (): Promise<MemberCountByType[]> => {
-  return await db.selectFrom('stats.member_count_by_type').selectAll().execute()
+  return await camelDb.selectFrom('stats.memberCountByType').selectAll().execute()
 }
 
 // V580: Pilot Flight Time Queries
@@ -327,7 +327,7 @@ export const getTotalFlightTimeByPilot = async (filters?: {
   pilot?: string
   date?: string
 }): Promise<TotalFlightTimeByPilot[]> => {
-  let query = db.selectFrom('stats.total_flight_time_by_pilot').selectAll()
+  let query = camelDb.selectFrom('stats.totalFlightTimeByPilot').selectAll()
 
   if (filters?.pilot) {
     query = query.where('pilot', '=', filters.pilot)
@@ -342,10 +342,10 @@ export const getTotalFlightTimeByPilot = async (filters?: {
 export const getTotalFlightTimeByPilotYr = async (filters?: {
   pilot?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<TotalFlightTimeByPilotYr[]> => {
-  let query = db.selectFrom('stats.total_flight_time_by_pilot_yr').selectAll()
+  let query = camelDb.selectFrom('stats.totalFlightTimeByPilotYr').selectAll()
 
   if (filters?.pilot) {
     query = query.where('pilot', '=', filters.pilot)
@@ -358,11 +358,11 @@ export const getTotalFlightTimeByPilotYr = async (filters?: {
 export const getTotalFlightTimeByPilotYrMth = async (filters?: {
   pilot?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<TotalFlightTimeByPilotYrMth[]> => {
-  let query = db.selectFrom('stats.total_flight_time_by_pilot_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.totalFlightTimeByPilotYrMth').selectAll()
 
   if (filters?.pilot) {
     query = query.where('pilot', '=', filters.pilot)
@@ -377,13 +377,13 @@ export const getTotalFlightTimeByPilotYrMth = async (filters?: {
 
 // V550: DTO Flight Time Queries
 export const getDtoFlightTimeByAc = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   date?: string
 }): Promise<DtoFlightTimeByAc[]> => {
-  let query = db.selectFrom('stats.dto_total_flight_time_by_ac').selectAll()
+  let query = camelDb.selectFrom('stats.dtoTotalFlightTimeByAc').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   if (filters?.date) {
     query = query.where('date', '=', filters.date)
@@ -394,16 +394,16 @@ export const getDtoFlightTimeByAc = async (filters?: {
 
 // V1380: AOG (Aircraft On Ground) days — maintenance bookings + outstanding defects
 export const getAogDaysByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<AogDaysByAcYrMth[]> => {
-  let query = db.selectFrom('stats.aog_days_by_ac_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.aogDaysByAcYrMth').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -413,44 +413,44 @@ export const getAogDaysByAcYrMth = async (filters?: {
   const results = await query.execute()
   return results.map((row) => ({
     ...row,
-    maintenance_days: Number(row.maintenance_days),
-    unserviceable_days: Number(row.unserviceable_days),
-    total_aog_days: Number(row.total_aog_days),
+    maintenanceDays: Number(row.maintenanceDays),
+    unserviceableDays: Number(row.unserviceableDays),
+    totalAogDays: Number(row.totalAogDays),
   }))
 }
 
 export const getAogDaysByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<AogDaysByAcYr[]> => {
-  let query = db.selectFrom('stats.aog_days_by_ac_yr').selectAll()
+  let query = camelDb.selectFrom('stats.aogDaysByAcYr').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
   const results = await query.execute()
   return results.map((row) => ({
     ...row,
-    maintenance_days: Number(row.maintenance_days),
-    unserviceable_days: Number(row.unserviceable_days),
-    total_aog_days: Number(row.total_aog_days),
+    maintenanceDays: Number(row.maintenanceDays),
+    unserviceableDays: Number(row.unserviceableDays),
+    totalAogDays: Number(row.totalAogDays),
   }))
 }
 
 export const getDtoFlightTimeByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<DtoFlightTimeByAcYr[]> => {
-  let query = db.selectFrom('stats.dto_total_flight_time_by_ac_yr').selectAll()
+  let query = camelDb.selectFrom('stats.dtoTotalFlightTimeByAcYr').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
@@ -458,16 +458,16 @@ export const getDtoFlightTimeByAcYr = async (filters?: {
 }
 
 export const getDtoFlightTimeByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<DtoFlightTimeByAcYrMth[]> => {
-  let query = db.selectFrom('stats.dto_total_flight_time_by_ac_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.dtoTotalFlightTimeByAcYrMth').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -478,16 +478,16 @@ export const getDtoFlightTimeByAcYrMth = async (filters?: {
 }
 
 export const getCommercialFlightTimeByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<CommercialFlightTimeByAcYrMth[]> => {
-  let query = db.selectFrom('stats.total_commercial_flight_time_by_ac_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.totalCommercialFlightTimeByAcYrMth').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -522,9 +522,9 @@ export const getPilotStatistics = async (filters: {
   to: string
 }): Promise<PilotStatistics> => {
   const rows = await sql<{
-    pic_member_id: string
-    total_flight_mins: number
-    unique_airports: number
+    picMemberId: string
+    totalFlightMins: number
+    uniqueAirports: number
   }>`
     WITH flight_data AS (
       SELECT
@@ -562,11 +562,11 @@ export const getPilotStatistics = async (filters: {
       COALESCE(a.unique_airports, 0)::int AS unique_airports
     FROM pic_times t
     LEFT JOIN pic_airports a ON t.pic_member_id = a.pic_member_id
-  `.execute(db)
+  `.execute(camelDb)
 
   const picData = rows.rows.map((r) => ({
-    totalHours: Number(r.total_flight_mins) / 60,
-    uniqueAirports: Number(r.unique_airports),
+    totalHours: Number(r.totalFlightMins) / 60,
+    uniqueAirports: Number(r.uniqueAirports),
   }))
 
   const uniquePicCount = picData.length
@@ -582,42 +582,42 @@ export const getPilotStatistics = async (filters: {
 
 // My Statistics — personal stats for a single member.
 //
-// Scoped on pic_member_id rather than billable_member_id: this view answers
+// Scoped on picMemberId rather than billable_member_id: this view answers
 // "what have I flown", so a flight someone else paid for still counts as mine,
 // and a flight billed to me but flown by someone else does not.
 export const getMyStatistics = async (filters: {
   memberId: string
-  date_from?: string
-  date_to?: string
-  aircraft_registration?: string
+  dateFrom?: string
+  dateTo?: string
+  aircraftRegistration?: string
 }): Promise<MyStatistics> => {
   // Shared predicate for every aggregate below. Starts with WHERE so callers can
   // append further AND conditions.
   const where = sql`
     WHERE pic_member_id = ${filters.memberId}
     ${
-      filters.date_from
-        ? sql`AND takeoff_time_epoch >= EXTRACT(EPOCH FROM ${filters.date_from}::date)::bigint`
+      filters.dateFrom
+        ? sql`AND takeoff_time_epoch >= EXTRACT(EPOCH FROM ${filters.dateFrom}::date)::bigint`
         : sql``
     }
     ${
-      filters.date_to
-        ? sql`AND takeoff_time_epoch < EXTRACT(EPOCH FROM (${filters.date_to}::date + INTERVAL '1 day'))::bigint`
+      filters.dateTo
+        ? sql`AND takeoff_time_epoch < EXTRACT(EPOCH FROM (${filters.dateTo}::date + INTERVAL '1 day'))::bigint`
         : sql``
     }
     ${
-      filters.aircraft_registration
-        ? sql`AND aircraft_registration = ${filters.aircraft_registration}`
+      filters.aircraftRegistration
+        ? sql`AND aircraft_registration = ${filters.aircraftRegistration}`
         : sql``
     }
   `
 
   const [totalsResult, airportsResult, dailyResult] = await Promise.all([
     sql<{
-      flight_count: number
-      total_flight_mins: number
-      total_block_mins: number
-      total_landings: number
+      flightCount: number
+      totalFlightMins: number
+      totalBlockMins: number
+      totalLandings: number
     }>`
       SELECT
         COUNT(*)::int AS flight_count,
@@ -626,10 +626,10 @@ export const getMyStatistics = async (filters: {
         COALESCE(SUM(number_of_landings), 0)::int AS total_landings
       FROM flight.logs
       ${where}
-    `.execute(db),
+    `.execute(camelDb),
 
     // Same airport-code sanity filter as getPilotStatistics so the two agree.
-    sql<{ unique_airports: number }>`
+    sql<{ uniqueAirports: number }>`
       SELECT COUNT(DISTINCT airport)::int AS unique_airports
       FROM (
         SELECT departure_airport AS airport
@@ -646,9 +646,9 @@ export const getMyStatistics = async (filters: {
           AND LENGTH(TRIM(arrival_airport)) >= 2
           AND arrival_airport ~ '^[A-Z]'
       ) a
-    `.execute(db),
+    `.execute(camelDb),
 
-    sql<{ date: string; flight_mins: number }>`
+    sql<{ date: string; flightMins: number }>`
       SELECT
         TO_CHAR(TO_TIMESTAMP(takeoff_time_epoch)::date, 'YYYY-MM-DD') AS date,
         COALESCE(SUM(flight_mins), 0)::int AS flight_mins
@@ -656,13 +656,13 @@ export const getMyStatistics = async (filters: {
       ${where}
       GROUP BY 1
       ORDER BY 1
-    `.execute(db),
+    `.execute(camelDb),
   ])
 
   const totalsRow = totalsResult.rows[0]
   const daily = dailyResult.rows.map((r) => ({
     date: r.date,
-    flightMins: Number(r.flight_mins),
+    flightMins: Number(r.flightMins),
   }))
 
   // Roll the daily series up to months rather than issuing a fourth query.
@@ -681,11 +681,11 @@ export const getMyStatistics = async (filters: {
 
   return {
     totals: {
-      flightCount: Number(totalsRow?.flight_count ?? 0),
-      totalFlightMins: Number(totalsRow?.total_flight_mins ?? 0),
-      totalBlockMins: Number(totalsRow?.total_block_mins ?? 0),
-      totalLandings: Number(totalsRow?.total_landings ?? 0),
-      uniqueAirports: Number(airportsResult.rows[0]?.unique_airports ?? 0),
+      flightCount: Number(totalsRow?.flightCount ?? 0),
+      totalFlightMins: Number(totalsRow?.totalFlightMins ?? 0),
+      totalBlockMins: Number(totalsRow?.totalBlockMins ?? 0),
+      totalLandings: Number(totalsRow?.totalLandings ?? 0),
+      uniqueAirports: Number(airportsResult.rows[0]?.uniqueAirports ?? 0),
     },
     daily,
     monthly,
@@ -695,21 +695,21 @@ export const getMyStatistics = async (filters: {
 // V1010: Reservation Efficiency Queries
 export const getReservationEfficiencyByYr = async (filters?: {
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<ReservationEfficiencyByYr[]> => {
-  let query = db.selectFrom('stats.reservation_efficiency_by_yr').selectAll()
+  let query = camelDb.selectFrom('stats.reservationEfficiencyByYr').selectAll()
   query = applyYearFilter(query, filters)
   return await query.execute()
 }
 
 export const getReservationEfficiencyByYrMth = async (filters?: {
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<ReservationEfficiencyByYrMth[]> => {
-  let query = db.selectFrom('stats.reservation_efficiency_by_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.reservationEfficiencyByYrMth').selectAll()
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
     query = query.where('mth', '=', filters.mth)
@@ -718,29 +718,29 @@ export const getReservationEfficiencyByYrMth = async (filters?: {
 }
 
 export const getReservationEfficiencyByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<ReservationEfficiencyByAcYr[]> => {
-  let query = db.selectFrom('stats.reservation_efficiency_by_ac_yr').selectAll()
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  let query = camelDb.selectFrom('stats.reservationEfficiencyByAcYr').selectAll()
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   return await query.execute()
 }
 
 export const getReservationEfficiencyByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<ReservationEfficiencyByAcYrMth[]> => {
-  let query = db.selectFrom('stats.reservation_efficiency_by_ac_yr_mth').selectAll()
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  let query = camelDb.selectFrom('stats.reservationEfficiencyByAcYrMth').selectAll()
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -752,10 +752,10 @@ export const getReservationEfficiencyByAcYrMth = async (filters?: {
 export const getReservationEfficiencyByMemberYr = async (filters?: {
   member?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<ReservationEfficiencyByMemberYr[]> => {
-  let query = db.selectFrom('stats.reservation_efficiency_by_member_yr').selectAll()
+  let query = camelDb.selectFrom('stats.reservationEfficiencyByMemberYr').selectAll()
   if (filters?.member) {
     query = query.where('member', '=', filters.member)
   }
@@ -766,11 +766,11 @@ export const getReservationEfficiencyByMemberYr = async (filters?: {
 export const getReservationEfficiencyByMemberYrMth = async (filters?: {
   member?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<ReservationEfficiencyByMemberYrMth[]> => {
-  let query = db.selectFrom('stats.reservation_efficiency_by_member_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.reservationEfficiencyByMemberYrMth').selectAll()
   if (filters?.member) {
     query = query.where('member', '=', filters.member)
   }
@@ -783,21 +783,21 @@ export const getReservationEfficiencyByMemberYrMth = async (filters?: {
 
 export const getAirfieldEfficiencyByYr = async (filters?: {
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<AirfieldEfficiencyByYr[]> => {
-  let query = db.selectFrom('stats.airfield_efficiency_by_yr').selectAll()
+  let query = camelDb.selectFrom('stats.airfieldEfficiencyByYr').selectAll()
   query = applyYearFilter(query, filters)
   return await query.execute()
 }
 
 export const getAirfieldEfficiencyByYrMth = async (filters?: {
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<AirfieldEfficiencyByYrMth[]> => {
-  let query = db.selectFrom('stats.airfield_efficiency_by_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.airfieldEfficiencyByYrMth').selectAll()
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
     query = query.where('mth', '=', filters.mth)
@@ -806,14 +806,14 @@ export const getAirfieldEfficiencyByYrMth = async (filters?: {
 }
 
 export const getAirfieldEfficiencyByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<AirfieldEfficiencyByAcYr[]> => {
-  let query = db.selectFrom('stats.airfield_efficiency_by_ac_yr').selectAll()
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  let query = camelDb.selectFrom('stats.airfieldEfficiencyByAcYr').selectAll()
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   return await query.execute()
@@ -821,15 +821,15 @@ export const getAirfieldEfficiencyByAcYr = async (filters?: {
 
 // Occupancy (persons-on-board) distribution, restricted to aircraft with >2 seats
 export const getPobDistributionByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<PobDistributionByAcYr[]> => {
-  let query = db.selectFrom('stats.pob_distribution_by_ac_yr').selectAll()
+  let query = camelDb.selectFrom('stats.pobDistributionByAcYr').selectAll()
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
 
@@ -837,47 +837,71 @@ export const getPobDistributionByAcYr = async (filters?: {
   return results.map((row) => ({
     ...row,
     yr: Number(row.yr),
-    flight_count: Number(row.flight_count),
-    cross_country_flight_count: Number(row.cross_country_flight_count),
-    total_flight_mins: Number(row.total_flight_mins),
+    flightCount: Number(row.flightCount),
+    crossCountryFlightCount: Number(row.crossCountryFlightCount),
+    totalFlightMins: Number(row.totalFlightMins),
   })) as PobDistributionByAcYr[]
 }
 
 // V1680: Safety performance — occurrences per 100 flight hours, per aircraft per year
 export const getOccurrencesPerHundredHrsByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<OccurrencesPerHundredHrsByAcYr[]> => {
-  let query = db.selectFrom('stats.occurrences_per_100h_by_ac_yr').selectAll()
+  // This one view cannot be addressed through the query builder. The identifier
+  // transformer turns `occurrencesPer100hByAcYr` into `occurrences_per100h_by_ac_yr`,
+  // but the view is `occurrences_per_100h_by_ac_yr` — a digit is not a word boundary
+  // going camel -> snake, though it is going snake -> camel. `schema.camel.d.ts` says
+  // the name is fine because kysely-codegen only ever does the second direction, so
+  // this compiles and then fails at runtime. Raw SQL text is never transformed, so
+  // spelling the view out is the fix; the *result* keys still come back camelCase,
+  // which is why the mapping below reads row.occurrencesPer100h.
+  const { rows: results } = await sql<{
+    aircraftRegistration: string | null
+    yr: number | null
+    occurrenceCount: number | null
+    totalFlightMins: number | null
+    occurrencesPer100h: number | null
+  }>`
+    SELECT * FROM stats.occurrences_per_100h_by_ac_yr
+    WHERE TRUE
+    ${
+      filters?.aircraftRegistration
+        ? sql`AND aircraft_registration = ${filters.aircraftRegistration}`
+        : sql``
+    }
+    ${
+      // Mirrors applyYearFilter: an exact yr wins outright and the range is ignored.
+      filters?.yr
+        ? sql`AND yr = ${filters.yr}`
+        : sql`
+          ${filters?.yrFrom ? sql`AND yr >= ${filters.yrFrom}` : sql``}
+          ${filters?.yrTo ? sql`AND yr <= ${filters.yrTo}` : sql``}
+        `
+    }
+  `.execute(camelDb)
 
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
-  }
-  query = applyYearFilter(query, filters)
-
-  const results = await query.execute()
   return results.map((row) => ({
     ...row,
     yr: row.yr != null ? Number(row.yr) : null,
-    occurrence_count: row.occurrence_count != null ? Number(row.occurrence_count) : null,
-    total_flight_mins: row.total_flight_mins != null ? Number(row.total_flight_mins) : null,
-    occurrences_per_100h:
-      row.occurrences_per_100h != null ? Number(row.occurrences_per_100h) : null,
+    occurrenceCount: row.occurrenceCount != null ? Number(row.occurrenceCount) : null,
+    totalFlightMins: row.totalFlightMins != null ? Number(row.totalFlightMins) : null,
+    occurrencesPer100h: row.occurrencesPer100h != null ? Number(row.occurrencesPer100h) : null,
   }))
 }
 
 export const getAirfieldEfficiencyByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<AirfieldEfficiencyByAcYrMth[]> => {
-  let query = db.selectFrom('stats.airfield_efficiency_by_ac_yr_mth').selectAll()
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  let query = camelDb.selectFrom('stats.airfieldEfficiencyByAcYrMth').selectAll()
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -889,21 +913,21 @@ export const getAirfieldEfficiencyByAcYrMth = async (filters?: {
 // V1760: School Flight Reservation Efficiency Queries
 export const getSchoolFlightEfficiencyByYr = async (filters?: {
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<SchoolFlightEfficiencyByYr[]> => {
-  let query = db.selectFrom('stats.school_flight_efficiency_by_yr').selectAll()
+  let query = camelDb.selectFrom('stats.schoolFlightEfficiencyByYr').selectAll()
   query = applyYearFilter(query, filters)
   return await query.execute()
 }
 
 export const getSchoolFlightEfficiencyByYrMth = async (filters?: {
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<SchoolFlightEfficiencyByYrMth[]> => {
-  let query = db.selectFrom('stats.school_flight_efficiency_by_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.schoolFlightEfficiencyByYrMth').selectAll()
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
     query = query.where('mth', '=', filters.mth)
@@ -912,29 +936,29 @@ export const getSchoolFlightEfficiencyByYrMth = async (filters?: {
 }
 
 export const getSchoolFlightEfficiencyByAcYr = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<SchoolFlightEfficiencyByAcYr[]> => {
-  let query = db.selectFrom('stats.school_flight_efficiency_by_ac_yr').selectAll()
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  let query = camelDb.selectFrom('stats.schoolFlightEfficiencyByAcYr').selectAll()
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   return await query.execute()
 }
 
 export const getSchoolFlightEfficiencyByAcYrMth = async (filters?: {
-  aircraft_registration?: string
+  aircraftRegistration?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<SchoolFlightEfficiencyByAcYrMth[]> => {
-  let query = db.selectFrom('stats.school_flight_efficiency_by_ac_yr_mth').selectAll()
-  if (filters?.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  let query = camelDb.selectFrom('stats.schoolFlightEfficiencyByAcYrMth').selectAll()
+  if (filters?.aircraftRegistration) {
+    query = query.where('aircraftRegistration', '=', filters.aircraftRegistration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
@@ -946,10 +970,10 @@ export const getSchoolFlightEfficiencyByAcYrMth = async (filters?: {
 export const getSchoolFlightEfficiencyByInstructorYr = async (filters?: {
   instructor?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
 }): Promise<SchoolFlightEfficiencyByInstructorYr[]> => {
-  let query = db.selectFrom('stats.school_flight_efficiency_by_instructor_yr').selectAll()
+  let query = camelDb.selectFrom('stats.schoolFlightEfficiencyByInstructorYr').selectAll()
   if (filters?.instructor) {
     query = query.where('instructor', '=', filters.instructor)
   }
@@ -960,11 +984,11 @@ export const getSchoolFlightEfficiencyByInstructorYr = async (filters?: {
 export const getSchoolFlightEfficiencyByInstructorYrMth = async (filters?: {
   instructor?: string
   yr?: number
-  yr_from?: number
-  yr_to?: number
+  yrFrom?: number
+  yrTo?: number
   mth?: number
 }): Promise<SchoolFlightEfficiencyByInstructorYrMth[]> => {
-  let query = db.selectFrom('stats.school_flight_efficiency_by_instructor_yr_mth').selectAll()
+  let query = camelDb.selectFrom('stats.schoolFlightEfficiencyByInstructorYrMth').selectAll()
   if (filters?.instructor) {
     query = query.where('instructor', '=', filters.instructor)
   }

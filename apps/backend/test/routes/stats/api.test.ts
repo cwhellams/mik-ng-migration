@@ -120,12 +120,12 @@ describe('Stats API', () => {
       it('should return total flight time by aircraft with all grouping columns', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
-            flight_type: 'SOLO',
+            aircraftRegistration: 'G-TEST',
+            flightType: 'SOLO',
             date: '2024-01-01',
-            total_flight_mins: 630,
-            total_nf_mins: 0,
-            total_ifr_mins: 0,
+            totalFlightMins: 630,
+            totalNfMins: 0,
+            totalIfrMins: 0,
           },
         ]
         mockGetTotalFlightTimeByAc.mockResolvedValue(mockData)
@@ -135,7 +135,7 @@ describe('Stats API', () => {
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
         expect(mockGetTotalFlightTimeByAc).toHaveBeenCalledWith({
-          aircraft_registration: undefined,
+          aircraftRegistration: undefined,
           date: undefined,
         })
       })
@@ -143,38 +143,38 @@ describe('Stats API', () => {
       it('should filter by aircraft registration', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
-            flight_type: 'SOLO',
+            aircraftRegistration: 'G-TEST',
+            flightType: 'SOLO',
             date: '2024-01-01',
-            total_flight_mins: 630,
-            total_nf_mins: 0,
-            total_ifr_mins: 0,
+            totalFlightMins: 630,
+            totalNfMins: 0,
+            totalIfrMins: 0,
           },
         ]
         mockGetTotalFlightTimeByAc.mockResolvedValue(mockData)
 
         const response = await request(app)
           .get('/api/stats/flight-time/aircraft')
-          .query({ aircraft_registration: 'G-TEST' })
+          .query({ aircraftRegistration: 'G-TEST' })
 
         expect(response.status).toBe(200)
         expect(mockGetTotalFlightTimeByAc).toHaveBeenCalledWith({
-          aircraft_registration: 'G-TEST',
+          aircraftRegistration: 'G-TEST',
           date: undefined,
         })
       })
     })
 
     describe('GET /api/stats/flight-time/aircraft/year', () => {
-      it('should return rows with aircraft_registration, flight_type, yr, and aggregates', async () => {
+      it('should return rows with aircraftRegistration, flightType, yr, and aggregates', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
-            flight_type: 'SOLO',
+            aircraftRegistration: 'G-TEST',
+            flightType: 'SOLO',
             yr: 2024,
-            total_flight_mins: 7200,
-            total_nf_mins: 120,
-            total_ifr_mins: 600,
+            totalFlightMins: 7200,
+            totalNfMins: 120,
+            totalIfrMins: 600,
           },
         ]
         mockGetTotalFlightTimeByAcYrFt.mockResolvedValue(mockData)
@@ -186,44 +186,44 @@ describe('Stats API', () => {
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
         expect(mockGetTotalFlightTimeByAcYrFt).toHaveBeenCalledWith({
-          aircraft_registration: undefined,
+          aircraftRegistration: undefined,
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
         })
       })
 
       it('should support year range filtering', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
-            flight_type: 'SOLO',
+            aircraftRegistration: 'G-TEST',
+            flightType: 'SOLO',
             yr: 2023,
-            total_flight_mins: 6000,
-            total_nf_mins: 100,
-            total_ifr_mins: 500,
+            totalFlightMins: 6000,
+            totalNfMins: 100,
+            totalIfrMins: 500,
           },
           {
-            aircraft_registration: 'G-TEST',
-            flight_type: 'SOLO',
+            aircraftRegistration: 'G-TEST',
+            flightType: 'SOLO',
             yr: 2024,
-            total_flight_mins: 7200,
-            total_nf_mins: 120,
-            total_ifr_mins: 600,
+            totalFlightMins: 7200,
+            totalNfMins: 120,
+            totalIfrMins: 600,
           },
         ]
         mockGetTotalFlightTimeByAcYrFt.mockResolvedValue(mockData)
 
         const response = await request(app)
           .get('/api/stats/flight-time/aircraft/year')
-          .query({ yr_from: '2023', yr_to: '2024' })
+          .query({ yrFrom: '2023', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(mockGetTotalFlightTimeByAcYrFt).toHaveBeenCalledWith({
-          aircraft_registration: undefined,
+          aircraftRegistration: undefined,
           yr: undefined,
-          yr_from: 2023,
-          yr_to: 2024,
+          yrFrom: 2023,
+          yrTo: 2024,
         })
       })
     })
@@ -232,13 +232,13 @@ describe('Stats API', () => {
       it('should return rows with all grouping columns and aggregates', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
-            flight_type: 'DUAL',
+            aircraftRegistration: 'G-TEST',
+            flightType: 'DUAL',
             yr: 2024,
             mth: 3,
-            total_flight_mins: 1500,
-            total_nf_mins: 30,
-            total_ifr_mins: 150,
+            totalFlightMins: 1500,
+            totalNfMins: 30,
+            totalIfrMins: 150,
           },
         ]
         mockGetTotalFlightTimeByAcYrMth.mockResolvedValue(mockData)
@@ -250,10 +250,10 @@ describe('Stats API', () => {
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
         expect(mockGetTotalFlightTimeByAcYrMth).toHaveBeenCalledWith({
-          aircraft_registration: undefined,
+          aircraftRegistration: undefined,
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
           mth: 3,
         })
       })
@@ -265,24 +265,24 @@ describe('Stats API', () => {
       it('should return DTO flight time with all columns (accessible to all members)', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
-            flight_type: 'DUAL',
+            aircraftRegistration: 'G-TEST',
+            flightType: 'DUAL',
             date: '2024-01-01',
-            total_flight_mins: 300,
-            total_nf_mins: 0,
-            total_ifr_mins: 0,
+            totalFlightMins: 300,
+            totalNfMins: 0,
+            totalIfrMins: 0,
           },
         ]
         mockGetDtoFlightTimeByAc.mockResolvedValue(mockData)
 
         const response = await request(app)
           .get('/api/stats/dto/flight-time/aircraft')
-          .query({ aircraft_registration: 'G-TEST' })
+          .query({ aircraftRegistration: 'G-TEST' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
         expect(mockGetDtoFlightTimeByAc).toHaveBeenCalledWith({
-          aircraft_registration: 'G-TEST',
+          aircraftRegistration: 'G-TEST',
           date: undefined,
         })
       })
@@ -292,12 +292,12 @@ describe('Stats API', () => {
       it('should filter by year (requires admin permissions)', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
-            flight_type: 'DUAL',
+            aircraftRegistration: 'G-TEST',
+            flightType: 'DUAL',
             yr: 2024,
-            total_flight_mins: 3600,
-            total_nf_mins: 0,
-            total_ifr_mins: 300,
+            totalFlightMins: 3600,
+            totalNfMins: 0,
+            totalIfrMins: 300,
           },
         ]
         mockGetDtoFlightTimeByAcYr.mockResolvedValue(mockData)
@@ -308,10 +308,10 @@ describe('Stats API', () => {
 
         expect(response.status).toBe(200)
         expect(mockGetDtoFlightTimeByAcYr).toHaveBeenCalledWith({
-          aircraft_registration: undefined,
+          aircraftRegistration: undefined,
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
         })
       })
     })
@@ -320,13 +320,13 @@ describe('Stats API', () => {
       it('should support all filter combinations (requires admin permissions)', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-ABCD',
-            flight_type: 'DUAL',
+            aircraftRegistration: 'G-ABCD',
+            flightType: 'DUAL',
             yr: 2024,
             mth: 6,
-            total_flight_mins: 750,
-            total_nf_mins: 0,
-            total_ifr_mins: 150,
+            totalFlightMins: 750,
+            totalNfMins: 0,
+            totalIfrMins: 150,
           },
         ]
         mockGetDtoFlightTimeByAcYrMth.mockResolvedValue(mockData)
@@ -334,18 +334,18 @@ describe('Stats API', () => {
         const response = await request(app)
           .get('/api/stats/dto/flight-time/aircraft/year/month')
           .query({
-            aircraft_registration: 'G-ABCD',
-            yr_from: '2024',
-            yr_to: '2024',
+            aircraftRegistration: 'G-ABCD',
+            yrFrom: '2024',
+            yrTo: '2024',
             mth: '6',
           })
 
         expect(response.status).toBe(200)
         expect(mockGetDtoFlightTimeByAcYrMth).toHaveBeenCalledWith({
-          aircraft_registration: 'G-ABCD',
+          aircraftRegistration: 'G-ABCD',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
           mth: 6,
         })
       })
@@ -357,10 +357,10 @@ describe('Stats API', () => {
       it('should return commercial flight time by aircraft, year, and month (requires admin permissions)', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
+            aircraftRegistration: 'G-TEST',
             yr: 2024,
             mth: 8,
-            total_flight_mins: 1200,
+            totalFlightMins: 1200,
           },
         ]
         mockGetCommercialFlightTimeByAcYrMth.mockResolvedValue(mockData)
@@ -372,10 +372,10 @@ describe('Stats API', () => {
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
         expect(mockGetCommercialFlightTimeByAcYrMth).toHaveBeenCalledWith({
-          aircraft_registration: undefined,
+          aircraftRegistration: undefined,
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
           mth: 8,
         })
       })
@@ -383,13 +383,13 @@ describe('Stats API', () => {
       it('should support aircraft registration filter', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-COMM',
-            flight_type: 'COMMERCIAL',
+            aircraftRegistration: 'G-COMM',
+            flightType: 'COMMERCIAL',
             yr: 2024,
             mth: 9,
-            total_flight_mins: 1500,
-            total_nf_mins: 0,
-            total_ifr_mins: 750,
+            totalFlightMins: 1500,
+            totalNfMins: 0,
+            totalIfrMins: 750,
           },
         ]
         mockGetCommercialFlightTimeByAcYrMth.mockResolvedValue(mockData)
@@ -397,19 +397,19 @@ describe('Stats API', () => {
         const response = await request(app)
           .get('/api/stats/commercial/flight-time/aircraft/year/month')
           .query({
-            aircraft_registration: 'G-COMM',
-            yr_from: '2024',
-            yr_to: '2024',
+            aircraftRegistration: 'G-COMM',
+            yrFrom: '2024',
+            yrTo: '2024',
             mth: '9',
           })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
         expect(mockGetCommercialFlightTimeByAcYrMth).toHaveBeenCalledWith({
-          aircraft_registration: 'G-COMM',
+          aircraftRegistration: 'G-COMM',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
           mth: 9,
         })
       })
@@ -417,12 +417,12 @@ describe('Stats API', () => {
   })
 
   describe('V560: Non-Billable Flight Time Endpoints', () => {
-    it('should include flight_type in response', async () => {
+    it('should include flightType in response', async () => {
       const mockData = [
         {
-          aircraft_registration: 'G-TEST',
+          aircraftRegistration: 'G-TEST',
           yr: 2024,
-          total_flight_mins: 2700,
+          totalFlightMins: 2700,
         },
       ]
       mockGetNonBillableFlightTimeByAcYr.mockResolvedValue(mockData)
@@ -434,49 +434,49 @@ describe('Stats API', () => {
       expect(response.status).toBe(200)
       expect(response.body).toEqual(mockData)
       expect(mockGetNonBillableFlightTimeByAcYr).toHaveBeenCalledWith({
-        aircraft_registration: undefined,
+        aircraftRegistration: undefined,
         yr: 2024,
-        yr_from: undefined,
-        yr_to: undefined,
+        yrFrom: undefined,
+        yrTo: undefined,
       })
     })
   })
 
   describe('V570: Various Aircraft Stats Endpoints', () => {
     describe('GET /api/stats/visited-airfields', () => {
-      it('should return airfield, yr, and aircraft_registration', async () => {
+      it('should return airfield, yr, and aircraftRegistration', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
+            aircraftRegistration: 'G-TEST',
             yr: 2024,
             airfield: 'EGLL',
-            total_visits: 15,
+            totalVisits: 15,
           },
         ]
         mockGetVisitedAirfieldsByAc.mockResolvedValue(mockData)
 
         const response = await request(app)
           .get('/api/stats/visited-airfields')
-          .query({ aircraft_registration: 'G-TEST', yr: '2024' })
+          .query({ aircraftRegistration: 'G-TEST', yr: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
         expect(mockGetVisitedAirfieldsByAc).toHaveBeenCalledWith({
-          aircraft_registration: 'G-TEST',
+          aircraftRegistration: 'G-TEST',
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
         })
       })
     })
 
     describe('GET /api/stats/landings/year', () => {
-      it('should return aircraft_registration, yr, and total_landings', async () => {
+      it('should return aircraftRegistration, yr, and totalLandings', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
+            aircraftRegistration: 'G-TEST',
             yr: 2024,
-            total_landings: 250,
+            totalLandings: 250,
           },
         ]
         mockGetTotalLandingsByAcYr.mockResolvedValue(mockData)
@@ -489,13 +489,13 @@ describe('Stats API', () => {
     })
 
     describe('GET /api/stats/oil-uplift/year/month', () => {
-      it('should return aircraft_registration, yr, mth, and total_oil_uplift', async () => {
+      it('should return aircraftRegistration, yr, mth, and totalOilUplift', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
+            aircraftRegistration: 'G-TEST',
             yr: 2024,
             mth: 7,
-            total_oil_uplift: 25.5,
+            totalOilUplift: 25.5,
           },
         ]
         mockGetTotalOilUpliftByAcYrMth.mockResolvedValue(mockData)
@@ -510,20 +510,20 @@ describe('Stats API', () => {
     })
 
     describe('GET /api/stats/fuel-uplift/year/month', () => {
-      it('should return aircraft_registration, yr, mth, and total_fuel_uplift', async () => {
+      it('should return aircraftRegistration, yr, mth, and totalFuelUplift', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
+            aircraftRegistration: 'G-TEST',
             yr: 2024,
             mth: 8,
-            total_fuel_uplift: 1500.0,
+            totalFuelUplift: 1500.0,
           },
         ]
         mockGetTotalFuelUpliftByAcYrMth.mockResolvedValue(mockData)
 
         const response = await request(app)
           .get('/api/stats/fuel-uplift/year/month')
-          .query({ aircraft_registration: 'G-TEST', yr_from: '2024', yr_to: '2024', mth: '8' })
+          .query({ aircraftRegistration: 'G-TEST', yrFrom: '2024', yrTo: '2024', mth: '8' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
@@ -531,15 +531,15 @@ describe('Stats API', () => {
     })
 
     describe('GET /api/stats/flight-stats/year', () => {
-      it('should return aircraft_registration, yr, and all flight stats', async () => {
+      it('should return aircraftRegistration, yr, and all flight stats', async () => {
         const mockData = [
           {
-            aircraft_registration: 'G-TEST',
+            aircraftRegistration: 'G-TEST',
             yr: 2024,
-            longest_flight: 210,
-            shortest_flight: 30,
-            average_flight: 72,
-            median_flight: 60,
+            longestFlight: 210,
+            shortestFlight: 30,
+            averageFlight: 72,
+            medianFlight: 60,
           },
         ]
         mockGetLongestShortestAvgFlightByAcYr.mockResolvedValue(mockData)
@@ -554,10 +554,10 @@ describe('Stats API', () => {
     })
 
     describe('GET /api/stats/members/count-by-type', () => {
-      it('should return member_type and member_count', async () => {
+      it('should return memberType and memberCount', async () => {
         const mockData = [
-          { member_type: 'FULL', member_count: 45 },
-          { member_type: 'STUDENT', member_count: 12 },
+          { memberType: 'FULL', memberCount: 45 },
+          { memberType: 'STUDENT', memberCount: 12 },
         ]
         mockGetMemberCountByType.mockResolvedValue(mockData)
 
@@ -576,9 +576,9 @@ describe('Stats API', () => {
           {
             pilot: 'abc123def456',
             date: '2024-01-01',
-            total_flight_mins: 9030,
-            total_nf_mins: 720,
-            total_ifr_mins: 1800,
+            totalFlightMins: 9030,
+            totalNfMins: 720,
+            totalIfrMins: 1800,
           },
         ]
         mockGetTotalFlightTimeByPilot.mockResolvedValue(mockData)
@@ -602,24 +602,24 @@ describe('Stats API', () => {
           {
             pilot: 'abc123def456',
             yr: 2024,
-            total_flight_mins: 4800,
-            total_nf_mins: 360,
-            total_ifr_mins: 900,
+            totalFlightMins: 4800,
+            totalNfMins: 360,
+            totalIfrMins: 900,
           },
         ]
         mockGetTotalFlightTimeByPilotYr.mockResolvedValue(mockData)
 
         const response = await request(app)
           .get('/api/stats/pilot/flight-time/year')
-          .query({ pilot: 'abc123def456', yr_from: '2024', yr_to: '2024' })
+          .query({ pilot: 'abc123def456', yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
         expect(mockGetTotalFlightTimeByPilotYr).toHaveBeenCalledWith({
           pilot: 'abc123def456',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -631,9 +631,9 @@ describe('Stats API', () => {
             pilot: 'abc123def456',
             yr: 2024,
             mth: 5,
-            total_flight_mins: 750,
-            total_nf_mins: 60,
-            total_ifr_mins: 150,
+            totalFlightMins: 750,
+            totalNfMins: 60,
+            totalIfrMins: 150,
           },
         ]
         mockGetTotalFlightTimeByPilotYrMth.mockResolvedValue(mockData)
@@ -714,9 +714,9 @@ describe('Stats API', () => {
   describe('V1010: Reservation Efficiency Endpoints (accessible by any authenticated member)', () => {
     const mockEfficiencyData = {
       yr: 2024,
-      total_flight_mins: 1200,
-      total_reserved_mins: 1800,
-      efficiency_pct: 66.67,
+      totalFlightMins: 1200,
+      totalReservedMins: 1800,
+      efficiencyPct: 66.67,
     }
 
     describe('GET /api/stats/reservation-efficiency/year', () => {
@@ -725,14 +725,14 @@ describe('Stats API', () => {
 
         const response = await request(app)
           .get('/api/stats/reservation-efficiency/year')
-          .query({ yr_from: '2024', yr_to: '2024' })
+          .query({ yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockEfficiencyData])
         expect(mockGetReservationEfficiencyByYr).toHaveBeenCalledWith({
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -750,8 +750,8 @@ describe('Stats API', () => {
         expect(response.body).toEqual([mockData])
         expect(mockGetReservationEfficiencyByYrMth).toHaveBeenCalledWith({
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
           mth: 6,
         })
       })
@@ -759,40 +759,40 @@ describe('Stats API', () => {
 
     describe('GET /api/stats/reservation-efficiency/aircraft/year', () => {
       it('should return reservation efficiency by aircraft and year for any authenticated member (no admin required)', async () => {
-        const mockData = { ...mockEfficiencyData, aircraft_registration: 'OH-STL' }
+        const mockData = { ...mockEfficiencyData, aircraftRegistration: 'OH-STL' }
         mockGetReservationEfficiencyByAcYr.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/reservation-efficiency/aircraft/year')
-          .query({ aircraft_registration: 'OH-STL', yr: '2024' })
+          .query({ aircraftRegistration: 'OH-STL', yr: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetReservationEfficiencyByAcYr).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
         })
       })
     })
 
     describe('GET /api/stats/reservation-efficiency/aircraft/year/month', () => {
       it('should return reservation efficiency by aircraft, year, and month for any authenticated member (no admin required)', async () => {
-        const mockData = { ...mockEfficiencyData, aircraft_registration: 'OH-STL', mth: 7 }
+        const mockData = { ...mockEfficiencyData, aircraftRegistration: 'OH-STL', mth: 7 }
         mockGetReservationEfficiencyByAcYrMth.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/reservation-efficiency/aircraft/year/month')
-          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024', mth: '7' })
+          .query({ aircraftRegistration: 'OH-STL', yrFrom: '2024', yrTo: '2024', mth: '7' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetReservationEfficiencyByAcYrMth).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
           mth: 7,
         })
       })
@@ -805,15 +805,15 @@ describe('Stats API', () => {
 
         const response = await request(app)
           .get('/api/stats/reservation-efficiency/member/year')
-          .query({ yr_from: '2024', yr_to: '2024' })
+          .query({ yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetReservationEfficiencyByMemberYr).toHaveBeenCalledWith({
           member: undefined,
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -832,8 +832,8 @@ describe('Stats API', () => {
         expect(mockGetReservationEfficiencyByMemberYrMth).toHaveBeenCalledWith({
           member: 'abc123def456',
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
           mth: 8,
         })
       })
@@ -843,9 +843,9 @@ describe('Stats API', () => {
   describe('V1760: School Flight Reservation Efficiency Endpoints (accessible by any authenticated member)', () => {
     const mockEfficiencyData = {
       yr: 2024,
-      total_block_mins: 900,
-      total_reserved_mins: 1800,
-      efficiency_pct: 50,
+      totalBlockMins: 900,
+      totalReservedMins: 1800,
+      efficiencyPct: 50,
     }
 
     describe('GET /api/stats/school-flight-efficiency/year', () => {
@@ -854,14 +854,14 @@ describe('Stats API', () => {
 
         const response = await request(app)
           .get('/api/stats/school-flight-efficiency/year')
-          .query({ yr_from: '2024', yr_to: '2024' })
+          .query({ yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockEfficiencyData])
         expect(mockGetSchoolFlightEfficiencyByYr).toHaveBeenCalledWith({
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -879,8 +879,8 @@ describe('Stats API', () => {
         expect(response.body).toEqual([mockData])
         expect(mockGetSchoolFlightEfficiencyByYrMth).toHaveBeenCalledWith({
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
           mth: 6,
         })
       })
@@ -888,40 +888,40 @@ describe('Stats API', () => {
 
     describe('GET /api/stats/school-flight-efficiency/aircraft/year', () => {
       it('should return school flight efficiency by aircraft and year for any authenticated member (no admin required)', async () => {
-        const mockData = { ...mockEfficiencyData, aircraft_registration: 'OH-STL' }
+        const mockData = { ...mockEfficiencyData, aircraftRegistration: 'OH-STL' }
         mockGetSchoolFlightEfficiencyByAcYr.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/school-flight-efficiency/aircraft/year')
-          .query({ aircraft_registration: 'OH-STL', yr: '2024' })
+          .query({ aircraftRegistration: 'OH-STL', yr: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetSchoolFlightEfficiencyByAcYr).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
         })
       })
     })
 
     describe('GET /api/stats/school-flight-efficiency/aircraft/year/month', () => {
       it('should return school flight efficiency by aircraft, year, and month for any authenticated member (no admin required)', async () => {
-        const mockData = { ...mockEfficiencyData, aircraft_registration: 'OH-STL', mth: 7 }
+        const mockData = { ...mockEfficiencyData, aircraftRegistration: 'OH-STL', mth: 7 }
         mockGetSchoolFlightEfficiencyByAcYrMth.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/school-flight-efficiency/aircraft/year/month')
-          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024', mth: '7' })
+          .query({ aircraftRegistration: 'OH-STL', yrFrom: '2024', yrTo: '2024', mth: '7' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetSchoolFlightEfficiencyByAcYrMth).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
           mth: 7,
         })
       })
@@ -934,15 +934,15 @@ describe('Stats API', () => {
 
         const response = await request(app)
           .get('/api/stats/school-flight-efficiency/instructor/year')
-          .query({ yr_from: '2024', yr_to: '2024' })
+          .query({ yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetSchoolFlightEfficiencyByInstructorYr).toHaveBeenCalledWith({
           instructor: undefined,
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -961,8 +961,8 @@ describe('Stats API', () => {
         expect(mockGetSchoolFlightEfficiencyByInstructorYrMth).toHaveBeenCalledWith({
           instructor: 'abc123def456',
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
           mth: 8,
         })
       })
@@ -972,7 +972,7 @@ describe('Stats API', () => {
   describe('Airfield Efficiency Endpoints (accessible by any authenticated member)', () => {
     const mockAirfieldEfficiencyData = {
       yr: 2024,
-      total_flight_mins: 1200,
+      totalFlightMins: 1200,
       total_airfields_visited: 8,
       airfield_efficiency: 6.67,
     }
@@ -983,14 +983,14 @@ describe('Stats API', () => {
 
         const response = await request(app)
           .get('/api/stats/airfield-efficiency/year')
-          .query({ yr_from: '2024', yr_to: '2024' })
+          .query({ yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockAirfieldEfficiencyData])
         expect(mockGetAirfieldEfficiencyByYr).toHaveBeenCalledWith({
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -1008,8 +1008,8 @@ describe('Stats API', () => {
         expect(response.body).toEqual([mockData])
         expect(mockGetAirfieldEfficiencyByYrMth).toHaveBeenCalledWith({
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
           mth: 6,
         })
       })
@@ -1017,40 +1017,40 @@ describe('Stats API', () => {
 
     describe('GET /api/stats/airfield-efficiency/aircraft/year', () => {
       it('should return airfield efficiency by aircraft and year for any authenticated member (no admin required)', async () => {
-        const mockData = { ...mockAirfieldEfficiencyData, aircraft_registration: 'OH-STL' }
+        const mockData = { ...mockAirfieldEfficiencyData, aircraftRegistration: 'OH-STL' }
         mockGetAirfieldEfficiencyByAcYr.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/airfield-efficiency/aircraft/year')
-          .query({ aircraft_registration: 'OH-STL', yr: '2024' })
+          .query({ aircraftRegistration: 'OH-STL', yr: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetAirfieldEfficiencyByAcYr).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
         })
       })
     })
 
     describe('GET /api/stats/airfield-efficiency/aircraft/year/month', () => {
       it('should return airfield efficiency by aircraft, year, and month for any authenticated member (no admin required)', async () => {
-        const mockData = { ...mockAirfieldEfficiencyData, aircraft_registration: 'OH-STL', mth: 7 }
+        const mockData = { ...mockAirfieldEfficiencyData, aircraftRegistration: 'OH-STL', mth: 7 }
         mockGetAirfieldEfficiencyByAcYrMth.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/airfield-efficiency/aircraft/year/month')
-          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024', mth: '7' })
+          .query({ aircraftRegistration: 'OH-STL', yrFrom: '2024', yrTo: '2024', mth: '7' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetAirfieldEfficiencyByAcYrMth).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
           mth: 7,
         })
       })
@@ -1061,25 +1061,25 @@ describe('Stats API', () => {
     describe('GET /api/stats/aog/aircraft/year', () => {
       it('should return AOG days by aircraft and year', async () => {
         const mockData = {
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: 2024,
-          maintenance_days: 5,
-          unserviceable_days: 3,
-          total_aog_days: 8,
+          maintenanceDays: 5,
+          unserviceableDays: 3,
+          totalAogDays: 8,
         }
         mockGetAogDaysByAcYr.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/aog/aircraft/year')
-          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024' })
+          .query({ aircraftRegistration: 'OH-STL', yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetAogDaysByAcYr).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -1087,26 +1087,26 @@ describe('Stats API', () => {
     describe('GET /api/stats/aog/aircraft/year/month', () => {
       it('should return AOG days by aircraft, year, and month', async () => {
         const mockData = {
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: 2024,
           mth: 7,
-          maintenance_days: 2,
-          unserviceable_days: 1,
-          total_aog_days: 3,
+          maintenanceDays: 2,
+          unserviceableDays: 1,
+          totalAogDays: 3,
         }
         mockGetAogDaysByAcYrMth.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/aog/aircraft/year/month')
-          .query({ aircraft_registration: 'OH-STL', yr: '2024', mth: '7' })
+          .query({ aircraftRegistration: 'OH-STL', yr: '2024', mth: '7' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetAogDaysByAcYrMth).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: 2024,
-          yr_from: undefined,
-          yr_to: undefined,
+          yrFrom: undefined,
+          yrTo: undefined,
           mth: 7,
         })
       })
@@ -1117,26 +1117,26 @@ describe('Stats API', () => {
     describe('GET /api/stats/pob-distribution/year', () => {
       it('should return POB distribution by aircraft and year', async () => {
         const mockData = {
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: 2024,
-          pob_bucket: '3',
-          flight_count: 5,
-          cross_country_flight_count: 2,
-          total_flight_mins: 300,
+          pobBucket: '3',
+          flightCount: 5,
+          crossCountryFlightCount: 2,
+          totalFlightMins: 300,
         }
         mockGetPobDistributionByAcYr.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/pob-distribution/year')
-          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024' })
+          .query({ aircraftRegistration: 'OH-STL', yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetPobDistributionByAcYr).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -1146,25 +1146,25 @@ describe('Stats API', () => {
     describe('GET /api/stats/safety/occurrences-per-100h/aircraft/year', () => {
       it('should return occurrences per 100 flight hours by aircraft and year', async () => {
         const mockData = {
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: 2024,
-          occurrence_count: 4,
-          total_flight_mins: 2385,
-          occurrences_per_100h: 10.06,
+          occurrenceCount: 4,
+          totalFlightMins: 2385,
+          occurrencesPer100h: 10.06,
         }
         mockGetOccurrencesPerHundredHrsByAcYr.mockResolvedValue([mockData])
 
         const response = await request(app)
           .get('/api/stats/safety/occurrences-per-100h/aircraft/year')
-          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024' })
+          .query({ aircraftRegistration: 'OH-STL', yrFrom: '2024', yrTo: '2024' })
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetOccurrencesPerHundredHrsByAcYr).toHaveBeenCalledWith({
-          aircraft_registration: 'OH-STL',
+          aircraftRegistration: 'OH-STL',
           yr: undefined,
-          yr_from: 2024,
-          yr_to: 2024,
+          yrFrom: 2024,
+          yrTo: 2024,
         })
       })
     })
@@ -1198,17 +1198,17 @@ describe('Stats API', () => {
         mockGetMyStatistics.mockResolvedValue(mockData)
 
         const response = await request(app).get('/api/stats/my').query({
-          date_from: '2024-01-01',
-          date_to: '2024-12-31',
-          aircraft_registration: 'OH-STL',
+          dateFrom: '2024-01-01',
+          dateTo: '2024-12-31',
+          aircraftRegistration: 'OH-STL',
         })
 
         expect(response.status).toBe(200)
         expect(mockGetMyStatistics).toHaveBeenCalledWith({
           memberId: TEST_MEMBER_ID,
-          date_from: '2024-01-01',
-          date_to: '2024-12-31',
-          aircraft_registration: 'OH-STL',
+          dateFrom: '2024-01-01',
+          dateTo: '2024-12-31',
+          aircraftRegistration: 'OH-STL',
         })
       })
 
@@ -1224,7 +1224,7 @@ describe('Stats API', () => {
       })
 
       it('should reject a malformed date range', async () => {
-        const response = await request(app).get('/api/stats/my').query({ date_from: 'last-week' })
+        const response = await request(app).get('/api/stats/my').query({ dateFrom: 'last-week' })
 
         expect(response.status).toBe(400)
         expect(mockGetMyStatistics).not.toHaveBeenCalled()

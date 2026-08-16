@@ -15,6 +15,9 @@ describe('stats-queries: getMyStatistics', () => {
     // number_of_landings is randomized per row in the mass test data fixture,
     // so the expected total can't be a fixed literal — derive it the same way
     // getMyStatistics does, straight from the source rows.
+    // Runs on the snake_case `db` instance, which does not transform result keys, so
+    // this alias and the read below must stay snake_case even though getMyStatistics
+    // itself now returns camelCase.
     const landingsRow = await sql<{ total_landings: number }>`
       SELECT COALESCE(SUM(number_of_landings), 0)::int AS total_landings
       FROM flight.logs
@@ -34,8 +37,8 @@ describe('stats-queries: getMyStatistics', () => {
   it('scopes totals to the requested date range', async () => {
     const result = await getMyStatistics({
       memberId: MEMBER_ID,
-      date_from: '2010-01-01',
-      date_to: '2010-01-31',
+      dateFrom: '2010-01-01',
+      dateTo: '2010-01-31',
     })
 
     expect(result.totals.flightCount).toBe(37)
@@ -47,13 +50,13 @@ describe('stats-queries: getMyStatistics', () => {
   it('filters by aircraft registration', async () => {
     const matching = await getMyStatistics({
       memberId: MEMBER_ID,
-      aircraft_registration: 'OH-STL',
+      aircraftRegistration: 'OH-STL',
     })
     expect(matching.totals.flightCount).toBe(201)
 
     const nonMatching = await getMyStatistics({
       memberId: MEMBER_ID,
-      aircraft_registration: 'OH-IHQ',
+      aircraftRegistration: 'OH-IHQ',
     })
     expect(nonMatching.totals.flightCount).toBe(0)
     expect(nonMatching.daily).toEqual([])

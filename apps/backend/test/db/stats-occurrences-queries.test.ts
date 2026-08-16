@@ -73,11 +73,11 @@ describe('stats-queries: occurrences per 100 flight hours', () => {
 
   it('counts a RECEIVED/anonymized-copy pair once, not twice', async () => {
     const rows = await getOccurrencesPerHundredHrsByAcYr({
-      aircraft_registration: 'OH-STL',
+      aircraftRegistration: 'OH-STL',
       yr: OCCURRENCE_YEAR,
     })
 
     expect(rows).toHaveLength(1)
-    expect(rows[0].occurrence_count).toBe(1)
+    expect(rows[0].occurrenceCount).toBe(1)
   })
 })

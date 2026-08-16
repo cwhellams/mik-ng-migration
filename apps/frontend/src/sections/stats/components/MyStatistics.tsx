@@ -77,8 +77,8 @@ export const MyStatistics = () => {
     if (range === 'all') return {}
     const now = new Date()
     return {
-      date_from: `${now.getFullYear()}-01-01`,
-      date_to: now.toISOString().split('T')[0],
+      dateFrom: `${now.getFullYear()}-01-01`,
+      dateTo: now.toISOString().split('T')[0],
     }
   }, [range])
 
@@ -91,7 +91,7 @@ export const MyStatistics = () => {
       url: 'v1/stats/my',
       params: {
         ...rangeParams,
-        ...(selectedAircraft ? { aircraft_registration: selectedAircraft } : {}),
+        ...(selectedAircraft ? { aircraftRegistration: selectedAircraft } : {}),
       },
     },
     { refreshInterval: 0 },

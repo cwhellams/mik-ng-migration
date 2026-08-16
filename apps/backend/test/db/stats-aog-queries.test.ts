@@ -56,26 +56,26 @@ describe('stats-queries: AOG (Aircraft On Ground) days', () => {
 
   it('getAogDaysByAcYrMth counts maintenance and unserviceable days separately for the month', async () => {
     const rows = await getAogDaysByAcYrMth({
-      aircraft_registration: 'OH-STL',
+      aircraftRegistration: 'OH-STL',
       yr: 2024,
       mth: 6,
     })
 
     expect(rows).toHaveLength(1)
-    expect(rows[0].maintenance_days).toBe(4)
-    expect(rows[0].unserviceable_days).toBe(4)
-    expect(rows[0].total_aog_days).toBe(8)
+    expect(rows[0].maintenanceDays).toBe(4)
+    expect(rows[0].unserviceableDays).toBe(4)
+    expect(rows[0].totalAogDays).toBe(8)
   })
 
   it('getAogDaysByAcYr totals AOG days across the year for the aircraft', async () => {
     const rows = await getAogDaysByAcYr({
-      aircraft_registration: 'OH-STL',
+      aircraftRegistration: 'OH-STL',
       yr: 2024,
     })
 
     expect(rows).toHaveLength(1)
-    expect(rows[0].maintenance_days).toBe(4)
-    expect(rows[0].unserviceable_days).toBe(4)
-    expect(rows[0].total_aog_days).toBe(8)
+    expect(rows[0].maintenanceDays).toBe(4)
+    expect(rows[0].unserviceableDays).toBe(4)
+    expect(rows[0].totalAogDays).toBe(8)
   })
 })

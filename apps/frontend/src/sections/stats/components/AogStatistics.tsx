@@ -45,7 +45,7 @@ export const AogStatistics = () => {
   } = useApi<AogDaysByAcYrMth[]>(
     {
       url: 'v1/stats/aog/aircraft/year/month',
-      params: { yr_from: monthlyYrFrom, yr_to: currentYear },
+      params: { yrFrom: monthlyYrFrom, yrTo: currentYear },
     },
     { refreshInterval: 0 },
   )
@@ -57,7 +57,7 @@ export const AogStatistics = () => {
   } = useApi<AogDaysByAcYr[]>(
     {
       url: 'v1/stats/aog/aircraft/year',
-      params: { yr_from: yrFrom, yr_to: currentYear },
+      params: { yrFrom: yrFrom, yrTo: currentYear },
     },
     { refreshInterval: 0 },
   )
@@ -68,10 +68,10 @@ export const AogStatistics = () => {
   const aircraftRegistrations = useMemo(() => {
     const registrations = new Set<string>()
     ;(yearlyData ?? []).forEach((d) => {
-      if (d.aircraft_registration) registrations.add(d.aircraft_registration)
+      if (d.aircraftRegistration) registrations.add(d.aircraftRegistration)
     })
     ;(monthlyData ?? []).forEach((d) => {
-      if (d.aircraft_registration) registrations.add(d.aircraft_registration)
+      if (d.aircraftRegistration) registrations.add(d.aircraftRegistration)
     })
     return Array.from(registrations).sort((a, b) => a.localeCompare(b))
   }, [yearlyData, monthlyData])
@@ -85,11 +85,11 @@ export const AogStatistics = () => {
 
     const byMonth = new Map<string, Record<string, number>>()
     monthlyData.forEach((d) => {
-      if (d.yr == null || d.mth == null || d.aircraft_registration == null) return
+      if (d.yr == null || d.mth == null || d.aircraftRegistration == null) return
       const key = `${d.yr}-${String(d.mth).padStart(2, '0')}`
       if (!last12Months.includes(key)) return
       const row = byMonth.get(key) ?? {}
-      row[d.aircraft_registration] = d.total_aog_days
+      row[d.aircraftRegistration] = d.totalAogDays
       byMonth.set(key, row)
     })
 
@@ -98,13 +98,13 @@ export const AogStatistics = () => {
 
   // Reason breakdown per (aircraft, month), used only for the chart tooltip.
   const reasonByAircraftMonth = useMemo(() => {
-    const map = new Map<string, { maintenance_days: number; unserviceable_days: number }>()
+    const map = new Map<string, { maintenanceDays: number; unserviceableDays: number }>()
     ;(monthlyData ?? []).forEach((d) => {
-      if (d.yr == null || d.mth == null || d.aircraft_registration == null) return
-      const key = `${d.aircraft_registration}|${d.yr}-${String(d.mth).padStart(2, '0')}`
+      if (d.yr == null || d.mth == null || d.aircraftRegistration == null) return
+      const key = `${d.aircraftRegistration}|${d.yr}-${String(d.mth).padStart(2, '0')}`
       map.set(key, {
-        maintenance_days: d.maintenance_days,
-        unserviceable_days: d.unserviceable_days,
+        maintenanceDays: d.maintenanceDays,
+        unserviceableDays: d.unserviceableDays,
       })
     })
     return map
@@ -116,21 +116,21 @@ export const AogStatistics = () => {
   const ytdByAircraft = useMemo(() => {
     const totals = new Map<
       string,
-      { maintenance_days: number; unserviceable_days: number; total_aog_days: number }
+      { maintenanceDays: number; unserviceableDays: number; totalAogDays: number }
     >()
     ;(monthlyData ?? [])
       .filter((d) => d.yr === currentYear && d.mth != null && d.mth <= currentMonth)
       .forEach((d) => {
-        if (!d.aircraft_registration) return
-        const existing = totals.get(d.aircraft_registration) ?? {
-          maintenance_days: 0,
-          unserviceable_days: 0,
-          total_aog_days: 0,
+        if (!d.aircraftRegistration) return
+        const existing = totals.get(d.aircraftRegistration) ?? {
+          maintenanceDays: 0,
+          unserviceableDays: 0,
+          totalAogDays: 0,
         }
-        existing.maintenance_days += d.maintenance_days
-        existing.unserviceable_days += d.unserviceable_days
-        existing.total_aog_days += d.total_aog_days
-        totals.set(d.aircraft_registration, existing)
+        existing.maintenanceDays += d.maintenanceDays
+        existing.unserviceableDays += d.unserviceableDays
+        existing.totalAogDays += d.totalAogDays
+        totals.set(d.aircraftRegistration, existing)
       })
     return totals
   }, [monthlyData, currentYear, currentMonth])
@@ -144,8 +144,8 @@ export const AogStatistics = () => {
   const yearlyByAircraftYear = useMemo(() => {
     const map = new Map<string, number>()
     ;(yearlyData ?? []).forEach((d) => {
-      if (!d.aircraft_registration || d.yr == null) return
-      map.set(`${d.aircraft_registration}|${d.yr}`, d.total_aog_days)
+      if (!d.aircraftRegistration || d.yr == null) return
+      map.set(`${d.aircraftRegistration}|${d.yr}`, d.totalAogDays)
     })
     return map
   }, [yearlyData])
@@ -205,8 +205,8 @@ export const AogStatistics = () => {
                         {reason && (
                           <>
                             <br />
-                            Maintenance: {reason.maintenance_days}, Unserviceable:{' '}
-                            {reason.unserviceable_days}
+                            Maintenance: {reason.maintenanceDays}, Unserviceable:{' '}
+                            {reason.unserviceableDays}
                           </>
                         )}
                       </Box>
@@ -271,7 +271,7 @@ export const AogStatistics = () => {
                       <TableCell>{reg}</TableCell>
                       <TableCell align='right'>
                         {ytd
-                          ? `${ytd.total_aog_days} (M: ${ytd.maintenance_days}, U: ${ytd.unserviceable_days})`
+                          ? `${ytd.totalAogDays} (M: ${ytd.maintenanceDays}, U: ${ytd.unserviceableDays})`
                           : 0}
                       </TableCell>
                       {previousYears.map((yr) => (

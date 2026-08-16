@@ -126,8 +126,8 @@ export const Stats = () => {
     {
       url: 'v1/stats/flight-time/aircraft/year',
       params: {
-        yr_from: yrFrom,
-        yr_to: yrTo,
+        yrFrom: yrFrom,
+        yrTo: yrTo,
       },
     },
     {
@@ -144,8 +144,8 @@ export const Stats = () => {
     {
       url: 'v1/stats/pilot/flight-time/year',
       params: {
-        yr_from: yrFrom,
-        yr_to: yrTo,
+        yrFrom: yrFrom,
+        yrTo: yrTo,
       },
     },
     {
@@ -175,8 +175,8 @@ export const Stats = () => {
     {
       url: 'v1/stats/flight-time/aircraft/calendar',
       params: {
-        date_from: dateFrom,
-        date_to: dateTo,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
       },
     },
     {
@@ -193,8 +193,8 @@ export const Stats = () => {
     {
       url: 'v1/stats/visited-airfields',
       params: {
-        yr_from: new Date().getFullYear() - 1,
-        yr_to: new Date().getFullYear(),
+        yrFrom: new Date().getFullYear() - 1,
+        yrTo: new Date().getFullYear(),
       },
     },
     {
@@ -219,8 +219,8 @@ export const Stats = () => {
     {
       url: 'v1/stats/flight-time/aircraft/year/month',
       params: {
-        yr_from: monthlyYrFrom,
-        yr_to: monthlyYrTo,
+        yrFrom: monthlyYrFrom,
+        yrTo: monthlyYrTo,
       },
     },
     {
@@ -237,8 +237,8 @@ export const Stats = () => {
     {
       url: 'v1/stats/commercial/flight-time/aircraft/year/month',
       params: {
-        yr_from: monthlyYrFrom,
-        yr_to: monthlyYrTo,
+        yrFrom: monthlyYrFrom,
+        yrTo: monthlyYrTo,
       },
       skipFetch: !hasCommercialAccess,
     },
@@ -256,8 +256,8 @@ export const Stats = () => {
     {
       url: 'v1/stats/landings/year',
       params: {
-        yr_from: yrFrom,
-        yr_to: yrTo,
+        yrFrom: yrFrom,
+        yrTo: yrTo,
       },
     },
     {
@@ -275,8 +275,8 @@ export const Stats = () => {
     {
       url: 'v1/stats/pob-distribution/year',
       params: {
-        yr_from: new Date().getFullYear() - 1,
-        yr_to: new Date().getFullYear(),
+        yrFrom: new Date().getFullYear() - 1,
+        yrTo: new Date().getFullYear(),
       },
     },
     {
@@ -291,15 +291,15 @@ export const Stats = () => {
     const grouped = new Map<number, { [key: string]: number }>()
 
     aircraftYearlyData.forEach((item) => {
-      if (item.yr == null || item.aircraft_registration == null || item.total_flight_mins == null)
+      if (item.yr == null || item.aircraftRegistration == null || item.totalFlightMins == null)
         return
 
       if (!grouped.has(item.yr)) {
         grouped.set(item.yr, {})
       }
       const yearData = grouped.get(item.yr)!
-      yearData[item.aircraft_registration] =
-        (yearData[item.aircraft_registration] || 0) + Math.round(item.total_flight_mins / 60) // Convert to hours and accumulate across flight types
+      yearData[item.aircraftRegistration] =
+        (yearData[item.aircraftRegistration] || 0) + Math.round(item.totalFlightMins / 60) // Convert to hours and accumulate across flight types
     })
 
     return Array.from(grouped.entries())
@@ -321,7 +321,7 @@ export const Stats = () => {
         grouped.set(item.yr, {})
       }
       const yearData = grouped.get(item.yr)!
-      yearData[item.pilot] = Math.round(item.total_flight_mins / 60) // Convert to hours
+      yearData[item.pilot] = Math.round(item.totalFlightMins / 60) // Convert to hours
     })
 
     return Array.from(grouped.entries())
@@ -339,12 +339,12 @@ export const Stats = () => {
     const grouped = new Map<string, Array<{ day: string; value: number }>>()
 
     calendarData.forEach((item) => {
-      if (!grouped.has(item.aircraft_registration)) {
-        grouped.set(item.aircraft_registration, [])
+      if (!grouped.has(item.aircraftRegistration)) {
+        grouped.set(item.aircraftRegistration, [])
       }
-      grouped.get(item.aircraft_registration)!.push({
+      grouped.get(item.aircraftRegistration)!.push({
         day: item.date,
-        value: Math.round(item.total_flight_mins / 60), // Convert to hours
+        value: Math.round(item.totalFlightMins / 60), // Convert to hours
       })
     })
 
@@ -373,22 +373,22 @@ export const Stats = () => {
       const monthKey = `${item.yr}-${String(item.mth).padStart(2, '0')}`
       if (!last12Months.includes(monthKey)) return
 
-      if (!aircraftMap.has(item.aircraft_registration)) {
-        aircraftMap.set(item.aircraft_registration, [])
+      if (!aircraftMap.has(item.aircraftRegistration)) {
+        aircraftMap.set(item.aircraftRegistration, [])
       }
 
       const existingMonth = aircraftMap
-        .get(item.aircraft_registration)!
+        .get(item.aircraftRegistration)!
         .find((d) => d.month === monthKey)
 
       if (existingMonth) {
-        existingMonth[item.flight_type] = Math.round(
-          (existingMonth[item.flight_type] || 0) + item.total_flight_mins / 60,
+        existingMonth[item.flightType] = Math.round(
+          (existingMonth[item.flightType] || 0) + item.totalFlightMins / 60,
         )
       } else {
-        aircraftMap.get(item.aircraft_registration)!.push({
+        aircraftMap.get(item.aircraftRegistration)!.push({
           month: monthKey,
-          [item.flight_type]: Math.round(item.total_flight_mins / 60),
+          [item.flightType]: Math.round(item.totalFlightMins / 60),
         })
       }
     })
@@ -409,7 +409,7 @@ export const Stats = () => {
   // Get all unique flight types for stacked bar chart
   const flightTypes = useMemo(() => {
     if (!monthlyData) return []
-    const types = new Set(monthlyData.map((d) => d.flight_type))
+    const types = new Set(monthlyData.map((d) => d.flightType))
     return Array.from(types).sort()
   }, [monthlyData])
 
@@ -430,13 +430,13 @@ export const Stats = () => {
       const monthKey = `${item.yr}-${String(item.mth).padStart(2, '0')}`
       if (!last12Months.includes(monthKey)) return
 
-      if (!aircraftMap.has(item.aircraft_registration)) {
-        aircraftMap.set(item.aircraft_registration, [])
+      if (!aircraftMap.has(item.aircraftRegistration)) {
+        aircraftMap.set(item.aircraftRegistration, [])
       }
 
-      aircraftMap.get(item.aircraft_registration)!.push({
+      aircraftMap.get(item.aircraftRegistration)!.push({
         month: monthKey,
-        hours: Math.round(item.total_commercial_flight_mins / 60),
+        hours: Math.round(item.totalCommercialFlightMins / 60),
       })
     })
 
@@ -464,8 +464,8 @@ export const Stats = () => {
         grouped.set(item.yr, {})
       }
       const yearData = grouped.get(item.yr)!
-      yearData[item.aircraft_registration] =
-        (yearData[item.aircraft_registration] || 0) + item.total_landings
+      yearData[item.aircraftRegistration] =
+        (yearData[item.aircraftRegistration] || 0) + item.totalLandings
     })
 
     return Array.from(grouped.entries())
@@ -479,7 +479,7 @@ export const Stats = () => {
   // Get all unique aircraft keys for landings bar chart
   const landingsBarKeys = useMemo(() => {
     if (!landingsYearlyData) return []
-    const keys = new Set(landingsYearlyData.map((d) => d.aircraft_registration))
+    const keys = new Set(landingsYearlyData.map((d) => d.aircraftRegistration))
     return Array.from(keys).sort()
   }, [landingsYearlyData])
 
@@ -492,15 +492,15 @@ export const Stats = () => {
 
     // Group by aircraft and aggregate total visits per airfield
     visitedAirfieldsData.forEach((item) => {
-      if (!allowedAircraft.includes(item.aircraft_registration)) return
+      if (!allowedAircraft.includes(item.aircraftRegistration)) return
 
-      if (!aircraftMap.has(item.aircraft_registration)) {
-        aircraftMap.set(item.aircraft_registration, new Map())
+      if (!aircraftMap.has(item.aircraftRegistration)) {
+        aircraftMap.set(item.aircraftRegistration, new Map())
       }
-      const airfieldMap = aircraftMap.get(item.aircraft_registration)!
+      const airfieldMap = aircraftMap.get(item.aircraftRegistration)!
 
       const currentVisits = airfieldMap.get(item.airfield) || 0
-      airfieldMap.set(item.airfield, currentVisits + item.total_visits)
+      airfieldMap.set(item.airfield, currentVisits + item.totalVisits)
     })
 
     // Convert to nivo pie chart format
@@ -546,23 +546,23 @@ export const Stats = () => {
     pobDistributionData.forEach((item) => {
       if (item.yr !== currentYear && item.yr !== currentYear - 1) return
 
-      if (!aircraftMap.has(item.aircraft_registration)) {
-        aircraftMap.set(item.aircraft_registration, new Map())
+      if (!aircraftMap.has(item.aircraftRegistration)) {
+        aircraftMap.set(item.aircraftRegistration, new Map())
       }
-      const yearMap = aircraftMap.get(item.aircraft_registration)!
+      const yearMap = aircraftMap.get(item.aircraftRegistration)!
       if (!yearMap.has(item.yr)) {
         yearMap.set(item.yr, new Map())
       }
       const bucketMap = yearMap.get(item.yr)!
-      const existing = bucketMap.get(item.pob_bucket) ?? {
+      const existing = bucketMap.get(item.pobBucket) ?? {
         flightCount: 0,
         crossCountryFlightCount: 0,
         totalFlightMins: 0,
       }
-      bucketMap.set(item.pob_bucket, {
-        flightCount: existing.flightCount + item.flight_count,
-        crossCountryFlightCount: existing.crossCountryFlightCount + item.cross_country_flight_count,
-        totalFlightMins: existing.totalFlightMins + item.total_flight_mins,
+      bucketMap.set(item.pobBucket, {
+        flightCount: existing.flightCount + item.flightCount,
+        crossCountryFlightCount: existing.crossCountryFlightCount + item.crossCountryFlightCount,
+        totalFlightMins: existing.totalFlightMins + item.totalFlightMins,
       })
     })
 
@@ -624,9 +624,9 @@ export const Stats = () => {
     if (!memberCountData) return []
 
     return memberCountData.map((item) => ({
-      id: item.member_type,
-      label: item.member_type,
-      value: item.member_count,
+      id: item.memberType,
+      label: item.memberType,
+      value: item.memberCount,
     }))
   }, [memberCountData])
 
@@ -647,11 +647,11 @@ export const Stats = () => {
     >()
 
     aircraftYearlyData.forEach((item) => {
-      if (item.aircraft_registration == null || item.yr == null) return
-      if (!allowedAircraft.includes(item.aircraft_registration)) return
+      if (item.aircraftRegistration == null || item.yr == null) return
+      if (!allowedAircraft.includes(item.aircraftRegistration)) return
 
-      if (!aircraftMap.has(item.aircraft_registration)) {
-        aircraftMap.set(item.aircraft_registration, {
+      if (!aircraftMap.has(item.aircraftRegistration)) {
+        aircraftMap.set(item.aircraftRegistration, {
           ytd: 0,
           ytdNf: 0,
           ytdIfr: 0,
@@ -659,10 +659,10 @@ export const Stats = () => {
         })
       }
 
-      const stats = aircraftMap.get(item.aircraft_registration)!
-      const hours = Math.round((item.total_flight_mins ?? 0) / 60)
-      const nf = Math.round((item.total_nf_mins ?? 0) / 60)
-      const ifr = Math.round((item.total_ifr_mins ?? 0) / 60)
+      const stats = aircraftMap.get(item.aircraftRegistration)!
+      const hours = Math.round((item.totalFlightMins ?? 0) / 60)
+      const nf = Math.round((item.totalNfMins ?? 0) / 60)
+      const ifr = Math.round((item.totalIfrMins ?? 0) / 60)
 
       if (item.yr === currentYear) {
         stats.ytd += hours

@@ -2,270 +2,270 @@ import { z } from 'zod'
 
 // V540: Total Flight Time Views
 export const TotalFlightTimeByAcSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   date: z.string(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 export const TotalFlightTimeByAcCalendarSchema = z.object({
-  aircraft_registration: z.string(),
+  aircraftRegistration: z.string(),
   date: z.string(),
-  total_flight_mins: z.number(),
+  totalFlightMins: z.number(),
 })
 
 export const TotalFlightTimeByAcYrFtSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   yr: z.number(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 export const TotalFlightTimeByAcYrSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
 })
 
 export const TotalFlightTimeByAcYrMthSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   yr: z.number(),
   mth: z.number(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 // V550: DTO Flight Time Views
 export const DtoFlightTimeByAcSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   date: z.string(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 export const DtoFlightTimeByAcYrSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   yr: z.number(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 export const CommercialFlightTimeByAcYrMthSchema = z.object({
-  aircraft_registration: z.string(),
+  aircraftRegistration: z.string(),
   yr: z.number(),
   mth: z.number(),
-  total_commercial_flight_mins: z.number(),
+  totalCommercialFlightMins: z.number(),
 })
 
 export const DtoFlightTimeByAcYrMthSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   yr: z.number(),
   mth: z.number(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 // V560: Non-Billable Flight Time Views
 export const NonBillableFlightTimeByAcSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   date: z.string(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 export const NonBillableFlightTimeByAcYrSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   yr: z.number(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 export const NonBillableFlightTimeByAcYrMthSchema = z.object({
-  aircraft_registration: z.string(),
-  flight_type: z.string(),
+  aircraftRegistration: z.string(),
+  flightType: z.string(),
   yr: z.number(),
   mth: z.number(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 // V570: Various Aircraft Stats Views
 export const VisitedAirfieldsByAcSchema = z.object({
-  aircraft_registration: z.string(),
+  aircraftRegistration: z.string(),
   yr: z.number(),
   airfield: z.string(),
-  total_visits: z.number(),
+  totalVisits: z.number(),
 })
 
 export const TotalLandingsByAcYrSchema = z.object({
-  aircraft_registration: z.string(),
+  aircraftRegistration: z.string(),
   yr: z.number(),
-  total_landings: z.number(),
+  totalLandings: z.number(),
 })
 
 export const TotalOilUpliftByAcYrMthSchema = z.object({
-  aircraft_registration: z.string(),
+  aircraftRegistration: z.string(),
   yr: z.number(),
   mth: z.number(),
-  total_oil_uplift: z.number(),
+  totalOilUplift: z.number(),
 })
 
 export const TotalFuelUpliftByAcYrMthSchema = z.object({
-  aircraft_registration: z.string(),
+  aircraftRegistration: z.string(),
   yr: z.number(),
   mth: z.number(),
-  total_fuel_uplift: z.number(),
+  totalFuelUplift: z.number(),
 })
 
 export const LongestShortestAvgFlightByAcYrSchema = z.object({
-  aircraft_registration: z.string(),
+  aircraftRegistration: z.string(),
   yr: z.number(),
-  longest_flight: z.number(),
-  shortest_flight: z.number(),
-  average_flight: z.number(),
-  median_flight: z.number(),
+  longestFlight: z.number(),
+  shortestFlight: z.number(),
+  averageFlight: z.number(),
+  medianFlight: z.number(),
 })
 
 export const MemberCountByTypeSchema = z.object({
-  member_type: z.string(),
-  member_count: z.number(),
+  memberType: z.string(),
+  memberCount: z.number(),
 })
 
 // V580: Pilot Flight Time Views
 export const TotalFlightTimeByPilotSchema = z.object({
   pilot: z.string(),
   date: z.string(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 export const TotalFlightTimeByPilotYrSchema = z.object({
   pilot: z.string(),
   yr: z.number(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 export const TotalFlightTimeByPilotYrMthSchema = z.object({
   pilot: z.string(),
   yr: z.number(),
   mth: z.number(),
-  total_flight_mins: z.number(),
-  total_nf_mins: z.number(),
-  total_ifr_mins: z.number(),
+  totalFlightMins: z.number(),
+  totalNfMins: z.number(),
+  totalIfrMins: z.number(),
 })
 
 // V1000: Reservation Efficiency Views
 export const ReservationEfficiencyByYrSchema = z.object({
   yr: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const ReservationEfficiencyByYrMthSchema = z.object({
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const ReservationEfficiencyByAcYrSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const ReservationEfficiencyByAcYrMthSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const ReservationEfficiencyByMemberYrSchema = z.object({
   member: z.string().nullable(),
   yr: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const ReservationEfficiencyByMemberYrMthSchema = z.object({
   member: z.string().nullable(),
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const AirfieldEfficiencyByYrSchema = z.object({
   yr: z.number().nullable(),
-  efnu_efnu_mins: z.number().nullable(),
-  inbound_outbound_mins: z.number().nullable(),
-  away_mins: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  efnuEfnuMins: z.number().nullable(),
+  inboundOutboundMins: z.number().nullable(),
+  awayMins: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const AirfieldEfficiencyByYrMthSchema = z.object({
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  efnu_efnu_mins: z.number().nullable(),
-  inbound_outbound_mins: z.number().nullable(),
-  away_mins: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  efnuEfnuMins: z.number().nullable(),
+  inboundOutboundMins: z.number().nullable(),
+  awayMins: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const AirfieldEfficiencyByAcYrSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
-  efnu_efnu_mins: z.number().nullable(),
-  inbound_outbound_mins: z.number().nullable(),
-  away_mins: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  efnuEfnuMins: z.number().nullable(),
+  inboundOutboundMins: z.number().nullable(),
+  awayMins: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const AirfieldEfficiencyByAcYrMthSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  efnu_efnu_mins: z.number().nullable(),
-  inbound_outbound_mins: z.number().nullable(),
-  away_mins: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  efnuEfnuMins: z.number().nullable(),
+  inboundOutboundMins: z.number().nullable(),
+  awayMins: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 // V1760: School Flight Reservation Efficiency Views
@@ -273,88 +273,88 @@ export const AirfieldEfficiencyByAcYrMthSchema = z.object({
 // restricted to school (training) flights only.
 export const SchoolFlightEfficiencyByYrSchema = z.object({
   yr: z.number().nullable(),
-  total_block_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalBlockMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const SchoolFlightEfficiencyByYrMthSchema = z.object({
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  total_block_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalBlockMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const SchoolFlightEfficiencyByAcYrSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
-  total_block_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalBlockMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const SchoolFlightEfficiencyByAcYrMthSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  total_block_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalBlockMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const SchoolFlightEfficiencyByInstructorYrSchema = z.object({
   instructor: z.string().nullable(),
   yr: z.number().nullable(),
-  total_block_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalBlockMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 export const SchoolFlightEfficiencyByInstructorYrMthSchema = z.object({
   instructor: z.string().nullable(),
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  total_block_mins: z.number().nullable(),
-  total_reserved_mins: z.number().nullable(),
-  efficiency_pct: z.number().nullable(),
+  totalBlockMins: z.number().nullable(),
+  totalReservedMins: z.number().nullable(),
+  efficiencyPct: z.number().nullable(),
 })
 
 // AOG (Aircraft On Ground) days — maintenance bookings + outstanding defects
 export const AogDaysByAcYrMthSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
   mth: z.number().nullable(),
-  maintenance_days: z.number(),
-  unserviceable_days: z.number(),
-  total_aog_days: z.number(),
+  maintenanceDays: z.number(),
+  unserviceableDays: z.number(),
+  totalAogDays: z.number(),
 })
 
 export const AogDaysByAcYrSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
-  maintenance_days: z.number(),
-  unserviceable_days: z.number(),
-  total_aog_days: z.number(),
+  maintenanceDays: z.number(),
+  unserviceableDays: z.number(),
+  totalAogDays: z.number(),
 })
 
 // Occupancy (persons-on-board) distribution, restricted to aircraft with >2 seats
 export const PobDistributionByAcYrSchema = z.object({
-  aircraft_registration: z.string(),
+  aircraftRegistration: z.string(),
   yr: z.number(),
-  pob_bucket: z.enum(['1_2', '3', '4_PLUS']),
-  flight_count: z.number(),
-  cross_country_flight_count: z.number(),
-  total_flight_mins: z.number(),
+  pobBucket: z.enum(['1_2', '3', '4_PLUS']),
+  flightCount: z.number(),
+  crossCountryFlightCount: z.number(),
+  totalFlightMins: z.number(),
 })
 
 // Safety performance: occurrences per 100 flight hours, per aircraft per year
 export const OccurrencesPerHundredHrsByAcYrSchema = z.object({
-  aircraft_registration: z.string().nullable(),
+  aircraftRegistration: z.string().nullable(),
   yr: z.number().nullable(),
-  occurrence_count: z.number().nullable(),
-  total_flight_mins: z.number().nullable(),
-  occurrences_per_100h: z.number().nullable(),
+  occurrenceCount: z.number().nullable(),
+  totalFlightMins: z.number().nullable(),
+  occurrencesPer100h: z.number().nullable(),
 })
 
 // Pilot Statistics
@@ -398,9 +398,9 @@ export const MyStatisticsSchema = z.object({
 })
 
 export const MyStatisticsFilterSchema = z.object({
-  date_from: z.string().date().optional(),
-  date_to: z.string().date().optional(),
-  aircraft_registration: z.string().min(1).optional(),
+  dateFrom: z.string().date().optional(),
+  dateTo: z.string().date().optional(),
+  aircraftRegistration: z.string().min(1).optional(),
 })
 
 // Type exports

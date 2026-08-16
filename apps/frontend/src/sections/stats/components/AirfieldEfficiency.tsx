@@ -26,15 +26,15 @@ type Period = 'year' | 'month'
 const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
 
 const CATEGORY_COLORS: Record<string, string> = {
-  efnu_efnu_mins: '#4e79a7',
-  inbound_outbound_mins: '#f28e2b',
-  away_mins: '#e15759',
+  efnuEfnuMins: '#4e79a7',
+  inboundOutboundMins: '#f28e2b',
+  awayMins: '#e15759',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  efnu_efnu_mins: 'EFNU–EFNU',
-  inbound_outbound_mins: 'Inbound/Outbound',
-  away_mins: 'Away',
+  efnuEfnuMins: 'EFNU–EFNU',
+  inboundOutboundMins: 'Inbound/Outbound',
+  awayMins: 'Away',
 }
 
 const getYearRange = () => {
@@ -74,7 +74,7 @@ export const AirfieldEfficiency = () => {
   } = useApi<AirfieldEfficiencyByYr[]>(
     {
       url: 'v1/stats/airfield-efficiency/year',
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'overall' || period !== 'year',
     },
     { refreshInterval: 0 },
@@ -88,7 +88,7 @@ export const AirfieldEfficiency = () => {
   } = useApi<AirfieldEfficiencyByYrMth[]>(
     {
       url: 'v1/stats/airfield-efficiency/year/month',
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'overall' || period !== 'month',
     },
     { refreshInterval: 0 },
@@ -102,7 +102,7 @@ export const AirfieldEfficiency = () => {
   } = useApi<AirfieldEfficiencyByAcYr[]>(
     {
       url: 'v1/stats/airfield-efficiency/aircraft/year',
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'aircraft' || period !== 'year',
     },
     { refreshInterval: 0 },
@@ -116,7 +116,7 @@ export const AirfieldEfficiency = () => {
   } = useApi<AirfieldEfficiencyByAcYrMth[]>(
     {
       url: 'v1/stats/airfield-efficiency/aircraft/year/month',
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'aircraft' || period !== 'month',
     },
     { refreshInterval: 0 },
@@ -139,9 +139,9 @@ export const AirfieldEfficiency = () => {
       .filter((d) => d.yr != null)
       .map((d) => ({
         period: String(d.yr),
-        efnu_efnu_mins: Number(d.efnu_efnu_mins ?? 0),
-        inbound_outbound_mins: Number(d.inbound_outbound_mins ?? 0),
-        away_mins: Number(d.away_mins ?? 0),
+        efnuEfnuMins: Number(d.efnuEfnuMins ?? 0),
+        inboundOutboundMins: Number(d.inboundOutboundMins ?? 0),
+        awayMins: Number(d.awayMins ?? 0),
       }))
       .sort((a, b) => a.period.localeCompare(b.period))
   }, [overallByYr])
@@ -151,7 +151,7 @@ export const AirfieldEfficiency = () => {
     if (!overallByYrMth) return []
     const byPeriod = new Map<
       string,
-      { efnu_efnu_mins: number; inbound_outbound_mins: number; away_mins: number }
+      { efnuEfnuMins: number; inboundOutboundMins: number; awayMins: number }
     >()
     overallByYrMth
       .filter((d) => d.yr != null && d.mth != null)
@@ -159,14 +159,14 @@ export const AirfieldEfficiency = () => {
         const p = `${d.yr}-${String(d.mth).padStart(2, '0')}`
         if (!last12Months.includes(p)) return
         byPeriod.set(p, {
-          efnu_efnu_mins: Number(d.efnu_efnu_mins ?? 0),
-          inbound_outbound_mins: Number(d.inbound_outbound_mins ?? 0),
-          away_mins: Number(d.away_mins ?? 0),
+          efnuEfnuMins: Number(d.efnuEfnuMins ?? 0),
+          inboundOutboundMins: Number(d.inboundOutboundMins ?? 0),
+          awayMins: Number(d.awayMins ?? 0),
         })
       })
     return last12Months.map((p) => ({
       period: p,
-      ...(byPeriod.get(p) ?? { efnu_efnu_mins: 0, inbound_outbound_mins: 0, away_mins: 0 }),
+      ...(byPeriod.get(p) ?? { efnuEfnuMins: 0, inboundOutboundMins: 0, awayMins: 0 }),
     }))
   }, [overallByYrMth, last12Months])
 
@@ -175,15 +175,15 @@ export const AirfieldEfficiency = () => {
     if (!byAcYr) return []
     const grouped = new Map<string, Record<string, number | string>>()
     byAcYr
-      .filter((d) => d.yr != null && d.aircraft_registration != null)
+      .filter((d) => d.yr != null && d.aircraftRegistration != null)
       .forEach((d) => {
         const p = String(d.yr)
         if (!grouped.has(p)) grouped.set(p, { period: p })
         const row = grouped.get(p)!
-        const ac = d.aircraft_registration!
-        row[`${ac}_efnu_efnu`] = Number(d.efnu_efnu_mins ?? 0)
-        row[`${ac}_inbound_outbound`] = Number(d.inbound_outbound_mins ?? 0)
-        row[`${ac}_away`] = Number(d.away_mins ?? 0)
+        const ac = d.aircraftRegistration!
+        row[`${ac}_efnu_efnu`] = Number(d.efnuEfnuMins ?? 0)
+        row[`${ac}_inbound_outbound`] = Number(d.inboundOutboundMins ?? 0)
+        row[`${ac}_away`] = Number(d.awayMins ?? 0)
       })
     return Array.from(grouped.values()).sort((a, b) =>
       String(a.period).localeCompare(String(b.period)),
@@ -195,16 +195,16 @@ export const AirfieldEfficiency = () => {
     if (!byAcYrMth) return []
     const grouped = new Map<string, Record<string, number | string>>()
     byAcYrMth
-      .filter((d) => d.yr != null && d.mth != null && d.aircraft_registration != null)
+      .filter((d) => d.yr != null && d.mth != null && d.aircraftRegistration != null)
       .forEach((d) => {
         const p = `${d.yr}-${String(d.mth).padStart(2, '0')}`
         if (!last12Months.includes(p)) return
         if (!grouped.has(p)) grouped.set(p, { period: p })
         const row = grouped.get(p)!
-        const ac = d.aircraft_registration!
-        row[`${ac}_efnu_efnu`] = Number(d.efnu_efnu_mins ?? 0)
-        row[`${ac}_inbound_outbound`] = Number(d.inbound_outbound_mins ?? 0)
-        row[`${ac}_away`] = Number(d.away_mins ?? 0)
+        const ac = d.aircraftRegistration!
+        row[`${ac}_efnu_efnu`] = Number(d.efnuEfnuMins ?? 0)
+        row[`${ac}_inbound_outbound`] = Number(d.inboundOutboundMins ?? 0)
+        row[`${ac}_away`] = Number(d.awayMins ?? 0)
       })
     return last12Months.map((p) => ({
       period: p,
@@ -218,7 +218,7 @@ export const AirfieldEfficiency = () => {
     if (!data) return []
     const registrations = new Set<string>()
     data.forEach((d) => {
-      if (d.aircraft_registration) registrations.add(d.aircraft_registration)
+      if (d.aircraftRegistration) registrations.add(d.aircraftRegistration)
     })
     return Array.from(registrations)
       .sort()
@@ -228,9 +228,9 @@ export const AirfieldEfficiency = () => {
   // Summary chips — totals for selected period (overall only)
   const allTimeSummary = useMemo(() => {
     if (!overallByYr || overallByYr.length === 0) return null
-    const efnu = overallByYr.reduce((s, d) => s + Number(d.efnu_efnu_mins ?? 0), 0)
-    const io = overallByYr.reduce((s, d) => s + Number(d.inbound_outbound_mins ?? 0), 0)
-    const away = overallByYr.reduce((s, d) => s + Number(d.away_mins ?? 0), 0)
+    const efnu = overallByYr.reduce((s, d) => s + Number(d.efnuEfnuMins ?? 0), 0)
+    const io = overallByYr.reduce((s, d) => s + Number(d.inboundOutboundMins ?? 0), 0)
+    const away = overallByYr.reduce((s, d) => s + Number(d.awayMins ?? 0), 0)
     const total = efnu + io + away
     if (total === 0) return null
     return {
@@ -259,13 +259,13 @@ export const AirfieldEfficiency = () => {
   })()
 
   const barKeys =
-    groupBy === 'overall' ? ['efnu_efnu_mins', 'inbound_outbound_mins', 'away_mins'] : aircraftKeys
+    groupBy === 'overall' ? ['efnuEfnuMins', 'inboundOutboundMins', 'awayMins'] : aircraftKeys
 
   const barColors = (bar: { id: string | number }) => {
     const key = String(bar.id)
-    if (key.endsWith('_efnu_efnu')) return CATEGORY_COLORS['efnu_efnu_mins']
-    if (key.endsWith('_inbound_outbound')) return CATEGORY_COLORS['inbound_outbound_mins']
-    if (key.endsWith('_away')) return CATEGORY_COLORS['away_mins']
+    if (key.endsWith('_efnu_efnu')) return CATEGORY_COLORS['efnuEfnuMins']
+    if (key.endsWith('_inbound_outbound')) return CATEGORY_COLORS['inboundOutboundMins']
+    if (key.endsWith('_away')) return CATEGORY_COLORS['awayMins']
     return CATEGORY_COLORS[key] ?? '#888888'
   }
 
@@ -314,7 +314,7 @@ export const AirfieldEfficiency = () => {
           <Grid size={{ xs: 12, sm: 4 }}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant='h4' sx={{ color: CATEGORY_COLORS['efnu_efnu_mins'] }}>
+                <Typography variant='h4' sx={{ color: CATEGORY_COLORS['efnuEfnuMins'] }}>
                   {allTimeSummary.efnu_pct}%
                 </Typography>
                 <Typography variant='subtitle1'>EFNU–EFNU</Typography>
@@ -332,7 +332,7 @@ export const AirfieldEfficiency = () => {
           <Grid size={{ xs: 12, sm: 4 }}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant='h4' sx={{ color: CATEGORY_COLORS['inbound_outbound_mins'] }}>
+                <Typography variant='h4' sx={{ color: CATEGORY_COLORS['inboundOutboundMins'] }}>
                   {allTimeSummary.io_pct}%
                 </Typography>
                 <Typography variant='subtitle1'>Inbound / Outbound</Typography>
@@ -350,7 +350,7 @@ export const AirfieldEfficiency = () => {
           <Grid size={{ xs: 12, sm: 4 }}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant='h4' sx={{ color: CATEGORY_COLORS['away_mins'] }}>
+                <Typography variant='h4' sx={{ color: CATEGORY_COLORS['awayMins'] }}>
                   {allTimeSummary.away_pct}%
                 </Typography>
                 <Typography variant='subtitle1'>Away</Typography>

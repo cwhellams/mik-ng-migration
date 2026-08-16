@@ -25,7 +25,7 @@ export const SafetyStatistics = () => {
   const { data, error, isLoading } = useApi<OccurrencesPerHundredHrsByAcYr[]>(
     {
       url: 'v1/stats/safety/occurrences-per-100h/aircraft/year',
-      params: { yr_from: yrFrom, yr_to: currentYear },
+      params: { yrFrom: yrFrom, yrTo: currentYear },
     },
     { refreshInterval: 0 },
   )
@@ -36,7 +36,7 @@ export const SafetyStatistics = () => {
   const aircraftRegistrations = useMemo(() => {
     const registrations = new Set<string>()
     ;(data ?? []).forEach((d) => {
-      if (d.aircraft_registration) registrations.add(d.aircraft_registration)
+      if (d.aircraftRegistration) registrations.add(d.aircraftRegistration)
     })
     return Array.from(registrations).sort((a, b) => a.localeCompare(b))
   }, [data])
@@ -54,9 +54,9 @@ export const SafetyStatistics = () => {
 
     const byYear = new Map<number, Record<string, number>>()
     data.forEach((d) => {
-      if (d.yr == null || d.aircraft_registration == null || d.occurrences_per_100h == null) return
+      if (d.yr == null || d.aircraftRegistration == null || d.occurrencesPer100h == null) return
       const row = byYear.get(d.yr) ?? {}
-      row[d.aircraft_registration] = d.occurrences_per_100h
+      row[d.aircraftRegistration] = d.occurrencesPer100h
       byYear.set(d.yr, row)
     })
 
@@ -67,14 +67,14 @@ export const SafetyStatistics = () => {
   const detailsByAircraftYear = useMemo(() => {
     const map = new Map<
       string,
-      { occurrence_count: number; total_flight_mins: number; occurrences_per_100h: number | null }
+      { occurrenceCount: number; totalFlightMins: number; occurrencesPer100h: number | null }
     >()
     ;(data ?? []).forEach((d) => {
-      if (d.yr == null || d.aircraft_registration == null) return
-      map.set(`${d.aircraft_registration}|${d.yr}`, {
-        occurrence_count: d.occurrence_count ?? 0,
-        total_flight_mins: d.total_flight_mins ?? 0,
-        occurrences_per_100h: d.occurrences_per_100h,
+      if (d.yr == null || d.aircraftRegistration == null) return
+      map.set(`${d.aircraftRegistration}|${d.yr}`, {
+        occurrenceCount: d.occurrenceCount ?? 0,
+        totalFlightMins: d.totalFlightMins ?? 0,
+        occurrencesPer100h: d.occurrencesPer100h,
       })
     })
     return map
@@ -134,9 +134,9 @@ export const SafetyStatistics = () => {
                         {details && (
                           <>
                             <br />
-                            {details.occurrence_count} occurrence
-                            {details.occurrence_count === 1 ? '' : 's'} over{' '}
-                            {(details.total_flight_mins / 60).toFixed(1)} flight hours
+                            {details.occurrenceCount} occurrence
+                            {details.occurrenceCount === 1 ? '' : 's'} over{' '}
+                            {(details.totalFlightMins / 60).toFixed(1)} flight hours
                           </>
                         )}
                       </Box>
@@ -198,11 +198,11 @@ export const SafetyStatistics = () => {
                       <TableRow key={`${reg}-${yr}`}>
                         <TableCell>{reg}</TableCell>
                         <TableCell>{yr}</TableCell>
-                        <TableCell align='right'>{details.occurrence_count}</TableCell>
+                        <TableCell align='right'>{details.occurrenceCount}</TableCell>
                         <TableCell align='right'>
-                          {(details.total_flight_mins / 60).toFixed(1)}
+                          {(details.totalFlightMins / 60).toFixed(1)}
                         </TableCell>
-                        <TableCell align='right'>{details.occurrences_per_100h ?? '—'}</TableCell>
+                        <TableCell align='right'>{details.occurrencesPer100h ?? '—'}</TableCell>
                       </TableRow>
                     )
                   }),

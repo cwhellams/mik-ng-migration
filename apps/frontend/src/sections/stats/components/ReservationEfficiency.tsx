@@ -66,11 +66,11 @@ const getEfficiencyColor = (pct: number | null) => {
   return 'error' as const
 }
 
-// School flight rows report `total_block_mins` (block time) instead of `total_flight_mins`
+// School flight rows report `totalBlockMins` (block time) instead of `totalFlightMins`
 // (airtime) — see issue #1081.
 const getNumeratorMins = (
   d: OverallRow | OverallMthRow | AcRow | AcMthRow | EntityRow | EntityMthRow,
-): number => Number(('total_flight_mins' in d ? d.total_flight_mins : d.total_block_mins) ?? 0)
+): number => Number(('totalFlightMins' in d ? d.totalFlightMins : d.totalBlockMins) ?? 0)
 
 // The "by member" dimension becomes "by instructor" for school flights.
 const getEntityId = (d: EntityRow | EntityMthRow): string | null =>
@@ -101,7 +101,7 @@ export const ReservationEfficiency = () => {
   } = useApi<OverallRow[]>(
     {
       url: `v1/stats/${scopeBase}/year`,
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'overall' || period !== 'year',
     },
     { refreshInterval: 0 },
@@ -115,7 +115,7 @@ export const ReservationEfficiency = () => {
   } = useApi<OverallMthRow[]>(
     {
       url: `v1/stats/${scopeBase}/year/month`,
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'overall' || period !== 'month',
     },
     { refreshInterval: 0 },
@@ -129,7 +129,7 @@ export const ReservationEfficiency = () => {
   } = useApi<AcRow[]>(
     {
       url: `v1/stats/${scopeBase}/aircraft/year`,
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'aircraft' || period !== 'year',
     },
     { refreshInterval: 0 },
@@ -143,7 +143,7 @@ export const ReservationEfficiency = () => {
   } = useApi<AcMthRow[]>(
     {
       url: `v1/stats/${scopeBase}/aircraft/year/month`,
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'aircraft' || period !== 'month',
     },
     { refreshInterval: 0 },
@@ -157,7 +157,7 @@ export const ReservationEfficiency = () => {
   } = useApi<EntityRow[]>(
     {
       url: `v1/stats/${scopeBase}/${entitySegment}/year`,
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'member' || period !== 'year',
     },
     { refreshInterval: 0 },
@@ -171,7 +171,7 @@ export const ReservationEfficiency = () => {
   } = useApi<EntityMthRow[]>(
     {
       url: `v1/stats/${scopeBase}/${entitySegment}/year/month`,
-      params: { yr_from: yrFrom, yr_to: yrTo },
+      params: { yrFrom: yrFrom, yrTo: yrTo },
       skipFetch: groupBy !== 'member' || period !== 'month',
     },
     { refreshInterval: 0 },
@@ -184,9 +184,9 @@ export const ReservationEfficiency = () => {
       .filter((d) => d.yr != null)
       .map((d) => ({
         period: String(d.yr),
-        efficiency_pct: Number(d.efficiency_pct ?? 0),
+        efficiencyPct: Number(d.efficiencyPct ?? 0),
         flight_mins: getNumeratorMins(d),
-        reserved_mins: Number(d.total_reserved_mins ?? 0),
+        reserved_mins: Number(d.totalReservedMins ?? 0),
       }))
       .sort((a, b) => a.period.localeCompare(b.period))
   }, [overallByYr])
@@ -204,9 +204,9 @@ export const ReservationEfficiency = () => {
       .filter((d) => d.yr != null && d.mth != null)
       .map((d) => ({
         period: `${d.yr}-${String(d.mth).padStart(2, '0')}`,
-        efficiency_pct: Number(d.efficiency_pct ?? 0),
+        efficiencyPct: Number(d.efficiencyPct ?? 0),
         flight_mins: getNumeratorMins(d),
-        reserved_mins: Number(d.total_reserved_mins ?? 0),
+        reserved_mins: Number(d.totalReservedMins ?? 0),
       }))
       .filter((d) => last12Months.includes(d.period))
       .sort((a, b) => a.period.localeCompare(b.period))
@@ -217,11 +217,11 @@ export const ReservationEfficiency = () => {
     if (!byAcYr) return []
     const grouped = new Map<string, { period: string; [ac: string]: number | string }>()
     byAcYr
-      .filter((d) => d.yr != null && d.aircraft_registration != null)
+      .filter((d) => d.yr != null && d.aircraftRegistration != null)
       .forEach((d) => {
         const period = String(d.yr)
         if (!grouped.has(period)) grouped.set(period, { period })
-        grouped.get(period)![d.aircraft_registration!] = Number(d.efficiency_pct ?? 0)
+        grouped.get(period)![d.aircraftRegistration!] = Number(d.efficiencyPct ?? 0)
       })
     return Array.from(grouped.values()).sort((a, b) =>
       String(a.period).localeCompare(String(b.period)),
@@ -239,12 +239,12 @@ export const ReservationEfficiency = () => {
     }
     const grouped = new Map<string, { period: string; [ac: string]: number | string }>()
     byAcYrMth
-      .filter((d) => d.yr != null && d.mth != null && d.aircraft_registration != null)
+      .filter((d) => d.yr != null && d.mth != null && d.aircraftRegistration != null)
       .forEach((d) => {
         const period = `${d.yr}-${String(d.mth).padStart(2, '0')}`
         if (!last12Months.includes(period)) return
         if (!grouped.has(period)) grouped.set(period, { period })
-        grouped.get(period)![d.aircraft_registration!] = Number(d.efficiency_pct ?? 0)
+        grouped.get(period)![d.aircraftRegistration!] = Number(d.efficiencyPct ?? 0)
       })
     return last12Months
       .map((p) => grouped.get(p) ?? { period: p })
@@ -257,7 +257,7 @@ export const ReservationEfficiency = () => {
     if (!data) return []
     const keys = new Set<string>()
     data.forEach((d) => {
-      if (d.aircraft_registration) keys.add(d.aircraft_registration)
+      if (d.aircraftRegistration) keys.add(d.aircraftRegistration)
     })
     return Array.from(keys).sort()
   }, [byAcYr, byAcYrMth, period])
@@ -268,13 +268,13 @@ export const ReservationEfficiency = () => {
     const currentYear = new Date().getFullYear()
     return byEntityYr
       .filter((d) => d.yr === currentYear && getEntityId(d) != null)
-      .sort((a, b) => Number(b.efficiency_pct ?? 0) - Number(a.efficiency_pct ?? 0))
+      .sort((a, b) => Number(b.efficiencyPct ?? 0) - Number(a.efficiencyPct ?? 0))
       .slice(0, 20)
       .map((d) => ({
         entity: getEntityId(d)!.substring(0, 8),
-        efficiency_pct: Number(d.efficiency_pct ?? 0),
+        efficiencyPct: Number(d.efficiencyPct ?? 0),
         flight_mins: getNumeratorMins(d),
-        reserved_mins: Number(d.total_reserved_mins ?? 0),
+        reserved_mins: Number(d.totalReservedMins ?? 0),
       }))
   }, [byEntityYr])
 
@@ -297,7 +297,7 @@ export const ReservationEfficiency = () => {
         const existing = monthMap.get(period) ?? { flight: 0, reserved: 0 }
         monthMap.set(period, {
           flight: existing.flight + getNumeratorMins(d),
-          reserved: existing.reserved + Number(d.total_reserved_mins ?? 0),
+          reserved: existing.reserved + Number(d.totalReservedMins ?? 0),
         })
       })
     return last12Months.map((period) => {
@@ -306,7 +306,7 @@ export const ReservationEfficiency = () => {
         totals && totals.reserved > 0
           ? Math.round((totals.flight / totals.reserved) * 100 * 100) / 100
           : 0
-      return { period, efficiency_pct: efficiency }
+      return { period, efficiencyPct: efficiency }
     })
   }, [byEntityYrMth])
 
@@ -327,10 +327,7 @@ export const ReservationEfficiency = () => {
   const allTimeEfficiency = useMemo(() => {
     if (!overallByYr || overallByYr.length === 0) return null
     const totalFlight = overallByYr.reduce((sum, d) => sum + getNumeratorMins(d), 0)
-    const totalReserved = overallByYr.reduce(
-      (sum, d) => sum + Number(d.total_reserved_mins ?? 0),
-      0,
-    )
+    const totalReserved = overallByYr.reduce((sum, d) => sum + Number(d.totalReservedMins ?? 0), 0)
     if (totalReserved === 0) return 0
     return Math.round((totalFlight / totalReserved) * 100 * 100) / 100
   }, [overallByYr])
@@ -344,7 +341,7 @@ export const ReservationEfficiency = () => {
 
   const barKeys = (() => {
     if (groupBy === 'aircraft') return aircraftKeys
-    return ['efficiency_pct']
+    return ['efficiencyPct']
   })()
 
   const reportTitle = isSchool ? 'School Flight Reservation Efficiency' : 'Reservation Efficiency'
@@ -637,8 +634,8 @@ export const ReservationEfficiency = () => {
                           </td>
                           <td style={{ padding: '8px', textAlign: 'right' }}>
                             <Chip
-                              label={formatEfficiency(row.efficiency_pct)}
-                              color={getEfficiencyColor(row.efficiency_pct)}
+                              label={formatEfficiency(row.efficiencyPct)}
+                              color={getEfficiencyColor(row.efficiencyPct)}
                               size='small'
                             />
                           </td>
@@ -677,10 +674,10 @@ export const ReservationEfficiency = () => {
                 Aggregated across all {entityLabel.toLowerCase()}s per month.
               </Typography>
               <Box sx={{ height: 400 }}>
-                {entityMonthBarData.some((d) => d.efficiency_pct > 0) ? (
+                {entityMonthBarData.some((d) => d.efficiencyPct > 0) ? (
                   <ResponsiveBar
                     data={entityMonthBarData}
-                    keys={['efficiency_pct']}
+                    keys={['efficiencyPct']}
                     indexBy='period'
                     margin={{ top: 20, right: 30, bottom: 60, left: 60 }}
                     padding={0.3}

@@ -65,9 +65,9 @@ export const YearOnYearReport = () => {
     {
       url: 'v1/stats/flight-time/aircraft/year/month',
       params: {
-        yr_from: yrFrom,
-        yr_to: yrTo,
-        ...(selectedAircraft ? { aircraft_registration: selectedAircraft } : {}),
+        yrFrom: yrFrom,
+        yrTo: yrTo,
+        ...(selectedAircraft ? { aircraftRegistration: selectedAircraft } : {}),
       },
     },
     { refreshInterval: 0 },
@@ -76,7 +76,7 @@ export const YearOnYearReport = () => {
   // Derive available flight types from actual data — stays in sync with backend automatically
   const availableTypes = useMemo(() => {
     if (!flightData || flightData.length === 0) return []
-    return Array.from(new Set(flightData.map((d) => d.flight_type))).sort()
+    return Array.from(new Set(flightData.map((d) => d.flightType))).sort()
   }, [flightData])
 
   // Reset selection to all available types whenever the data (or aircraft filter) changes
@@ -95,12 +95,12 @@ export const YearOnYearReport = () => {
     }
 
     flightData.forEach((row) => {
-      if (!selectedTypes.includes(row.flight_type)) return
+      if (!selectedTypes.includes(row.flightType)) return
       const monthName = MONTH_NAMES[row.mth - 1]
       if (!monthName) return
       const yearStr = String(row.yr)
       const monthMap = totals.get(monthName)!
-      monthMap.set(yearStr, (monthMap.get(yearStr) ?? 0) + row.total_flight_mins)
+      monthMap.set(yearStr, (monthMap.get(yearStr) ?? 0) + row.totalFlightMins)
     })
 
     return MONTH_NAMES.map((month) => {
