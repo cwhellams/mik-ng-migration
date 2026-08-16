@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout selected tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.client_payload.tag_name }}
           fetch-depth: 0
