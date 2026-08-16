@@ -1,8 +1,7 @@
-import { sql, type Selectable } from 'kysely'
+import { sql } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
-import { db } from './connection.ts'
-import type { MemberRegister, MemberRoles } from './schema.js'
+import { camelCaseNestedRows, camelDb, type CamelRow } from './connection.ts'
 import type { RegisterRequest } from '@mik/contracts/auth'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
@@ -33,10 +32,10 @@ import { RecurringFeeType, SimplbooksEventType } from '../services/simplbooks/mo
 import type { DashboardSettings } from '@mik/contracts/dashboard'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
-  const member = await db
+  const member = await camelDb
     .selectFrom('member.register')
     .selectAll()
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .executeTakeFirst()
 
   if (member !== undefined) {
@@ -46,80 +45,80 @@ export async function getMemberById(memberId: string): Promise<Member | undefine
 
 // Get member using email
 export async function getMemberByEmail(email: string): Promise<Member | undefined> {
-  const member = await db
+  const member = await camelDb
     .selectFrom('member.register')
     .selectAll()
     .where('email', '=', email.toLowerCase())
     .executeTakeFirst()
   if (member !== undefined) {
-    return toMember(member, await getMemberRolesByMemberId(member.member_id))
+    return toMember(member, await getMemberRolesByMemberId(member.memberId))
   }
 }
 
-function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Member {
+function toMember(member: CamelRow<'member.register'>, roles: MemberRole[]): Member {
   return {
-    memberId: member.member_id,
-    memberType: member.member_type as MIKMemberTypes,
+    memberId: member.memberId,
+    memberType: member.memberType as MIKMemberTypes,
     email: member.email,
-    firstName: member.first_name,
-    lastName: member.last_name,
+    firstName: member.firstName,
+    lastName: member.lastName,
 
-    phoneNumber: member.phone_number,
-    phoneCountry: member.phone_country,
+    phoneNumber: member.phoneNumber,
+    phoneCountry: member.phoneCountry,
     postcode: member.postcode,
-    streetAddress: member.street_address,
-    townCity: member.town_city,
+    streetAddress: member.streetAddress,
+    townCity: member.townCity,
     country: member.country,
 
-    iceContactName: member.ice_contact_name,
-    iceContactPhoneNumber: member.ice_contact_phone_number,
-    iceContactPhoneCountry: member.ice_contact_phone_country,
+    iceContactName: member.iceContactName,
+    iceContactPhoneNumber: member.iceContactPhoneNumber,
+    iceContactPhoneCountry: member.iceContactPhoneCountry,
 
-    imWhatsapp: member.im_whatsapp,
-    imTelegram: member.im_telegram,
-    imFacebookMessenger: member.im_facebook_messenger,
-    imDiscord: member.im_discord,
-    imViber: member.im_viber,
-    imSignal: member.im_signal,
+    imWhatsapp: member.imWhatsapp,
+    imTelegram: member.imTelegram,
+    imFacebookMessenger: member.imFacebookMessenger,
+    imDiscord: member.imDiscord,
+    imViber: member.imViber,
+    imSignal: member.imSignal,
 
-    isTrainingProgramPilot: member.is_training_program_pilot,
-    canMakeReservations: member.can_make_reservations,
-    billingId: member.billing_id,
-    brevoContactId: member.brevo_contact_id ? Number(member.brevo_contact_id) : undefined,
-    dateOfBirth: member.date_of_birth,
-    memberSince: member.member_since,
+    isTrainingProgramPilot: member.isTrainingProgramPilot,
+    canMakeReservations: member.canMakeReservations,
+    billingId: member.billingId,
+    brevoContactId: member.brevoContactId ? Number(member.brevoContactId) : undefined,
+    dateOfBirth: member.dateOfBirth,
+    memberSince: member.memberSince,
 
-    createdAt: member.created_at.toISOString(),
-    createdBy: member.created_by,
-    updatedAt: member.updated_at.toISOString(),
-    updatedBy: member.updated_by,
-    emailVerifiedAt: member.email_verified_at?.toISOString(),
+    createdAt: member.createdAt.toISOString(),
+    createdBy: member.createdBy,
+    updatedAt: member.updatedAt.toISOString(),
+    updatedBy: member.updatedBy,
+    emailVerifiedAt: member.emailVerifiedAt?.toISOString(),
 
-    licenceId: member.licence_id ?? undefined,
-    licenceExpiry: member.licence_expiry_date,
-    medicalExpiry: member.medical_expiry_date,
-    medicalClass1Expiry: member.medical_class1_expiry_date,
-    medicalClass2Expiry: member.medical_class2_expiry_date,
-    medicalLaplExpiry: member.medical_lapl_expiry_date,
+    licenceId: member.licenceId ?? undefined,
+    licenceExpiry: member.licenceExpiryDate,
+    medicalExpiry: member.medicalExpiryDate,
+    medicalClass1Expiry: member.medicalClass1ExpiryDate,
+    medicalClass2Expiry: member.medicalClass2ExpiryDate,
+    medicalLaplExpiry: member.medicalLaplExpiryDate,
 
     iban: member.iban,
-    ibanAccountName: member.iban_account_name,
+    ibanAccountName: member.ibanAccountName,
 
-    isMembershipApproved: member.is_membership_approved,
-    membershipApprovedAt: member.membership_approved_at?.toISOString(),
-    membershipApprovedBy: member.membership_approved_by ?? undefined,
-    defaultInstructorMemberId: member.default_instructor_member_id ?? undefined,
+    isMembershipApproved: member.isMembershipApproved,
+    membershipApprovedAt: member.membershipApprovedAt?.toISOString(),
+    membershipApprovedBy: member.membershipApprovedBy ?? undefined,
+    defaultInstructorMemberId: member.defaultInstructorMemberId ?? undefined,
 
-    autoRenewAnnualMembership: member.auto_renew_annual_membership,
-    autoRenewEquipmentFee: member.auto_renew_equipment_fee,
-    isMembershipExpired: member.is_membership_expired,
-    mustUpdateProfile: member.must_update_profile,
+    autoRenewAnnualMembership: member.autoRenewAnnualMembership,
+    autoRenewEquipmentFee: member.autoRenewEquipmentFee,
+    isMembershipExpired: member.isMembershipExpired,
+    mustUpdateProfile: member.mustUpdateProfile,
 
-    lang: member.lang_iso639 as MIKLang,
-    mailingLists: (member.mailing_lists as string[] | null) ?? undefined,
+    lang: member.langIso639 as MIKLang,
+    mailingLists: (member.mailingLists as string[] | null) ?? undefined,
     applicationData: (() => {
-      if (!member.application_data) return undefined
-      const result = ApplicationDataSchema.safeParse(member.application_data)
+      if (!member.applicationData) return undefined
+      const result = ApplicationDataSchema.safeParse(member.applicationData)
       return result.success ? result.data : undefined
     })(),
     roles: roles,
@@ -157,61 +156,61 @@ export async function getMembers(
   const publicRoles = (await getAllMemberRoles(true)).map((role) => role.roleId)
   const filterRoles = isAdmin ? roles : getPublicRolesToQuery(publicRoles, roles)
 
-  let list = await db
+  let list = await camelDb
     .selectFrom('member.register')
     .select((eb) => [
-      'member.register.member_id',
-      'first_name',
-      'last_name',
-      'phone_number',
-      'town_city',
+      'member.register.memberId',
+      'firstName',
+      'lastName',
+      'phoneNumber',
+      'townCity',
       'email',
-      'lang_iso639',
-      'member_since',
-      'is_training_program_pilot',
-      'can_make_reservations',
-      'billing_id',
-      'auto_renew_annual_membership',
-      'auto_renew_equipment_fee',
-      'must_update_profile',
+      'langIso639',
+      'memberSince',
+      'isTrainingProgramPilot',
+      'canMakeReservations',
+      'billingId',
+      'autoRenewAnnualMembership',
+      'autoRenewEquipmentFee',
+      'mustUpdateProfile',
       jsonArrayFrom(
         eb
-          .selectFrom('member.member_to_roles')
-          .select('role_id')
-          .whereRef('member.member_to_roles.member_id', '=', 'member.register.member_id')
-          .orderBy('role_id'),
+          .selectFrom('member.memberToRoles')
+          .select('roleId')
+          .whereRef('member.memberToRoles.memberId', '=', 'member.register.memberId')
+          .orderBy('roleId'),
       ).as('roles'),
     ])
 
     // see only members waiting for approval
     .$if(isAdmin && showUnapproved === true, (qb) =>
       qb
-        .where('is_membership_approved', '=', false)
-        .where('member_type', '!=', MIKMemberTypes.EXTERNAL),
+        .where('isMembershipApproved', '=', false)
+        .where('memberType', '!=', MIKMemberTypes.EXTERNAL),
     )
     // or everybody else
     .$if(!isAdmin || !showUnapproved, (qb) =>
       qb.where((eb) =>
         eb.or([
-          eb('is_membership_approved', '=', true),
-          eb('member_type', '=', MIKMemberTypes.EXTERNAL),
+          eb('isMembershipApproved', '=', true),
+          eb('memberType', '=', MIKMemberTypes.EXTERNAL),
         ]),
       ),
     )
 
     // show only external members
     .$if(isAdmin && showExternal === true, (qb) =>
-      qb.where('member_type', '=', MIKMemberTypes.EXTERNAL),
+      qb.where('memberType', '=', MIKMemberTypes.EXTERNAL),
     )
     // show only removed members or hide otherwise
-    .where('member_type', isAdmin && showRemoved ? '=' : '!=', MIKMemberTypes.REMOVED)
+    .where('memberType', isAdmin && showRemoved ? '=' : '!=', MIKMemberTypes.REMOVED)
 
     // system users are always hidden
-    .where('member_type', '!=', MIKMemberTypes.SYSTEM)
+    .where('memberType', '!=', MIKMemberTypes.SYSTEM)
 
     // query by name
     .$if(!!name, (qb) =>
-      qb.where((eb) => eb('first_name', 'ilike', `${name}%`).or('last_name', 'ilike', `${name}%`)),
+      qb.where((eb) => eb('firstName', 'ilike', `${name}%`).or('lastName', 'ilike', `${name}%`)),
     )
 
     // query users with roles
@@ -221,9 +220,9 @@ export async function getMembers(
           filterRoles.map((role) =>
             eb.exists(
               eb
-                .selectFrom('member.member_to_roles')
-                .whereRef('member.register.member_id', '=', 'member.member_to_roles.member_id')
-                .where('role_id', '=', role),
+                .selectFrom('member.memberToRoles')
+                .whereRef('member.register.memberId', '=', 'member.memberToRoles.memberId')
+                .where('roleId', '=', role),
             ),
           ),
         ),
@@ -233,74 +232,76 @@ export async function getMembers(
     // query by member type
     .$if(memberType != null, (qb) => {
       const types = Array.isArray(memberType) ? memberType! : [memberType!]
-      return qb.where('member_type', 'in', types)
+      return qb.where('memberType', 'in', types)
     })
-    .orderBy('last_name')
-    .orderBy('first_name')
+    .orderBy('lastName')
+    .orderBy('firstName')
     .execute()
 
   return list.map((member) => ({
-    memberId: member.member_id,
-    first: member.first_name,
-    last: member.last_name,
-    phoneNumber: member.phone_number,
-    townCity: member.town_city,
+    memberId: member.memberId,
+    first: member.firstName,
+    last: member.lastName,
+    phoneNumber: member.phoneNumber,
+    townCity: member.townCity,
     email: member.email,
-    lang: member.lang_iso639 as MIKLang,
-    roles: member.roles
-      .map((role) => role.role_id)
+    lang: member.langIso639 as MIKLang,
+    // nested subquery: the keys inside come back snake_case, so role.roleId would
+    // be undefined and every member would lose their roles
+    roles: camelCaseNestedRows(member.roles)
+      .map((role) => role.roleId)
       .filter((role) => isAdmin || publicRoles.includes(role)),
     ...(isAdmin
       ? {
-          memberSince: member.member_since,
-          isTrainingProgramPilot: member.is_training_program_pilot,
-          canMakeReservations: member.can_make_reservations,
-          automaticBillingStatus: member.billing_id !== null,
-          autoRenewAnnualMembership: member.auto_renew_annual_membership ?? true,
-          autoRenewEquipmentFee: member.auto_renew_equipment_fee ?? false,
-          mustUpdateProfile: member.must_update_profile,
+          memberSince: member.memberSince,
+          isTrainingProgramPilot: member.isTrainingProgramPilot,
+          canMakeReservations: member.canMakeReservations,
+          automaticBillingStatus: member.billingId !== null,
+          autoRenewAnnualMembership: member.autoRenewAnnualMembership ?? true,
+          autoRenewEquipmentFee: member.autoRenewEquipmentFee ?? false,
+          mustUpdateProfile: member.mustUpdateProfile,
         }
       : {}),
   }))
 }
 
 export async function getMembersForAnnualMembershipFee(year: number): Promise<InvoiceMember[]> {
-  const members = await db
+  const members = await camelDb
     .selectFrom('member.register')
     .select([
-      'member.register.member_id',
+      'member.register.memberId',
       'email',
-      'first_name',
-      'last_name',
-      'billing_id',
-      'lang_iso639',
-      'member_type',
-      'auto_renew_annual_membership',
-      'auto_renew_equipment_fee',
+      'firstName',
+      'lastName',
+      'billingId',
+      'langIso639',
+      'memberType',
+      'autoRenewAnnualMembership',
+      'autoRenewEquipmentFee',
     ])
-    .where('is_membership_approved', '=', true)
-    .where('is_membership_expired', '=', false)
-    .where('auto_renew_annual_membership', '=', true)
-    .where('member_type', 'not in', [
+    .where('isMembershipApproved', '=', true)
+    .where('isMembershipExpired', '=', false)
+    .where('autoRenewAnnualMembership', '=', true)
+    .where('memberType', 'not in', [
       MIKMemberTypes.HONORARY,
       MIKMemberTypes.EXTERNAL,
       MIKMemberTypes.REMOVED,
       MIKMemberTypes.SYSTEM,
     ])
-    .orderBy('last_name')
-    .orderBy('first_name')
+    .orderBy('lastName')
+    .orderBy('firstName')
     .execute()
 
   return members.map((member) => ({
-    memberId: member.member_id,
-    firstName: member.first_name,
-    lastName: member.last_name,
-    billingId: member.billing_id ?? undefined,
-    memberType: member.member_type as MIKMemberTypes,
+    memberId: member.memberId,
+    firstName: member.firstName,
+    lastName: member.lastName,
+    billingId: member.billingId ?? undefined,
+    memberType: member.memberType as MIKMemberTypes,
     email: member.email,
-    lang: member.lang_iso639 as MIKLang,
-    autoRenewAnnualMembership: member.auto_renew_annual_membership,
-    autoRenewEquipmentFee: member.auto_renew_equipment_fee,
+    lang: member.langIso639 as MIKLang,
+    autoRenewAnnualMembership: member.autoRenewAnnualMembership,
+    autoRenewEquipmentFee: member.autoRenewEquipmentFee,
   }))
 }
 
@@ -308,46 +309,46 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
   const now = new Date()
   const new_member_id = generateShortId()
 
-  const insRetval = await db
+  const insRetval = await camelDb
     .insertInto('member.register')
     .values({
-      member_id: new_member_id,
-      member_type: member.memberType,
+      memberId: new_member_id,
+      memberType: member.memberType,
       email: member.email.toLowerCase(),
-      first_name: member.firstName,
-      last_name: member.lastName,
-      phone_number: member.phoneNumber,
-      phone_country: member.phoneCountry ?? undefined,
-      street_address: member.streetAddress,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      phoneNumber: member.phoneNumber,
+      phoneCountry: member.phoneCountry ?? undefined,
+      streetAddress: member.streetAddress,
       postcode: member.postcode,
-      town_city: member.townCity,
+      townCity: member.townCity,
       country: member.country,
 
-      billing_id: undefined,
-      date_of_birth: member.dateOfBirth,
-      member_since: now.toISOString(),
-      auto_renew_annual_membership: member.autoRenewAnnualMembership,
-      auto_renew_equipment_fee: member.autoRenewEquipmentFee,
+      billingId: undefined,
+      dateOfBirth: member.dateOfBirth,
+      memberSince: now.toISOString(),
+      autoRenewAnnualMembership: member.autoRenewAnnualMembership,
+      autoRenewEquipmentFee: member.autoRenewEquipmentFee,
 
-      licence_id: member.licenceId,
-      licence_expiry_date: member.licenceExpiry,
-      medical_expiry_date: member.medicalExpiry,
-      medical_class1_expiry_date: member.medicalClass1Expiry,
-      medical_class2_expiry_date: member.medicalClass2Expiry,
-      medical_lapl_expiry_date: member.medicalLaplExpiry,
+      licenceId: member.licenceId,
+      licenceExpiryDate: member.licenceExpiry,
+      medicalExpiryDate: member.medicalExpiry,
+      medicalClass1ExpiryDate: member.medicalClass1Expiry,
+      medicalClass2ExpiryDate: member.medicalClass2Expiry,
+      medicalLaplExpiryDate: member.medicalLaplExpiry,
 
-      lang_iso639: member.lang,
-      application_data: member.applicationData ? JSON.stringify(member.applicationData) : undefined,
-      created_at: now,
-      created_by: jwt?.memberId ?? new_member_id,
-      updated_at: now,
-      updated_by: jwt?.memberId ?? new_member_id,
+      langIso639: member.lang,
+      applicationData: member.applicationData ? JSON.stringify(member.applicationData) : undefined,
+      createdAt: now,
+      createdBy: jwt?.memberId ?? new_member_id,
+      updatedAt: now,
+      updatedBy: jwt?.memberId ?? new_member_id,
     })
-    .returning('member_id')
+    .returning('memberId')
     .executeTakeFirstOrThrow()
 
   if (insRetval) {
-    return insRetval.member_id
+    return insRetval.memberId
   }
 
   throw new Error('Member insert failed, no member id returned')
@@ -360,14 +361,14 @@ export async function updateMemberLang(
 ): Promise<boolean> {
   const now = new Date()
 
-  const result = await db
+  const result = await camelDb
     .updateTable('member.register')
     .set({
-      lang_iso639: lang,
-      updated_at: now,
-      updated_by: jwt.memberId,
+      langIso639: lang,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .executeTakeFirstOrThrow()
   if (!result.numUpdatedRows) {
     return false
@@ -383,64 +384,64 @@ export async function updateMember(
 ): Promise<boolean> {
   const now = new Date()
 
-  const result = await db
+  const result = await camelDb
     .updateTable('member.register')
     .set({
-      member_type: patch.memberType,
+      memberType: patch.memberType,
       email: patch.email?.toLowerCase(),
-      first_name: patch.firstName,
-      last_name: patch.lastName,
+      firstName: patch.firstName,
+      lastName: patch.lastName,
 
-      phone_number: patch.phoneNumber,
-      phone_country: patch.phoneCountry ?? undefined,
-      street_address: patch.streetAddress,
+      phoneNumber: patch.phoneNumber,
+      phoneCountry: patch.phoneCountry ?? undefined,
+      streetAddress: patch.streetAddress,
       postcode: patch.postcode,
-      town_city: patch.townCity,
+      townCity: patch.townCity,
       country: patch.country,
 
-      ice_contact_name: patch.iceContactName,
-      ice_contact_phone_number: patch.iceContactPhoneNumber,
-      ice_contact_phone_country: patch.iceContactPhoneCountry ?? undefined,
+      iceContactName: patch.iceContactName,
+      iceContactPhoneNumber: patch.iceContactPhoneNumber,
+      iceContactPhoneCountry: patch.iceContactPhoneCountry ?? undefined,
 
-      im_whatsapp: patch.imWhatsapp,
-      im_telegram: patch.imTelegram,
-      im_facebook_messenger: patch.imFacebookMessenger,
-      im_discord: patch.imDiscord,
-      im_viber: patch.imViber,
-      im_signal: patch.imSignal,
+      imWhatsapp: patch.imWhatsapp,
+      imTelegram: patch.imTelegram,
+      imFacebookMessenger: patch.imFacebookMessenger,
+      imDiscord: patch.imDiscord,
+      imViber: patch.imViber,
+      imSignal: patch.imSignal,
 
-      is_training_program_pilot: patch.isTrainingProgramPilot,
-      can_make_reservations: patch.canMakeReservations,
-      billing_id: patch.billingId,
-      date_of_birth: patch.dateOfBirth,
-      member_since: patch.memberSince,
+      isTrainingProgramPilot: patch.isTrainingProgramPilot,
+      canMakeReservations: patch.canMakeReservations,
+      billingId: patch.billingId,
+      dateOfBirth: patch.dateOfBirth,
+      memberSince: patch.memberSince,
 
-      auto_renew_annual_membership: patch.autoRenewAnnualMembership,
-      auto_renew_equipment_fee: patch.autoRenewEquipmentFee,
-      is_membership_expired: patch.isMembershipExpired,
+      autoRenewAnnualMembership: patch.autoRenewAnnualMembership,
+      autoRenewEquipmentFee: patch.autoRenewEquipmentFee,
+      isMembershipExpired: patch.isMembershipExpired,
 
-      mailing_lists:
+      mailingLists:
         patch.mailingLists === undefined ? undefined : JSON.stringify(patch.mailingLists),
 
-      application_data: serializeJsonField(patch.applicationData),
+      applicationData: serializeJsonField(patch.applicationData),
 
-      licence_id: patch.licenceId,
-      licence_expiry_date: patch.licenceExpiry,
-      medical_expiry_date: patch.medicalExpiry,
-      medical_class1_expiry_date: patch.medicalClass1Expiry,
-      medical_class2_expiry_date: patch.medicalClass2Expiry,
-      medical_lapl_expiry_date: patch.medicalLaplExpiry,
+      licenceId: patch.licenceId,
+      licenceExpiryDate: patch.licenceExpiry,
+      medicalExpiryDate: patch.medicalExpiry,
+      medicalClass1ExpiryDate: patch.medicalClass1Expiry,
+      medicalClass2ExpiryDate: patch.medicalClass2Expiry,
+      medicalLaplExpiryDate: patch.medicalLaplExpiry,
 
       iban: patch.iban,
-      iban_account_name: patch.ibanAccountName,
+      ibanAccountName: patch.ibanAccountName,
 
-      default_instructor_member_id: patch.defaultInstructorMemberId,
+      defaultInstructorMemberId: patch.defaultInstructorMemberId,
 
-      updated_at: now,
-      updated_by: jwt.memberId,
-      email_verified_at: patch.emailVerifiedAt,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
+      emailVerifiedAt: patch.emailVerifiedAt,
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .executeTakeFirstOrThrow()
   if (!result.numUpdatedRows) {
     return false
@@ -463,33 +464,33 @@ export async function setMustUpdateProfileBulk(
   jwt: JWTUser,
 ): Promise<number> {
   if (memberIds.length === 0) return 0
-  const result = await db
+  const result = await camelDb
     .updateTable('member.register')
-    .set({ must_update_profile: value, updated_at: new Date(), updated_by: jwt.memberId })
-    .where('member_id', 'in', memberIds)
+    .set({ mustUpdateProfile: value, updatedAt: new Date(), updatedBy: jwt.memberId })
+    .where('memberId', 'in', memberIds)
     .executeTakeFirst()
   return Number(result.numUpdatedRows)
 }
 
 export async function clearMustUpdateProfile(memberId: string, jwt: JWTUser): Promise<void> {
-  await db
+  await camelDb
     .updateTable('member.register')
-    .set({ must_update_profile: false, updated_at: new Date(), updated_by: jwt.memberId })
-    .where('member_id', '=', memberId)
-    .where('must_update_profile', '=', true)
+    .set({ mustUpdateProfile: false, updatedAt: new Date(), updatedBy: jwt.memberId })
+    .where('memberId', '=', memberId)
+    .where('mustUpdateProfile', '=', true)
     .execute()
 }
 
 export async function removeMember(memberId: string): Promise<boolean> {
-  await db
-    .deleteFrom('member.member_to_roles')
-    .where('member_id', '=', memberId)
+  await camelDb
+    .deleteFrom('member.memberToRoles')
+    .where('memberId', '=', memberId)
     .executeTakeFirstOrThrow()
 
-  const result = await db
+  const result = await camelDb
     .deleteFrom('member.register')
-    .where('member_id', '=', memberId)
-    .where('brevo_contact_id', 'is', null) // only delete if member is not sync'd to Brevo
+    .where('memberId', '=', memberId)
+    .where('brevoContactId', 'is', null) // only delete if member is not sync'd to Brevo
     .executeTakeFirstOrThrow()
   return result.numDeletedRows == BigInt(1)
 }
@@ -499,24 +500,24 @@ export async function setMembershipApproval(
   approvedBy: string,
   createSimplbooksAccount: boolean,
 ): Promise<Member> {
-  return await db.transaction().execute(async (txn) => {
+  return await camelDb.transaction().execute(async (txn) => {
     const member = await txn
       .updateTable('member.register')
       .set({
-        can_make_reservations: true,
-        membership_approved_at: new Date(),
-        membership_approved_by: approvedBy,
+        canMakeReservations: true,
+        membershipApprovedAt: new Date(),
+        membershipApprovedBy: approvedBy,
       })
-      .where('member_id', '=', memberId)
+      .where('memberId', '=', memberId)
       .returningAll()
       .executeTakeFirstOrThrow()
 
     if (createSimplbooksAccount) {
       await txn
-        .insertInto('accts.outbox_simplbooks')
+        .insertInto('accts.outboxSimplbooks')
         .values({
           id: randomUUID(),
-          event_type: SimplbooksEventType.ADD_MEMBER,
+          eventType: SimplbooksEventType.ADD_MEMBER,
           payload: toMember(member, []),
         })
         .execute()
@@ -539,24 +540,24 @@ export async function updateMemberRoles(
   const oldRoles = existingRoleIds.filter((existingRoleId) => !roles.includes(existingRoleId))
 
   if (newRoles.length > 0) {
-    await db
-      .insertInto('member.member_to_roles')
+    await camelDb
+      .insertInto('member.memberToRoles')
       .values(
         newRoles.map((newRole) => ({
-          member_id: memberId,
-          role_id: newRole,
-          created_by: jwt.memberId,
-          created_at: now,
+          memberId: memberId,
+          roleId: newRole,
+          createdBy: jwt.memberId,
+          createdAt: now,
         })),
       )
       .execute()
   }
 
   if (oldRoles.length > 0) {
-    await db
-      .deleteFrom('member.member_to_roles')
-      .where('member_id', '=', memberId)
-      .where('role_id', 'in', oldRoles)
+    await camelDb
+      .deleteFrom('member.memberToRoles')
+      .where('memberId', '=', memberId)
+      .where('roleId', 'in', oldRoles)
       .execute()
   }
 }
@@ -565,31 +566,31 @@ export async function updateMemberRoles(
 // Role queries
 //
 
-function toMemberRole(role: Selectable<MemberRoles>): MemberRole {
+function toMemberRole(role: CamelRow<'member.roles'>): MemberRole {
   return {
-    roleId: role.role_id,
+    roleId: role.roleId,
     description: role.description,
     name: {
-      [MIKLang.EN]: role.name_en,
-      [MIKLang.FI]: role.name_fi,
-      [MIKLang.SV]: (role as any).name_sv,
+      [MIKLang.EN]: role.nameEn,
+      [MIKLang.FI]: role.nameFi,
+      [MIKLang.SV]: role.nameSv,
     },
-    isPublic: role.is_public,
+    isPublic: role.isPublic,
     permissions: role.permissions as MIKPermissions[],
-    createdAt: role.created_at.toISOString(),
-    createdBy: role.created_by,
-    updatedAt: role.updated_at.toISOString(),
-    updatedBy: role.updated_by,
+    createdAt: role.createdAt.toISOString(),
+    createdBy: role.createdBy,
+    updatedAt: role.updatedAt.toISOString(),
+    updatedBy: role.updatedBy,
   }
 }
 
 export async function getMemberRolesByMemberId(memberId: string): Promise<MemberRole[]> {
-  const roles = await db
+  const roles = await camelDb
     .selectFrom('member.roles')
     .selectAll()
-    .innerJoin('member.member_to_roles', 'member.member_to_roles.role_id', 'member.roles.role_id')
-    .where('member_id', '=', memberId)
-    .orderBy('member.roles.role_id')
+    .innerJoin('member.memberToRoles', 'member.memberToRoles.roleId', 'member.roles.roleId')
+    .where('memberId', '=', memberId)
+    .orderBy('member.roles.roleId')
     .execute()
 
   return roles.map(toMemberRole)
@@ -598,29 +599,29 @@ export async function getMemberRolesByMemberId(memberId: string): Promise<Member
 export async function getMemberRolesByPermission(
   permission: MIKPermissions,
 ): Promise<MemberRole[]> {
-  const roles = await db
+  const roles = await camelDb
     .selectFrom('member.roles')
     .selectAll()
     .where((eb) => eb('permissions', '@>', JSON.stringify(permission)))
-    .orderBy('role_id')
+    .orderBy('roleId')
     .execute()
   return roles.map(toMemberRole)
 }
 
 export async function getAllMemberRoles(isPublic?: boolean): Promise<MemberRole[]> {
-  const roles = await db
+  const roles = await camelDb
     .selectFrom('member.roles')
     .selectAll()
-    .$if(isPublic !== undefined, (qb) => qb.where('is_public', '=', isPublic!))
-    .orderBy('role_id')
+    .$if(isPublic !== undefined, (qb) => qb.where('isPublic', '=', isPublic!))
+    .orderBy('roleId')
     .execute()
   return roles.map(toMemberRole)
 }
 export async function getMemberRoleById(roleId: string): Promise<MemberRole | undefined> {
-  const role = await db
+  const role = await camelDb
     .selectFrom('member.roles')
     .selectAll()
-    .where('role_id', '=', roleId)
+    .where('roleId', '=', roleId)
     .executeTakeFirst()
   return role ? toMemberRole(role) : undefined
 }
@@ -628,21 +629,21 @@ export async function getMemberRoleById(roleId: string): Promise<MemberRole | un
 export async function addMemberRole(role: Upsert<MemberRole>, jwt: JWTUser): Promise<MemberRole> {
   const now = new Date()
 
-  const result = await db
+  const result = await camelDb
     .insertInto('member.roles')
     .values({
-      role_id: role.roleId,
+      roleId: role.roleId,
       description: role.description,
-      name_en: role.name[MIKLang.EN],
-      name_fi: role.name[MIKLang.FI],
-      name_sv: role.name[MIKLang.SV] as any,
-      is_public: role.isPublic,
+      nameEn: role.name[MIKLang.EN],
+      nameFi: role.name[MIKLang.FI],
+      nameSv: role.name[MIKLang.SV],
+      isPublic: role.isPublic,
       permissions: JSON.stringify(role.permissions),
 
-      created_at: now,
-      created_by: jwt.memberId,
-      updated_at: now,
-      updated_by: jwt.memberId,
+      createdAt: now,
+      createdBy: jwt.memberId,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
     })
     .executeTakeFirst()
   if (!result.numInsertedOrUpdatedRows) {
@@ -664,29 +665,29 @@ export async function updateMemberRole(
 ): Promise<boolean> {
   const now = new Date()
 
-  const result = await db
+  const result = await camelDb
     .updateTable('member.roles')
     .set({
-      role_id: patch.roleId,
+      roleId: patch.roleId,
       description: patch.description,
-      name_en: patch.name?.[MIKLang.EN],
-      name_fi: patch.name?.[MIKLang.FI],
-      name_sv: patch.name?.[MIKLang.SV] as any,
-      is_public: patch.isPublic,
+      nameEn: patch.name?.[MIKLang.EN],
+      nameFi: patch.name?.[MIKLang.FI],
+      nameSv: patch.name?.[MIKLang.SV],
+      isPublic: patch.isPublic,
       permissions: JSON.stringify(patch.permissions),
 
-      updated_at: now,
-      updated_by: jwt.memberId,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
     })
-    .where('role_id', '=', roleId)
+    .where('roleId', '=', roleId)
     .executeTakeFirstOrThrow()
   return result.numUpdatedRows == BigInt(1)
 }
 
 export async function removeMemberRole(roleId: string): Promise<boolean> {
-  const result = await db
+  const result = await camelDb
     .deleteFrom('member.roles')
-    .where('role_id', '=', roleId)
+    .where('roleId', '=', roleId)
     .executeTakeFirstOrThrow()
   return result.numDeletedRows == BigInt(1)
 }
@@ -696,11 +697,11 @@ export async function getFeeProcessingItemForMember(
   year: number,
   memberId: string,
 ): Promise<FeeProcessingItem | undefined> {
-  const result = await db
-    .selectFrom('member.annual_fees')
-    .where('fee_type', '=', feeType)
+  const result = await camelDb
+    .selectFrom('member.annualFees')
+    .where('feeType', '=', feeType)
     .where('year', '=', year)
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .selectAll()
     .executeTakeFirst()
 
@@ -708,21 +709,29 @@ export async function getFeeProcessingItemForMember(
     return undefined
   }
 
-  return FeeProcessingItemSchema.parse(result)
+  // FeeProcessingItemSchema is the wire contract (@mik/contracts/members) and declares
+  // snake_case fields, so the camelCase row has to be mapped back before it validates.
+  return FeeProcessingItemSchema.parse({
+    member_id: result.memberId,
+    fee_type: result.feeType,
+    year: result.year,
+    created_at: result.createdAt,
+    created_by: result.createdBy,
+  })
 }
 
 /**
  * Suspend a member's ability to make reservations
  */
 export async function suspendMemberReservations(memberId: string): Promise<void> {
-  await db
+  await camelDb
     .updateTable('member.register')
     .set({
-      can_make_reservations: false,
-      updated_at: new Date(),
-      updated_by: 'k1mnimda',
+      canMakeReservations: false,
+      updatedAt: new Date(),
+      updatedBy: 'k1mnimda',
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .execute()
 }
 
@@ -730,41 +739,41 @@ export async function suspendMemberReservations(memberId: string): Promise<void>
  * Restore a member's ability to make reservations
  */
 export async function restoreMemberReservations(memberId: string): Promise<void> {
-  await db
+  await camelDb
     .updateTable('member.register')
     .set({
-      can_make_reservations: true,
-      updated_at: new Date(),
-      updated_by: 'k1mnimda',
+      canMakeReservations: true,
+      updatedAt: new Date(),
+      updatedBy: 'k1mnimda',
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .execute()
 }
 
 export async function getDashboardSettings(memberId: string): Promise<DashboardSettings | null> {
-  const result = await db
+  const result = await camelDb
     .selectFrom('member.register')
-    .select('dashboard_settings')
-    .where('member_id', '=', memberId)
+    .select('dashboardSettings')
+    .where('memberId', '=', memberId)
     .executeTakeFirstOrThrow()
-  if (result.dashboard_settings === null) {
+  if (result.dashboardSettings === null) {
     return null
   }
-  return result.dashboard_settings as DashboardSettings
+  return result.dashboardSettings as DashboardSettings
 }
 
 export async function setDashboardSettings(
   memberId: string,
   settings: DashboardSettings | null,
 ): Promise<void> {
-  await db
+  await camelDb
     .updateTable('member.register')
     .set({
-      dashboard_settings: settings,
-      updated_at: new Date(),
-      updated_by: memberId,
+      dashboardSettings: settings,
+      updatedAt: new Date(),
+      updatedBy: memberId,
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .execute()
 }
 
@@ -773,42 +782,42 @@ export async function setDashboardSettings(
  * Returns a breakdown of which dependent records exist.
  */
 export async function canMemberBeDeleted(memberId: string): Promise<MemberDeletability> {
-  const result = await db
+  const result = await camelDb
     .selectFrom('member.register')
     .select((eb) => [
       eb
-        .exists(eb.selectFrom('accts.invoice').select('id').where('member_id', '=', memberId))
-        .as('has_invoices'),
+        .exists(eb.selectFrom('accts.invoice').select('id').where('memberId', '=', memberId))
+        .as('hasInvoices'),
       eb
         .exists(
           eb
             .selectFrom('flight.logs')
-            .select('flight_id')
+            .select('flightId')
             .where((eb2) =>
               eb2.or([
-                eb2('pic_member_id', '=', memberId),
-                eb2('crew2_member_id', '=', memberId),
-                eb2('crew3_member_id', '=', memberId),
-                eb2('crew4_member_id', '=', memberId),
-                eb2('billable_member_id', '=', memberId),
+                eb2('picMemberId', '=', memberId),
+                eb2('crew2MemberId', '=', memberId),
+                eb2('crew3MemberId', '=', memberId),
+                eb2('crew4MemberId', '=', memberId),
+                eb2('billableMemberId', '=', memberId),
               ]),
             ),
         )
-        .as('has_flights'),
+        .as('hasFlights'),
       eb
         .exists(
-          eb.selectFrom('schedule.bookings').select('booking_id').where('member_id', '=', memberId),
+          eb.selectFrom('schedule.bookings').select('bookingId').where('memberId', '=', memberId),
         )
-        .as('has_bookings'),
-      'brevo_contact_id',
+        .as('hasBookings'),
+      'brevoContactId',
     ])
-    .where('member.register.member_id', '=', memberId)
+    .where('member.register.memberId', '=', memberId)
     .executeTakeFirstOrThrow()
 
-  const hasInvoices = Boolean(result.has_invoices)
-  const hasFlights = Boolean(result.has_flights)
-  const hasBookings = Boolean(result.has_bookings)
-  const hasBrevoId = result.brevo_contact_id !== null
+  const hasInvoices = Boolean(result.hasInvoices)
+  const hasFlights = Boolean(result.hasFlights)
+  const hasBookings = Boolean(result.hasBookings)
+  const hasBrevoId = result.brevoContactId !== null
 
   return {
     canDelete: !hasInvoices && !hasFlights && !hasBookings && !hasBrevoId,
@@ -828,14 +837,14 @@ export async function deactivateMember(
   removedBy: string,
   reason?: string,
 ): Promise<void> {
-  await db.transaction().execute(async (txn) => {
+  await camelDb.transaction().execute(async (txn) => {
     // Remove all roles/permissions
-    await txn.deleteFrom('member.member_to_roles').where('member_id', '=', memberId).execute()
+    await txn.deleteFrom('member.memberToRoles').where('memberId', '=', memberId).execute()
 
     // Push subscriptions are useless once the member can't log in; delete them
     // explicitly rather than relying on ON DELETE CASCADE, since the member
     // row itself is never hard-deleted here.
-    await txn.deleteFrom('member.push_subscriptions').where('member_id', '=', memberId).execute()
+    await txn.deleteFrom('member.pushSubscriptions').where('memberId', '=', memberId).execute()
 
     const now = new Date()
 
@@ -843,21 +852,21 @@ export async function deactivateMember(
     await txn
       .updateTable('member.register')
       .set({
-        member_type: MIKMemberTypes.REMOVED,
-        can_make_reservations: false,
-        is_membership_expired: true,
-        auto_renew_annual_membership: false,
-        auto_renew_equipment_fee: false,
-        brevo_contact_id: null, // remove Brevo contact link
-        brevo_sync_status: null,
-        brevo_synced_at: null,
-        removed_at: now,
-        removed_by: removedBy,
-        removal_reason: reason ?? null,
-        updated_at: now,
-        updated_by: removedBy,
+        memberType: MIKMemberTypes.REMOVED,
+        canMakeReservations: false,
+        isMembershipExpired: true,
+        autoRenewAnnualMembership: false,
+        autoRenewEquipmentFee: false,
+        brevoContactId: null, // remove Brevo contact link
+        brevoSyncStatus: null,
+        brevoSyncedAt: null,
+        removedAt: now,
+        removedBy: removedBy,
+        removalReason: reason ?? null,
+        updatedAt: now,
+        updatedBy: removedBy,
       })
-      .where('member_id', '=', memberId)
+      .where('memberId', '=', memberId)
       .execute()
   })
 }
@@ -869,17 +878,17 @@ export async function deactivateMember(
 export async function restoreMember(memberId: string, restoredBy: string): Promise<Member> {
   const now = new Date()
 
-  const member = await db
+  const member = await camelDb
     .updateTable('member.register')
     .set({
-      member_type: MIKMemberTypes.FLYING, // Default to FLYING, admin can change later
-      removed_at: null,
-      removed_by: null,
-      removal_reason: null,
-      updated_at: now,
-      updated_by: restoredBy,
+      memberType: MIKMemberTypes.FLYING, // Default to FLYING, admin can change later
+      removedAt: null,
+      removedBy: null,
+      removalReason: null,
+      updatedAt: now,
+      updatedBy: restoredBy,
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .returningAll()
     .executeTakeFirstOrThrow()
 
@@ -896,20 +905,22 @@ export async function getUnpaidMembershipFeesForYear(
   memberId: string,
   year: number,
 ): Promise<Array<{ id: string; invoice_type: string; pmt_ref: string | null }>> {
-  const invoices = await db
-    .selectFrom('member.annual_fees')
-    .innerJoin('accts.invoice', 'member.annual_fees.invoice_id', 'accts.invoice.id')
-    .select(['accts.invoice.id', 'accts.invoice.invoice_type', 'accts.invoice.pmt_ref'])
-    .where('member.annual_fees.member_id', '=', memberId)
-    .where('member.annual_fees.year', '=', year)
-    .where('member.annual_fees.fee_type', '=', 'annual_fee')
-    .where('accts.invoice.is_paid', '=', false)
+  const invoices = await camelDb
+    .selectFrom('member.annualFees')
+    .innerJoin('accts.invoice', 'member.annualFees.invoiceId', 'accts.invoice.id')
+    .select(['accts.invoice.id', 'accts.invoice.invoiceType', 'accts.invoice.pmtRef'])
+    .where('member.annualFees.memberId', '=', memberId)
+    .where('member.annualFees.year', '=', year)
+    .where('member.annualFees.feeType', '=', 'annual_fee')
+    .where('accts.invoice.isPaid', '=', false)
     .execute()
 
   return invoices.map((inv) => ({
     id: String(inv.id),
-    invoice_type: String(inv.invoice_type),
-    pmt_ref: inv.pmt_ref,
+    // snake on the left: the payment worker and simplBooksEmailer read
+    // invoice.pmt_ref, so this shape is this function's contract with them
+    invoice_type: String(inv.invoiceType),
+    pmt_ref: inv.pmtRef,
   }))
 }
 
@@ -918,7 +929,7 @@ export async function getUnpaidMembershipFeesForYear(
  * Used by the junior member promotion worker.
  */
 export async function getJuniorMembersTurning18Today(): Promise<
-  Array<{ member_id: string; first_name: string; email: string; lang: MIKLang }>
+  Array<{ memberId: string; firstName: string; email: string; lang: MIKLang }>
 > {
   const today = new Date()
   const birthYear = today.getFullYear() - 18
@@ -926,20 +937,20 @@ export async function getJuniorMembersTurning18Today(): Promise<
   const birthDay = String(today.getDate()).padStart(2, '0')
   const targetDob = `${birthYear}-${birthMonth}-${birthDay}`
 
-  const members = await db
+  const members = await camelDb
     .selectFrom('member.register')
-    .select(['member_id', 'first_name', 'email', 'lang_iso639'])
-    .where('member_type', '=', MIKMemberTypes.JUNIOR)
-    .where('is_membership_approved', '=', true)
-    .where('is_membership_expired', '=', false)
-    .where('date_of_birth', '=', targetDob)
+    .select(['memberId', 'firstName', 'email', 'langIso639'])
+    .where('memberType', '=', MIKMemberTypes.JUNIOR)
+    .where('isMembershipApproved', '=', true)
+    .where('isMembershipExpired', '=', false)
+    .where('dateOfBirth', '=', targetDob)
     .execute()
 
   return members.map((m) => ({
-    member_id: m.member_id,
-    first_name: m.first_name,
+    memberId: m.memberId,
+    firstName: m.firstName,
     email: m.email,
-    lang: m.lang_iso639 as MIKLang,
+    lang: m.langIso639 as MIKLang,
   }))
 }
 
@@ -950,14 +961,14 @@ export async function getJuniorMembersTurning18Today(): Promise<
 export async function promoteMemberToFlying(memberId: string): Promise<void> {
   const now = new Date()
 
-  await db
+  await camelDb
     .updateTable('member.register')
     .set({
-      member_type: MIKMemberTypes.FLYING,
-      updated_at: now,
-      updated_by: 'k1mnimda',
+      memberType: MIKMemberTypes.FLYING,
+      updatedAt: now,
+      updatedBy: 'k1mnimda',
     })
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .execute()
 }
 
@@ -973,12 +984,12 @@ export async function hasMemberFlownBillableFlightInYear(
   const yearStartEpoch = Math.floor(yearStart.getTime() / 1000).toString()
   const nextYearStartEpoch = Math.floor(nextYearStart.getTime() / 1000).toString()
 
-  const flightCount = await db
+  const flightCount = await camelDb
     .selectFrom('flight.logs')
-    .select((eb) => eb.fn.count('flight_id').as('count'))
-    .where('billable_member_id', '=', memberId)
-    .where('takeoff_time_epoch', '>=', yearStartEpoch)
-    .where('takeoff_time_epoch', '<', nextYearStartEpoch)
+    .select((eb) => eb.fn.count('flightId').as('count'))
+    .where('billableMemberId', '=', memberId)
+    .where('takeoffTimeEpoch', '>=', yearStartEpoch)
+    .where('takeoffTimeEpoch', '<', nextYearStartEpoch)
     .executeTakeFirst()
 
   return flightCount ? Number(flightCount.count) > 0 : false
@@ -990,28 +1001,28 @@ export async function hasMemberFlownBillableFlightInYear(
  * but has not been paid.
  */
 export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<NonRenewalMember[]> {
-  const results = await db
+  const results = await camelDb
     .selectFrom('member.register as r')
     .leftJoin(
       (eb) =>
         eb
-          .selectFrom('member.annual_fees')
-          .select(['member_id', 'invoice_id'])
-          .where('fee_type', '=', 'annual_fee')
+          .selectFrom('member.annualFees')
+          .select(['memberId', 'invoiceId'])
+          .where('feeType', '=', 'annual_fee')
           .where('year', '=', year)
           .as('af'),
-      (join) => join.onRef('af.member_id', '=', 'r.member_id'),
+      (join) => join.onRef('af.memberId', '=', 'r.memberId'),
     )
-    .leftJoin('accts.invoice as inv', 'inv.id', 'af.invoice_id')
+    .leftJoin('accts.invoice as inv', 'inv.id', 'af.invoiceId')
     .leftJoin(
       (eb) =>
         eb
-          .selectFrom('member.non_renewal_actions')
-          .select((eb2) => ['member_id', eb2.fn.max('performed_at').as('last_reminder_at')])
-          .where('action_type', '=', 'REMINDER_SENT')
-          .groupBy('member_id')
+          .selectFrom('member.nonRenewalActions')
+          .select((eb2) => ['memberId', eb2.fn.max('performedAt').as('lastReminderAt')])
+          .where('actionType', '=', 'REMINDER_SENT')
+          .groupBy('memberId')
           .as('lr'),
-      (join) => join.onRef('lr.member_id', '=', 'r.member_id'),
+      (join) => join.onRef('lr.memberId', '=', 'r.memberId'),
     )
     .leftJoin(
       (eb) => {
@@ -1021,54 +1032,54 @@ export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<N
         const nextYearStartEpoch = Math.floor(nextYearStart.getTime() / 1000).toString()
         return eb
           .selectFrom('flight.logs')
-          .select((eb2) => ['billable_member_id', eb2.fn.count('flight_id').as('flight_count')])
-          .where('takeoff_time_epoch', '>=', yearStartEpoch)
-          .where('takeoff_time_epoch', '<', nextYearStartEpoch)
-          .groupBy('billable_member_id')
+          .select((eb2) => ['billableMemberId', eb2.fn.count('flightId').as('flightCount')])
+          .where('takeoffTimeEpoch', '>=', yearStartEpoch)
+          .where('takeoffTimeEpoch', '<', nextYearStartEpoch)
+          .groupBy('billableMemberId')
           .as('fc')
       },
-      (join) => join.onRef('fc.billable_member_id', '=', 'r.member_id'),
+      (join) => join.onRef('fc.billableMemberId', '=', 'r.memberId'),
     )
     .select((eb) => [
-      'r.member_id',
-      'r.first_name',
-      'r.last_name',
+      'r.memberId',
+      'r.firstName',
+      'r.lastName',
       'r.email',
-      'r.phone_number',
-      'r.member_type',
-      'r.lang_iso639',
-      'r.auto_renew_annual_membership',
-      'af.member_id as fee_member_id',
-      'inv.is_paid as invoice_is_paid',
-      'inv.sent_at as invoice_sent_at',
-      'inv.due_at as invoice_due_at',
-      'lr.last_reminder_at',
-      eb.fn.coalesce('fc.flight_count', eb.val(0)).as('billable_flight_count'),
+      'r.phoneNumber',
+      'r.memberType',
+      'r.langIso639',
+      'r.autoRenewAnnualMembership',
+      'af.memberId as feeMemberId',
+      'inv.isPaid as invoiceIsPaid',
+      'inv.sentAt as invoiceSentAt',
+      'inv.dueAt as invoiceDueAt',
+      'lr.lastReminderAt',
+      eb.fn.coalesce('fc.flightCount', eb.val(0)).as('billableFlightCount'),
     ])
-    .where('r.member_type', '!=', MIKMemberTypes.REMOVED)
-    .where('r.member_type', '!=', MIKMemberTypes.SYSTEM)
-    .where('r.member_type', '!=', MIKMemberTypes.EXTERNAL)
-    .where('r.member_type', '!=', MIKMemberTypes.HONORARY)
-    .where('r.is_membership_approved', '=', true)
-    .where((eb) => eb.or([eb('af.member_id', 'is', null), eb('inv.is_paid', '=', false)]))
-    .orderBy('r.last_name')
-    .orderBy('r.first_name')
+    .where('r.memberType', '!=', MIKMemberTypes.REMOVED)
+    .where('r.memberType', '!=', MIKMemberTypes.SYSTEM)
+    .where('r.memberType', '!=', MIKMemberTypes.EXTERNAL)
+    .where('r.memberType', '!=', MIKMemberTypes.HONORARY)
+    .where('r.isMembershipApproved', '=', true)
+    .where((eb) => eb.or([eb('af.memberId', 'is', null), eb('inv.isPaid', '=', false)]))
+    .orderBy('r.lastName')
+    .orderBy('r.firstName')
     .execute()
 
   return results.map((r) => ({
-    memberId: r.member_id,
-    firstName: r.first_name,
-    lastName: r.last_name,
+    memberId: r.memberId,
+    firstName: r.firstName,
+    lastName: r.lastName,
     email: r.email,
-    phoneNumber: r.phone_number ?? null,
-    memberType: r.member_type as MIKMemberTypes,
-    lang: r.lang_iso639 as MIKLang,
-    autoRenewAnnualMembership: r.auto_renew_annual_membership,
-    feeStatus: r.fee_member_id === null ? 'no_record' : 'unpaid',
-    invoiceSentAt: r.invoice_sent_at ?? null,
-    invoiceDueAt: r.invoice_due_at ?? null,
-    lastReminderSentAt: r.last_reminder_at ? r.last_reminder_at.toISOString() : null,
-    billableFlightCount: Number(r.billable_flight_count),
+    phoneNumber: r.phoneNumber ?? null,
+    memberType: r.memberType as MIKMemberTypes,
+    lang: r.langIso639 as MIKLang,
+    autoRenewAnnualMembership: r.autoRenewAnnualMembership,
+    feeStatus: r.feeMemberId === null ? 'no_record' : 'unpaid',
+    invoiceSentAt: r.invoiceSentAt ?? null,
+    invoiceDueAt: r.invoiceDueAt ?? null,
+    lastReminderSentAt: r.lastReminderAt ? r.lastReminderAt.toISOString() : null,
+    billableFlightCount: Number(r.billableFlightCount),
   }))
 }
 
@@ -1081,12 +1092,12 @@ export async function insertNonRenewalAction(
   performedBy: string,
   notes?: string,
 ): Promise<NonRenewalAction> {
-  const result = await db
-    .insertInto('member.non_renewal_actions')
+  const result = await camelDb
+    .insertInto('member.nonRenewalActions')
     .values({
-      member_id: memberId,
-      action_type: actionType,
-      performed_by: performedBy,
+      memberId: memberId,
+      actionType: actionType,
+      performedBy: performedBy,
       notes: notes ?? null,
     })
     .returningAll()
@@ -1094,10 +1105,10 @@ export async function insertNonRenewalAction(
 
   return {
     id: result.id,
-    memberId: result.member_id,
-    actionType: result.action_type as NonRenewalActionType,
-    performedAt: result.performed_at.toISOString(),
-    performedBy: result.performed_by,
+    memberId: result.memberId,
+    actionType: result.actionType as NonRenewalActionType,
+    performedAt: result.performedAt.toISOString(),
+    performedBy: result.performedBy,
     notes: result.notes,
   }
 }
@@ -1108,6 +1119,10 @@ export async function insertNonRenewalAction(
  * only changes are these columns is dropped entirely so worker churn does not
  * bury the real membership changes.
  */
+// These are compared against the keys of a JSONB audit snapshot (to_jsonb(OLD)), not
+// against query results — so they stay snake_case. maintainNestedObjectKeys leaves the
+// keys inside JSONB alone, and camelCasing this set silently stopped every sync-only
+// update from being filtered out of the changelog.
 const CHANGE_LOG_IGNORED_COLUMNS = new Set([
   'created_at',
   'created_by',
@@ -1183,19 +1198,19 @@ export async function getMemberChangeLog(
   const newType = sql<string | null>`a.new_data ->> 'member_type'`
   const previousType = sql<string | null>`a.changed_data ->> 'member_type'`
 
-  const rows = await db
-    .selectFrom('member.register_audit as a')
-    .leftJoin('member.register as cb', 'cb.member_id', 'a.changed_by')
+  const rows = await camelDb
+    .selectFrom('member.registerAudit as a')
+    .leftJoin('member.register as cb', 'cb.memberId', 'a.changedBy')
     .select([
-      'a.audit_id',
-      'a.member_id',
-      'a.operation_type',
-      'a.changed_at',
-      'a.changed_by',
-      'a.changed_data',
-      'a.new_data',
-      'cb.first_name as changed_by_first_name',
-      'cb.last_name as changed_by_last_name',
+      'a.auditId',
+      'a.memberId',
+      'a.operationType',
+      'a.changedAt',
+      'a.changedBy',
+      'a.changedData',
+      'a.newData',
+      'cb.firstName as changedByFirstName',
+      'cb.lastName as changedByLastName',
     ])
     .where(sql`a.changed_at::date`, '>=', sql`${filters.startDate}::date`)
     .where(sql`a.changed_at::date`, '<=', sql`${filters.endDate}::date`)
@@ -1207,31 +1222,31 @@ export async function getMemberChangeLog(
         eb.or([eb(newType, 'in', memberTypes), eb(previousType, 'in', memberTypes)]),
       ),
     )
-    .orderBy('a.changed_at', 'desc')
-    .orderBy('a.audit_id', 'desc')
+    .orderBy('a.changedAt', 'desc')
+    .orderBy('a.auditId', 'desc')
     .execute()
 
   return rows
     .map((row) => {
-      const before = row.changed_data as AuditSnapshot
-      const after = row.new_data as AuditSnapshot
+      const before = row.changedData as AuditSnapshot
+      const after = row.newData as AuditSnapshot
       const snapshot = after ?? before
 
       return {
-        auditId: row.audit_id,
-        memberId: row.member_id,
+        auditId: row.auditId,
+        memberId: row.memberId,
         firstName: (snapshot?.first_name as string) ?? '',
         lastName: (snapshot?.last_name as string) ?? '',
         memberType: ((after ?? before)?.member_type as MIKMemberTypes) ?? null,
         previousMemberType: (before?.member_type as MIKMemberTypes) ?? null,
-        operationType: row.operation_type as MemberChangeLogEntry['operationType'],
-        changeType: classifyChange(row.operation_type, before, after),
+        operationType: row.operationType as MemberChangeLogEntry['operationType'],
+        changeType: classifyChange(row.operationType, before, after),
         changedFields: changedColumns(before, after),
-        changedAt: row.changed_at.toISOString(),
-        changedBy: row.changed_by,
+        changedAt: row.changedAt.toISOString(),
+        changedBy: row.changedBy,
         changedByName:
-          row.changed_by_first_name && row.changed_by_last_name
-            ? `${row.changed_by_first_name} ${row.changed_by_last_name}`
+          row.changedByFirstName && row.changedByLastName
+            ? `${row.changedByFirstName} ${row.changedByLastName}`
             : null,
       }
     })

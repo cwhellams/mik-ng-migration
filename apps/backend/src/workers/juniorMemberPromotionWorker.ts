@@ -44,18 +44,18 @@ export async function processJuniorPromotions(sendEmailFn: typeof sendEmail): Pr
 
     for (const member of members) {
       try {
-        await promoteMemberToFlying(member.member_id)
-        logger.info(`Promoted member ${member.member_id} from JUNIOR to FLYING (turned 18 today)`)
+        await promoteMemberToFlying(member.memberId)
+        logger.info(`Promoted member ${member.memberId} from JUNIOR to FLYING (turned 18 today)`)
 
         const { subject, html } = renderEmail('junior-promotion', member.lang, {
-          firstName: member.first_name,
+          firstName: member.firstName,
         })
         await sendEmailFn(member.email, subject, html)
 
         promotedCount++
       } catch (error) {
         errorCount++
-        logger.error(`Error promoting junior member ${member.member_id}:`, error)
+        logger.error(`Error promoting junior member ${member.memberId}:`, error)
       }
     }
 

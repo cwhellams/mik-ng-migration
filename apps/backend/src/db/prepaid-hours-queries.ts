@@ -1,6 +1,6 @@
-import { db } from './connection.ts'
-import { sql } from 'kysely'
-import type { Json } from './schema.d.ts'
+import { camelDb } from './connection.ts'
+import { sql, type Updateable } from 'kysely'
+import type { Json, PrepaidPackages, ShopProducts } from './schema.camel.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   PrepaidPackage,
@@ -32,29 +32,29 @@ type ProductData = {
 
 async function loadProductData(productIds: string[]): Promise<Map<string, ProductData>> {
   if (productIds.length === 0) return new Map()
-  const products = await db
+  const products = await camelDb
     .selectFrom('shop.products')
     .select([
-      'product_id',
+      'productId',
       'name',
       'description',
-      'simplbooks_item_id',
-      'stock_quantity',
-      'vat_percent',
-      'low_stock_threshold',
+      'simplbooksItemId',
+      'stockQuantity',
+      'vatPercent',
+      'lowStockThreshold',
     ])
-    .where('product_id', 'in', productIds)
+    .where('productId', 'in', productIds)
     .execute()
   return new Map(
     products.map((p) => [
-      p.product_id,
+      p.productId,
       {
         name: p.name as unknown as Localised,
         description: p.description as unknown as Localised | null,
-        simplbooksItemId: p.simplbooks_item_id,
-        stockQuantity: Number(p.stock_quantity),
-        vatPercent: Number(p.vat_percent),
-        lowStockThreshold: p.low_stock_threshold == null ? null : Number(p.low_stock_threshold),
+        simplbooksItemId: p.simplbooksItemId,
+        stockQuantity: Number(p.stockQuantity),
+        vatPercent: Number(p.vatPercent),
+        lowStockThreshold: p.lowStockThreshold == null ? null : Number(p.lowStockThreshold),
       },
     ]),
   )
@@ -62,53 +62,53 @@ async function loadProductData(productIds: string[]): Promise<Map<string, Produc
 
 function mapPackage(r: Record<string, unknown>, product?: ProductData): PrepaidPackage {
   return {
-    productId: r.product_id as string,
+    productId: r.productId as string,
     nameEn: product?.name.en,
     nameFi: product?.name.fi,
     nameSv: product?.name.sv,
     descriptionEn: product?.description?.en,
     descriptionFi: product?.description?.fi,
     descriptionSv: product?.description?.sv,
-    aircraftRegistration: r.aircraft_registration as string,
-    minutesPerPackage: Number(r.minutes_per_package),
-    perMinRate: Number(r.per_min_rate),
-    totalPrice: Number(r.total_price),
-    totalPackagesAvailable: Number(r.total_packages_available),
-    maxPerMember: r.max_per_member == null ? null : Number(r.max_per_member),
-    soldCount: Number(r.sold_count),
+    aircraftRegistration: r.aircraftRegistration as string,
+    minutesPerPackage: Number(r.minutesPerPackage),
+    perMinRate: Number(r.perMinRate),
+    totalPrice: Number(r.totalPrice),
+    totalPackagesAvailable: Number(r.totalPackagesAvailable),
+    maxPerMember: r.maxPerMember == null ? null : Number(r.maxPerMember),
+    soldCount: Number(r.soldCount),
     simplbooksItemId: product?.simplbooksItemId ?? null,
     vatPercent: product?.vatPercent ?? 0,
     lowStockThreshold: product?.lowStockThreshold ?? null,
-    expiresAt: r.expires_at as string,
-    isActive: r.is_active as boolean,
-    createdAt: (r.created_at instanceof Date
-      ? r.created_at
-      : new Date(r.created_at as string)
+    expiresAt: r.expiresAt as string,
+    isActive: r.isActive as boolean,
+    createdAt: (r.createdAt instanceof Date
+      ? r.createdAt
+      : new Date(r.createdAt as string)
     ).toISOString(),
-    createdBy: r.created_by as string,
-    updatedAt: (r.updated_at instanceof Date
-      ? r.updated_at
-      : new Date(r.updated_at as string)
+    createdBy: r.createdBy as string,
+    updatedAt: (r.updatedAt instanceof Date
+      ? r.updatedAt
+      : new Date(r.updatedAt as string)
     ).toISOString(),
-    updatedBy: r.updated_by as string,
+    updatedBy: r.updatedBy as string,
   }
 }
 
 export async function getPrepaidPackages(aircraftRegistration?: string): Promise<PrepaidPackage[]> {
-  let q = db.selectFrom('prepaid.packages').selectAll()
-  if (aircraftRegistration) q = q.where('aircraft_registration', '=', aircraftRegistration)
-  const rows = await q.orderBy('expires_at').execute()
-  const productMap = await loadProductData(rows.map((r) => r.product_id))
+  let q = camelDb.selectFrom('prepaid.packages').selectAll()
+  if (aircraftRegistration) q = q.where('aircraftRegistration', '=', aircraftRegistration)
+  const rows = await q.orderBy('expiresAt').execute()
+  const productMap = await loadProductData(rows.map((r) => r.productId))
   return rows.map((r) =>
-    mapPackage(r as unknown as Record<string, unknown>, productMap.get(r.product_id)),
+    mapPackage(r as unknown as Record<string, unknown>, productMap.get(r.productId)),
   )
 }
 
 export async function getPrepaidPackageById(id: string): Promise<PrepaidPackage | undefined> {
-  const r = await db
+  const r = await camelDb
     .selectFrom('prepaid.packages')
     .selectAll()
-    .where('product_id', '=', id)
+    .where('productId', '=', id)
     .executeTakeFirst()
   if (!r) return undefined
   const productMap = await loadProductData([id])
@@ -145,19 +145,19 @@ export async function insertPrepaidPackage(
     user,
   )
   const packageId = data.packageId || product.productId
-  await db
+  await camelDb
     .insertInto('prepaid.packages')
     .values({
-      product_id: packageId,
-      aircraft_registration: data.aircraftRegistration,
-      minutes_per_package: data.minutesPerPackage,
-      total_packages_available: data.totalPackagesAvailable,
-      per_min_rate: data.perMinRate,
-      max_per_member: data.maxPerMember ?? null,
-      expires_at: data.expiresAt,
-      is_active: data.isActive ?? true,
-      created_by: user.memberId,
-      updated_by: user.memberId,
+      productId: packageId,
+      aircraftRegistration: data.aircraftRegistration,
+      minutesPerPackage: data.minutesPerPackage,
+      totalPackagesAvailable: data.totalPackagesAvailable,
+      perMinRate: data.perMinRate,
+      maxPerMember: data.maxPerMember ?? null,
+      expiresAt: data.expiresAt,
+      isActive: data.isActive ?? true,
+      createdBy: user.memberId,
+      updatedBy: user.memberId,
     })
     .execute()
   return getPrepaidPackageById(packageId) as Promise<PrepaidPackage>
@@ -168,17 +168,19 @@ export async function updatePrepaidPackage(
   data: Partial<PrepaidPackageUpsert>,
   user: JWTUser,
 ): Promise<PrepaidPackage> {
-  const update: Record<string, unknown> = { updated_by: user.memberId, updated_at: new Date() }
+  // Updateable<> rather than Record<string, unknown>: an untyped patch object hides
+  // un-migrated snake_case column names from the compiler.
+  const update: Updateable<PrepaidPackages> = { updatedBy: user.memberId, updatedAt: new Date() }
   if (data.aircraftRegistration !== undefined)
-    update.aircraft_registration = data.aircraftRegistration
-  if (data.minutesPerPackage !== undefined) update.minutes_per_package = data.minutesPerPackage
+    update.aircraftRegistration = data.aircraftRegistration
+  if (data.minutesPerPackage !== undefined) update.minutesPerPackage = data.minutesPerPackage
   if (data.totalPackagesAvailable !== undefined)
-    update.total_packages_available = data.totalPackagesAvailable
-  if (data.perMinRate !== undefined) update.per_min_rate = data.perMinRate
-  if (data.maxPerMember !== undefined) update.max_per_member = data.maxPerMember
-  if (data.expiresAt !== undefined) update.expires_at = data.expiresAt
-  if (data.isActive !== undefined) update.is_active = data.isActive
-  await db.updateTable('prepaid.packages').set(update).where('product_id', '=', id).execute()
+    update.totalPackagesAvailable = data.totalPackagesAvailable
+  if (data.perMinRate !== undefined) update.perMinRate = data.perMinRate
+  if (data.maxPerMember !== undefined) update.maxPerMember = data.maxPerMember
+  if (data.expiresAt !== undefined) update.expiresAt = data.expiresAt
+  if (data.isActive !== undefined) update.isActive = data.isActive
+  await camelDb.updateTable('prepaid.packages').set(update).where('productId', '=', id).execute()
 
   // Sync all product-level fields to shop.products
   const hasProductUpdate =
@@ -198,9 +200,9 @@ export async function updatePrepaidPackage(
     data.isActive !== undefined
   if (hasProductUpdate) {
     const current = await getPrepaidPackageById(id)
-    const productUpdate: Record<string, unknown> = {
-      updated_by: user.memberId,
-      updated_at: new Date(),
+    const productUpdate: Updateable<ShopProducts> = {
+      updatedBy: user.memberId,
+      updatedAt: new Date(),
     }
     if (data.nameEn !== undefined || data.nameFi !== undefined || data.nameSv !== undefined) {
       productUpdate.name = {
@@ -220,24 +222,27 @@ export async function updatePrepaidPackage(
         sv: data.descriptionSv ?? current?.descriptionSv ?? '',
       } as unknown as Json
     }
-    if (data.vatPercent !== undefined) productUpdate.vat_percent = data.vatPercent
-    if (data.simplbooksItemId !== undefined)
-      productUpdate.simplbooks_item_id = data.simplbooksItemId
+    if (data.vatPercent !== undefined) productUpdate.vatPercent = data.vatPercent
+    if (data.simplbooksItemId !== undefined) productUpdate.simplbooksItemId = data.simplbooksItemId
     if (data.totalPackagesAvailable !== undefined)
-      productUpdate.stock_quantity = Math.max(
+      productUpdate.stockQuantity = Math.max(
         0,
         data.totalPackagesAvailable - (current?.soldCount ?? 0),
       )
-    if (data.maxPerMember !== undefined) productUpdate.max_order_quantity = data.maxPerMember
+    if (data.maxPerMember !== undefined) productUpdate.maxOrderQuantity = data.maxPerMember
     if (data.minutesPerPackage !== undefined || data.perMinRate !== undefined) {
       const mins = data.minutesPerPackage ?? current?.minutesPerPackage ?? 0
       const rate = data.perMinRate ?? current?.perMinRate ?? 0
       productUpdate.price = rate * mins
     }
     if (data.lowStockThreshold !== undefined)
-      productUpdate.low_stock_threshold = data.lowStockThreshold
-    if (data.isActive !== undefined) productUpdate.is_active = data.isActive
-    await db.updateTable('shop.products').set(productUpdate).where('product_id', '=', id).execute()
+      productUpdate.lowStockThreshold = data.lowStockThreshold
+    if (data.isActive !== undefined) productUpdate.isActive = data.isActive
+    await camelDb
+      .updateTable('shop.products')
+      .set(productUpdate)
+      .where('productId', '=', id)
+      .execute()
   }
   return getPrepaidPackageById(id) as Promise<PrepaidPackage>
 }
@@ -247,28 +252,28 @@ export async function updatePrepaidPackage(
 // ─────────────────────────────────────────────────────────────────────────────
 
 function mapMemberPackage(r: Record<string, unknown>): MemberPackage {
-  const memberId = r.member_member_id as string | undefined
-  const firstName = r.member_first_name as string | undefined
-  const lastName = r.member_last_name as string | undefined
-  const email = r.member_email as string | undefined
+  const memberId = r.memberMemberId as string | undefined
+  const firstName = r.memberFirstName as string | undefined
+  const lastName = r.memberLastName as string | undefined
+  const email = r.memberEmail as string | undefined
 
   return {
-    memberPackageId: r.member_package_id as number,
-    memberId: r.member_id as string,
-    productId: r.product_id as string,
-    orderId: r.order_id as string | null,
-    totalMinutes: Number(r.total_minutes),
-    usedMinutes: Number(r.used_minutes),
-    remainingMinutes: Number(r.remaining_minutes),
-    expiresAt: r.expires_at as string,
-    isExpired: r.is_expired as boolean,
-    createdAt: (r.created_at instanceof Date
-      ? r.created_at
-      : new Date(r.created_at as string)
+    memberPackageId: r.memberPackageId as number,
+    memberId: r.memberId as string,
+    productId: r.productId as string,
+    orderId: r.orderId as string | null,
+    totalMinutes: Number(r.totalMinutes),
+    usedMinutes: Number(r.usedMinutes),
+    remainingMinutes: Number(r.remainingMinutes),
+    expiresAt: r.expiresAt as string,
+    isExpired: r.isExpired as boolean,
+    createdAt: (r.createdAt instanceof Date
+      ? r.createdAt
+      : new Date(r.createdAt as string)
     ).toISOString(),
-    updatedAt: (r.updated_at instanceof Date
-      ? r.updated_at
-      : new Date(r.updated_at as string)
+    updatedAt: (r.updatedAt instanceof Date
+      ? r.updatedAt
+      : new Date(r.updatedAt as string)
     ).toISOString(),
     member:
       memberId && firstName && lastName && email
@@ -277,38 +282,37 @@ function mapMemberPackage(r: Record<string, unknown>): MemberPackage {
             firstName,
             lastName,
             email,
-            phoneNumber: (r.member_phone_number as string | null) ?? null,
+            phoneNumber: (r.memberPhoneNumber as string | null) ?? null,
           }
         : undefined,
     package:
-      r.package_aircraft_registration != null
+      r.packageAircraftRegistration != null
         ? {
-            productId: r.product_id as string,
-            nameEn: (r.product_name as { en?: string } | null)?.en,
-            nameFi: (r.product_name as { fi?: string } | null)?.fi,
-            nameSv: (r.product_name as { sv?: string } | null)?.sv,
-            aircraftRegistration: r.package_aircraft_registration as string,
-            minutesPerPackage: Number(r.package_minutes_per_package),
-            perMinRate: Number(r.package_per_min_rate),
-            totalPrice: Number(r.package_total_price),
+            productId: r.productId as string,
+            nameEn: (r.productName as { en?: string } | null)?.en,
+            nameFi: (r.productName as { fi?: string } | null)?.fi,
+            nameSv: (r.productName as { sv?: string } | null)?.sv,
+            aircraftRegistration: r.packageAircraftRegistration as string,
+            minutesPerPackage: Number(r.packageMinutesPerPackage),
+            perMinRate: Number(r.packagePerMinRate),
+            totalPrice: Number(r.packageTotalPrice),
             totalPackagesAvailable: 0,
-            maxPerMember:
-              r.package_max_per_member == null ? null : Number(r.package_max_per_member),
-            soldCount: Number(r.package_sold_count),
+            maxPerMember: r.packageMaxPerMember == null ? null : Number(r.packageMaxPerMember),
+            soldCount: Number(r.packageSoldCount),
             simplbooksItemId: null,
             vatPercent: 0,
-            expiresAt: r.package_expires_at as string,
-            isActive: r.package_is_active as boolean,
-            createdAt: (r.package_created_at instanceof Date
-              ? r.package_created_at
-              : new Date(r.package_created_at as string)
+            expiresAt: r.packageExpiresAt as string,
+            isActive: r.packageIsActive as boolean,
+            createdAt: (r.packageCreatedAt instanceof Date
+              ? r.packageCreatedAt
+              : new Date(r.packageCreatedAt as string)
             ).toISOString(),
-            createdBy: r.package_created_by as string,
-            updatedAt: (r.package_updated_at instanceof Date
-              ? r.package_updated_at
-              : new Date(r.package_updated_at as string)
+            createdBy: r.packageCreatedBy as string,
+            updatedAt: (r.packageUpdatedAt instanceof Date
+              ? r.packageUpdatedAt
+              : new Date(r.packageUpdatedAt as string)
             ).toISOString(),
-            updatedBy: r.package_updated_by as string,
+            updatedBy: r.packageUpdatedBy as string,
           }
         : undefined,
   }
@@ -318,36 +322,36 @@ export async function getMemberPackages(
   memberId?: string,
   productId?: string,
 ): Promise<MemberPackage[]> {
-  let q = db
-    .selectFrom('prepaid.member_packages as mp')
-    .leftJoin('prepaid.packages as p', 'p.product_id', 'mp.product_id')
-    .leftJoin('member.register as m', 'm.member_id', 'mp.member_id')
-    .leftJoin('shop.products as sp', 'sp.product_id', 'mp.product_id')
+  let q = camelDb
+    .selectFrom('prepaid.memberPackages as mp')
+    .leftJoin('prepaid.packages as p', 'p.productId', 'mp.productId')
+    .leftJoin('member.register as m', 'm.memberId', 'mp.memberId')
+    .leftJoin('shop.products as sp', 'sp.productId', 'mp.productId')
     .selectAll('mp')
     .select([
-      'm.member_id as member_member_id',
-      'm.first_name as member_first_name',
-      'm.last_name as member_last_name',
-      'm.email as member_email',
-      'm.phone_number as member_phone_number',
-      'p.aircraft_registration as package_aircraft_registration',
-      'p.minutes_per_package as package_minutes_per_package',
-      'p.per_min_rate as package_per_min_rate',
-      'p.total_price as package_total_price',
-      'p.max_per_member as package_max_per_member',
-      'p.sold_count as package_sold_count',
-      'p.total_packages_available as package_total_packages_available',
-      'p.expires_at as package_expires_at',
-      'p.is_active as package_is_active',
-      'p.created_at as package_created_at',
-      'p.created_by as package_created_by',
-      'p.updated_at as package_updated_at',
-      'p.updated_by as package_updated_by',
-      'sp.name as product_name',
+      'm.memberId as memberMemberId',
+      'm.firstName as memberFirstName',
+      'm.lastName as memberLastName',
+      'm.email as memberEmail',
+      'm.phoneNumber as memberPhoneNumber',
+      'p.aircraftRegistration as packageAircraftRegistration',
+      'p.minutesPerPackage as packageMinutesPerPackage',
+      'p.perMinRate as packagePerMinRate',
+      'p.totalPrice as packageTotalPrice',
+      'p.maxPerMember as packageMaxPerMember',
+      'p.soldCount as packageSoldCount',
+      'p.totalPackagesAvailable as packageTotalPackagesAvailable',
+      'p.expiresAt as packageExpiresAt',
+      'p.isActive as packageIsActive',
+      'p.createdAt as packageCreatedAt',
+      'p.createdBy as packageCreatedBy',
+      'p.updatedAt as packageUpdatedAt',
+      'p.updatedBy as packageUpdatedBy',
+      'sp.name as productName',
     ])
-  if (memberId) q = q.where('mp.member_id', '=', memberId)
-  if (productId) q = q.where('mp.product_id', '=', productId)
-  const rows = await q.orderBy('mp.expires_at').execute()
+  if (memberId) q = q.where('mp.memberId', '=', memberId)
+  if (productId) q = q.where('mp.productId', '=', productId)
+  const rows = await q.orderBy('mp.expiresAt').execute()
   const packages = rows.map(mapMemberPackage)
   return attachUnbilledMinutes(packages)
 }
@@ -365,27 +369,24 @@ async function attachUnbilledMinutes(packages: MemberPackage[]): Promise<MemberP
   }
 
   // Sum unbilled (billable but not yet billed) flight minutes per member+aircraft
-  const unbilledRows = await db
-    .selectFrom('flight.logs' as any)
-    .select((eb: any) => [
-      'billable_member_id',
-      'aircraft_registration',
-      eb.cast(eb.fn.sum('flight_mins'), 'integer').as('total_mins'),
+  const unbilledRows = await camelDb
+    .selectFrom('flight.logs')
+    .select((eb) => [
+      'billableMemberId',
+      'aircraftRegistration',
+      eb.cast<number>(eb.fn.sum('flightMins'), 'integer').as('totalMins'),
     ])
-    .where('is_billable_flight' as any, '=', true)
-    .where('is_billed' as any, '=', false)
-    .where('status' as any, '!=', FlightLogStatus.PAID)
-    .where('billable_member_id' as any, 'in', memberIds)
-    .where('aircraft_registration' as any, 'in', aircraftRegs)
-    .groupBy(['billable_member_id', 'aircraft_registration'] as any)
+    .where('isBillableFlight', '=', true)
+    .where('isBilled', '=', false)
+    .where('status', '!=', FlightLogStatus.PAID)
+    .where('billableMemberId', 'in', memberIds)
+    .where('aircraftRegistration', 'in', aircraftRegs)
+    .groupBy(['billableMemberId', 'aircraftRegistration'])
     .execute()
 
   const unbilledMap = new Map<string, number>()
-  for (const row of unbilledRows as any[]) {
-    unbilledMap.set(
-      `${row.billable_member_id}__${row.aircraft_registration}`,
-      Number(row.total_mins),
-    )
+  for (const row of unbilledRows) {
+    unbilledMap.set(`${row.billableMemberId}__${row.aircraftRegistration}`, Number(row.totalMins))
   }
 
   // Allocate unbilled minutes to packages oldest-first (packages already sorted by expires_at ASC)
@@ -414,10 +415,10 @@ async function attachUnbilledMinutes(packages: MemberPackage[]): Promise<MemberP
 }
 
 export async function getMemberPackageById(id: number): Promise<MemberPackage | undefined> {
-  const r = await db
-    .selectFrom('prepaid.member_packages')
+  const r = await camelDb
+    .selectFrom('prepaid.memberPackages')
     .selectAll()
-    .where('member_package_id', '=', id)
+    .where('memberPackageId', '=', id)
     .executeTakeFirst()
   return r ? mapMemberPackage(r) : undefined
 }
@@ -431,16 +432,16 @@ export async function getActivePackageForMemberAndAircraft(
   aircraftRegistration: string,
 ): Promise<MemberPackage | undefined> {
   const today = new Date().toISOString().split('T')[0]
-  const r = await db
-    .selectFrom('prepaid.member_packages as mp')
-    .innerJoin('prepaid.packages as p', 'p.product_id', 'mp.product_id')
+  const r = await camelDb
+    .selectFrom('prepaid.memberPackages as mp')
+    .innerJoin('prepaid.packages as p', 'p.productId', 'mp.productId')
     .selectAll('mp')
-    .where('mp.member_id', '=', memberId)
-    .where('mp.is_expired', '=', false)
-    .where('mp.expires_at', '>=', today)
-    .where('mp.remaining_minutes', '>', 0)
-    .where('p.aircraft_registration', '=', aircraftRegistration)
-    .orderBy('mp.expires_at', 'asc')
+    .where('mp.memberId', '=', memberId)
+    .where('mp.isExpired', '=', false)
+    .where('mp.expiresAt', '>=', today)
+    .where('mp.remainingMinutes', '>', 0)
+    .where('p.aircraftRegistration', '=', aircraftRegistration)
+    .orderBy('mp.expiresAt', 'asc')
     .executeTakeFirst()
   return r ? mapMemberPackage(r) : undefined
 }
@@ -455,26 +456,26 @@ export async function createMemberPackage(
 
   const totalMinutes = pkg.minutesPerPackage
 
-  const result = await db
-    .insertInto('prepaid.member_packages')
+  const result = await camelDb
+    .insertInto('prepaid.memberPackages')
     .values({
-      member_id: memberId,
-      product_id: productId,
-      order_id: orderId,
-      total_minutes: totalMinutes,
-      expires_at: pkg.expiresAt,
+      memberId: memberId,
+      productId: productId,
+      orderId: orderId,
+      totalMinutes: totalMinutes,
+      expiresAt: pkg.expiresAt,
     })
-    .returning('member_package_id')
+    .returning('memberPackageId')
     .executeTakeFirstOrThrow()
 
   // Increment sold_count on the package
-  await db
+  await camelDb
     .updateTable('prepaid.packages')
-    .set((eb) => ({ sold_count: eb('sold_count', '+', 1) }))
-    .where('product_id', '=', productId)
+    .set((eb) => ({ soldCount: eb('soldCount', '+', 1) }))
+    .where('productId', '=', productId)
     .execute()
 
-  return getMemberPackageById(result.member_package_id) as Promise<MemberPackage>
+  return getMemberPackageById(result.memberPackageId) as Promise<MemberPackage>
 }
 
 /**
@@ -504,18 +505,18 @@ export async function deductMinutesFromPackage(
   const newUsed = mp.usedMinutes + minutesFromPackage
   const nowExpired = newUsed >= mp.totalMinutes
 
-  await db
-    .updateTable('prepaid.member_packages')
-    .set({ used_minutes: newUsed, is_expired: nowExpired, updated_at: new Date() })
-    .where('member_package_id', '=', mp.memberPackageId)
+  await camelDb
+    .updateTable('prepaid.memberPackages')
+    .set({ usedMinutes: newUsed, isExpired: nowExpired, updatedAt: new Date() })
+    .where('memberPackageId', '=', mp.memberPackageId)
     .execute()
 
-  await db
-    .insertInto('prepaid.usage_log')
+  await camelDb
+    .insertInto('prepaid.usageLog')
     .values({
-      member_package_id: mp.memberPackageId,
-      flight_id: flightId,
-      minutes_used: minutesFromPackage,
+      memberPackageId: mp.memberPackageId,
+      flightId: flightId,
+      minutesUsed: minutesFromPackage,
       note: `Flight ${flightId}`,
     })
     .execute()
@@ -534,36 +535,36 @@ export async function extendExpiryForAircraft(
   user: JWTUser,
 ): Promise<number> {
   // Find all non-expired member_packages for the given aircraft
-  const productIds = await db
+  const productIds = await camelDb
     .selectFrom('prepaid.packages')
-    .select('product_id')
-    .where('aircraft_registration', '=', aircraftRegistration)
+    .select('productId')
+    .where('aircraftRegistration', '=', aircraftRegistration)
     .execute()
 
   if (productIds.length === 0) return 0
 
-  const ids = productIds.map((p) => p.product_id)
+  const ids = productIds.map((p) => p.productId)
 
-  const result = await db
-    .updateTable('prepaid.member_packages')
+  const result = await camelDb
+    .updateTable('prepaid.memberPackages')
     .set((eb) => ({
-      expires_at: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
-      updated_at: new Date(),
+      expiresAt: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
+      updatedAt: new Date(),
     }))
-    .where('product_id', 'in', ids)
-    .where('is_expired', '=', false)
+    .where('productId', 'in', ids)
+    .where('isExpired', '=', false)
     .executeTakeFirst()
 
   // Also extend the package definitions themselves
-  await db
+  await camelDb
     .updateTable('prepaid.packages')
     .set((eb) => ({
-      expires_at: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
-      updated_at: new Date(),
-      updated_by: user.memberId,
+      expiresAt: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
+      updatedAt: new Date(),
+      updatedBy: user.memberId,
     }))
-    .where('aircraft_registration', '=', aircraftRegistration)
-    .where('is_active', '=', true)
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('isActive', '=', true)
     .execute()
 
   return Number(result?.numUpdatedRows ?? 0)
@@ -574,20 +575,20 @@ export async function extendExpiryForAircraft(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getUsageLog(memberPackageId: number): Promise<UsageLog[]> {
-  const rows = await db
-    .selectFrom('prepaid.usage_log')
+  const rows = await camelDb
+    .selectFrom('prepaid.usageLog')
     .selectAll()
-    .where('member_package_id', '=', memberPackageId)
-    .orderBy('applied_at', 'desc')
+    .where('memberPackageId', '=', memberPackageId)
+    .orderBy('appliedAt', 'desc')
     .execute()
   return rows.map((r) => ({
-    usageId: r.usage_id,
-    memberPackageId: r.member_package_id,
-    flightId: r.flight_id as string | null,
-    minutesUsed: r.minutes_used,
-    appliedAt: (r.applied_at instanceof Date
-      ? r.applied_at
-      : new Date(r.applied_at as string)
+    usageId: r.usageId,
+    memberPackageId: r.memberPackageId,
+    flightId: r.flightId as string | null,
+    minutesUsed: r.minutesUsed,
+    appliedAt: (r.appliedAt instanceof Date
+      ? r.appliedAt
+      : new Date(r.appliedAt as string)
     ).toISOString(),
     note: r.note as string | null,
   }))
@@ -600,24 +601,24 @@ export async function getUsageLog(memberPackageId: number): Promise<UsageLog[]> 
 export async function getUnbilledTimeByAircraft(
   memberId: string,
 ): Promise<UnbilledTimeByAircraft[]> {
-  const rows = await db
-    .selectFrom('flight.logs' as any)
-    .select((eb: any) => [
-      'aircraft_registration',
-      eb.cast(eb.fn.sum('flight_mins'), 'integer').as('airborne_mins'),
-      eb.cast(eb.fn.sum('block_mins'), 'integer').as('block_mins_sum'),
+  const rows = await camelDb
+    .selectFrom('flight.logs')
+    .select((eb) => [
+      'aircraftRegistration',
+      eb.cast<number>(eb.fn.sum('flightMins'), 'integer').as('airborneMins'),
+      eb.cast<number>(eb.fn.sum('blockMins'), 'integer').as('blockMinsSum'),
     ])
-    .where('is_billable_flight' as any, '=', true)
-    .where('is_billed' as any, '=', false)
-    .where('status' as any, '!=', FlightLogStatus.PAID)
-    .where('billable_member_id' as any, '=', memberId)
-    .groupBy(['aircraft_registration'] as any)
-    .orderBy('aircraft_registration' as any)
+    .where('isBillableFlight', '=', true)
+    .where('isBilled', '=', false)
+    .where('status', '!=', FlightLogStatus.PAID)
+    .where('billableMemberId', '=', memberId)
+    .groupBy(['aircraftRegistration'])
+    .orderBy('aircraftRegistration')
     .execute()
 
-  return (rows as any[]).map((row) => ({
-    aircraftRegistration: row.aircraft_registration as string,
-    airborneMinutes: Number(row.airborne_mins),
-    blockMinutes: Number(row.block_mins_sum),
+  return rows.map((row) => ({
+    aircraftRegistration: row.aircraftRegistration,
+    airborneMinutes: Number(row.airborneMins),
+    blockMinutes: Number(row.blockMinsSum),
   }))
 }

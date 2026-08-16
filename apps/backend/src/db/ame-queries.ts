@@ -1,6 +1,6 @@
 import { sql, type SqlBool } from 'kysely'
 
-import { db } from './connection.ts'
+import { camelDb, type CamelRow } from './connection.ts'
 import {
   AmeReviewStatus,
   AmeStatus,
@@ -19,28 +19,14 @@ import {
 } from '@mik/contracts/ame'
 import type { JWTUser } from '../routes/auth/token.ts'
 
-type AmeRow = {
-  id: string
-  submitted_by: string
-  submitted_by_name: string | null
-  name: string
-  medical_centre: string
-  location: string
-  price: unknown
-  medical_types: string[]
-  notes: string | null
-  report_date: unknown
-  status: string
-  approved_at: unknown
-  approved_by: string | null
-  rejected_at: unknown
-  rejected_by: string | null
-  rejection_reason: string | null
-  created_at: unknown
-  updated_at: unknown
-  average_rating: unknown
-  rating_count: unknown
-  my_rating: unknown
+// `submittedByName` is a raw `trim(concat(...))` over the joined member row; the three
+// rating columns come from the aggregate subquery and the current user's rating join.
+// Everything else is `club.ameList` itself, so it is checked against the schema.
+type AmeRow = CamelRow<'club.ameList'> & {
+  submittedByName: string | null
+  averageRating: unknown
+  ratingCount: unknown
+  myRating: unknown
 }
 
 const toIsoString = (value: unknown): string => {
@@ -60,72 +46,81 @@ const toNullableNumber = (value: unknown): number | null => {
 
 const mapRow = (row: AmeRow): AmeEntry => ({
   id: row.id,
-  submittedBy: row.submitted_by,
-  submittedByName: row.submitted_by_name,
+  submittedBy: row.submittedBy,
+  submittedByName: row.submittedByName,
   name: row.name,
-  medicalCentre: row.medical_centre,
+  medicalCentre: row.medicalCentre,
   location: row.location,
   price: toNullableNumber(row.price),
-  medicalTypes: row.medical_types,
+  medicalTypes: row.medicalTypes,
   notes: row.notes,
-  reportDate: String(row.report_date),
+  reportDate: String(row.reportDate),
   status: row.status as AmeStatus,
-  approvedAt: toNullableIsoString(row.approved_at),
-  approvedBy: row.approved_by,
-  rejectedAt: toNullableIsoString(row.rejected_at),
-  rejectedBy: row.rejected_by,
-  rejectionReason: row.rejection_reason,
-  createdAt: toIsoString(row.created_at),
-  updatedAt: toIsoString(row.updated_at),
-  averageRating: row.average_rating == null ? null : Number(row.average_rating),
-  ratingCount: Number(row.rating_count ?? 0),
-  myRating: row.my_rating == null ? null : Number(row.my_rating),
+  approvedAt: toNullableIsoString(row.approvedAt),
+  approvedBy: row.approvedBy,
+  rejectedAt: toNullableIsoString(row.rejectedAt),
+  rejectedBy: row.rejectedBy,
+  rejectionReason: row.rejectionReason,
+  createdAt: toIsoString(row.createdAt),
+  updatedAt: toIsoString(row.updatedAt),
+  averageRating: row.averageRating == null ? null : Number(row.averageRating),
+  ratingCount: Number(row.ratingCount ?? 0),
+  myRating: row.myRating == null ? null : Number(row.myRating),
 })
 
+/**
+ * Maps a row written by an insert/update, which comes back from `returningAll()` with
+ * none of the columns `baseSelect` joins on — no submitter name, no ratings. Explicit
+ * empty values rather than a cast, so the absence is stated once instead of at each of
+ * the three call sites.
+ */
+const mapRowWithoutJoins = (row: CamelRow<'club.ameList'>): AmeEntry =>
+  mapRow({ ...row, submittedByName: null, averageRating: null, ratingCount: 0, myRating: null })
+
 const baseSelect = (currentUserId?: string) =>
-  db
-    .selectFrom('club.ame_list as a')
-    .leftJoin('member.register as m', 'm.member_id', 'a.submitted_by')
+  camelDb
+    .selectFrom('club.ameList as a')
+    .leftJoin('member.register as m', 'm.memberId', 'a.submittedBy')
     .leftJoin(
       (eb) =>
         eb
-          .selectFrom('club.ame_rating')
+          .selectFrom('club.ameRating')
           .select([
-            'ame_id',
-            (eb) => eb.fn.avg('stars').as('average_rating'),
-            (eb) => eb.fn.count('id').as('rating_count'),
+            'ameId',
+            (eb) => eb.fn.avg('stars').as('averageRating'),
+            (eb) => eb.fn.count('id').as('ratingCount'),
           ])
-          .groupBy('ame_id')
+          .groupBy('ameId')
           .as('r'),
-      (join) => join.onRef('r.ame_id', '=', 'a.id'),
+      (join) => join.onRef('r.ameId', '=', 'a.id'),
     )
-    .leftJoin('club.ame_rating as my_r', (join) =>
-      join.onRef('my_r.ame_id', '=', 'a.id').on('my_r.member_id', '=', currentUserId ?? null),
+    .leftJoin('club.ameRating as myR', (join) =>
+      join.onRef('myR.ameId', '=', 'a.id').on('myR.memberId', '=', currentUserId ?? null),
     )
     .select([
       'a.id',
-      'a.submitted_by',
+      'a.submittedBy',
       sql<string>`trim(concat(coalesce(m.first_name, ''), ' ', coalesce(m.last_name, '')))`.as(
-        'submitted_by_name',
+        'submittedByName',
       ),
       'a.name',
-      'a.medical_centre',
+      'a.medicalCentre',
       'a.location',
       'a.price',
-      'a.medical_types',
+      'a.medicalTypes',
       'a.notes',
-      'a.report_date',
+      'a.reportDate',
       'a.status',
-      'a.approved_at',
-      'a.approved_by',
-      'a.rejected_at',
-      'a.rejected_by',
-      'a.rejection_reason',
-      'a.created_at',
-      'a.updated_at',
-      'r.average_rating',
-      'r.rating_count',
-      'my_r.stars as my_rating',
+      'a.approvedAt',
+      'a.approvedBy',
+      'a.rejectedAt',
+      'a.rejectedBy',
+      'a.rejectionReason',
+      'a.createdAt',
+      'a.updatedAt',
+      'r.averageRating',
+      'r.ratingCount',
+      'myR.stars as myRating',
     ])
 
 export async function getApprovedAmeEntries(
@@ -141,8 +136,8 @@ export async function getApprovedAmeEntries(
     q = q.where(sql<SqlBool>`a.medical_types @> ${sql.val([medicalType])}::text[]`)
   }
 
-  const countQ = db
-    .selectFrom('club.ame_list as a')
+  const countQ = camelDb
+    .selectFrom('club.ameList as a')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('a.status', '=', AmeStatus.APPROVED)
 
@@ -152,10 +147,10 @@ export async function getApprovedAmeEntries(
   if (sort === 'price_asc') {
     q = q.orderBy(sql`a.price asc nulls last`)
   } else {
-    q = q.orderBy('a.report_date desc')
+    q = q.orderBy('a.reportDate desc')
   }
 
-  const rows = (await q.limit(pageSize).offset(offset).execute()) as unknown as AmeRow[]
+  const rows = await q.limit(pageSize).offset(offset).execute()
 
   return { entries: rows.map(mapRow), total, page, pageSize }
 }
@@ -177,8 +172,8 @@ export async function getAllAmeEntries(
     q = q.where(sql<SqlBool>`a.medical_types @> ${sql.val([medicalType])}::text[]`)
   }
 
-  const countQ = db
-    .selectFrom('club.ame_list as a')
+  const countQ = camelDb
+    .selectFrom('club.ameList as a')
     .select((eb) => eb.fn.countAll<number>().as('count'))
 
   const countResult = await (
@@ -190,17 +185,17 @@ export async function getAllAmeEntries(
   if (sort === 'price_asc') {
     q = q.orderBy(sql`a.price asc nulls last`)
   } else {
-    q = q.orderBy('a.created_at desc')
+    q = q.orderBy('a.createdAt desc')
   }
 
-  const rows = (await q.limit(pageSize).offset(offset).execute()) as unknown as AmeRow[]
+  const rows = await q.limit(pageSize).offset(offset).execute()
 
   return { entries: rows.map(mapRow), total, page, pageSize }
 }
 
 export async function getPendingAmeCount(): Promise<number> {
-  const result = await db
-    .selectFrom('club.ame_list')
+  const result = await camelDb
+    .selectFrom('club.ameList')
     .select((eb) => eb.fn.countAll<number>().as('count'))
     .where('status', '=', AmeStatus.SUBMITTED)
     .executeTakeFirstOrThrow()
@@ -208,33 +203,33 @@ export async function getPendingAmeCount(): Promise<number> {
 }
 
 export async function createAmeEntry(data: CreateAmeEntry, user: JWTUser): Promise<AmeEntry> {
-  const row = await db
-    .insertInto('club.ame_list')
+  const row = await camelDb
+    .insertInto('club.ameList')
     .values({
-      submitted_by: user.memberId,
+      submittedBy: user.memberId,
       name: data.name,
-      medical_centre: data.medicalCentre,
+      medicalCentre: data.medicalCentre,
       location: data.location,
       price: data.price ?? null,
-      medical_types: data.medicalTypes,
+      medicalTypes: data.medicalTypes,
       notes: data.notes ?? null,
-      report_date: data.reportDate,
+      reportDate: data.reportDate,
       status: AmeStatus.SUBMITTED,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
 
-  return mapRow({ ...row, submitted_by_name: null } as unknown as AmeRow)
+  return mapRowWithoutJoins(row)
 }
 
 export async function approveAmeEntry(id: string, approver: JWTUser): Promise<AmeEntry | null> {
-  const row = await db
-    .updateTable('club.ame_list')
+  const row = await camelDb
+    .updateTable('club.ameList')
     .set({
       status: AmeStatus.APPROVED,
-      approved_at: new Date(),
-      approved_by: approver.memberId,
-      updated_at: new Date(),
+      approvedAt: new Date(),
+      approvedBy: approver.memberId,
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
     .where('status', '=', AmeStatus.SUBMITTED)
@@ -242,7 +237,7 @@ export async function approveAmeEntry(id: string, approver: JWTUser): Promise<Am
     .executeTakeFirst()
 
   if (!row) return null
-  return mapRow({ ...row, submitted_by_name: null } as unknown as AmeRow)
+  return mapRowWithoutJoins(row)
 }
 
 export async function rejectAmeEntry(
@@ -250,14 +245,14 @@ export async function rejectAmeEntry(
   rejecter: JWTUser,
   reason: string,
 ): Promise<AmeEntry | null> {
-  const row = await db
-    .updateTable('club.ame_list')
+  const row = await camelDb
+    .updateTable('club.ameList')
     .set({
       status: AmeStatus.REJECTED,
-      rejected_at: new Date(),
-      rejected_by: rejecter.memberId,
-      rejection_reason: reason,
-      updated_at: new Date(),
+      rejectedAt: new Date(),
+      rejectedBy: rejecter.memberId,
+      rejectionReason: reason,
+      updatedAt: new Date(),
     })
     .where('id', '=', id)
     .where('status', '=', AmeStatus.SUBMITTED)
@@ -265,7 +260,7 @@ export async function rejectAmeEntry(
     .executeTakeFirst()
 
   if (!row) return null
-  return mapRow({ ...row, submitted_by_name: null } as unknown as AmeRow)
+  return mapRowWithoutJoins(row)
 }
 
 export async function upsertAmeRating(
@@ -273,29 +268,29 @@ export async function upsertAmeRating(
   memberId: string,
   stars: number,
 ): Promise<void> {
-  await db
-    .insertInto('club.ame_rating')
-    .values({ ame_id: ameId, member_id: memberId, stars })
+  await camelDb
+    .insertInto('club.ameRating')
+    .values({ ameId: ameId, memberId: memberId, stars })
     .onConflict((oc) =>
-      oc.columns(['ame_id', 'member_id']).doUpdateSet({ stars, updated_at: new Date() }),
+      oc.columns(['ameId', 'memberId']).doUpdateSet({ stars, updatedAt: new Date() }),
     )
     .execute()
 }
 
 export async function getPendingReviewCounts(): Promise<AmePendingCounts> {
   const [submissions, editSuggestions, removalRequests] = await Promise.all([
-    db
-      .selectFrom('club.ame_list')
+    camelDb
+      .selectFrom('club.ameList')
       .select((eb) => eb.fn.countAll<number>().as('count'))
       .where('status', '=', AmeStatus.SUBMITTED)
       .executeTakeFirstOrThrow(),
-    db
-      .selectFrom('club.ame_edit_suggestion')
+    camelDb
+      .selectFrom('club.ameEditSuggestion')
       .select((eb) => eb.fn.countAll<number>().as('count'))
       .where('status', '=', AmeReviewStatus.SUBMITTED)
       .executeTakeFirstOrThrow(),
-    db
-      .selectFrom('club.ame_removal_request')
+    camelDb
+      .selectFrom('club.ameRemovalRequest')
       .select((eb) => eb.fn.countAll<number>().as('count'))
       .where('status', '=', AmeReviewStatus.SUBMITTED)
       .executeTakeFirstOrThrow(),
@@ -308,92 +303,85 @@ export async function getPendingReviewCounts(): Promise<AmePendingCounts> {
   }
 }
 
-type AmeEditSuggestionRow = {
-  id: string
-  ame_id: string
-  submitted_by: string
-  submitted_by_name: string | null
-  name: string
-  medical_centre: string
-  location: string
-  price: unknown
-  medical_types: string[]
-  notes: string | null
-  report_date: unknown
-  status: string
-  reviewed_at: unknown
-  reviewed_by: string | null
-  rejection_reason: string | null
-  created_at: unknown
-  updated_at: unknown
-  current_name: string
-  current_medical_centre: string
-  current_location: string
-  current_price: unknown
-  current_medical_types: string[]
-  current_notes: string | null
-  current_report_date: unknown
+/** The `club.ameList` columns `editSuggestionBaseSelect` aliases as `current*`. */
+type CurrentAmeColumns = Pick<
+  CamelRow<'club.ameList'>,
+  'name' | 'medicalCentre' | 'location' | 'price' | 'medicalTypes' | 'notes' | 'reportDate'
+>
+
+// The suggestion's own columns are `club.ameEditSuggestion`; `submittedByName` is a raw
+// `trim(concat(...))` over the joined member row, and the `current*` columns are the
+// live `club.ameList` values the suggestion would replace.
+type AmeEditSuggestionRow = CamelRow<'club.ameEditSuggestion'> & {
+  submittedByName: string | null
+  currentName: CurrentAmeColumns['name']
+  currentMedicalCentre: CurrentAmeColumns['medicalCentre']
+  currentLocation: CurrentAmeColumns['location']
+  currentPrice: CurrentAmeColumns['price']
+  currentMedicalTypes: CurrentAmeColumns['medicalTypes']
+  currentNotes: CurrentAmeColumns['notes']
+  currentReportDate: CurrentAmeColumns['reportDate']
 }
 
 const mapEditSuggestionRow = (row: AmeEditSuggestionRow): AmeEditSuggestion => ({
   id: row.id,
-  ameId: row.ame_id,
-  submittedBy: row.submitted_by,
-  submittedByName: row.submitted_by_name,
+  ameId: row.ameId,
+  submittedBy: row.submittedBy,
+  submittedByName: row.submittedByName,
   name: row.name,
-  medicalCentre: row.medical_centre,
+  medicalCentre: row.medicalCentre,
   location: row.location,
   price: toNullableNumber(row.price),
-  medicalTypes: row.medical_types,
+  medicalTypes: row.medicalTypes,
   notes: row.notes,
-  reportDate: String(row.report_date),
+  reportDate: String(row.reportDate),
   status: row.status as AmeReviewStatus,
-  reviewedAt: toNullableIsoString(row.reviewed_at),
-  reviewedBy: row.reviewed_by,
-  rejectionReason: row.rejection_reason,
-  createdAt: toIsoString(row.created_at),
-  updatedAt: toIsoString(row.updated_at),
-  currentName: row.current_name,
-  currentMedicalCentre: row.current_medical_centre,
-  currentLocation: row.current_location,
-  currentPrice: toNullableNumber(row.current_price),
-  currentMedicalTypes: row.current_medical_types,
-  currentNotes: row.current_notes,
-  currentReportDate: String(row.current_report_date),
+  reviewedAt: toNullableIsoString(row.reviewedAt),
+  reviewedBy: row.reviewedBy,
+  rejectionReason: row.rejectionReason,
+  createdAt: toIsoString(row.createdAt),
+  updatedAt: toIsoString(row.updatedAt),
+  currentName: row.currentName,
+  currentMedicalCentre: row.currentMedicalCentre,
+  currentLocation: row.currentLocation,
+  currentPrice: toNullableNumber(row.currentPrice),
+  currentMedicalTypes: row.currentMedicalTypes,
+  currentNotes: row.currentNotes,
+  currentReportDate: String(row.currentReportDate),
 })
 
 const editSuggestionBaseSelect = () =>
-  db
-    .selectFrom('club.ame_edit_suggestion as s')
-    .innerJoin('club.ame_list as a', 'a.id', 's.ame_id')
-    .leftJoin('member.register as m', 'm.member_id', 's.submitted_by')
+  camelDb
+    .selectFrom('club.ameEditSuggestion as s')
+    .innerJoin('club.ameList as a', 'a.id', 's.ameId')
+    .leftJoin('member.register as m', 'm.memberId', 's.submittedBy')
     .select([
       's.id',
-      's.ame_id',
-      's.submitted_by',
+      's.ameId',
+      's.submittedBy',
       sql<string>`trim(concat(coalesce(m.first_name, ''), ' ', coalesce(m.last_name, '')))`.as(
-        'submitted_by_name',
+        'submittedByName',
       ),
       's.name',
-      's.medical_centre',
+      's.medicalCentre',
       's.location',
       's.price',
-      's.medical_types',
+      's.medicalTypes',
       's.notes',
-      's.report_date',
+      's.reportDate',
       's.status',
-      's.reviewed_at',
-      's.reviewed_by',
-      's.rejection_reason',
-      's.created_at',
-      's.updated_at',
-      'a.name as current_name',
-      'a.medical_centre as current_medical_centre',
-      'a.location as current_location',
-      'a.price as current_price',
-      'a.medical_types as current_medical_types',
-      'a.notes as current_notes',
-      'a.report_date as current_report_date',
+      's.reviewedAt',
+      's.reviewedBy',
+      's.rejectionReason',
+      's.createdAt',
+      's.updatedAt',
+      'a.name as currentName',
+      'a.medicalCentre as currentMedicalCentre',
+      'a.location as currentLocation',
+      'a.price as currentPrice',
+      'a.medicalTypes as currentMedicalTypes',
+      'a.notes as currentNotes',
+      'a.reportDate as currentReportDate',
     ])
 
 export async function createAmeEditSuggestion(
@@ -401,26 +389,24 @@ export async function createAmeEditSuggestion(
   data: SuggestAmeEdit,
   user: JWTUser,
 ): Promise<AmeEditSuggestion> {
-  const row = await db
-    .insertInto('club.ame_edit_suggestion')
+  const row = await camelDb
+    .insertInto('club.ameEditSuggestion')
     .values({
-      ame_id: ameId,
-      submitted_by: user.memberId,
+      ameId: ameId,
+      submittedBy: user.memberId,
       name: data.name,
-      medical_centre: data.medicalCentre,
+      medicalCentre: data.medicalCentre,
       location: data.location,
       price: data.price ?? null,
-      medical_types: data.medicalTypes,
+      medicalTypes: data.medicalTypes,
       notes: data.notes ?? null,
-      report_date: data.reportDate,
+      reportDate: data.reportDate,
       status: AmeReviewStatus.SUBMITTED,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
 
-  const [current] = (await editSuggestionBaseSelect()
-    .where('s.id', '=', row.id)
-    .execute()) as unknown as AmeEditSuggestionRow[]
+  const [current] = await editSuggestionBaseSelect().where('s.id', '=', row.id).execute()
 
   return mapEditSuggestionRow(current)
 }
@@ -436,19 +422,15 @@ export async function getAllEditSuggestions(
     q = q.where('s.status', '=', status)
   }
 
-  const countQ = db
-    .selectFrom('club.ame_edit_suggestion')
+  const countQ = camelDb
+    .selectFrom('club.ameEditSuggestion')
     .select((eb) => eb.fn.countAll<number>().as('count'))
 
   const countResult = await (
     status ? countQ.where('status', '=', status) : countQ
   ).executeTakeFirstOrThrow()
 
-  const rows = (await q
-    .orderBy('s.created_at desc')
-    .limit(pageSize)
-    .offset(offset)
-    .execute()) as unknown as AmeEditSuggestionRow[]
+  const rows = await q.orderBy('s.createdAt desc').limit(pageSize).offset(offset).execute()
 
   return {
     entries: rows.map(mapEditSuggestionRow),
@@ -462,8 +444,8 @@ export async function approveAmeEditSuggestion(
   id: string,
   approver: JWTUser,
 ): Promise<AmeEditSuggestion | null> {
-  const suggestion = await db
-    .selectFrom('club.ame_edit_suggestion')
+  const suggestion = await camelDb
+    .selectFrom('club.ameEditSuggestion')
     .selectAll()
     .where('id', '=', id)
     .where('status', '=', AmeReviewStatus.SUBMITTED)
@@ -471,34 +453,32 @@ export async function approveAmeEditSuggestion(
 
   if (!suggestion) return null
 
-  await db
-    .updateTable('club.ame_list')
+  await camelDb
+    .updateTable('club.ameList')
     .set({
       name: suggestion.name,
-      medical_centre: suggestion.medical_centre,
+      medicalCentre: suggestion.medicalCentre,
       location: suggestion.location,
       price: suggestion.price,
-      medical_types: suggestion.medical_types,
+      medicalTypes: suggestion.medicalTypes,
       notes: suggestion.notes,
-      report_date: suggestion.report_date,
-      updated_at: new Date(),
+      reportDate: suggestion.reportDate,
+      updatedAt: new Date(),
     })
-    .where('id', '=', suggestion.ame_id)
+    .where('id', '=', suggestion.ameId)
     .execute()
 
-  await db
-    .updateTable('club.ame_edit_suggestion')
+  await camelDb
+    .updateTable('club.ameEditSuggestion')
     .set({
       status: AmeReviewStatus.APPROVED,
-      reviewed_at: new Date(),
-      reviewed_by: approver.memberId,
+      reviewedAt: new Date(),
+      reviewedBy: approver.memberId,
     })
     .where('id', '=', id)
     .execute()
 
-  const [current] = (await editSuggestionBaseSelect()
-    .where('s.id', '=', id)
-    .execute()) as unknown as AmeEditSuggestionRow[]
+  const [current] = await editSuggestionBaseSelect().where('s.id', '=', id).execute()
 
   return mapEditSuggestionRow(current)
 }
@@ -508,13 +488,13 @@ export async function rejectAmeEditSuggestion(
   rejecter: JWTUser,
   reason: string,
 ): Promise<AmeEditSuggestion | null> {
-  const row = await db
-    .updateTable('club.ame_edit_suggestion')
+  const row = await camelDb
+    .updateTable('club.ameEditSuggestion')
     .set({
       status: AmeReviewStatus.REJECTED,
-      reviewed_at: new Date(),
-      reviewed_by: rejecter.memberId,
-      rejection_reason: reason,
+      reviewedAt: new Date(),
+      reviewedBy: rejecter.memberId,
+      rejectionReason: reason,
     })
     .where('id', '=', id)
     .where('status', '=', AmeReviewStatus.SUBMITTED)
@@ -523,63 +503,53 @@ export async function rejectAmeEditSuggestion(
 
   if (!row) return null
 
-  const [current] = (await editSuggestionBaseSelect()
-    .where('s.id', '=', id)
-    .execute()) as unknown as AmeEditSuggestionRow[]
+  const [current] = await editSuggestionBaseSelect().where('s.id', '=', id).execute()
 
   return mapEditSuggestionRow(current)
 }
 
-type AmeRemovalRequestRow = {
-  id: string
-  ame_id: string
-  ame_name: string
-  submitted_by: string
-  submitted_by_name: string | null
-  reason: string
-  status: string
-  reviewed_at: unknown
-  reviewed_by: string | null
-  rejection_reason: string | null
-  created_at: unknown
-  updated_at: unknown
+// `ameName` is the joined `club.ameList.name`, `submittedByName` a raw `trim(concat(...))`
+// over the joined member row; the rest is `club.ameRemovalRequest` itself.
+type AmeRemovalRequestRow = CamelRow<'club.ameRemovalRequest'> & {
+  ameName: CamelRow<'club.ameList'>['name']
+  submittedByName: string | null
 }
 
 const mapRemovalRequestRow = (row: AmeRemovalRequestRow): AmeRemovalRequest => ({
   id: row.id,
-  ameId: row.ame_id,
-  ameName: row.ame_name,
-  submittedBy: row.submitted_by,
-  submittedByName: row.submitted_by_name,
+  ameId: row.ameId,
+  ameName: row.ameName,
+  submittedBy: row.submittedBy,
+  submittedByName: row.submittedByName,
   reason: row.reason,
   status: row.status as AmeReviewStatus,
-  reviewedAt: toNullableIsoString(row.reviewed_at),
-  reviewedBy: row.reviewed_by,
-  rejectionReason: row.rejection_reason,
-  createdAt: toIsoString(row.created_at),
-  updatedAt: toIsoString(row.updated_at),
+  reviewedAt: toNullableIsoString(row.reviewedAt),
+  reviewedBy: row.reviewedBy,
+  rejectionReason: row.rejectionReason,
+  createdAt: toIsoString(row.createdAt),
+  updatedAt: toIsoString(row.updatedAt),
 })
 
 const removalRequestBaseSelect = () =>
-  db
-    .selectFrom('club.ame_removal_request as r')
-    .innerJoin('club.ame_list as a', 'a.id', 'r.ame_id')
-    .leftJoin('member.register as m', 'm.member_id', 'r.submitted_by')
+  camelDb
+    .selectFrom('club.ameRemovalRequest as r')
+    .innerJoin('club.ameList as a', 'a.id', 'r.ameId')
+    .leftJoin('member.register as m', 'm.memberId', 'r.submittedBy')
     .select([
       'r.id',
-      'r.ame_id',
-      'a.name as ame_name',
-      'r.submitted_by',
+      'r.ameId',
+      'a.name as ameName',
+      'r.submittedBy',
       sql<string>`trim(concat(coalesce(m.first_name, ''), ' ', coalesce(m.last_name, '')))`.as(
-        'submitted_by_name',
+        'submittedByName',
       ),
       'r.reason',
       'r.status',
-      'r.reviewed_at',
-      'r.reviewed_by',
-      'r.rejection_reason',
-      'r.created_at',
-      'r.updated_at',
+      'r.reviewedAt',
+      'r.reviewedBy',
+      'r.rejectionReason',
+      'r.createdAt',
+      'r.updatedAt',
     ])
 
 export async function createAmeRemovalRequest(
@@ -587,20 +557,18 @@ export async function createAmeRemovalRequest(
   data: RequestAmeRemoval,
   user: JWTUser,
 ): Promise<AmeRemovalRequest> {
-  const row = await db
-    .insertInto('club.ame_removal_request')
+  const row = await camelDb
+    .insertInto('club.ameRemovalRequest')
     .values({
-      ame_id: ameId,
-      submitted_by: user.memberId,
+      ameId: ameId,
+      submittedBy: user.memberId,
       reason: data.reason,
       status: AmeReviewStatus.SUBMITTED,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
 
-  const [current] = (await removalRequestBaseSelect()
-    .where('r.id', '=', row.id)
-    .execute()) as unknown as AmeRemovalRequestRow[]
+  const [current] = await removalRequestBaseSelect().where('r.id', '=', row.id).execute()
 
   return mapRemovalRequestRow(current)
 }
@@ -616,19 +584,15 @@ export async function getAllRemovalRequests(
     q = q.where('r.status', '=', status)
   }
 
-  const countQ = db
-    .selectFrom('club.ame_removal_request')
+  const countQ = camelDb
+    .selectFrom('club.ameRemovalRequest')
     .select((eb) => eb.fn.countAll<number>().as('count'))
 
   const countResult = await (
     status ? countQ.where('status', '=', status) : countQ
   ).executeTakeFirstOrThrow()
 
-  const rows = (await q
-    .orderBy('r.created_at desc')
-    .limit(pageSize)
-    .offset(offset)
-    .execute()) as unknown as AmeRemovalRequestRow[]
+  const rows = await q.orderBy('r.createdAt desc').limit(pageSize).offset(offset).execute()
 
   return {
     entries: rows.map(mapRemovalRequestRow),
@@ -642,8 +606,8 @@ export async function approveAmeRemovalRequest(
   id: string,
   approver: JWTUser,
 ): Promise<AmeRemovalRequest | null> {
-  const request = await db
-    .selectFrom('club.ame_removal_request')
+  const request = await camelDb
+    .selectFrom('club.ameRemovalRequest')
     .selectAll()
     .where('id', '=', id)
     .where('status', '=', AmeReviewStatus.SUBMITTED)
@@ -651,25 +615,23 @@ export async function approveAmeRemovalRequest(
 
   if (!request) return null
 
-  await db
-    .updateTable('club.ame_list')
-    .set({ status: AmeStatus.REMOVED, updated_at: new Date() })
-    .where('id', '=', request.ame_id)
+  await camelDb
+    .updateTable('club.ameList')
+    .set({ status: AmeStatus.REMOVED, updatedAt: new Date() })
+    .where('id', '=', request.ameId)
     .execute()
 
-  await db
-    .updateTable('club.ame_removal_request')
+  await camelDb
+    .updateTable('club.ameRemovalRequest')
     .set({
       status: AmeReviewStatus.APPROVED,
-      reviewed_at: new Date(),
-      reviewed_by: approver.memberId,
+      reviewedAt: new Date(),
+      reviewedBy: approver.memberId,
     })
     .where('id', '=', id)
     .execute()
 
-  const [current] = (await removalRequestBaseSelect()
-    .where('r.id', '=', id)
-    .execute()) as unknown as AmeRemovalRequestRow[]
+  const [current] = await removalRequestBaseSelect().where('r.id', '=', id).execute()
 
   return mapRemovalRequestRow(current)
 }
@@ -679,13 +641,13 @@ export async function rejectAmeRemovalRequest(
   rejecter: JWTUser,
   reason: string,
 ): Promise<AmeRemovalRequest | null> {
-  const row = await db
-    .updateTable('club.ame_removal_request')
+  const row = await camelDb
+    .updateTable('club.ameRemovalRequest')
     .set({
       status: AmeReviewStatus.REJECTED,
-      reviewed_at: new Date(),
-      reviewed_by: rejecter.memberId,
-      rejection_reason: reason,
+      reviewedAt: new Date(),
+      reviewedBy: rejecter.memberId,
+      rejectionReason: reason,
     })
     .where('id', '=', id)
     .where('status', '=', AmeReviewStatus.SUBMITTED)
@@ -694,9 +656,7 @@ export async function rejectAmeRemovalRequest(
 
   if (!row) return null
 
-  const [current] = (await removalRequestBaseSelect()
-    .where('r.id', '=', id)
-    .execute()) as unknown as AmeRemovalRequestRow[]
+  const [current] = await removalRequestBaseSelect().where('r.id', '=', id).execute()
 
   return mapRemovalRequestRow(current)
 }

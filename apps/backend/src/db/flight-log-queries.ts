@@ -1,4 +1,4 @@
-import { db } from './connection.ts'
+import { camelDb, type CamelRow } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   type FlightLogFilters,
@@ -25,11 +25,10 @@ import {
 } from '@mik/contracts/flight-log'
 import type { MIKPermissions } from '@mik/contracts/members'
 import { generateShortId } from '../util/nanoId.ts'
-import type { DB, FlightLogs, FlightVwFlightLogs } from './schema.js'
+import type { DB } from './schema.camel.d.ts'
 import {
   sql,
   type ExpressionBuilder,
-  type Selectable,
   type SqlBool,
   type StringReference,
   type UpdateObject,
@@ -41,100 +40,100 @@ import { toHelsinki } from '@mik/contracts/date'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import type { FlightForEstimation } from '../services/accounting/flightCostEstimator.ts'
 
+// The four AJLB page/total columns come from a join on the flight.vwFlightLogs view,
+// so they are not part of the flight.logs row type.
 function mapFullResultToFlightLogs(
-  row: Selectable<
-    FlightLogs &
-      Pick<
-        FlightVwFlightLogs,
-        'ac_total_flight_time' | 'ac_total_landings' | 'page_number' | 'row_number'
-      >
-  >,
+  row: CamelRow<'flight.logs'> &
+    Pick<
+      CamelRow<'flight.vwFlightLogs'>,
+      'acTotalFlightTime' | 'acTotalLandings' | 'pageNumber' | 'rowNumber'
+    >,
 ): FlightLog {
   return {
-    acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
-    acTotalLandings: row.ajlb_total_landings ?? row.ac_total_landings ?? null,
-    aircraftRegistration: row.aircraft_registration,
-    ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
-    ajlbSeqNo: row.ajlb_seq_no,
-    ajlbPageNo: row.ajlb_page_number ?? row.page_number ?? 0,
-    ajlbRowNo: row.ajlb_row_number ?? row.row_number ?? 0,
-    ajlbTotalLandings: row.ajlb_total_landings ?? null,
-    arrivalAirport: row.arrival_airport,
-    billableMemberId: row.billable_member_id,
-    billingRemarks: row.billing_remarks,
-    blockMins: row.block_mins,
-    blockTime: row.block_time,
-    crew2LastName: row.crew2_last_name,
-    crew2MemberId: row.crew2_member_id,
-    crew2Role: row.crew2_role,
-    crew3LastName: row.crew3_last_name,
-    crew3MemberId: row.crew3_member_id,
-    crew3Role: row.crew3_role,
-    crew4LastName: row.crew4_last_name,
-    crew4MemberId: row.crew4_member_id,
-    crew4Role: row.crew4_role,
-    departureAirport: row.departure_airport,
-    flightId: row.flight_id,
-    flightMins: row.flight_mins,
-    flightTime: row.flight_time,
-    flightType: row.flight_type as FlightType,
-    fuelRemainingLitres: row.fuel_remaining_litres,
-    fuelUpliftLitres: row.fuel_uplift_litres,
-    incidentOrObservations: row.incident_or_observations,
-    instrumentFlyingMins: row.instrument_flying_mins,
-    invoiceNumber: row.invoice_number,
-    isBillableFlight: row.is_billable_flight,
-    isBilled: row.is_billed,
-    isDtoTrainingFlight: row.is_dto_training_flight,
-    partiallyBillableFlight: row.partially_billable_flight ?? false,
-    entryErrorFee: row.entry_error_fee ?? false,
-    entryErrorFeeAppliedByMemberId: row.entry_error_fee_applied_by_member_id,
-    landingTimeEpoch: row.landing_time_epoch,
-    landingTimeUtc: row.landing_time_utc.toISOString(),
-    nightFlyingMins: row.night_flying_mins,
-    nonBillingApprovedByMemberId: row.non_billing_approved_by_member_id,
-    nonBillingReason: row.non_billing_reason,
-    minBillableExceptionReason: row.min_billable_exception_reason,
-    minBillableExceptionApprovedByMemberId: row.min_billable_exception_approved_by_member_id,
-    validationRemarks: row.validation_remarks,
-    numberOfLandings: row.number_of_landings,
-    numberOfNightLandings: row.number_of_night_landings,
-    offBlockTimeEpoch: row.off_block_time_epoch,
-    offBlockTimeUtc: row.off_block_time_utc.toISOString(),
-    oilUpliftLitres: row.oil_uplift_litres,
-    onBlockTimeEpoch: row.on_block_time_epoch,
-    onBlockTimeUtc: row.on_block_time_utc.toISOString(),
-    personalRemarks: row.personal_remarks,
-    personsOnBoard: row.persons_on_board,
-    picLastName: row.pic_last_name,
-    picMemberId: row.pic_member_id,
-    picRole: row.pic_role,
-    privOrComFlight: row.priv_or_com_flight as PrivOrComFlight,
+    acTotalFlightTime: row.ajlbTotalFlightTime ?? row.acTotalFlightTime ?? '00:00',
+    acTotalLandings: row.ajlbTotalLandings ?? row.acTotalLandings ?? null,
+    aircraftRegistration: row.aircraftRegistration,
+    ajlbBlankRowsBefore: row.ajlbBlankRowsBefore,
+    ajlbSeqNo: row.ajlbSeqNo,
+    ajlbPageNo: row.ajlbPageNumber ?? row.pageNumber ?? 0,
+    ajlbRowNo: row.ajlbRowNumber ?? row.rowNumber ?? 0,
+    ajlbTotalLandings: row.ajlbTotalLandings ?? null,
+    arrivalAirport: row.arrivalAirport,
+    billableMemberId: row.billableMemberId,
+    billingRemarks: row.billingRemarks,
+    blockMins: row.blockMins,
+    blockTime: row.blockTime,
+    crew2LastName: row.crew2LastName,
+    crew2MemberId: row.crew2MemberId,
+    crew2Role: row.crew2Role,
+    crew3LastName: row.crew3LastName,
+    crew3MemberId: row.crew3MemberId,
+    crew3Role: row.crew3Role,
+    crew4LastName: row.crew4LastName,
+    crew4MemberId: row.crew4MemberId,
+    crew4Role: row.crew4Role,
+    departureAirport: row.departureAirport,
+    flightId: row.flightId,
+    flightMins: row.flightMins,
+    flightTime: row.flightTime,
+    flightType: row.flightType as FlightType,
+    fuelRemainingLitres: row.fuelRemainingLitres,
+    fuelUpliftLitres: row.fuelUpliftLitres,
+    incidentOrObservations: row.incidentOrObservations,
+    instrumentFlyingMins: row.instrumentFlyingMins,
+    invoiceNumber: row.invoiceNumber,
+    isBillableFlight: row.isBillableFlight,
+    isBilled: row.isBilled,
+    isDtoTrainingFlight: row.isDtoTrainingFlight,
+    partiallyBillableFlight: row.partiallyBillableFlight ?? false,
+    entryErrorFee: row.entryErrorFee ?? false,
+    entryErrorFeeAppliedByMemberId: row.entryErrorFeeAppliedByMemberId,
+    landingTimeEpoch: row.landingTimeEpoch,
+    landingTimeUtc: row.landingTimeUtc.toISOString(),
+    nightFlyingMins: row.nightFlyingMins,
+    nonBillingApprovedByMemberId: row.nonBillingApprovedByMemberId,
+    nonBillingReason: row.nonBillingReason,
+    minBillableExceptionReason: row.minBillableExceptionReason,
+    minBillableExceptionApprovedByMemberId: row.minBillableExceptionApprovedByMemberId,
+    validationRemarks: row.validationRemarks,
+    numberOfLandings: row.numberOfLandings,
+    numberOfNightLandings: row.numberOfNightLandings,
+    offBlockTimeEpoch: row.offBlockTimeEpoch,
+    offBlockTimeUtc: row.offBlockTimeUtc.toISOString(),
+    oilUpliftLitres: row.oilUpliftLitres,
+    onBlockTimeEpoch: row.onBlockTimeEpoch,
+    onBlockTimeUtc: row.onBlockTimeUtc.toISOString(),
+    personalRemarks: row.personalRemarks,
+    personsOnBoard: row.personsOnBoard,
+    picLastName: row.picLastName,
+    picMemberId: row.picMemberId,
+    picRole: row.picRole,
+    privOrComFlight: row.privOrComFlight as PrivOrComFlight,
     status: row.status as FlightLogStatus,
-    takeoffTimeEpoch: row.takeoff_time_epoch,
-    takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
-    totalTimeInService: row.total_time_in_service,
+    takeoffTimeEpoch: row.takeoffTimeEpoch,
+    takeoffTimeUtc: row.takeoffTimeUtc.toISOString(),
+    totalTimeInService: row.totalTimeInService,
 
-    updatedAt: row.updated_at?.toISOString(),
-    updatedBy: row.updated_by,
-    createdAt: row.created_at?.toISOString(),
-    createdBy: row.created_by,
+    updatedAt: row.updatedAt?.toISOString(),
+    updatedBy: row.updatedBy,
+    createdAt: row.createdAt?.toISOString(),
+    createdBy: row.createdBy,
   }
 }
 
 // Get single flight log
 export async function getFlightLog(flightId: string): Promise<FlightLog | undefined> {
-  let res = await db
+  let res = await camelDb
     .selectFrom('flight.logs')
-    .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
+    .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
     .selectAll('flight.logs')
     .select([
-      'totals.ac_total_flight_time',
-      'totals.ac_total_landings',
-      'totals.page_number',
-      'totals.row_number',
+      'totals.acTotalFlightTime',
+      'totals.acTotalLandings',
+      'totals.pageNumber',
+      'totals.rowNumber',
     ])
-    .where('flight.logs.flight_id', '=', flightId)
+    .where('flight.logs.flightId', '=', flightId)
     .executeTakeFirst()
 
   if (res != undefined) {
@@ -152,19 +151,19 @@ export async function getFlightLogPageForMins(
   ajlbSeqNo: number,
   flightMins: number,
 ): Promise<number | undefined> {
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('flight.logs')
-    .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
-    .where('aircraft_registration', '=', aircraftRegistration)
-    .where('ajlb_seq_no', '=', ajlbSeqNo)
+    .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('ajlbSeqNo', '=', ajlbSeqNo)
     .select([
-      'flight.logs.ajlb_page_number',
-      'totals.page_number',
-      'flight.logs.ajlb_total_flight_mins',
-      'totals.ac_total_flight_mins',
+      'flight.logs.ajlbPageNumber',
+      'totals.pageNumber',
+      'flight.logs.ajlbTotalFlightMins',
+      'totals.acTotalFlightMins',
     ])
-    .orderBy('off_block_time_epoch', 'asc')
-    .orderBy('flight.logs.flight_id', 'asc')
+    .orderBy('offBlockTimeEpoch', 'asc')
+    .orderBy('flight.logs.flightId', 'asc')
     .execute()
 
   if (!rows.length) return undefined
@@ -172,11 +171,10 @@ export async function getFlightLogPageForMins(
   // The first flight whose running total reaches the target is the one whose
   // page the defect was recorded on; fall back to the last page otherwise.
   const match =
-    rows.find(
-      (row) => (row.ajlb_total_flight_mins ?? row.ac_total_flight_mins ?? 0) >= flightMins,
-    ) ?? rows[rows.length - 1]
+    rows.find((row) => (row.ajlbTotalFlightMins ?? row.acTotalFlightMins ?? 0) >= flightMins) ??
+    rows[rows.length - 1]
 
-  return match.ajlb_page_number ?? match.page_number ?? undefined
+  return match.ajlbPageNumber ?? match.pageNumber ?? undefined
 }
 
 /**
@@ -194,14 +192,14 @@ export async function getAjlbLiveBaselineFlightMins(
   aircraftRegistration: string,
   ajlbSeqNo: number,
 ): Promise<number> {
-  const row = await db
-    .selectFrom('flight.vw_flight_time_totals')
-    .select('validated_total_flight_mins')
-    .where('aircraft_registration', '=', aircraftRegistration)
-    .where('ajlb_seq_no', '=', ajlbSeqNo)
+  const row = await camelDb
+    .selectFrom('flight.vwFlightTimeTotals')
+    .select('validatedTotalFlightMins')
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('ajlbSeqNo', '=', ajlbSeqNo)
     .executeTakeFirst()
 
-  return row?.validated_total_flight_mins ?? 0
+  return row?.validatedTotalFlightMins ?? 0
 }
 
 /**
@@ -214,65 +212,65 @@ export async function getAjlbPageItemRows(
   ajlbSeqNo: number,
   page: number,
 ): Promise<PageItemRow[]> {
-  const rows = await db
-    .selectFrom('flight.vw_ajlb_live_rows')
-    .select(['row_number', 'item_type', 'item_id', 'is_content_row'])
-    .where('aircraft_registration', '=', aircraftRegistration)
-    .where('ajlb_seq_no', '=', ajlbSeqNo)
-    .where('page_number', '=', page)
-    .orderBy('row_number')
+  const rows = await camelDb
+    .selectFrom('flight.vwAjlbLiveRows')
+    .select(['rowNumber', 'itemType', 'itemId', 'isContentRow'])
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('ajlbSeqNo', '=', ajlbSeqNo)
+    .where('pageNumber', '=', page)
+    .orderBy('rowNumber')
     .execute()
 
   return rows.map((row) => ({
-    rowNumber: row.row_number!,
-    itemType: row.item_type as 'note' | 'defect',
-    itemId: row.item_id!,
-    isContentRow: row.is_content_row!,
+    rowNumber: row.rowNumber!,
+    itemType: row.itemType as 'note' | 'defect',
+    itemId: row.itemId!,
+    isContentRow: row.isContentRow!,
   }))
 }
 
 export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLogListResponse> {
   const ajlbPaging = !!filters.ajlbSeqNo && filters.page !== undefined
 
-  const query = db
+  const query = camelDb
     .selectFrom('flight.logs')
-    .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
-    .$if(!!filters.flightId, (qb) => qb.where('flight.logs.flight_id', '=', filters.flightId!))
+    .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
+    .$if(!!filters.flightId, (qb) => qb.where('flight.logs.flightId', '=', filters.flightId!))
     .$if(!!filters.billableMemberId, (qb) =>
-      qb.where('billable_member_id', '=', filters.billableMemberId!),
+      qb.where('billableMemberId', '=', filters.billableMemberId!),
     )
     .$if(!!filters.anyCrewMemberId, (qb) =>
       qb.where((eb) =>
-        eb('billable_member_id', '=', filters.anyCrewMemberId!)
-          .or('pic_member_id', '=', filters.anyCrewMemberId!)
-          .or('crew2_member_id', '=', filters.anyCrewMemberId!)
-          .or('crew3_member_id', '=', filters.anyCrewMemberId!)
-          .or('crew4_member_id', '=', filters.anyCrewMemberId!),
+        eb('billableMemberId', '=', filters.anyCrewMemberId!)
+          .or('picMemberId', '=', filters.anyCrewMemberId!)
+          .or('crew2MemberId', '=', filters.anyCrewMemberId!)
+          .or('crew3MemberId', '=', filters.anyCrewMemberId!)
+          .or('crew4MemberId', '=', filters.anyCrewMemberId!),
       ),
     )
-    .$if(!!filters.pic, (qb) => qb.where('pic_member_id', '=', filters.pic!))
-    .$if(!!filters.crew2, (qb) => qb.where('crew2_member_id', '=', filters.crew2!))
-    .$if(!!filters.crew3, (qb) => qb.where('crew3_member_id', '=', filters.crew3!))
-    .$if(!!filters.crew4, (qb) => qb.where('crew4_member_id', '=', filters.crew4!))
+    .$if(!!filters.pic, (qb) => qb.where('picMemberId', '=', filters.pic!))
+    .$if(!!filters.crew2, (qb) => qb.where('crew2MemberId', '=', filters.crew2!))
+    .$if(!!filters.crew3, (qb) => qb.where('crew3MemberId', '=', filters.crew3!))
+    .$if(!!filters.crew4, (qb) => qb.where('crew4MemberId', '=', filters.crew4!))
     .$if(!!filters.aircraftRegistration, (qb) =>
-      qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
+      qb.where('aircraftRegistration', '=', filters.aircraftRegistration!),
     )
     .$if(!!filters.startDate, (qb) =>
-      qb.where('off_block_time_epoch', '>=', toHelsinki(filters.startDate!).unix().toString()),
+      qb.where('offBlockTimeEpoch', '>=', toHelsinki(filters.startDate!).unix().toString()),
     )
     .$if(!!filters.endDate, (qb) =>
-      qb.where('on_block_time_epoch', '<=', dayjs(filters.endDate).endOf('day').unix().toString()),
+      qb.where('onBlockTimeEpoch', '<=', dayjs(filters.endDate).endOf('day').unix().toString()),
     )
     .$if(!!filters.status, (qb) => qb.where('status', '=', filters.status!))
     .$if(!!filters.incidentsOrObservations, (qb) =>
-      qb.where('incident_or_observations', 'is not', null),
+      qb.where('incidentOrObservations', 'is not', null),
     )
     .$if(ajlbPaging, (qb) =>
       qb
-        .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
+        .where('ajlbSeqNo', '=', filters.ajlbSeqNo!)
         .where((eb) =>
-          eb('flight.logs.ajlb_page_number', '=', filters.page!).or(
-            'totals.page_number',
+          eb('flight.logs.ajlbPageNumber', '=', filters.page!).or(
+            'totals.pageNumber',
             '=',
             filters.page!,
           ),
@@ -294,58 +292,58 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
 
   const results = await query
     .select([
-      'flight.logs.aircraft_registration',
-      'flight.logs.ajlb_blank_rows_before',
-      'flight.logs.ajlb_seq_no',
-      'flight.logs.ajlb_total_flight_time',
-      'flight.logs.ajlb_total_landings',
-      'flight.logs.ajlb_page_number',
-      'flight.logs.ajlb_row_number',
-      'flight.logs.arrival_airport',
-      'flight.logs.billable_member_id',
-      'flight.logs.block_mins',
-      'flight.logs.block_time',
-      'flight.logs.crew2_last_name',
-      'flight.logs.departure_airport',
-      'flight.logs.flight_id',
-      'flight.logs.flight_mins',
-      'flight.logs.flight_time',
-      'flight.logs.flight_type',
-      'flight.logs.fuel_remaining_litres',
-      'flight.logs.fuel_uplift_litres',
-      'flight.logs.incident_or_observations',
-      'flight.logs.instrument_flying_mins',
-      'flight.logs.invoice_number',
-      'flight.logs.is_billable_flight',
-      'flight.logs.is_billed',
-      'flight.logs.min_billable_exception_reason',
-      'flight.logs.min_billable_exception_approved_by_member_id',
-      'flight.logs.night_flying_mins',
-      'flight.logs.number_of_landings',
-      'flight.logs.number_of_night_landings',
-      'flight.logs.oil_uplift_litres',
-      'flight.logs.off_block_time_utc',
-      'flight.logs.on_block_time_utc',
-      'flight.logs.takeoff_time_utc',
-      'flight.logs.landing_time_utc',
-      'flight.logs.persons_on_board',
-      'flight.logs.pic_last_name',
+      'flight.logs.aircraftRegistration',
+      'flight.logs.ajlbBlankRowsBefore',
+      'flight.logs.ajlbSeqNo',
+      'flight.logs.ajlbTotalFlightTime',
+      'flight.logs.ajlbTotalLandings',
+      'flight.logs.ajlbPageNumber',
+      'flight.logs.ajlbRowNumber',
+      'flight.logs.arrivalAirport',
+      'flight.logs.billableMemberId',
+      'flight.logs.blockMins',
+      'flight.logs.blockTime',
+      'flight.logs.crew2LastName',
+      'flight.logs.departureAirport',
+      'flight.logs.flightId',
+      'flight.logs.flightMins',
+      'flight.logs.flightTime',
+      'flight.logs.flightType',
+      'flight.logs.fuelRemainingLitres',
+      'flight.logs.fuelUpliftLitres',
+      'flight.logs.incidentOrObservations',
+      'flight.logs.instrumentFlyingMins',
+      'flight.logs.invoiceNumber',
+      'flight.logs.isBillableFlight',
+      'flight.logs.isBilled',
+      'flight.logs.minBillableExceptionReason',
+      'flight.logs.minBillableExceptionApprovedByMemberId',
+      'flight.logs.nightFlyingMins',
+      'flight.logs.numberOfLandings',
+      'flight.logs.numberOfNightLandings',
+      'flight.logs.oilUpliftLitres',
+      'flight.logs.offBlockTimeUtc',
+      'flight.logs.onBlockTimeUtc',
+      'flight.logs.takeoffTimeUtc',
+      'flight.logs.landingTimeUtc',
+      'flight.logs.personsOnBoard',
+      'flight.logs.picLastName',
       'flight.logs.status',
-      'flight.logs.total_time_in_service',
-      'flight.logs.ajlb_total_flight_mins',
+      'flight.logs.totalTimeInService',
+      'flight.logs.ajlbTotalFlightMins',
     ])
     .select([
-      'totals.ac_total_flight_time',
-      'totals.row_number',
-      'totals.page_number',
-      'totals.ac_total_flight_mins',
-      'totals.ac_total_landings',
+      'totals.acTotalFlightTime',
+      'totals.rowNumber',
+      'totals.pageNumber',
+      'totals.acTotalFlightMins',
+      'totals.acTotalLandings',
     ])
-    // flight_id is a tiebreaker matching the ORDER BY used by flight.vw_flight_logs'
+    // flightId is a tiebreaker matching the ORDER BY used by flight.vw_flight_logs'
     // window functions, so ties on off_block_time_epoch resolve the same way here
     // as they do when the view assigns page_number/ac_total_flight_mins.
-    .orderBy('off_block_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
-    .orderBy('flight_id', filters.orderLatestFirst ? 'desc' : 'asc')
+    .orderBy('offBlockTimeEpoch', filters.orderLatestFirst ? 'desc' : 'asc')
+    .orderBy('flightId', filters.orderLatestFirst ? 'desc' : 'asc')
     // offset only valid with dynamic paging
     .offset(!ajlbPaging && page > 0 ? pageSize * (page - 1) : 0)
     .limit(pageSize)
@@ -353,10 +351,10 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
 
   let pageStartFlightMins: number | null = null
   if (ajlbPaging && filters.page! > 1) {
-    const prevPageLastFlight = await db
+    const prevPageLastFlight = await camelDb
       .selectFrom('flight.logs')
-      .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
-      .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
+      .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
+      .where('ajlbSeqNo', '=', filters.ajlbSeqNo!)
       // A note/defect large enough to fill an entire physical page on its own leaves that
       // page with zero flights (see flight.vw_ajlb_live_sequence) -- looking only at
       // filters.page - 2 would then find nothing and fall back to null, which resets the
@@ -366,20 +364,20 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       .where(
         sql<SqlBool>`coalesce("flight"."logs"."ajlb_page_number", "totals"."page_number") < ${filters.page!}`,
       )
-      .select(['flight.logs.ajlb_total_flight_mins', 'totals.ac_total_flight_mins'])
-      // flight_id tiebreaker keeps this in sync with the view's row ordering (see above)
+      .select(['flight.logs.ajlbTotalFlightMins', 'totals.acTotalFlightMins'])
+      // flightId tiebreaker keeps this in sync with the view's row ordering (see above)
       // so this reliably finds the true last row of that page even when flights share the
       // same off_block_time_epoch. Both columns must be qualified since 'totals'
-      // (flight.vw_flight_logs) also has a flight_id column, making the bare reference
+      // (flight.vw_flight_logs) also has a flightId column, making the bare reference
       // ambiguous to Postgres.
       .orderBy(sql`coalesce("flight"."logs"."ajlb_page_number", "totals"."page_number")`, 'desc')
-      .orderBy('flight.logs.off_block_time_epoch', 'desc')
-      .orderBy('flight.logs.flight_id', 'desc')
+      .orderBy('flight.logs.offBlockTimeEpoch', 'desc')
+      .orderBy('flight.logs.flightId', 'desc')
       .limit(1)
       .executeTakeFirst()
 
     pageStartFlightMins =
-      prevPageLastFlight?.ajlb_total_flight_mins ?? prevPageLastFlight?.ac_total_flight_mins ?? null
+      prevPageLastFlight?.ajlbTotalFlightMins ?? prevPageLastFlight?.acTotalFlightMins ?? null
   }
 
   const pageItemRows = ajlbPaging
@@ -389,48 +387,47 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
   return {
     logs: results.map((row) => {
       const res: FlightLogListEntry = {
-        acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
-        acTotalLandings: row.ajlb_total_landings ?? row.ac_total_landings ?? null,
-        aircraftRegistration: row.aircraft_registration,
-        ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
-        ajlbSeqNo: row.ajlb_seq_no,
-        ajlbRowNo: row.ajlb_row_number ?? row.row_number ?? 1,
-        arrivalAirport: row.arrival_airport,
-        billableMemberId: row.billable_member_id,
-        blockMins: row.block_mins,
-        blockTime: row.block_time,
-        crew2LastName: row.crew2_last_name,
+        acTotalFlightTime: row.ajlbTotalFlightTime ?? row.acTotalFlightTime ?? '00:00',
+        acTotalLandings: row.ajlbTotalLandings ?? row.acTotalLandings ?? null,
+        aircraftRegistration: row.aircraftRegistration,
+        ajlbBlankRowsBefore: row.ajlbBlankRowsBefore,
+        ajlbSeqNo: row.ajlbSeqNo,
+        ajlbRowNo: row.ajlbRowNumber ?? row.rowNumber ?? 1,
+        arrivalAirport: row.arrivalAirport,
+        billableMemberId: row.billableMemberId,
+        blockMins: row.blockMins,
+        blockTime: row.blockTime,
+        crew2LastName: row.crew2LastName,
         creditedMins: null,
-        departureAirport: row.departure_airport,
+        departureAirport: row.departureAirport,
         estimatedCost: null,
-        flightId: row.flight_id,
-        flightMins: row.flight_mins,
-        flightTime: row.flight_time,
-        flightType: row.flight_type as FlightType,
-        fuelRemainingLitres: row.fuel_remaining_litres,
-        fuelUpliftLitres: row.fuel_uplift_litres,
-        incidentOrObservations: row.incident_or_observations,
-        instrumentFlyingMins: row.instrument_flying_mins,
-        invoiceNumber: row.invoice_number,
-        isBillableFlight: row.is_billable_flight,
-        isBilled: row.is_billed,
+        flightId: row.flightId,
+        flightMins: row.flightMins,
+        flightTime: row.flightTime,
+        flightType: row.flightType as FlightType,
+        fuelRemainingLitres: row.fuelRemainingLitres,
+        fuelUpliftLitres: row.fuelUpliftLitres,
+        incidentOrObservations: row.incidentOrObservations,
+        instrumentFlyingMins: row.instrumentFlyingMins,
+        invoiceNumber: row.invoiceNumber,
+        isBillableFlight: row.isBillableFlight,
+        isBilled: row.isBilled,
         isTrainingProgramPilot: null,
-        minBillableExceptionReason: row.min_billable_exception_reason ?? null,
-        minBillableExceptionApprovedByMemberId:
-          row.min_billable_exception_approved_by_member_id ?? null,
-        nightFlyingMins: row.night_flying_mins,
-        numberOfLandings: row.number_of_landings,
-        numberOfNightLandings: row.number_of_night_landings,
-        oilUpliftLitres: row.oil_uplift_litres,
-        offBlockTimeUtc: row.off_block_time_utc.toISOString(),
-        takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
-        landingTimeUtc: row.landing_time_utc.toISOString(),
-        onBlockTimeUtc: row.on_block_time_utc.toISOString(),
-        personsOnBoard: row.persons_on_board,
-        picLastName: row.pic_last_name,
+        minBillableExceptionReason: row.minBillableExceptionReason ?? null,
+        minBillableExceptionApprovedByMemberId: row.minBillableExceptionApprovedByMemberId ?? null,
+        nightFlyingMins: row.nightFlyingMins,
+        numberOfLandings: row.numberOfLandings,
+        numberOfNightLandings: row.numberOfNightLandings,
+        oilUpliftLitres: row.oilUpliftLitres,
+        offBlockTimeUtc: row.offBlockTimeUtc.toISOString(),
+        takeoffTimeUtc: row.takeoffTimeUtc.toISOString(),
+        landingTimeUtc: row.landingTimeUtc.toISOString(),
+        onBlockTimeUtc: row.onBlockTimeUtc.toISOString(),
+        personsOnBoard: row.personsOnBoard,
+        picLastName: row.picLastName,
         status: row.status as FlightLogStatus,
-        totalTimeInService: row.total_time_in_service,
-        acTotalFlightMins: row.ajlb_total_flight_mins ?? row.ac_total_flight_mins ?? null,
+        totalTimeInService: row.totalTimeInService,
+        acTotalFlightMins: row.ajlbTotalFlightMins ?? row.acTotalFlightMins ?? null,
       }
       return res
     }),
@@ -446,45 +443,44 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
 export async function getUnbilledFlightsForEstimation(
   memberId: string,
 ): Promise<FlightForEstimation[]> {
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('flight.logs')
-    .leftJoin('member.register', 'flight.logs.billable_member_id', 'member.register.member_id')
-    .leftJoin('flight.flight_credits', 'flight.logs.flight_id', 'flight.flight_credits.flight_id')
+    .leftJoin('member.register', 'flight.logs.billableMemberId', 'member.register.memberId')
+    .leftJoin('flight.flightCredits', 'flight.logs.flightId', 'flight.flightCredits.flightId')
     .select([
-      'flight.logs.flight_id',
-      'flight.logs.flight_type',
-      'flight.logs.is_billable_flight',
-      'flight.logs.is_billed',
-      'flight.logs.block_mins',
-      'flight.logs.flight_mins',
-      'flight.logs.departure_airport',
-      'flight.logs.arrival_airport',
-      'flight.logs.min_billable_exception_approved_by_member_id',
-      'flight.logs.aircraft_registration',
-      'flight.logs.takeoff_time_utc',
-      'member.register.is_training_program_pilot',
-      'flight.flight_credits.credited_mins',
+      'flight.logs.flightId',
+      'flight.logs.flightType',
+      'flight.logs.isBillableFlight',
+      'flight.logs.isBilled',
+      'flight.logs.blockMins',
+      'flight.logs.flightMins',
+      'flight.logs.departureAirport',
+      'flight.logs.arrivalAirport',
+      'flight.logs.minBillableExceptionApprovedByMemberId',
+      'flight.logs.aircraftRegistration',
+      'flight.logs.takeoffTimeUtc',
+      'member.register.isTrainingProgramPilot',
+      'flight.flightCredits.creditedMins',
     ])
-    .where('flight.logs.billable_member_id', '=', memberId)
-    .where('flight.logs.is_billable_flight', '=', true)
-    .where('flight.logs.is_billed', '=', false)
+    .where('flight.logs.billableMemberId', '=', memberId)
+    .where('flight.logs.isBillableFlight', '=', true)
+    .where('flight.logs.isBilled', '=', false)
     .execute()
 
   return rows.map((row) => ({
-    flightId: row.flight_id,
-    flightType: row.flight_type,
-    isBillableFlight: row.is_billable_flight,
-    isBilled: row.is_billed,
-    isTrainingProgramPilot: row.is_training_program_pilot ?? null,
-    blockMins: row.block_mins,
-    flightMins: row.flight_mins,
-    departureAirport: row.departure_airport,
-    arrivalAirport: row.arrival_airport,
-    minBillableExceptionApprovedByMemberId:
-      row.min_billable_exception_approved_by_member_id ?? null,
-    creditedMins: row.credited_mins ?? null,
-    aircraftRegistration: row.aircraft_registration,
-    takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
+    flightId: row.flightId,
+    flightType: row.flightType,
+    isBillableFlight: row.isBillableFlight,
+    isBilled: row.isBilled,
+    isTrainingProgramPilot: row.isTrainingProgramPilot ?? null,
+    blockMins: row.blockMins,
+    flightMins: row.flightMins,
+    departureAirport: row.departureAirport,
+    arrivalAirport: row.arrivalAirport,
+    minBillableExceptionApprovedByMemberId: row.minBillableExceptionApprovedByMemberId ?? null,
+    creditedMins: row.creditedMins ?? null,
+    aircraftRegistration: row.aircraftRegistration,
+    takeoffTimeUtc: row.takeoffTimeUtc.toISOString(),
   }))
 }
 
@@ -511,38 +507,38 @@ export async function getFlightStats(
   billableMemberId: string,
   activeOnly: boolean,
 ): Promise<FlightLogStats[]> {
-  const res = await db
+  const res = await camelDb
     .selectFrom('flight.logs')
     .select((eb) => [
-      'flight.logs.aircraft_registration as aircraftRegistration',
-      eb.fn.max<Date>('flight.logs.takeoff_time_utc').as('lastTakeoffTimeUtc'),
+      'flight.logs.aircraftRegistration as aircraftRegistration',
+      eb.fn.max<Date>('flight.logs.takeoffTimeUtc').as('lastTakeoffTimeUtc'),
       eb
-        .selectFrom('flight.logs as last_flight')
-        .select('flight_id')
-        .whereRef('flight.logs.aircraft_registration', '=', 'last_flight.aircraft_registration')
-        .where('last_flight.billable_member_id', '=', billableMemberId)
-        .orderBy('last_flight.takeoff_time_utc', 'desc')
+        .selectFrom('flight.logs as lastFlight')
+        .select('flightId')
+        .whereRef('flight.logs.aircraftRegistration', '=', 'lastFlight.aircraftRegistration')
+        .where('lastFlight.billableMemberId', '=', billableMemberId)
+        .orderBy('lastFlight.takeoffTimeUtc', 'desc')
         .limit(1)
         .as('lastFlightId'),
-      eb.cast<number>(eb.fn.count<number>('flight.logs.flight_id'), 'integer').as('totalFlights'),
-      eb.cast<number>(eb.fn.sum('flight.logs.flight_mins'), 'integer').as('totalFlightMins'),
-      eb.cast<number>(eb.fn.sum('flight.logs.number_of_landings'), 'integer').as('totalLandings'),
+      eb.cast<number>(eb.fn.count<number>('flight.logs.flightId'), 'integer').as('totalFlights'),
+      eb.cast<number>(eb.fn.sum('flight.logs.flightMins'), 'integer').as('totalFlightMins'),
+      eb.cast<number>(eb.fn.sum('flight.logs.numberOfLandings'), 'integer').as('totalLandings'),
 
-      sumIfMonths(eb, 1, 'flight.logs.flight_mins').as('time1month'),
-      sumIfMonths(eb, 3, 'flight.logs.flight_mins').as('time3month'),
-      sumIfMonths(eb, 6, 'flight.logs.flight_mins').as('time6month'),
-      sumIfMonths(eb, 12, 'flight.logs.flight_mins').as('time12month'),
+      sumIfMonths(eb, 1, 'flight.logs.flightMins').as('time1month'),
+      sumIfMonths(eb, 3, 'flight.logs.flightMins').as('time3month'),
+      sumIfMonths(eb, 6, 'flight.logs.flightMins').as('time6month'),
+      sumIfMonths(eb, 12, 'flight.logs.flightMins').as('time12month'),
 
-      sumIfMonths(eb, 1, 'flight.logs.number_of_landings').as('landings1month'),
-      sumIfMonths(eb, 3, 'flight.logs.number_of_landings').as('landings3month'),
-      sumIfMonths(eb, 6, 'flight.logs.number_of_landings').as('landings6month'),
-      sumIfMonths(eb, 12, 'flight.logs.number_of_landings').as('landings12month'),
+      sumIfMonths(eb, 1, 'flight.logs.numberOfLandings').as('landings1month'),
+      sumIfMonths(eb, 3, 'flight.logs.numberOfLandings').as('landings3month'),
+      sumIfMonths(eb, 6, 'flight.logs.numberOfLandings').as('landings6month'),
+      sumIfMonths(eb, 12, 'flight.logs.numberOfLandings').as('landings12month'),
     ])
-    .where('billable_member_id', '=', billableMemberId)
+    .where('billableMemberId', '=', billableMemberId)
     .$if(activeOnly === true, (qb) =>
       qb.where((eb) =>
         eb(
-          'flight.logs.aircraft_registration',
+          'flight.logs.aircraftRegistration',
           'in',
           eb
             .selectFrom('flight.aircraft')
@@ -551,7 +547,7 @@ export async function getFlightStats(
         ),
       ),
     )
-    .groupBy(['flight.logs.aircraft_registration', 'flight.logs.billable_member_id'])
+    .groupBy(['flight.logs.aircraftRegistration', 'flight.logs.billableMemberId'])
     .orderBy('lastTakeoffTimeUtc', 'desc')
     .execute()
 
@@ -564,64 +560,64 @@ export async function getFlightStats(
 export async function getInvoicableFlights(
   filters: InvoicableFlightFilters,
 ): Promise<InvoicableFlightListResponse> {
-  let query = db
+  let query = camelDb
     .selectFrom('flight.logs')
-    .leftJoin('member.register', 'flight.logs.billable_member_id', 'member.register.member_id')
-    .leftJoin('flight.flight_credits', 'flight.logs.flight_id', 'flight.flight_credits.flight_id')
+    .leftJoin('member.register', 'flight.logs.billableMemberId', 'member.register.memberId')
+    .leftJoin('flight.flightCredits', 'flight.logs.flightId', 'flight.flightCredits.flightId')
     .where('status', '=', FlightLogStatus.VALIDATED)
     .$if(!!filters.aircraftRegistration, (qb) =>
-      qb.where('aircraft_registration', '=', filters.aircraftRegistration),
+      qb.where('aircraftRegistration', '=', filters.aircraftRegistration),
     )
-    .where('on_block_time_epoch', '<=', toHelsinki(filters.endDate).endOf('day').unix().toString())
+    .where('onBlockTimeEpoch', '<=', toHelsinki(filters.endDate).endOf('day').unix().toString())
 
   if (filters.flights === InvoicableFlights.FERRY) {
-    query = query.where('flight_type', '=', FlightType.FERRY)
+    query = query.where('flightType', '=', FlightType.FERRY)
   } else if (filters.flights === InvoicableFlights.TEST_FLIGHT) {
-    query = query.where('flight_type', '=', FlightType.TEST_FLIGHT)
+    query = query.where('flightType', '=', FlightType.TEST_FLIGHT)
   } else if (filters.flights === InvoicableFlights.COMMENT) {
-    query = query.where('billing_remarks', 'is not', null)
-    query = query.where('flight.logs.entry_error_fee', '=', false)
-    query = query.where('flight_type', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
+    query = query.where('billingRemarks', 'is not', null)
+    query = query.where('flight.logs.entryErrorFee', '=', false)
+    query = query.where('flightType', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
   } else if (filters.flights === InvoicableFlights.ENTRY_ERROR) {
-    query = query.where('flight.logs.entry_error_fee', '=', true)
+    query = query.where('flight.logs.entryErrorFee', '=', true)
   } else if (filters.flights === InvoicableFlights.PARTIALLY_BILLABLE) {
-    query = query.where('flight.logs.partially_billable_flight', '=', true)
+    query = query.where('flight.logs.partiallyBillableFlight', '=', true)
   } else if (filters.flights === InvoicableFlights.MIN_BILLABLE) {
     const minMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
     query = query.where((eb) =>
       eb(
         eb
           .case()
-          .when('member.register.is_training_program_pilot', '=', true)
-          .then(eb.ref('flight.logs.block_mins'))
-          .else(eb.ref('flight.logs.flight_mins'))
+          .when('member.register.isTrainingProgramPilot', '=', true)
+          .then(eb.ref('flight.logs.blockMins'))
+          .else(eb.ref('flight.logs.flightMins'))
           .end(),
         '<',
         minMins,
       ),
     )
     // min billable rule applied to local flights only (departure and arrival airports the same)
-    query = query.whereRef('flight.logs.departure_airport', '=', 'flight.logs.arrival_airport')
+    query = query.whereRef('flight.logs.departureAirport', '=', 'flight.logs.arrivalAirport')
   } else if (filters.flights === InvoicableFlights.OTHER) {
     const minMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
     query = query
-      .where('billing_remarks', 'is', null)
-      .where('flight.logs.partially_billable_flight', 'is not', true)
-      .where('flight.logs.entry_error_fee', '=', false)
-      .where('flight_type', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
+      .where('billingRemarks', 'is', null)
+      .where('flight.logs.partiallyBillableFlight', 'is not', true)
+      .where('flight.logs.entryErrorFee', '=', false)
+      .where('flightType', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
       .where((eb) =>
         eb.or([
           // Cross-country flights (any duration) - departure != arrival
-          eb('flight.logs.departure_airport', '!=', eb.ref('flight.logs.arrival_airport')),
+          eb('flight.logs.departureAirport', '!=', eb.ref('flight.logs.arrivalAirport')),
           // Local flights >= min billable time - departure == arrival AND >= minMins
           eb.and([
-            eb('flight.logs.departure_airport', '=', eb.ref('flight.logs.arrival_airport')),
+            eb('flight.logs.departureAirport', '=', eb.ref('flight.logs.arrivalAirport')),
             eb(
               eb
                 .case()
-                .when('member.register.is_training_program_pilot', '=', true)
-                .then(eb.ref('flight.logs.block_mins'))
-                .else(eb.ref('flight.logs.flight_mins'))
+                .when('member.register.isTrainingProgramPilot', '=', true)
+                .then(eb.ref('flight.logs.blockMins'))
+                .else(eb.ref('flight.logs.flightMins'))
                 .end(),
               '>=',
               minMins,
@@ -643,38 +639,38 @@ export async function getInvoicableFlights(
 
   const results = await query
     .select([
-      'flight.logs.aircraft_registration',
-      'flight.logs.arrival_airport',
-      'flight.logs.billable_member_id',
-      'flight.logs.billing_remarks',
-      'flight.logs.departure_airport',
-      'flight.logs.flight_id',
-      'flight.logs.flight_time',
-      'flight.logs.flight_type',
-      'flight.logs.fuel_uplift_litres',
-      'flight.logs.is_billable_flight',
-      'flight.logs.non_billing_reason',
-      'flight.logs.flight_mins',
-      'flight.logs.block_mins',
-      'flight.logs.block_time',
-      'flight.logs.number_of_landings',
-      'flight.logs.takeoff_time_utc',
-      'flight.logs.landing_time_utc',
-      'flight.logs.persons_on_board',
-      'flight.logs.pic_last_name',
+      'flight.logs.aircraftRegistration',
+      'flight.logs.arrivalAirport',
+      'flight.logs.billableMemberId',
+      'flight.logs.billingRemarks',
+      'flight.logs.departureAirport',
+      'flight.logs.flightId',
+      'flight.logs.flightTime',
+      'flight.logs.flightType',
+      'flight.logs.fuelUpliftLitres',
+      'flight.logs.isBillableFlight',
+      'flight.logs.nonBillingReason',
+      'flight.logs.flightMins',
+      'flight.logs.blockMins',
+      'flight.logs.blockTime',
+      'flight.logs.numberOfLandings',
+      'flight.logs.takeoffTimeUtc',
+      'flight.logs.landingTimeUtc',
+      'flight.logs.personsOnBoard',
+      'flight.logs.picLastName',
       'flight.logs.status',
-      'flight.logs.partially_billable_flight',
-      'flight.logs.entry_error_fee',
-      'member.register.last_name as billable_member_last_name',
-      'member.register.is_training_program_pilot',
-      'member.register.billing_id',
-      'flight.flight_credits.credited_mins',
-      'flight.flight_credits.note',
-      'flight.logs.validation_remarks',
-      'flight.logs.min_billable_exception_reason',
-      'flight.logs.min_billable_exception_approved_by_member_id',
+      'flight.logs.partiallyBillableFlight',
+      'flight.logs.entryErrorFee',
+      'member.register.lastName as billableMemberLastName',
+      'member.register.isTrainingProgramPilot',
+      'member.register.billingId',
+      'flight.flightCredits.creditedMins',
+      'flight.flightCredits.note',
+      'flight.logs.validationRemarks',
+      'flight.logs.minBillableExceptionReason',
+      'flight.logs.minBillableExceptionApprovedByMemberId',
     ])
-    .orderBy('off_block_time_epoch', 'asc')
+    .orderBy('offBlockTimeEpoch', 'asc')
     .offset(pageSize * (page - 1))
     .limit(pageSize)
     .execute()
@@ -682,37 +678,36 @@ export async function getInvoicableFlights(
   return {
     logs: results.map((row) => {
       const res: InvoicableFlight = {
-        aircraftRegistration: row.aircraft_registration,
-        arrivalAirport: row.arrival_airport,
-        billableMemberId: row.billable_member_id,
-        billableMemberLastName: row.billable_member_last_name,
-        billingId: row.billing_id,
-        isTrainingProgramPilot: row.is_training_program_pilot,
-        billingRemarks: row.billing_remarks,
-        departureAirport: row.departure_airport,
-        flightId: row.flight_id,
-        flightTime: row.flight_time,
-        flightMins: row.flight_mins,
-        blockMins: row.block_mins,
-        blockTime: row.block_time,
-        flightType: row.flight_type as FlightType,
-        fuelUpliftLitres: row.fuel_uplift_litres,
-        isBillableFlight: row.is_billable_flight,
-        nonBillingReason: row.non_billing_reason,
-        numberOfLandings: row.number_of_landings,
-        takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
-        landingTimeUtc: row.landing_time_utc.toISOString(),
-        personsOnBoard: row.persons_on_board,
-        picLastName: row.pic_last_name,
+        aircraftRegistration: row.aircraftRegistration,
+        arrivalAirport: row.arrivalAirport,
+        billableMemberId: row.billableMemberId,
+        billableMemberLastName: row.billableMemberLastName,
+        billingId: row.billingId,
+        isTrainingProgramPilot: row.isTrainingProgramPilot,
+        billingRemarks: row.billingRemarks,
+        departureAirport: row.departureAirport,
+        flightId: row.flightId,
+        flightTime: row.flightTime,
+        flightMins: row.flightMins,
+        blockMins: row.blockMins,
+        blockTime: row.blockTime,
+        flightType: row.flightType as FlightType,
+        fuelUpliftLitres: row.fuelUpliftLitres,
+        isBillableFlight: row.isBillableFlight,
+        nonBillingReason: row.nonBillingReason,
+        numberOfLandings: row.numberOfLandings,
+        takeoffTimeUtc: row.takeoffTimeUtc.toISOString(),
+        landingTimeUtc: row.landingTimeUtc.toISOString(),
+        personsOnBoard: row.personsOnBoard,
+        picLastName: row.picLastName,
         status: row.status as FlightLogStatus,
-        partiallyBillableFlight: row.partially_billable_flight ?? false,
-        entryErrorFee: row.entry_error_fee ?? false,
-        creditedMins: row.credited_mins ?? null,
+        partiallyBillableFlight: row.partiallyBillableFlight ?? false,
+        entryErrorFee: row.entryErrorFee ?? false,
+        creditedMins: row.creditedMins ?? null,
         creditedNote: row.note ?? null,
-        validationRemarks: row.validation_remarks ?? null,
-        minBillableExceptionReason: row.min_billable_exception_reason ?? null,
-        minBillableExceptionApprovedByMemberId:
-          row.min_billable_exception_approved_by_member_id ?? null,
+        validationRemarks: row.validationRemarks ?? null,
+        minBillableExceptionReason: row.minBillableExceptionReason ?? null,
+        minBillableExceptionApprovedByMemberId: row.minBillableExceptionApprovedByMemberId ?? null,
       }
       return res
     }),
@@ -731,108 +726,108 @@ export async function insertFlightLog(
   const billableMemberId = 'billableMemberId' in data ? data.billableMemberId : user.memberId
 
   // determine if this is a DTO training flight (auto-detected from member's training status)
-  const member = await db
+  const member = await camelDb
     .selectFrom('member.register')
-    .select('is_training_program_pilot')
-    .where('member_id', '=', billableMemberId)
+    .select('isTrainingProgramPilot')
+    .where('memberId', '=', billableMemberId)
     .limit(1)
     .executeTakeFirstOrThrow()
-  const isDtoTrainingFlight = !!member.is_training_program_pilot
+  const isDtoTrainingFlight = !!member.isTrainingProgramPilot
 
   // DTO training flights always have flight type DTO
   const flightType = isDtoTrainingFlight ? FlightType.DTO : data.flightType
 
-  const retval = await db
+  const retval = await camelDb
     .insertInto('flight.logs')
     .values((eb) => ({
-      aircraft_registration: data.aircraftRegistration,
-      arrival_airport: data.arrivalAirport,
-      billable_member_id: billableMemberId,
-      billing_remarks: data.billingRemarks,
-      pic_last_name: eb
+      aircraftRegistration: data.aircraftRegistration,
+      arrivalAirport: data.arrivalAirport,
+      billableMemberId: billableMemberId,
+      billingRemarks: data.billingRemarks,
+      picLastName: eb
         .selectFrom('member.register')
-        .select('last_name')
-        .where('member_id', '=', data.picMemberId),
-      pic_member_id: data.picMemberId,
-      pic_role: data.picRole,
-      crew2_last_name: eb
+        .select('lastName')
+        .where('memberId', '=', data.picMemberId),
+      picMemberId: data.picMemberId,
+      picRole: data.picRole,
+      crew2LastName: eb
         .selectFrom('member.register')
-        .select('last_name')
-        .where('member_id', '=', data.crew2MemberId),
-      crew2_member_id: data.crew2MemberId,
-      crew2_role: data.crew2Role,
-      crew3_last_name: eb
+        .select('lastName')
+        .where('memberId', '=', data.crew2MemberId),
+      crew2MemberId: data.crew2MemberId,
+      crew2Role: data.crew2Role,
+      crew3LastName: eb
         .selectFrom('member.register')
-        .select('last_name')
-        .where('member_id', '=', data.crew3MemberId),
-      crew3_member_id: data.crew3MemberId,
-      crew3_role: data.crew3Role,
-      crew4_last_name: eb
+        .select('lastName')
+        .where('memberId', '=', data.crew3MemberId),
+      crew3MemberId: data.crew3MemberId,
+      crew3Role: data.crew3Role,
+      crew4LastName: eb
         .selectFrom('member.register')
-        .select('last_name')
-        .where('member_id', '=', data.crew4MemberId),
-      crew4_member_id: data.crew4MemberId,
-      crew4_role: data.crew4Role,
-      departure_airport: data.departureAirport,
-      flight_type: flightType,
-      fuel_remaining_litres: data.fuelRemainingLitres,
-      fuel_uplift_litres: data.fuelUpliftLitres,
-      incident_or_observations: data.incidentOrObservations,
-      instrument_flying_mins: data.instrumentFlyingMins,
-      night_flying_mins: data.nightFlyingMins,
-      number_of_landings: data.numberOfLandings,
-      number_of_night_landings: data.numberOfNightLandings,
-      oil_uplift_litres: data.oilUpliftLitres,
-      off_block_time_epoch: data.offBlockTimeEpoch,
-      takeoff_time_epoch: data.takeoffTimeEpoch,
-      landing_time_epoch: data.landingTimeEpoch,
-      on_block_time_epoch: data.onBlockTimeEpoch,
-      personal_remarks: data.personalRemarks,
-      persons_on_board: data.personsOnBoard,
-      priv_or_com_flight: flightTypeToPrivOrCom(flightType),
-      total_time_in_service: data.totalTimeInService,
+        .select('lastName')
+        .where('memberId', '=', data.crew4MemberId),
+      crew4MemberId: data.crew4MemberId,
+      crew4Role: data.crew4Role,
+      departureAirport: data.departureAirport,
+      flightType: flightType,
+      fuelRemainingLitres: data.fuelRemainingLitres,
+      fuelUpliftLitres: data.fuelUpliftLitres,
+      incidentOrObservations: data.incidentOrObservations,
+      instrumentFlyingMins: data.instrumentFlyingMins,
+      nightFlyingMins: data.nightFlyingMins,
+      numberOfLandings: data.numberOfLandings,
+      numberOfNightLandings: data.numberOfNightLandings,
+      oilUpliftLitres: data.oilUpliftLitres,
+      offBlockTimeEpoch: data.offBlockTimeEpoch,
+      takeoffTimeEpoch: data.takeoffTimeEpoch,
+      landingTimeEpoch: data.landingTimeEpoch,
+      onBlockTimeEpoch: data.onBlockTimeEpoch,
+      personalRemarks: data.personalRemarks,
+      personsOnBoard: data.personsOnBoard,
+      privOrComFlight: flightTypeToPrivOrCom(flightType),
+      totalTimeInService: data.totalTimeInService,
 
       // Admin billability/fee/validation fields (use request values when available)
-      invoice_number: undefined,
-      is_billable_flight: 'isBillableFlight' in data ? data.isBillableFlight : true,
-      partially_billable_flight: data.partiallyBillableFlight ?? false,
-      entry_error_fee: 'entryErrorFee' in data ? (data.entryErrorFee ?? false) : false,
-      entry_error_fee_applied_by_member_id:
+      invoiceNumber: undefined,
+      isBillableFlight: 'isBillableFlight' in data ? data.isBillableFlight : true,
+      partiallyBillableFlight: data.partiallyBillableFlight ?? false,
+      entryErrorFee: 'entryErrorFee' in data ? (data.entryErrorFee ?? false) : false,
+      entryErrorFeeAppliedByMemberId:
         'entryErrorFee' in data && data.entryErrorFee ? user.memberId : null,
-      non_billing_approved_by_member_id:
+      nonBillingApprovedByMemberId:
         'isBillableFlight' in data && data.isBillableFlight === false ? user.memberId : null,
-      non_billing_reason: 'nonBillingReason' in data ? data.nonBillingReason : undefined,
-      min_billable_exception_reason:
+      nonBillingReason: 'nonBillingReason' in data ? data.nonBillingReason : undefined,
+      minBillableExceptionReason:
         'minBillableExceptionReason' in data ? data.minBillableExceptionReason : undefined,
-      min_billable_exception_approved_by_member_id:
+      minBillableExceptionApprovedByMemberId:
         'minBillableExceptionReason' in data && data.minBillableExceptionReason !== null
           ? user.memberId
           : null,
-      validation_remarks: 'validationRemarks' in data ? data.validationRemarks : null,
+      validationRemarks: 'validationRemarks' in data ? data.validationRemarks : null,
 
-      ajlb_blank_rows_before: 'ajlbBlankRowsBefore' in data ? data.ajlbBlankRowsBefore : 0,
-      ajlb_seq_no: eb
-        .selectFrom('flight.vw_flight_time_totals')
-        .select(eb.fn.coalesce('ajlb_seq_no', eb.lit(0)).as('ajlb_seq_no'))
-        .where('aircraft_registration', '=', data.aircraftRegistration)
+      ajlbBlankRowsBefore: 'ajlbBlankRowsBefore' in data ? data.ajlbBlankRowsBefore : 0,
+      ajlbSeqNo: eb
+        .selectFrom('flight.vwFlightTimeTotals')
+        .select(eb.fn.coalesce('ajlbSeqNo', eb.lit(0)).as('ajlbSeqNo'))
+        .where('aircraftRegistration', '=', data.aircraftRegistration)
         .where('current', '=', true),
-      flight_id: generateShortId(),
-      created_by: user.memberId,
-      created_at: new Date().toISOString(),
-      updated_by: user.memberId,
-      updated_at: new Date().toISOString(),
-      is_dto_training_flight: isDtoTrainingFlight,
+      flightId: generateShortId(),
+      createdBy: user.memberId,
+      createdAt: new Date().toISOString(),
+      updatedBy: user.memberId,
+      updatedAt: new Date().toISOString(),
+      isDtoTrainingFlight: isDtoTrainingFlight,
     }))
-    .returning('flight_id')
+    .returning('flightId')
     .executeTakeFirstOrThrow()
 
-  return retval.flight_id
+  return retval.flightId
 }
 
-export async function deleteFlightLog(flight_id: string): Promise<boolean> {
-  let delQuery = db
+export async function deleteFlightLog(flightId: string): Promise<boolean> {
+  let delQuery = camelDb
     .deleteFrom('flight.logs')
-    .where('flight_id', '=', flight_id)
+    .where('flightId', '=', flightId)
     .where('status', '=', FlightLogStatus.NEW)
 
   const retval = await delQuery.executeTakeFirst()
@@ -852,104 +847,101 @@ const flightTypeToPrivOrCom = (type: FlightType): PrivOrComFlight => {
 }
 
 export const updateFlightLog = async (
-  flight_id: string,
+  flightId: string,
   data: Partial<FlightLogUpsertRequest>,
   user: JWTUser,
 ): Promise<boolean> =>
-  updateFlightLogWithAudit(flight_id, user, (eb) => ({
-    aircraft_registration: data.aircraftRegistration,
-    arrival_airport: data.arrivalAirport,
-    billable_member_id: data.billableMemberId,
-    billing_remarks: data.billingRemarks,
-    pic_last_name: data.picMemberId
-      ? eb
-          .selectFrom('member.register')
-          .select('last_name')
-          .where('member_id', '=', data.picMemberId)
+  updateFlightLogWithAudit(flightId, user, (eb) => ({
+    aircraftRegistration: data.aircraftRegistration,
+    arrivalAirport: data.arrivalAirport,
+    billableMemberId: data.billableMemberId,
+    billingRemarks: data.billingRemarks,
+    picLastName: data.picMemberId
+      ? eb.selectFrom('member.register').select('lastName').where('memberId', '=', data.picMemberId)
       : undefined,
-    pic_member_id: data.picMemberId,
-    pic_role: data.picRole,
-    crew2_last_name:
+    picMemberId: data.picMemberId,
+    picRole: data.picRole,
+    crew2LastName:
       data.crew2MemberId === undefined
         ? undefined
         : data.crew2MemberId
           ? eb
               .selectFrom('member.register')
-              .select('last_name')
-              .where('member_id', '=', data.crew2MemberId)
+              .select('lastName')
+              .where('memberId', '=', data.crew2MemberId)
           : null,
-    crew2_member_id: data.crew2MemberId,
-    crew2_role: data.crew2Role,
-    crew3_last_name:
+    crew2MemberId: data.crew2MemberId,
+    crew2Role: data.crew2Role,
+    crew3LastName:
       data.crew3MemberId === undefined
         ? undefined
         : data.crew3MemberId
           ? eb
               .selectFrom('member.register')
-              .select('last_name')
-              .where('member_id', '=', data.crew3MemberId)
+              .select('lastName')
+              .where('memberId', '=', data.crew3MemberId)
           : null,
-    crew3_member_id: data.crew3MemberId,
-    crew3_role: data.crew3Role,
-    crew4_last_name:
+    crew3MemberId: data.crew3MemberId,
+    crew3Role: data.crew3Role,
+    crew4LastName:
       data.crew4MemberId === undefined
         ? undefined
         : data.crew4MemberId
           ? eb
               .selectFrom('member.register')
-              .select('last_name')
-              .where('member_id', '=', data.crew4MemberId)
+              .select('lastName')
+              .where('memberId', '=', data.crew4MemberId)
           : null,
-    crew4_member_id: data.crew4MemberId,
-    crew4_role: data.crew4Role,
-    departure_airport: data.departureAirport,
-    flight_type: data.flightType,
-    fuel_remaining_litres: data.fuelRemainingLitres,
-    fuel_uplift_litres: data.fuelUpliftLitres,
-    incident_or_observations: data.incidentOrObservations,
-    instrument_flying_mins: data.instrumentFlyingMins,
-    night_flying_mins: data.nightFlyingMins,
-    number_of_landings: data.numberOfLandings,
-    number_of_night_landings: data.numberOfNightLandings,
-    oil_uplift_litres: data.oilUpliftLitres,
-    off_block_time_epoch: data.offBlockTimeEpoch,
-    takeoff_time_epoch: data.takeoffTimeEpoch,
-    landing_time_epoch: data.landingTimeEpoch,
-    on_block_time_epoch: data.onBlockTimeEpoch,
-    personal_remarks: data.personalRemarks,
-    persons_on_board: data.personsOnBoard,
-    priv_or_com_flight: data.flightType ? flightTypeToPrivOrCom(data.flightType) : undefined,
-    total_time_in_service: data.totalTimeInService,
+    crew4MemberId: data.crew4MemberId,
+    crew4Role: data.crew4Role,
+    departureAirport: data.departureAirport,
+    flightType: data.flightType,
+    fuelRemainingLitres: data.fuelRemainingLitres,
+    fuelUpliftLitres: data.fuelUpliftLitres,
+    incidentOrObservations: data.incidentOrObservations,
+    instrumentFlyingMins: data.instrumentFlyingMins,
+    nightFlyingMins: data.nightFlyingMins,
+    numberOfLandings: data.numberOfLandings,
+    numberOfNightLandings: data.numberOfNightLandings,
+    oilUpliftLitres: data.oilUpliftLitres,
+    offBlockTimeEpoch: data.offBlockTimeEpoch,
+    takeoffTimeEpoch: data.takeoffTimeEpoch,
+    landingTimeEpoch: data.landingTimeEpoch,
+    onBlockTimeEpoch: data.onBlockTimeEpoch,
+    personalRemarks: data.personalRemarks,
+    personsOnBoard: data.personsOnBoard,
+    privOrComFlight: data.flightType ? flightTypeToPrivOrCom(data.flightType) : undefined,
+    totalTimeInService: data.totalTimeInService,
 
     // admin fields are editable
-    ajlb_blank_rows_before: data.ajlbBlankRowsBefore,
-    ajlb_seq_no: data.ajlbSeqNo,
-    is_billable_flight: data.isBillableFlight,
-    partially_billable_flight: data.partiallyBillableFlight ?? false,
-    entry_error_fee: data.entryErrorFee ?? undefined,
-    entry_error_fee_applied_by_member_id:
+    ajlbBlankRowsBefore: data.ajlbBlankRowsBefore,
+    ajlbSeqNo: data.ajlbSeqNo,
+    isBillableFlight: data.isBillableFlight,
+    partiallyBillableFlight: data.partiallyBillableFlight ?? false,
+    entryErrorFee: data.entryErrorFee ?? undefined,
+    entryErrorFeeAppliedByMemberId:
       data.entryErrorFee === undefined ? undefined : data.entryErrorFee ? user.memberId : null,
-    non_billing_approved_by_member_id:
+    nonBillingApprovedByMemberId:
       data.isBillableFlight === undefined
         ? undefined
         : data.isBillableFlight === false
           ? user.memberId
           : null,
-    non_billing_reason: data.nonBillingReason,
-    min_billable_exception_reason: data.minBillableExceptionReason,
-    min_billable_exception_approved_by_member_id:
+    nonBillingReason: data.nonBillingReason,
+    minBillableExceptionReason: data.minBillableExceptionReason,
+    minBillableExceptionApprovedByMemberId:
       data.minBillableExceptionReason === undefined
         ? undefined
         : data.minBillableExceptionReason !== null
           ? user.memberId
           : null,
-    validation_remarks: data.validationRemarks,
+    validationRemarks: data.validationRemarks,
 
-    is_dto_training_flight: data.billableMemberId
+    isDtoTrainingFlight: data.billableMemberId
       ? eb
           .selectFrom('member.register')
-          .select('is_training_program_pilot')
-          .where('member_id', '=', data.billableMemberId)
+          .select('isTrainingProgramPilot')
+          .where('memberId', '=', data.billableMemberId)
           .limit(1)
       : undefined,
   }))
@@ -966,10 +958,10 @@ export const updateFlightLogStatus = async (
       // reset ajlb values back to null
       return updateFlightLogWithAudit(flightId, user, () => ({
         status: newStatus,
-        ajlb_total_flight_mins: null,
-        ajlb_page_number: null,
-        ajlb_row_number: null,
-        ajlb_total_landings: null,
+        ajlbTotalFlightMins: null,
+        ajlbPageNumber: null,
+        ajlbRowNumber: null,
+        ajlbTotalLandings: null,
       }))
     case FlightLogStatus.VALIDATED:
       // copy values from the view
@@ -977,22 +969,22 @@ export const updateFlightLogStatus = async (
         status: newStatus,
         ...(oldStatus == FlightLogStatus.NEW
           ? {
-              ajlb_total_flight_mins: eb
-                .selectFrom('flight.vw_flight_logs')
-                .select('ac_total_flight_mins')
-                .where('flight_id', '=', flightId),
-              ajlb_page_number: eb
-                .selectFrom('flight.vw_flight_logs')
-                .select('page_number')
-                .where('flight_id', '=', flightId),
-              ajlb_row_number: eb
-                .selectFrom('flight.vw_flight_logs')
-                .select('row_number')
-                .where('flight_id', '=', flightId),
-              ajlb_total_landings: eb
-                .selectFrom('flight.vw_flight_logs')
-                .select('ac_total_landings')
-                .where('flight_id', '=', flightId),
+              ajlbTotalFlightMins: eb
+                .selectFrom('flight.vwFlightLogs')
+                .select('acTotalFlightMins')
+                .where('flightId', '=', flightId),
+              ajlbPageNumber: eb
+                .selectFrom('flight.vwFlightLogs')
+                .select('pageNumber')
+                .where('flightId', '=', flightId),
+              ajlbRowNumber: eb
+                .selectFrom('flight.vwFlightLogs')
+                .select('rowNumber')
+                .where('flightId', '=', flightId),
+              ajlbTotalLandings: eb
+                .selectFrom('flight.vwFlightLogs')
+                .select('acTotalLandings')
+                .where('flightId', '=', flightId),
             }
           : {}),
       }))
@@ -1007,7 +999,7 @@ export const updateFlightLogStatus = async (
 export const invoiceFlights = async (flights: InvoicableFlight[]): Promise<void> => {
   // send all billable flights to simplbooks invoicing through outbox
   // and mark the corresponding flight logs as QUEUED_FOR_INVOICING in the same transaction
-  await db.transaction().execute(async (trx) => {
+  await camelDb.transaction().execute(async (trx) => {
     const now = new Date()
     // Mark flights as invoiced so they are not selected again by getInvoicableFlights
     for (const flight of flights) {
@@ -1016,18 +1008,18 @@ export const invoiceFlights = async (flights: InvoicableFlight[]): Promise<void>
         .updateTable('flight.logs')
         .set({
           status: FlightLogStatus.QUEUED_FOR_INVOICING,
-          updated_at: now,
-          updated_by: MIK_SIMPLBOOKS_MEMBER,
+          updatedAt: now,
+          updatedBy: MIK_SIMPLBOOKS_MEMBER,
         })
-        .where('flight_id', '=', flight.flightId)
+        .where('flightId', '=', flight.flightId)
         .execute()
     }
     // Enqueue the outbox message with the original flights payload
     await trx
-      .insertInto('accts.outbox_simplbooks')
+      .insertInto('accts.outboxSimplbooks')
       .values({
         id: randomUUID(),
-        event_type: SimplbooksEventType.FLIGHT_INVOICE,
+        eventType: SimplbooksEventType.FLIGHT_INVOICE,
         payload: structuredClone({ flights }),
       })
       .execute()
@@ -1035,18 +1027,18 @@ export const invoiceFlights = async (flights: InvoicableFlight[]): Promise<void>
 }
 
 const updateFlightLogWithAudit = async (
-  flight_id: string,
+  flightId: string,
   user: JWTUser,
   update: (eb: ExpressionBuilder<DB, 'flight.logs'>) => UpdateObject<DB, 'flight.logs'>,
 ): Promise<boolean> => {
-  let updQuery = db
+  let updQuery = camelDb
     .updateTable('flight.logs')
     .set(update)
     .set({
-      updated_by: user.memberId,
-      updated_at: new Date(),
+      updatedBy: user.memberId,
+      updatedAt: new Date(),
     })
-    .where('flight_id', '=', flight_id)
+    .where('flightId', '=', flightId)
 
   const retval = await updQuery.executeTakeFirst()
   return retval.numUpdatedRows == 1n
@@ -1063,65 +1055,59 @@ export async function getOverlappingFlightLogs({
   onBlockTimeEpoch,
   excludeFlightId,
 }: FlightLogOverlapQuery): Promise<FlightLogOverlapConflict[]> {
-  const rows = await db
+  const rows = await camelDb
     .selectFrom('flight.logs')
-    .select([
-      'flight_id',
-      'aircraft_registration',
-      'off_block_time_utc',
-      'on_block_time_utc',
-      'status',
-    ])
-    .where('aircraft_registration', '=', aircraftRegistration)
+    .select(['flightId', 'aircraftRegistration', 'offBlockTimeUtc', 'onBlockTimeUtc', 'status'])
+    .where('aircraftRegistration', '=', aircraftRegistration)
     // epoch columns are int8, which kysely surfaces as string
-    .where('off_block_time_epoch', '<', onBlockTimeEpoch.toString())
-    .where('on_block_time_epoch', '>', offBlockTimeEpoch.toString())
-    .$if(!!excludeFlightId, (qb) => qb.where('flight_id', '!=', excludeFlightId!))
-    .orderBy('off_block_time_epoch')
+    .where('offBlockTimeEpoch', '<', onBlockTimeEpoch.toString())
+    .where('onBlockTimeEpoch', '>', offBlockTimeEpoch.toString())
+    .$if(!!excludeFlightId, (qb) => qb.where('flightId', '!=', excludeFlightId!))
+    .orderBy('offBlockTimeEpoch')
     .execute()
 
   return rows.map((row) => ({
-    flightId: row.flight_id,
-    aircraftRegistration: row.aircraft_registration,
-    offBlockTimeUtc: row.off_block_time_utc.toISOString(),
-    onBlockTimeUtc: row.on_block_time_utc.toISOString(),
+    flightId: row.flightId,
+    aircraftRegistration: row.aircraftRegistration,
+    offBlockTimeUtc: row.offBlockTimeUtc.toISOString(),
+    onBlockTimeUtc: row.onBlockTimeUtc.toISOString(),
     status: row.status as FlightLogStatus,
   }))
 }
 
 export async function getFlightLogTotals(registration?: string): Promise<FlightTimeTotals[]> {
-  let query = db
-    .selectFrom('flight.vw_flight_time_totals')
+  let query = camelDb
+    .selectFrom('flight.vwFlightTimeTotals')
     .selectAll()
     .where('current', '=', true)
-    .orderBy('aircraft_registration')
+    .orderBy('aircraftRegistration')
 
   if (registration) {
-    query = query.where('aircraft_registration', '=', registration)
+    query = query.where('aircraftRegistration', '=', registration)
   }
   const results = await query.execute()
   return results.map((row) => ({
     // there are no nullable values in the view, it is safe to use ! operator
-    acTotalFlightTime: row.unverified_total_flight_time!,
-    acTotalFlightMins: row.unverified_total_flight_mins!,
-    acTotalLandings: row.total_landings ?? null,
-    aircraftRegistration: row.aircraft_registration!,
-    ajlbSeqNo: row.ajlb_seq_no!,
+    acTotalFlightTime: row.unverifiedTotalFlightTime!,
+    acTotalFlightMins: row.unverifiedTotalFlightMins!,
+    acTotalLandings: row.totalLandings ?? null,
+    aircraftRegistration: row.aircraftRegistration!,
+    ajlbSeqNo: row.ajlbSeqNo!,
   }))
 }
 
 export async function getFlightCredit(flightId: string): Promise<FlightCredit | null> {
-  const row = await db
-    .selectFrom('flight.flight_credits')
-    .select(['flight_id', 'credited_mins', 'note'])
-    .where('flight_id', '=', flightId)
+  const row = await camelDb
+    .selectFrom('flight.flightCredits')
+    .select(['flightId', 'creditedMins', 'note'])
+    .where('flightId', '=', flightId)
     .executeTakeFirst()
 
   if (!row) return null
 
   return {
-    flightId: row.flight_id,
-    creditedMins: row.credited_mins,
+    flightId: row.flightId,
+    creditedMins: row.creditedMins,
     note: row.note,
   }
 }
@@ -1133,22 +1119,22 @@ export async function upsertFlightCredit(
   allocatedByMemberId: string,
 ): Promise<FlightCredit> {
   const now = new Date()
-  await db
-    .insertInto('flight.flight_credits')
+  await camelDb
+    .insertInto('flight.flightCredits')
     .values({
-      flight_id: flightId,
-      credited_mins: creditedMins,
+      flightId: flightId,
+      creditedMins: creditedMins,
       note,
-      allocated_by_member_id: allocatedByMemberId,
-      created_at: now,
-      updated_at: now,
+      allocatedByMemberId: allocatedByMemberId,
+      createdAt: now,
+      updatedAt: now,
     })
     .onConflict((oc) =>
-      oc.column('flight_id').doUpdateSet({
-        credited_mins: creditedMins,
+      oc.column('flightId').doUpdateSet({
+        creditedMins: creditedMins,
         note,
-        allocated_by_member_id: allocatedByMemberId,
-        updated_at: now,
+        allocatedByMemberId: allocatedByMemberId,
+        updatedAt: now,
       }),
     )
     .execute()
@@ -1191,35 +1177,31 @@ function resolveExportCrew(
 
 function buildExportBaseQuery(filters: FlightLogExportFilters, memberId?: string) {
   return (
-    db
+    camelDb
       .selectFrom('flight.logs')
       .leftJoin(
         'flight.aircraft',
-        'flight.logs.aircraft_registration',
+        'flight.logs.aircraftRegistration',
         'flight.aircraft.registration',
       )
       // A pilot log must contain the flights the member actually flew, in whichever
       // crew slot they occupied — not the flights they happened to be billed for.
       .$if(!!memberId, (qb) =>
         qb.where((eb) =>
-          eb('pic_member_id', '=', memberId!)
-            .or('crew2_member_id', '=', memberId!)
-            .or('crew3_member_id', '=', memberId!)
-            .or('crew4_member_id', '=', memberId!),
+          eb('picMemberId', '=', memberId!)
+            .or('crew2MemberId', '=', memberId!)
+            .or('crew3MemberId', '=', memberId!)
+            .or('crew4MemberId', '=', memberId!),
         ),
       )
       .$if(!!filters.aircraftRegistration, (qb) =>
-        qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
+        qb.where('aircraftRegistration', '=', filters.aircraftRegistration!),
       )
       .$if(!!filters.startDate, (qb) =>
-        qb.where('off_block_time_epoch', '>=', dayjs(filters.startDate!).unix().toString()),
+        qb.where('offBlockTimeEpoch', '>=', dayjs(filters.startDate!).unix().toString()),
       )
       .$if(!!filters.endDate, (qb) =>
-        qb.where(
-          'on_block_time_epoch',
-          '<=',
-          dayjs(filters.endDate!).endOf('day').unix().toString(),
-        ),
+        qb.where('onBlockTimeEpoch', '<=', dayjs(filters.endDate!).endOf('day').unix().toString()),
       )
   )
 }
@@ -1240,117 +1222,116 @@ export async function getFlightLogsForExport(
 ): Promise<FlightLogExportEntry[]> {
   const results = await buildExportBaseQuery(filters, memberId)
     .select([
-      'flight.logs.aircraft_registration',
-      'flight.logs.ajlb_blank_rows_before',
-      'flight.logs.ajlb_seq_no',
-      'flight.logs.arrival_airport',
-      'flight.logs.billable_member_id',
-      'flight.logs.block_mins',
-      'flight.logs.block_time',
-      'flight.logs.crew2_last_name',
-      'flight.logs.crew2_member_id',
-      'flight.logs.crew2_role',
-      'flight.logs.crew3_last_name',
-      'flight.logs.crew3_member_id',
-      'flight.logs.crew3_role',
-      'flight.logs.crew4_last_name',
-      'flight.logs.crew4_member_id',
-      'flight.logs.crew4_role',
-      'flight.logs.departure_airport',
-      'flight.logs.flight_id',
-      'flight.logs.flight_mins',
-      'flight.logs.flight_time',
-      'flight.logs.flight_type',
-      'flight.logs.fuel_remaining_litres',
-      'flight.logs.fuel_uplift_litres',
-      'flight.logs.incident_or_observations',
-      'flight.logs.instrument_flying_mins',
-      'flight.logs.invoice_number',
-      'flight.logs.is_billable_flight',
-      'flight.logs.is_billed',
-      'flight.logs.min_billable_exception_approved_by_member_id',
-      'flight.logs.night_flying_mins',
-      'flight.logs.number_of_landings',
-      'flight.logs.number_of_night_landings',
-      'flight.logs.oil_uplift_litres',
-      'flight.logs.off_block_time_utc',
-      'flight.logs.on_block_time_utc',
-      'flight.logs.takeoff_time_utc',
-      'flight.logs.landing_time_utc',
-      'flight.logs.personal_remarks',
-      'flight.logs.persons_on_board',
-      'flight.logs.pic_last_name',
-      'flight.logs.pic_member_id',
-      'flight.logs.pic_role',
+      'flight.logs.aircraftRegistration',
+      'flight.logs.ajlbBlankRowsBefore',
+      'flight.logs.ajlbSeqNo',
+      'flight.logs.arrivalAirport',
+      'flight.logs.billableMemberId',
+      'flight.logs.blockMins',
+      'flight.logs.blockTime',
+      'flight.logs.crew2LastName',
+      'flight.logs.crew2MemberId',
+      'flight.logs.crew2Role',
+      'flight.logs.crew3LastName',
+      'flight.logs.crew3MemberId',
+      'flight.logs.crew3Role',
+      'flight.logs.crew4LastName',
+      'flight.logs.crew4MemberId',
+      'flight.logs.crew4Role',
+      'flight.logs.departureAirport',
+      'flight.logs.flightId',
+      'flight.logs.flightMins',
+      'flight.logs.flightTime',
+      'flight.logs.flightType',
+      'flight.logs.fuelRemainingLitres',
+      'flight.logs.fuelUpliftLitres',
+      'flight.logs.incidentOrObservations',
+      'flight.logs.instrumentFlyingMins',
+      'flight.logs.invoiceNumber',
+      'flight.logs.isBillableFlight',
+      'flight.logs.isBilled',
+      'flight.logs.minBillableExceptionApprovedByMemberId',
+      'flight.logs.nightFlyingMins',
+      'flight.logs.numberOfLandings',
+      'flight.logs.numberOfNightLandings',
+      'flight.logs.oilUpliftLitres',
+      'flight.logs.offBlockTimeUtc',
+      'flight.logs.onBlockTimeUtc',
+      'flight.logs.takeoffTimeUtc',
+      'flight.logs.landingTimeUtc',
+      'flight.logs.personalRemarks',
+      'flight.logs.personsOnBoard',
+      'flight.logs.picLastName',
+      'flight.logs.picMemberId',
+      'flight.logs.picRole',
       'flight.logs.status',
-      'flight.logs.total_time_in_service',
-      'flight.aircraft.model as aircraft_model',
+      'flight.logs.totalTimeInService',
+      'flight.aircraft.model as aircraftModel',
     ])
-    .orderBy('off_block_time_epoch', 'asc')
+    .orderBy('offBlockTimeEpoch', 'asc')
     .execute()
 
   return results.map((row) => {
     const { ownRole, actingPicLastName } = resolveExportCrew(
       [
-        { memberId: row.pic_member_id, lastName: row.pic_last_name, role: row.pic_role },
-        { memberId: row.crew2_member_id, lastName: row.crew2_last_name, role: row.crew2_role },
-        { memberId: row.crew3_member_id, lastName: row.crew3_last_name, role: row.crew3_role },
-        { memberId: row.crew4_member_id, lastName: row.crew4_last_name, role: row.crew4_role },
+        { memberId: row.picMemberId, lastName: row.picLastName, role: row.picRole },
+        { memberId: row.crew2MemberId, lastName: row.crew2LastName, role: row.crew2Role },
+        { memberId: row.crew3MemberId, lastName: row.crew3LastName, role: row.crew3Role },
+        { memberId: row.crew4MemberId, lastName: row.crew4LastName, role: row.crew4Role },
       ],
       memberId,
     )
     const listEntry: FlightLogListEntry = {
       acTotalFlightTime: '00:00',
       acTotalLandings: null,
-      aircraftRegistration: row.aircraft_registration,
-      ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
-      ajlbSeqNo: row.ajlb_seq_no,
+      aircraftRegistration: row.aircraftRegistration,
+      ajlbBlankRowsBefore: row.ajlbBlankRowsBefore,
+      ajlbSeqNo: row.ajlbSeqNo,
       ajlbRowNo: 0,
-      arrivalAirport: row.arrival_airport,
-      billableMemberId: row.billable_member_id,
-      blockMins: row.block_mins,
-      blockTime: row.block_time,
-      crew2LastName: row.crew2_last_name,
+      arrivalAirport: row.arrivalAirport,
+      billableMemberId: row.billableMemberId,
+      blockMins: row.blockMins,
+      blockTime: row.blockTime,
+      crew2LastName: row.crew2LastName,
       creditedMins: null,
-      departureAirport: row.departure_airport,
+      departureAirport: row.departureAirport,
       estimatedCost: null,
-      flightId: row.flight_id,
-      flightMins: row.flight_mins,
-      flightTime: row.flight_time,
-      flightType: row.flight_type as FlightType,
-      fuelRemainingLitres: row.fuel_remaining_litres,
-      fuelUpliftLitres: row.fuel_uplift_litres,
-      incidentOrObservations: row.incident_or_observations,
-      instrumentFlyingMins: row.instrument_flying_mins,
-      invoiceNumber: row.invoice_number,
-      isBillableFlight: row.is_billable_flight,
-      isBilled: row.is_billed,
+      flightId: row.flightId,
+      flightMins: row.flightMins,
+      flightTime: row.flightTime,
+      flightType: row.flightType as FlightType,
+      fuelRemainingLitres: row.fuelRemainingLitres,
+      fuelUpliftLitres: row.fuelUpliftLitres,
+      incidentOrObservations: row.incidentOrObservations,
+      instrumentFlyingMins: row.instrumentFlyingMins,
+      invoiceNumber: row.invoiceNumber,
+      isBillableFlight: row.isBillableFlight,
+      isBilled: row.isBilled,
       isTrainingProgramPilot: null,
       minBillableExceptionReason: null,
-      minBillableExceptionApprovedByMemberId:
-        row.min_billable_exception_approved_by_member_id ?? null,
-      nightFlyingMins: row.night_flying_mins,
-      numberOfLandings: row.number_of_landings,
-      numberOfNightLandings: row.number_of_night_landings,
-      oilUpliftLitres: row.oil_uplift_litres,
-      offBlockTimeUtc: row.off_block_time_utc.toISOString(),
-      takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
-      landingTimeUtc: row.landing_time_utc.toISOString(),
-      onBlockTimeUtc: row.on_block_time_utc.toISOString(),
-      personsOnBoard: row.persons_on_board,
-      picLastName: row.pic_last_name,
+      minBillableExceptionApprovedByMemberId: row.minBillableExceptionApprovedByMemberId ?? null,
+      nightFlyingMins: row.nightFlyingMins,
+      numberOfLandings: row.numberOfLandings,
+      numberOfNightLandings: row.numberOfNightLandings,
+      oilUpliftLitres: row.oilUpliftLitres,
+      offBlockTimeUtc: row.offBlockTimeUtc.toISOString(),
+      takeoffTimeUtc: row.takeoffTimeUtc.toISOString(),
+      landingTimeUtc: row.landingTimeUtc.toISOString(),
+      onBlockTimeUtc: row.onBlockTimeUtc.toISOString(),
+      personsOnBoard: row.personsOnBoard,
+      picLastName: row.picLastName,
       status: row.status as FlightLogStatus,
-      totalTimeInService: row.total_time_in_service,
+      totalTimeInService: row.totalTimeInService,
       acTotalFlightMins: null,
     }
     return {
       ...listEntry,
-      flightMins: row.flight_mins,
-      picRole: row.pic_role,
+      flightMins: row.flightMins,
+      picRole: row.picRole,
       ownRole,
       actingPicLastName,
-      aircraftModel: row.aircraft_model ?? null,
-      personalRemarks: row.personal_remarks,
+      aircraftModel: row.aircraftModel ?? null,
+      personalRemarks: row.personalRemarks,
     }
   })
 }

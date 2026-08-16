@@ -8,26 +8,26 @@ import {
   type BookingUpsertRequest,
   type CancellationRequest,
 } from '@mik/contracts/bookings'
-import type { MemberRegister, ScheduleBookings } from './schema.js'
-import type { Selectable } from 'kysely'
+import type { CamelRow } from './connection.ts'
 import { sql } from 'kysely'
 import dayjs from 'dayjs'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 
-type BookingRow = Selectable<
-  ScheduleBookings & Pick<MemberRegister, 'first_name' | 'last_name' | 'phone_number'>
-> & {
-  instructor_first_name?: string | null
-  instructor_last_name?: string | null
-  instructor_phone_number?: string | null
-  created_by_first_name?: string | null
-  created_by_last_name?: string | null
-  updated_by_first_name?: string | null
-  updated_by_last_name?: string | null
-  cancelled_by_first_name?: string | null
-  cancelled_by_last_name?: string | null
-}
+// The booking's own member columns come from a join on member.register; the
+// remaining names below are further joins onto the same table for the other roles.
+type BookingRow = CamelRow<'schedule.bookings'> &
+  Pick<CamelRow<'member.register'>, 'firstName' | 'lastName' | 'phoneNumber'> & {
+    instructorFirstName?: string | null
+    instructorLastName?: string | null
+    instructorPhoneNumber?: string | null
+    createdByFirstName?: string | null
+    createdByLastName?: string | null
+    updatedByFirstName?: string | null
+    updatedByLastName?: string | null
+    cancelledByFirstName?: string | null
+    cancelledByLastName?: string | null
+  }
 
 const formatMemberName = (
   firstName: string | null | undefined,
@@ -36,41 +36,41 @@ const formatMemberName = (
   firstName || lastName ? [firstName, lastName].filter(Boolean).join(' ') : undefined
 
 const mapResultToBooking = (row: BookingRow): Booking => ({
-  bookingId: row.booking_id,
-  memberId: row.member_id,
+  bookingId: row.bookingId,
+  memberId: row.memberId,
   member: {
-    firstName: row.first_name,
-    lastName: row.last_name,
-    phoneNumber: row.phone_number,
+    firstName: row.firstName,
+    lastName: row.lastName,
+    phoneNumber: row.phoneNumber,
   },
-  instructorMemberId: row.instructor_member_id ?? undefined,
-  instructor: row.instructor_member_id
+  instructorMemberId: row.instructorMemberId ?? undefined,
+  instructor: row.instructorMemberId
     ? {
-        firstName: row.instructor_first_name ?? undefined,
-        lastName: row.instructor_last_name ?? undefined,
-        phoneNumber: row.instructor_phone_number ?? null,
+        firstName: row.instructorFirstName ?? undefined,
+        lastName: row.instructorLastName ?? undefined,
+        phoneNumber: row.instructorPhoneNumber ?? null,
       }
     : undefined,
   registration: row.registration,
-  status: row.booking_status as BookingStatus,
-  type: row.booking_type as BookingType,
+  status: row.bookingStatus as BookingStatus,
+  type: row.bookingType as BookingType,
   description: row.description ?? undefined,
-  calendarSequence: Number(row.calendar_sequence ?? 0),
-  startTimeEpoch: row.start_time_epoch,
-  startTime: row.start_time_utc.toISOString(),
-  endTimeEpoch: row.end_time_epoch,
-  endTime: row.end_time_utc.toISOString(),
-  createdAt: row.created_at.toISOString(),
-  createdBy: row.created_by,
-  createdByName: formatMemberName(row.created_by_first_name, row.created_by_last_name),
-  updatedAt: row.updated_at.toISOString(),
-  updatedBy: row.updated_by,
-  updatedByName: formatMemberName(row.updated_by_first_name, row.updated_by_last_name),
-  cancelledAt: row.cancelled_at?.toISOString(),
-  cancelledBy: row.cancelled_by,
-  cancelledByName: formatMemberName(row.cancelled_by_first_name, row.cancelled_by_last_name),
-  cancellationReason: (row.cancellation_reason as CancellationReason) ?? undefined,
-  cancellationNote: row.cancellation_note ?? undefined,
+  calendarSequence: Number(row.calendarSequence ?? 0),
+  startTimeEpoch: row.startTimeEpoch,
+  startTime: row.startTimeUtc.toISOString(),
+  endTimeEpoch: row.endTimeEpoch,
+  endTime: row.endTimeUtc.toISOString(),
+  createdAt: row.createdAt.toISOString(),
+  createdBy: row.createdBy,
+  createdByName: formatMemberName(row.createdByFirstName, row.createdByLastName),
+  updatedAt: row.updatedAt.toISOString(),
+  updatedBy: row.updatedBy,
+  updatedByName: formatMemberName(row.updatedByFirstName, row.updatedByLastName),
+  cancelledAt: row.cancelledAt?.toISOString(),
+  cancelledBy: row.cancelledBy,
+  cancelledByName: formatMemberName(row.cancelledByFirstName, row.cancelledByLastName),
+  cancellationReason: (row.cancellationReason as CancellationReason) ?? undefined,
+  cancellationNote: row.cancellationNote ?? undefined,
 })
 
 const toArray = <T>(value: T | T[]): T[] => {
@@ -78,45 +78,37 @@ const toArray = <T>(value: T | T[]): T[] => {
 }
 
 export const getBookings = async (filters: BookingFilters): Promise<Booking[]> => {
-  let query = connection.db
+  let query = connection.camelDb
     .selectFrom('schedule.bookings')
     .selectAll(['schedule.bookings'])
-    .innerJoin('member.register', 'schedule.bookings.member_id', 'member.register.member_id')
+    .innerJoin('member.register', 'schedule.bookings.memberId', 'member.register.memberId')
     .select([
-      'member.register.first_name',
-      'member.register.last_name',
-      'member.register.phone_number',
+      'member.register.firstName',
+      'member.register.lastName',
+      'member.register.phoneNumber',
     ])
-    .leftJoin(
-      'member.register as instr',
-      'instr.member_id',
-      'schedule.bookings.instructor_member_id',
-    )
+    .leftJoin('member.register as instr', 'instr.memberId', 'schedule.bookings.instructorMemberId')
     .select([
-      sql<string | null>`instr.first_name`.as('instructor_first_name'),
-      sql<string | null>`instr.last_name`.as('instructor_last_name'),
-      sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+      sql<string | null>`instr.first_name`.as('instructorFirstName'),
+      sql<string | null>`instr.last_name`.as('instructorLastName'),
+      sql<string | null>`instr.phone_number`.as('instructorPhoneNumber'),
     ])
-    .leftJoin('member.register as creator', 'creator.member_id', 'schedule.bookings.created_by')
+    .leftJoin('member.register as creator', 'creator.memberId', 'schedule.bookings.createdBy')
     .select([
-      sql<string | null>`creator.first_name`.as('created_by_first_name'),
-      sql<string | null>`creator.last_name`.as('created_by_last_name'),
+      sql<string | null>`creator.first_name`.as('createdByFirstName'),
+      sql<string | null>`creator.last_name`.as('createdByLastName'),
     ])
-    .leftJoin('member.register as updater', 'updater.member_id', 'schedule.bookings.updated_by')
+    .leftJoin('member.register as updater', 'updater.memberId', 'schedule.bookings.updatedBy')
     .select([
-      sql<string | null>`updater.first_name`.as('updated_by_first_name'),
-      sql<string | null>`updater.last_name`.as('updated_by_last_name'),
+      sql<string | null>`updater.first_name`.as('updatedByFirstName'),
+      sql<string | null>`updater.last_name`.as('updatedByLastName'),
     ])
-    .leftJoin(
-      'member.register as canceller',
-      'canceller.member_id',
-      'schedule.bookings.cancelled_by',
-    )
+    .leftJoin('member.register as canceller', 'canceller.memberId', 'schedule.bookings.cancelledBy')
     .select([
-      sql<string | null>`canceller.first_name`.as('cancelled_by_first_name'),
-      sql<string | null>`canceller.last_name`.as('cancelled_by_last_name'),
+      sql<string | null>`canceller.first_name`.as('cancelledByFirstName'),
+      sql<string | null>`canceller.last_name`.as('cancelledByLastName'),
     ])
-    .orderBy('start_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
+    .orderBy('startTimeEpoch', filters.orderLatestFirst ? 'desc' : 'asc')
     .limit(filters.limit ?? 1000)
 
   if (filters['registration']) {
@@ -124,16 +116,16 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
   }
 
   if (filters['memberId']) {
-    query = query.where('schedule.bookings.member_id', '=', filters['memberId'])
+    query = query.where('schedule.bookings.memberId', '=', filters['memberId'])
   }
 
   if (!filters['showCancelled']) {
-    query = query.where('booking_status', '!=', BookingStatus.CANCELLED)
+    query = query.where('bookingStatus', '!=', BookingStatus.CANCELLED)
   }
 
   if (filters.from) {
     query = query.where(
-      'end_time_epoch',
+      'endTimeEpoch',
       filters.exclusiveStartEnd ? '>' : '>=',
       dayjs(filters.from).unix().toString(),
     )
@@ -141,14 +133,14 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
 
   if (filters.to) {
     query = query.where(
-      'start_time_epoch',
+      'startTimeEpoch',
       filters.exclusiveStartEnd ? '<' : '<=',
       dayjs(filters.to).unix().toString(),
     )
   }
 
   if (filters.excludeBookingId) {
-    query = query.where('booking_id', '!=', filters.excludeBookingId)
+    query = query.where('bookingId', '!=', filters.excludeBookingId)
   }
 
   const results = await query.execute()
@@ -156,45 +148,37 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
 }
 
 export const getBookingById = async (bookingId: string): Promise<Booking | undefined> => {
-  let booking = await connection.db
+  let booking = await connection.camelDb
     .selectFrom('schedule.bookings')
     .selectAll('schedule.bookings')
-    .innerJoin('member.register', 'schedule.bookings.member_id', 'member.register.member_id')
+    .innerJoin('member.register', 'schedule.bookings.memberId', 'member.register.memberId')
     .select([
-      'member.register.first_name',
-      'member.register.last_name',
-      'member.register.phone_number',
+      'member.register.firstName',
+      'member.register.lastName',
+      'member.register.phoneNumber',
     ])
-    .leftJoin(
-      'member.register as instr',
-      'instr.member_id',
-      'schedule.bookings.instructor_member_id',
-    )
+    .leftJoin('member.register as instr', 'instr.memberId', 'schedule.bookings.instructorMemberId')
     .select([
-      sql<string | null>`instr.first_name`.as('instructor_first_name'),
-      sql<string | null>`instr.last_name`.as('instructor_last_name'),
-      sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+      sql<string | null>`instr.first_name`.as('instructorFirstName'),
+      sql<string | null>`instr.last_name`.as('instructorLastName'),
+      sql<string | null>`instr.phone_number`.as('instructorPhoneNumber'),
     ])
-    .leftJoin('member.register as creator', 'creator.member_id', 'schedule.bookings.created_by')
+    .leftJoin('member.register as creator', 'creator.memberId', 'schedule.bookings.createdBy')
     .select([
-      sql<string | null>`creator.first_name`.as('created_by_first_name'),
-      sql<string | null>`creator.last_name`.as('created_by_last_name'),
+      sql<string | null>`creator.first_name`.as('createdByFirstName'),
+      sql<string | null>`creator.last_name`.as('createdByLastName'),
     ])
-    .leftJoin('member.register as updater', 'updater.member_id', 'schedule.bookings.updated_by')
+    .leftJoin('member.register as updater', 'updater.memberId', 'schedule.bookings.updatedBy')
     .select([
-      sql<string | null>`updater.first_name`.as('updated_by_first_name'),
-      sql<string | null>`updater.last_name`.as('updated_by_last_name'),
+      sql<string | null>`updater.first_name`.as('updatedByFirstName'),
+      sql<string | null>`updater.last_name`.as('updatedByLastName'),
     ])
-    .leftJoin(
-      'member.register as canceller',
-      'canceller.member_id',
-      'schedule.bookings.cancelled_by',
-    )
+    .leftJoin('member.register as canceller', 'canceller.memberId', 'schedule.bookings.cancelledBy')
     .select([
-      sql<string | null>`canceller.first_name`.as('cancelled_by_first_name'),
-      sql<string | null>`canceller.last_name`.as('cancelled_by_last_name'),
+      sql<string | null>`canceller.first_name`.as('cancelledByFirstName'),
+      sql<string | null>`canceller.last_name`.as('cancelledByLastName'),
     ])
-    .where('booking_id', '=', bookingId)
+    .where('bookingId', '=', bookingId)
     .executeTakeFirst()
 
   if (!booking) {
@@ -210,24 +194,24 @@ export const insertBooking = async (
 ): Promise<Booking> => {
   const now = new Date().toISOString()
 
-  const newBooking = await connection.db
+  const newBooking = await connection.camelDb
     .insertInto('schedule.bookings')
     .values({
-      booking_id: generateShortId(),
-      member_id: booking.memberId,
+      bookingId: generateShortId(),
+      memberId: booking.memberId,
       registration: booking.registration,
-      booking_status: booking.status,
-      booking_type: booking.type,
+      bookingStatus: booking.status,
+      bookingType: booking.type,
       description: booking.description,
-      start_time_epoch: booking.startTimeEpoch,
-      end_time_epoch: booking.endTimeEpoch,
-      instructor_member_id: booking.instructorMemberId ?? null,
-      created_by: jwt.memberId,
-      created_at: now,
-      updated_by: jwt.memberId,
-      updated_at: now,
+      startTimeEpoch: booking.startTimeEpoch,
+      endTimeEpoch: booking.endTimeEpoch,
+      instructorMemberId: booking.instructorMemberId ?? null,
+      createdBy: jwt.memberId,
+      createdAt: now,
+      updatedBy: jwt.memberId,
+      updatedAt: now,
     })
-    .returning(['booking_id', 'start_time_utc', 'end_time_utc'])
+    .returning(['bookingId', 'startTimeUtc', 'endTimeUtc'])
     .executeTakeFirstOrThrow()
 
   return {
@@ -238,10 +222,10 @@ export const insertBooking = async (
       phoneNumber: null,
     },
     instructor: undefined,
-    bookingId: newBooking.booking_id,
+    bookingId: newBooking.bookingId,
     calendarSequence: 0,
-    startTime: newBooking.start_time_utc.toISOString(),
-    endTime: newBooking.end_time_utc.toISOString(),
+    startTime: newBooking.startTimeUtc.toISOString(),
+    endTime: newBooking.endTimeUtc.toISOString(),
     createdAt: now,
     createdBy: jwt.memberId,
     updatedAt: now,
@@ -255,24 +239,24 @@ export const updateBooking = async (
   jwt: JWTUser,
 ): Promise<Booking | undefined> => {
   const now = new Date().toISOString()
-  const updated = await connection.db
+  const updated = await connection.camelDb
     .updateTable('schedule.bookings')
     .set({
       registration: patch.registration,
-      booking_status: patch.status,
-      booking_type: patch.type,
+      bookingStatus: patch.status,
+      bookingType: patch.type,
       description: patch.description,
-      start_time_epoch: patch.startTimeEpoch,
-      end_time_epoch: patch.endTimeEpoch,
-      member_id: patch.memberId,
-      instructor_member_id: patch.instructorMemberId,
-      updated_at: now,
-      updated_by: jwt.memberId,
-      cancelled_at: patch.status === BookingStatus.CANCELLED ? now : undefined,
-      cancelled_by: patch.status === BookingStatus.CANCELLED ? jwt.memberId : undefined,
-      calendar_sequence: sql`calendar_sequence + 1`,
+      startTimeEpoch: patch.startTimeEpoch,
+      endTimeEpoch: patch.endTimeEpoch,
+      memberId: patch.memberId,
+      instructorMemberId: patch.instructorMemberId,
+      updatedAt: now,
+      updatedBy: jwt.memberId,
+      cancelledAt: patch.status === BookingStatus.CANCELLED ? now : undefined,
+      cancelledBy: patch.status === BookingStatus.CANCELLED ? jwt.memberId : undefined,
+      calendarSequence: sql`calendar_sequence + 1`,
     })
-    .where('booking_id', '=', bookingId)
+    .where('bookingId', '=', bookingId)
     .executeTakeFirst()
 
   if (!updated.numUpdatedRows) {
@@ -287,17 +271,17 @@ export const cancelBooking = async (
   jwt: JWTUser,
   cancellation?: CancellationRequest,
 ): Promise<Booking | undefined> => {
-  const updated = await connection.db
+  const updated = await connection.camelDb
     .updateTable('schedule.bookings')
     .set({
-      booking_status: BookingStatus.CANCELLED,
-      cancelled_at: new Date().toISOString(),
-      cancelled_by: jwt.memberId,
-      cancellation_reason: cancellation?.reason ?? null,
-      cancellation_note: cancellation?.note ?? null,
-      calendar_sequence: sql`calendar_sequence + 1`,
+      bookingStatus: BookingStatus.CANCELLED,
+      cancelledAt: new Date().toISOString(),
+      cancelledBy: jwt.memberId,
+      cancellationReason: cancellation?.reason ?? null,
+      cancellationNote: cancellation?.note ?? null,
+      calendarSequence: sql`calendar_sequence + 1`,
     })
-    .where('booking_id', '=', bookingId)
+    .where('bookingId', '=', bookingId)
     .executeTakeFirst()
 
   if (!updated.numUpdatedRows) {
@@ -336,19 +320,19 @@ export const claimUpcomingBookingsForReminder = async (
   // Atomically claim bookings by setting reminder_sent_at in a single UPDATE.
   // Because this UPDATE is atomic, concurrent worker instances will each claim
   // a disjoint set of rows (only rows still NULL are updated).
-  const claimed = await connection.db
+  const claimed = await connection.camelDb
     .updateTable('schedule.bookings')
-    .set({ reminder_sent_at: now })
-    .where('start_time_epoch', '>=', windowStart)
-    .where('start_time_epoch', '<=', windowEnd)
+    .set({ reminderSentAt: now })
+    .where('startTimeEpoch', '>=', windowStart)
+    .where('startTimeEpoch', '<=', windowEnd)
     .where((eb) =>
       eb.or([
-        eb('booking_status', '=', BookingStatus.CONFIRMED),
-        eb('booking_status', '=', BookingStatus.TENTATIVE),
+        eb('bookingStatus', '=', BookingStatus.CONFIRMED),
+        eb('bookingStatus', '=', BookingStatus.TENTATIVE),
       ]),
     )
-    .where('reminder_sent_at', 'is', null)
-    .returning(['booking_id'])
+    .where('reminderSentAt', 'is', null)
+    .returning(['bookingId'])
     .execute()
 
   if (claimed.length === 0) {
@@ -356,46 +340,38 @@ export const claimUpcomingBookingsForReminder = async (
   }
 
   // Fetch full booking data (including member info) for the claimed booking IDs
-  const claimedIds = claimed.map((r) => r.booking_id)
-  const results = await connection.db
+  const claimedIds = claimed.map((r) => r.bookingId)
+  const results = await connection.camelDb
     .selectFrom('schedule.bookings')
     .selectAll(['schedule.bookings'])
-    .innerJoin('member.register', 'schedule.bookings.member_id', 'member.register.member_id')
+    .innerJoin('member.register', 'schedule.bookings.memberId', 'member.register.memberId')
     .select([
-      'member.register.first_name',
-      'member.register.last_name',
-      'member.register.phone_number',
+      'member.register.firstName',
+      'member.register.lastName',
+      'member.register.phoneNumber',
     ])
-    .leftJoin(
-      'member.register as instr',
-      'instr.member_id',
-      'schedule.bookings.instructor_member_id',
-    )
+    .leftJoin('member.register as instr', 'instr.memberId', 'schedule.bookings.instructorMemberId')
     .select([
-      sql<string | null>`instr.first_name`.as('instructor_first_name'),
-      sql<string | null>`instr.last_name`.as('instructor_last_name'),
-      sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+      sql<string | null>`instr.first_name`.as('instructorFirstName'),
+      sql<string | null>`instr.last_name`.as('instructorLastName'),
+      sql<string | null>`instr.phone_number`.as('instructorPhoneNumber'),
     ])
-    .leftJoin('member.register as creator', 'creator.member_id', 'schedule.bookings.created_by')
+    .leftJoin('member.register as creator', 'creator.memberId', 'schedule.bookings.createdBy')
     .select([
-      sql<string | null>`creator.first_name`.as('created_by_first_name'),
-      sql<string | null>`creator.last_name`.as('created_by_last_name'),
+      sql<string | null>`creator.first_name`.as('createdByFirstName'),
+      sql<string | null>`creator.last_name`.as('createdByLastName'),
     ])
-    .leftJoin('member.register as updater', 'updater.member_id', 'schedule.bookings.updated_by')
+    .leftJoin('member.register as updater', 'updater.memberId', 'schedule.bookings.updatedBy')
     .select([
-      sql<string | null>`updater.first_name`.as('updated_by_first_name'),
-      sql<string | null>`updater.last_name`.as('updated_by_last_name'),
+      sql<string | null>`updater.first_name`.as('updatedByFirstName'),
+      sql<string | null>`updater.last_name`.as('updatedByLastName'),
     ])
-    .leftJoin(
-      'member.register as canceller',
-      'canceller.member_id',
-      'schedule.bookings.cancelled_by',
-    )
+    .leftJoin('member.register as canceller', 'canceller.memberId', 'schedule.bookings.cancelledBy')
     .select([
-      sql<string | null>`canceller.first_name`.as('cancelled_by_first_name'),
-      sql<string | null>`canceller.last_name`.as('cancelled_by_last_name'),
+      sql<string | null>`canceller.first_name`.as('cancelledByFirstName'),
+      sql<string | null>`canceller.last_name`.as('cancelledByLastName'),
     ])
-    .where('schedule.bookings.booking_id', 'in', claimedIds)
+    .where('schedule.bookings.bookingId', 'in', claimedIds)
     .execute()
 
   return results.map(mapResultToBooking)
@@ -413,22 +389,22 @@ export const cancelAllFutureBookingsForMember = async (
   const now = new Date()
   const currentEpoch = dayjs().unix().toString()
 
-  const result = await connection.db
+  const result = await connection.camelDb
     .updateTable('schedule.bookings')
     .set({
-      booking_status: BookingStatus.CANCELLED,
+      bookingStatus: BookingStatus.CANCELLED,
       description: description,
-      updated_at: now.toISOString(),
-      updated_by: cancelledBy,
-      cancelled_at: now.toISOString(),
-      cancelled_by: cancelledBy,
+      updatedAt: now.toISOString(),
+      updatedBy: cancelledBy,
+      cancelledAt: now.toISOString(),
+      cancelledBy: cancelledBy,
     })
-    .where('member_id', '=', memberId)
-    .where('start_time_epoch', '>=', currentEpoch)
+    .where('memberId', '=', memberId)
+    .where('startTimeEpoch', '>=', currentEpoch)
     .where((eb) =>
       eb.or([
-        eb('booking_status', '=', BookingStatus.TENTATIVE),
-        eb('booking_status', '=', BookingStatus.CONFIRMED),
+        eb('bookingStatus', '=', BookingStatus.TENTATIVE),
+        eb('bookingStatus', '=', BookingStatus.CONFIRMED),
       ]),
     )
     .executeTakeFirst()

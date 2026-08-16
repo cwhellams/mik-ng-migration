@@ -75,11 +75,12 @@ Check all three before starting:
 
 - **It shares a transaction with another module.** A transaction belongs to one Kysely
   instance; `camelDb.transaction()` and `db.transaction()` are different connections and
-  do not roll back together. Any module whose functions take a `Transaction<DB>` — today
-  `mileage`, `expense-attachment`, `occurrence`, `outbox-simplbooks`, `expense`,
-  `inventory`, `meeting` — has to move in the same commit as its callers.
-  `maintenance-note` is the smallest example: it opens a transaction and passes it into
-  `defect-queries`.
+  do not roll back together. Any module whose functions take a transaction has to move in
+  the same commit as its callers. `maintenance-note` is the smallest example: it opens a
+  transaction and passes it into `defect-queries`; the seven-module `expense` cluster is
+  the largest. Both have moved — see
+  [Migrating a transaction cluster](#migrating-a-transaction-cluster) — so this
+  disqualifier only bites a module added to a cluster from here on.
 - **It uses raw `sql` fragments.** These are migratable, but only by hand — see
   [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment). Nothing about them is
   compiler-checked.
@@ -155,9 +156,11 @@ Steps:
    through the cluster inside a transaction, throw, and assert nothing was committed. It
    fails if any one module is moved back — verified by simulating exactly that.
 
-The remaining cluster is `expense`, `expense-attachment`, `inventory`, `meeting`,
-`mileage`, `occurrence`, `outbox-simplbooks` — seven modules in one commit, which is the
-one place in this migration where "one domain per PR" cannot hold.
+Both clusters have moved: `aircraft-hil` + `defect` + `maintenance-note`, then `expense`,
+`expense-attachment`, `inventory`, `meeting`, `mileage`, `occurrence`,
+`outbox-simplbooks` — seven modules in one commit, which was the one place in this
+migration where "one domain per PR" could not hold. Any module added to a cluster later
+has to follow the same rule.
 
 ## Never rewrite the inside of a raw `sql` template
 
@@ -178,6 +181,42 @@ comment. `meeting-queries` shipped this to CI green because the only two raw-SQL
 functions in it were **mocked** in the route tests — the SQL never ran. If a module's
 raw queries are not exercised against a real database anywhere, add a db-level test
 before migrating it.
+
+## Values that look like identifiers
+
+This is the single most common way to break a migration, and the compiler catches almost
+none of it. Everything below is _data_ that happens to be spelled like a column:
+
+| Form                                                           | Real example                                     |
+| -------------------------------------------------------------- | ------------------------------------------------ |
+| A sequence name passed to a function                           | `eb.val('accts.credit_note_number_seq')`         |
+| An enum value stored in a column                               | `.where('feeType', '=', 'annual_fee')`           |
+| A status the code compares against                             | `feeStatus === 'no_record'`                      |
+| A sort option from the API                                     | `sort === 'price_asc'`                           |
+| A set of column names compared against **JSONB snapshot keys** | `CHANGE_LOG_IGNORED_COLUMNS` in `member-queries` |
+
+The last one is the nastiest: it is a list of column-name strings, so it looks exactly
+like something that should be renamed — but it is matched against the keys of a
+`to_jsonb(OLD)` snapshot, which stay snake_case. Camel-casing it silently stopped every
+sync-only update being filtered out of the member changelog.
+
+**Rename identifiers, never data.** The audit that compares changed string literals
+cannot tell them apart, and neither can `tsc` when the type is renamed alongside.
+
+## Wire contracts living inside db modules
+
+Some db functions validate or return the _contract's_ shape rather than the row's:
+
+- `member-queries.getFeeProcessingItem` parses with `FeeProcessingItemSchema` from
+  `@mik/contracts/members`, which declares `member_id`, `fee_type`. Map the camelCase row
+  back before parsing.
+- `simplbooksOutboxHandler` has local `.strict()` row validators (`ShopOrderRowSchema`,
+  `ShopOrderItemRowSchema`). Those describe _rows_, so they must be camelCased — being
+  `.strict()`, a mismatch throws rather than misbehaving quietly.
+- `stats-queries` is the extreme case and is **deliberately not migrated**: its contract is
+  entirely snake_case and its queries return rows straight to the wire with no mapper, so
+  migrating it would rename 160 API fields. It stays on `db` until someone versions that
+  endpoint.
 
 ## Two things the compiler cannot catch
 
@@ -234,7 +273,7 @@ corrupted by it. `test/db/camel-case-plugin.test.ts` pins this.
 
 ## Progress
 
-**45 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
+**50 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
 is done — what remains is exactly the set that needs a judgement call.
 
 Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
@@ -244,25 +283,27 @@ Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
 `useful-phone-number`, `aircraft`, `aircraft-document`, `aircraft-navdata`,
 `fuel-report`, `instructor-worktime`, `tax-report`, `traficom-report`,
 `uplift-report`, `document`, `tiny-url`, `gdpr`, `aircraft-hil`, `defect`,
-`maintenance-note`.
+`maintenance-note`, `shop`, `ame`, `booking`, `flight-log`, `member`, `prepaid-hours`.
 
-Remaining, grouped by what makes them awkward:
+Both transaction clusters are done — `aircraft-hil` + `defect` + `maintenance-note`, and
+`expense` + `expense-attachment` + `inventory` + `meeting` + `mileage` + `occurrence` +
+`outbox-simplbooks`. See
+[Migrating a transaction cluster](#migrating-a-transaction-cluster) before adding a
+module to either.
 
-- **Raw `sql` fragments** — audit each by hand, per
-  [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment). What is left is the large
-  end of this group: `ame`, `booking`, `flight-log`, `member`, `prepaid-hours`, `shop`,
-  `stats`. `stats` is the awkward one — its fragments are SQL _snippets composed into_ a
-  larger query (`` sql`AND takeoff_time_epoch >= …` ``) rather than whole expressions, so
-  the fragment table in [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment) does
-  not classify them cleanly.
-- **Shared transactions — must move as one commit**, since a transaction cannot span the
-  two instances. Two clusters:
-  - `expense`, `expense-attachment`, `inventory`, `meeting`, `mileage`, `occurrence`,
-    `outbox-simplbooks`;
-  - ~~`aircraft-hil` + `defect` + `maintenance-note`~~ — done, and worth copying. See
-    [Migrating a transaction cluster](#migrating-a-transaction-cluster).
-- **Raw `pool.query`**, bypassing Kysely entirely, so the plugin never applies:
-  `ajlb`. Those functions stay snake_case until they are rewritten as Kysely queries.
+The two that remain are both judgement calls rather than backlog:
+
+- **`stats`** — **deliberately excluded on contract grounds.** Its contract is entirely
+  snake_case and its queries return rows straight to the wire with no mapper, so migrating
+  it would rename 160 API fields rather than refactor anything; see
+  [Wire contracts living inside db modules](#wire-contracts-living-inside-db-modules). Its
+  raw fragments are the awkward kind too — SQL _snippets composed into_ a larger query
+  (`` sql`AND takeoff_time_epoch >= …` ``) rather than whole expressions, so the fragment
+  table in [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment) does not classify
+  them cleanly. It stays on `db` until someone versions that endpoint.
+- **`ajlb`** — **raw `pool.query`**, bypassing Kysely entirely, so the plugin never
+  applies and the results are not transformed at all. It stays snake_case until it is
+  rewritten as Kysely queries.
 
 When the last one moves, delete `schema.d.ts`, rename `schema.camel.d.ts` over it, and
 collapse `camelDb` back into `db`.

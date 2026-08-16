@@ -131,9 +131,9 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find((m) => m.member_id === testMemberId)
+      const found = members.find((m) => m.memberId === testMemberId)
       expect(found).toBeDefined()
-      expect(found?.member_id).toBe(testMemberId)
+      expect(found?.memberId).toBe(testMemberId)
     })
 
     it('should not find JUNIOR member whose birthday is not today', async () => {
@@ -151,7 +151,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find((m) => m.member_id === testMemberId)
+      const found = members.find((m) => m.memberId === testMemberId)
       expect(found).toBeUndefined()
     })
 
@@ -173,7 +173,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find((m) => m.member_id === testMemberId)
+      const found = members.find((m) => m.memberId === testMemberId)
       expect(found).toBeUndefined()
     })
 
@@ -191,7 +191,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find((m) => m.member_id === testMemberId)
+      const found = members.find((m) => m.memberId === testMemberId)
       expect(found).toBeUndefined()
     })
 
@@ -224,7 +224,7 @@ describe('Junior Member Promotion Worker', () => {
 
         const members = await getJuniorMembersTurning18Today()
 
-        const found = members.find((m) => m.member_id === unapprovedMemberId)
+        const found = members.find((m) => m.memberId === unapprovedMemberId)
         expect(found).toBeUndefined()
       } finally {
         // Restore original state so subsequent tests are not affected
@@ -258,7 +258,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find((m) => m.member_id === testMemberId)
+      const found = members.find((m) => m.memberId === testMemberId)
       expect(found).toBeUndefined()
     })
   })
