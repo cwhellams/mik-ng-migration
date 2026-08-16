@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { db } from './connection.ts'
 import type { ProofFile, ProofDocumentCategory } from '@mik/contracts/instructor-qualifications'
 
@@ -12,17 +13,12 @@ function mapProofRow(row: {
   historyId: number | string | null
   documentCategory: string
 }): ProofFile {
-  return {
-    id: row.id,
-    memberId: row.memberId,
-    fileName: row.fileName,
-    storageKey: row.storageKey,
-    mimeType: row.mimeType,
+  return noExtraKeys({
+    ...row,
     uploadedAt: row.uploadedAt.toISOString(),
-    uploadedBy: row.uploadedBy,
     historyId: row.historyId !== null ? Number(row.historyId) : null,
     documentCategory: row.documentCategory as ProofDocumentCategory,
-  }
+  })
 }
 
 export async function addQualificationProof(

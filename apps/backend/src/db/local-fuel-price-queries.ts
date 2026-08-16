@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { db, type DbRow } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type { LocalFuelPrice, UpsertLocalFuelPrice } from '@mik/contracts/fuel-prices'
@@ -13,14 +14,13 @@ type LocalFuelPriceRow = DbRow<'accts.localFuelPrice'>
 // old hand-written row shape needed are gone. That matters beyond tidiness —
 // `new Date(String(createdAt))` round-tripped through Date#toString(), which has no
 // millisecond field, so every createdAt was silently truncated to the second.
-const mapLocalFuelPrice = (row: LocalFuelPriceRow): LocalFuelPrice => ({
-  id: row.id,
-  fuelType: row.fuelType as FuelType,
-  priceEurPerLitre: row.priceEurPerLitre,
-  validFrom: row.validFrom.substring(0, 10),
-  createdBy: row.createdBy,
-  createdAt: row.createdAt.toISOString(),
-})
+const mapLocalFuelPrice = (row: LocalFuelPriceRow): LocalFuelPrice =>
+  noExtraKeys({
+    ...row,
+    fuelType: row.fuelType as FuelType,
+    validFrom: row.validFrom.substring(0, 10),
+    createdAt: row.createdAt.toISOString(),
+  })
 
 export async function getLocalFuelPrices(): Promise<LocalFuelPrice[]> {
   const rows = await db

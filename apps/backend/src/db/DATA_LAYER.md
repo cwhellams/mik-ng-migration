@@ -132,6 +132,39 @@ On that last one a bare `updatedAt: now` sitting next to a sibling statement tha
 use `auditUpdate` reads as an oversight, and has been reported as one; check the schema
 before "fixing" it.
 
+## Spreading a row into a contract needs `noExtraKeys`
+
+The CamelCasePlugin rename turned the old `camelField: row.snake_field` mapping into
+`camelField: row.camelField` — a no-op that still occupies a line. Collapsing those to a
+spread is the obvious cleanup, and it is unsafe done naively:
+
+**TypeScript does not apply excess-property checking to spreads.** Only properties written
+out literally are checked, so `const c: Contract = { ...row }` compiles with a row
+carrying anything at all, and the extra columns are serialised straight to the client — an
+encrypted hetu, an internal note, whatever the table holds.
+
+`noExtraKeys` from `rowToContract.ts` is the identity function at runtime and a compile
+error if the row has keys the contract does not declare, naming them:
+
+```ts
+const mapRowToHil = (row: DbRow<'flight.aircraftHil'>): AircraftHil =>
+  noExtraKeys({ ...row, dueDate: row.dueDate?.toISOString() ?? null })
+```
+
+The contract is inferred from the enclosing function's declared return type, so it only
+works where the call has a contextual type — which is where mappers live.
+
+**It fails closed**: with no annotation there is no contract, `Contract` falls back to
+`unknown`, and every key reads as excess, so the call is a compile error rather than a
+guard that quietly checks nothing. A mapper that _looks_ guarded but is not is therefore
+not a reachable state, and no lint rule is needed to require the annotation.
+
+**Most mappers cannot use it, and that is the point.** When this was applied across the db
+layer, 24 mappers collapsed and **25 were rejected because their row genuinely carries
+columns the contract does not have**. Those mappers are performing a _projection_, not a
+rename: the field list is load-bearing, and deleting it would leak. So roughly half of the
+identity-looking lines in this layer are not redundant, whatever they look like.
+
 ## Rename identifiers, never data
 
 The single most common way to break a rename, and the compiler catches almost none of it.

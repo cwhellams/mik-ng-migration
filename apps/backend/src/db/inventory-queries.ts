@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import type { Updateable } from 'kysely'
 import { db } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -43,17 +44,13 @@ type LocationRow = {
 }
 
 function toLocation(r: LocationRow): InventoryLocation {
-  return {
-    locationId: r.locationId,
+  return noExtraKeys({
+    ...r,
     name: r.name as InventoryLocation['name'],
     description: r.description as InventoryLocation['description'],
-    isActive: r.isActive,
-    sortOrder: r.sortOrder,
     createdAt: toDate(r.createdAt),
-    createdBy: r.createdBy,
     updatedAt: toDate(r.updatedAt),
-    updatedBy: r.updatedBy,
-  }
+  })
 }
 
 export async function getLocations(activeOnly = true): Promise<InventoryLocation[]> {
@@ -128,17 +125,13 @@ type CategoryRow = {
 }
 
 function toCategory(r: CategoryRow): InventoryCategory {
-  return {
-    categoryId: r.categoryId,
+  return noExtraKeys({
+    ...r,
     name: r.name as InventoryCategory['name'],
     description: r.description as InventoryCategory['description'],
-    isActive: r.isActive,
-    sortOrder: r.sortOrder,
     createdAt: toDate(r.createdAt),
-    createdBy: r.createdBy,
     updatedAt: toDate(r.updatedAt),
-    updatedBy: r.updatedBy,
-  }
+  })
 }
 
 export async function getCategories(activeOnly = true): Promise<InventoryCategory[]> {

@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
 
 import { db } from './connection.ts'
@@ -100,58 +101,42 @@ const toNullableIsoString = (value: unknown): string | null => {
   return toIsoString(value)
 }
 
-const mapMeeting = (row: MeetingRow): Meeting => ({
-  meetingId: row.meetingId,
-  title: row.title,
-  description: row.description,
-  documentSearchFilter: row.documentSearchFilter,
-  meetingUrl: row.meetingUrl,
-  status: row.status,
-  createdBy: row.createdBy,
-  createdAt: toIsoString(row.createdAt),
-  startedAt: toNullableIsoString(row.startedAt),
-  endedAt: toNullableIsoString(row.endedAt),
-  meetingNotesDocumentId: row.meetingNotesDocumentId,
-  attendanceCount: Number(row.attendanceCount ?? 0),
-  isAttending: Boolean(row.isAttending),
-  isVoteCounter: Boolean(row.isVoteCounter),
-})
+const mapMeeting = (row: MeetingRow): Meeting =>
+  noExtraKeys({
+    ...row,
+    createdAt: toIsoString(row.createdAt),
+    startedAt: toNullableIsoString(row.startedAt),
+    endedAt: toNullableIsoString(row.endedAt),
+    attendanceCount: Number(row.attendanceCount ?? 0),
+    isAttending: Boolean(row.isAttending),
+    isVoteCounter: Boolean(row.isVoteCounter),
+  })
 
 const mapVoteOption = (
   row: VoteOptionRow,
   includeResults: boolean,
   voteStatus: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED',
-): VoteOption => ({
-  optionId: row.optionId,
-  voteId: row.voteId,
-  optionText: row.optionText,
-  displayOrder: Number(row.displayOrder ?? 0),
-  // Results are only revealed once the vote is closed
-  voteCount: includeResults && voteStatus === 'CLOSED' ? Number(row.voteCount ?? 0) : null,
-})
+): VoteOption =>
+  noExtraKeys({
+    ...row,
+    displayOrder: Number(row.displayOrder ?? 0),
+    voteCount: includeResults && voteStatus === 'CLOSED' ? Number(row.voteCount ?? 0) : null,
+  })
 
 const mapMeetingVote = (
   row: MeetingVoteRow,
   options: VoteOption[],
   includeResults: boolean,
-): MeetingVote => ({
-  voteId: row.voteId,
-  meetingId: row.meetingId,
-  topic: row.topic,
-  description: row.description,
-  isMultiSelect: row.isMultiSelect,
-  maxSelections: row.maxSelections,
-  status: row.status,
-  createdAt: toIsoString(row.createdAt),
-  createdBy: row.createdBy,
-  closedAt: toNullableIsoString(row.closedAt),
-  closedBy: row.closedBy,
-  displayOrder: Number(row.displayOrder ?? 0),
-  // Results are only revealed once the vote is closed
-  totalVotes: includeResults && row.status === 'CLOSED' ? Number(row.totalVotes ?? 0) : null,
-  hasVoted: Boolean(row.hasVoted),
-  options,
-})
+): MeetingVote =>
+  noExtraKeys({
+    ...row,
+    createdAt: toIsoString(row.createdAt),
+    closedAt: toNullableIsoString(row.closedAt),
+    displayOrder: Number(row.displayOrder ?? 0),
+    totalVotes: includeResults && row.status === 'CLOSED' ? Number(row.totalVotes ?? 0) : null,
+    hasVoted: Boolean(row.hasVoted),
+    options,
+  })
 
 const getMeetingRows = async (
   executor: Executor,

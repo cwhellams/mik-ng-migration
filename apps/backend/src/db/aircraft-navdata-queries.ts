@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import type { DbRow } from './connection.ts'
 import * as connection from './connection.ts'
 import { sql } from 'kysely'
@@ -137,14 +138,9 @@ export const removeNavdata = async (navdataId: string): Promise<boolean> => {
 // updaterName is the raw-sql concat alias, not a column on the table.
 const mapRecord = (
   record: DbRow<'flight.aircraftNavdata'> & { updaterName?: string | null },
-): Navdata => ({
-  navdataId: record.navdataId,
-  aircraftRegistration: record.aircraftRegistration,
-  updaterMemberId: record.updaterMemberId,
-  updaterName: record.updaterName ?? record.updaterMemberId,
-  updateDate: record.updateDate,
-  cycle: record.cycle,
-  expires: record.expires,
-  createdAt: record.createdAt?.toISOString(),
-  createdBy: record.createdBy,
-})
+): Navdata =>
+  noExtraKeys({
+    ...record,
+    updaterName: record.updaterName ?? record.updaterMemberId,
+    createdAt: record.createdAt?.toISOString(),
+  })

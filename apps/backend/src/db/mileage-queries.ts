@@ -1,5 +1,6 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
-import { db } from './connection.ts'
+import { db, type DbRow } from './connection.ts'
 import type { DB } from './schema.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
@@ -19,29 +20,21 @@ type Executor = Kysely<DB> | Transaction<DB>
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-function mapAllowance(row: {
-  id: number
-  taxYear: number
-  ratePerKm: unknown
-  discountPct: unknown
-  createdAt: unknown
-  createdBy: string
-  updatedAt: unknown
-  updatedBy: string
-}): MileageAllowance {
-  const rate = Number(row.ratePerKm)
-  const discount = Number(row.discountPct)
-  return {
-    id: row.id,
-    taxYear: row.taxYear,
-    ratePerKm: rate,
-    discountPct: discount,
-    effectiveRatePerKm: +(rate * (1 - discount / 100)).toFixed(4),
-    createdAt: new Date(String(row.createdAt)).toISOString(),
-    createdBy: row.createdBy,
-    updatedAt: new Date(String(row.updatedAt)).toISOString(),
-    updatedBy: row.updatedBy,
-  }
+// Typed from the generated schema rather than hand-declared. The hand-written shape
+// spelled the timestamps `unknown`, which forced `new Date(String(createdAt))` to
+// compile — and that round trip goes through Date#toString(), which has no millisecond
+// field, so every createdAt/updatedAt came back truncated to the whole second. They are
+// real Dates here (connection.ts only overrides the DATE/INT8/NUMERIC parsers, not
+// TIMESTAMP), so toISOString() can be called on them directly. The rate columns are
+// NUMERIC, which that same parser list already turns into numbers, so the defensive
+// Number() wrappers the `unknown` shape needed are gone too.
+function mapAllowance(row: DbRow<'accts.mileageAllowance'>): MileageAllowance {
+  return noExtraKeys({
+    ...row,
+    effectiveRatePerKm: +(row.ratePerKm * (1 - row.discountPct / 100)).toFixed(4),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  })
 }
 
 /** Fully mask a HETU so no part of it is ever returned in API responses without an audited reveal */
@@ -250,7 +243,9 @@ export async function getMileageHetuAccessLog(
     .execute()
 
   return rows.map((row) => ({
-    accessedAt: new Date(String(row.accessedAt)).toISOString(),
+    // Direct toISOString(), not `new Date(String(...))` — that round trip drops the
+    // milliseconds, and an access audit is exactly where the ordering matters.
+    accessedAt: row.accessedAt.toISOString(),
     accessedByName: row.accessedByName || 'Unknown',
   }))
 }
@@ -301,7 +296,7 @@ export async function getMileageReportRows(
     distanceKm: Number(row.distanceKm),
     ratePerKm: Number(row.ratePerKm),
     totalAmount: Number(row.totalAmount),
-    approvedAt: row.approvedAt ? new Date(String(row.approvedAt)).toISOString() : null,
+    approvedAt: row.approvedAt?.toISOString() ?? null,
   }))
 }
 

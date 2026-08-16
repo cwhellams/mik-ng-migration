@@ -1,29 +1,24 @@
+import { noExtraKeys } from './rowToContract.ts'
 import type { Kysely, Transaction } from 'kysely'
-import { db } from './connection.ts'
+import { db, type DbRow } from './connection.ts'
 import type { DB } from './schema.d.ts'
 import type { ExpenseClaimAttachment } from '@mik/contracts/expenses'
 
 type Executor = Kysely<DB> | Transaction<DB>
 
-const mapAttachment = (row: {
-  id: number
-  claimId: string
-  storageKey: string
-  fileName: string
-  fileSize: unknown
-  mimeType: string
-  sortOrder: number
-  uploadedAt: unknown
-}): ExpenseClaimAttachment => ({
-  id: row.id,
-  claimId: row.claimId,
-  storageKey: row.storageKey,
-  fileName: row.fileName,
-  fileSize: Number(row.fileSize),
-  mimeType: row.mimeType,
-  sortOrder: row.sortOrder,
-  uploadedAt: new Date(String(row.uploadedAt)).toISOString(),
-})
+// Typed from the generated schema rather than hand-declared. The hand-written shape
+// spelled uploadedAt `unknown`, which forced `new Date(String(uploadedAt))` to compile —
+// and that round trip goes through Date#toString(), which has no millisecond field, so
+// every uploadedAt came back truncated to the whole second. It is a real Date here
+// (connection.ts only overrides the DATE/INT8/NUMERIC parsers, not TIMESTAMP), so
+// toISOString() can be called on it directly. fileSize stays wrapped: it is an INT8,
+// which that same parser list deliberately keeps as a string.
+const mapAttachment = (row: DbRow<'accts.expenseClaimAttachment'>): ExpenseClaimAttachment =>
+  noExtraKeys({
+    ...row,
+    fileSize: Number(row.fileSize),
+    uploadedAt: row.uploadedAt.toISOString(),
+  })
 
 export async function getExpenseAttachments(claimId: string): Promise<ExpenseClaimAttachment[]> {
   const rows = await db

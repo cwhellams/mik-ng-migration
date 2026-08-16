@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import type { Updateable } from 'kysely'
 
 import type { DtoSyllabus, DtoSyllabusFlights, DtoSyllabusFlightItems } from './schema.d.ts'
@@ -40,15 +41,11 @@ function renderMarkdownNullable(markdown: string | null): string | null {
 }
 
 function mapProgram(r: DbRow<'dto.trainingProgram'>): TrainingProgram {
-  return {
-    programId: r.programId,
-    name: r.name,
-    description: r.description,
+  return noExtraKeys({
+    ...r,
     createdAt: toIso(r.createdAt),
-    createdBy: r.createdBy,
     updatedAt: toIso(r.updatedAt),
-    updatedBy: r.updatedBy,
-  }
+  })
 }
 
 /**
@@ -58,60 +55,35 @@ function mapProgram(r: DbRow<'dto.trainingProgram'>): TrainingProgram {
  *   displayed, to avoid parsing markdown for every row in the list.
  */
 function mapSyllabus(r: DbRow<'dto.syllabus'>, includeHtml = true): Syllabus {
-  return {
-    syllabusId: r.syllabusId,
-    programId: r.programId,
-    majorVersion: r.majorVersion,
-    minorVersion: r.minorVersion,
-    patchVersion: r.patchVersion,
+  return noExtraKeys({
+    ...r,
     version: r.version ?? `${r.majorVersion}.${r.minorVersion}.${r.patchVersion}`,
-    description: r.description,
     descriptionHtml: includeHtml ? renderMarkdownNullable(r.description) : null,
-    requirementsExperienceCredit: r.requirementsExperienceCredit,
     requirementsExperienceCreditHtml: includeHtml
       ? renderMarkdownNullable(r.requirementsExperienceCredit)
       : null,
-    generalInformation: r.generalInformation,
     generalInformationHtml: includeHtml ? renderMarkdownNullable(r.generalInformation) : null,
-    minBlockTimeMins: r.minBlockTimeMins,
     status: r.status as Syllabus['status'],
     publishedAt: toIsoNullable(r.publishedAt),
     submittedForApprovalAt: toIsoNullable(r.submittedForApprovalAt),
-    approvalReference: r.approvalReference,
     createdAt: toIso(r.createdAt),
-    createdBy: r.createdBy,
     updatedAt: toIso(r.updatedAt),
-    updatedBy: r.updatedBy,
-  }
+  })
 }
 
 function mapFlight(r: DbRow<'dto.syllabusFlights'>): SyllabusFlight {
-  return {
-    flightId: r.flightId,
-    syllabusId: r.syllabusId,
-    sortOrder: r.sortOrder,
-    code: r.code,
-    name: r.name,
-    description: r.description,
-    tags: r.tags,
-    isInterimCheckpoint: r.isInterimCheckpoint,
-    recommendedBlockTimeMins: r.recommendedBlockTimeMins,
+  return noExtraKeys({
+    ...r,
     flightType: r.flightType as SyllabusFlight['flightType'],
-    easaFclReference: r.easaFclReference,
     createdAt: toIso(r.createdAt),
     updatedAt: toIso(r.updatedAt),
-  }
+  })
 }
 
 function mapItem(r: DbRow<'dto.syllabusFlightItems'>): SyllabusFlightItem {
-  return {
-    itemId: r.itemId,
-    syllabusFlightId: r.syllabusFlightId,
-    sortOrder: r.sortOrder,
-    name: r.name,
-    description: r.description,
-    mandatory: r.mandatory,
-  }
+  return noExtraKeys({
+    ...r,
+  })
 }
 
 // The two verifier columns come from a join on the member table, so they are not

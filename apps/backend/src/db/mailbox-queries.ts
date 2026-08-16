@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { db } from './connection.ts'
 
 export type MailboxSeverity = 'info' | 'warning' | 'error' | 'success'
@@ -22,16 +23,13 @@ const mapRow = (r: {
   body: string | null
   createdAt: Date | string
   readAt: Date | string | null
-}): MailboxMessageRow => ({
-  id: r.id,
-  recipientId: r.recipientId,
-  type: r.type,
-  severity: r.severity as MailboxSeverity,
-  title: r.title,
-  body: r.body,
-  createdAt: new Date(r.createdAt).toISOString(),
-  readAt: r.readAt ? new Date(r.readAt).toISOString() : null,
-})
+}): MailboxMessageRow =>
+  noExtraKeys({
+    ...r,
+    severity: r.severity as MailboxSeverity,
+    createdAt: new Date(r.createdAt).toISOString(),
+    readAt: r.readAt ? new Date(r.readAt).toISOString() : null,
+  })
 
 export const DEFAULT_MAILBOX_LIST_LIMIT = 200
 

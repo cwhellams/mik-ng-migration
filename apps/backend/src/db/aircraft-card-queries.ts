@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { auditCreate, auditUpdate } from './audit.ts'
 import type { Updateable } from 'kysely'
 
@@ -152,15 +153,11 @@ export const removeAircraftCard = async (cardId: number): Promise<boolean> => {
   return result.numDeletedRows == BigInt(1)
 }
 
-const mapRecord = (record: DbRow<'flight.aircraftCards'>): AircraftCardAuditable => ({
-  cardId: record.cardId,
-  aircraftRegistration: record.aircraftRegistration,
-  name: record.name,
-  description: record.description,
-  validFrom: record.validFrom || null,
-  validTo: record.validTo || null,
-  createdAt: record.createdAt?.toISOString(),
-  updatedAt: record.updatedAt?.toISOString(),
-  createdBy: record.createdBy,
-  updatedBy: record.updatedBy,
-})
+const mapRecord = (record: DbRow<'flight.aircraftCards'>): AircraftCardAuditable =>
+  noExtraKeys({
+    ...record,
+    validFrom: record.validFrom || null,
+    validTo: record.validTo || null,
+    createdAt: record.createdAt?.toISOString(),
+    updatedAt: record.updatedAt?.toISOString(),
+  })

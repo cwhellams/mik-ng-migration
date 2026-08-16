@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { db } from './connection.ts'
 import { BookingStatus } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
@@ -20,15 +21,11 @@ const mapRow = (r: {
   keysP256dh: string
   userAgent: string | null
   createdAt: Date | string
-}): PushSubscriptionRow => ({
-  id: r.id,
-  memberId: r.memberId,
-  endpoint: r.endpoint,
-  keysAuth: r.keysAuth,
-  keysP256dh: r.keysP256dh,
-  userAgent: r.userAgent,
-  createdAt: new Date(r.createdAt).toISOString(),
-})
+}): PushSubscriptionRow =>
+  noExtraKeys({
+    ...r,
+    createdAt: new Date(r.createdAt).toISOString(),
+  })
 
 export async function getPushSubscriptionsByMemberId(
   memberId: string,

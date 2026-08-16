@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { db } from './connection.ts'
 
 const CHALLENGE_TTL_SECONDS = 5 * 60 // 5 minutes — WebAuthn ceremonies are quick
@@ -28,19 +29,15 @@ const mapRow = (r: {
   name: string | null
   lastUsedAt: Date | string | null
   createdAt: Date | string
-}): PasskeyRow => ({
-  id: r.id,
-  memberId: r.memberId,
-  credentialId: r.credentialId,
-  publicKey: Buffer.isBuffer(r.publicKey) ? r.publicKey : Buffer.from(r.publicKey),
-  counter: typeof r.counter === 'string' ? Number(r.counter) : r.counter,
-  transports: r.transports ?? [],
-  deviceType: r.deviceType,
-  backedUp: r.backedUp,
-  name: r.name,
-  lastUsedAt: r.lastUsedAt ? new Date(r.lastUsedAt).toISOString() : null,
-  createdAt: new Date(r.createdAt).toISOString(),
-})
+}): PasskeyRow =>
+  noExtraKeys({
+    ...r,
+    publicKey: Buffer.isBuffer(r.publicKey) ? r.publicKey : Buffer.from(r.publicKey),
+    counter: typeof r.counter === 'string' ? Number(r.counter) : r.counter,
+    transports: r.transports ?? [],
+    lastUsedAt: r.lastUsedAt ? new Date(r.lastUsedAt).toISOString() : null,
+    createdAt: new Date(r.createdAt).toISOString(),
+  })
 
 export async function getPasskeysByMemberId(memberId: string): Promise<PasskeyRow[]> {
   const rows = await db

@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
 
 import { db } from './connection.ts'
@@ -113,16 +114,10 @@ const mapCategory = (row: {
   requiresAircraft: boolean
   requiresFlight: boolean
   active: boolean
-}): ExpenseCategory => ({
-  id: row.id,
-  code: row.code,
-  labelEn: row.labelEn,
-  labelFi: row.labelFi,
-  labelSv: row.labelSv,
-  requiresAircraft: row.requiresAircraft,
-  requiresFlight: row.requiresFlight,
-  active: row.active,
-})
+}): ExpenseCategory =>
+  noExtraKeys({
+    ...row,
+  })
 
 const mapLineItem = (row: {
   id: number
@@ -163,14 +158,12 @@ const mapMessage = (row: {
   messageType: string
   body: string
   sentAt: unknown
-}): ExpenseClaimMessage => ({
-  id: row.id,
-  claimId: row.claimId,
-  senderId: row.senderId,
-  messageType: row.messageType as ExpenseMessageType,
-  body: row.body,
-  sentAt: toIsoString(row.sentAt),
-})
+}): ExpenseClaimMessage =>
+  noExtraKeys({
+    ...row,
+    messageType: row.messageType as ExpenseMessageType,
+    sentAt: toIsoString(row.sentAt),
+  })
 
 const mapClaim = (
   row: ClaimRow,

@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { sql, type SqlBool } from 'kysely'
 
 import { db, type DbRow } from './connection.ts'
@@ -44,29 +45,20 @@ const toNullableNumber = (value: unknown): number | null => {
   return Number(value)
 }
 
-const mapRow = (row: AmeRow): AmeEntry => ({
-  id: row.id,
-  submittedBy: row.submittedBy,
-  submittedByName: row.submittedByName,
-  name: row.name,
-  medicalCentre: row.medicalCentre,
-  location: row.location,
-  price: toNullableNumber(row.price),
-  medicalTypes: row.medicalTypes,
-  notes: row.notes,
-  reportDate: String(row.reportDate),
-  status: row.status as AmeStatus,
-  approvedAt: toNullableIsoString(row.approvedAt),
-  approvedBy: row.approvedBy,
-  rejectedAt: toNullableIsoString(row.rejectedAt),
-  rejectedBy: row.rejectedBy,
-  rejectionReason: row.rejectionReason,
-  createdAt: toIsoString(row.createdAt),
-  updatedAt: toIsoString(row.updatedAt),
-  averageRating: row.averageRating == null ? null : Number(row.averageRating),
-  ratingCount: Number(row.ratingCount ?? 0),
-  myRating: row.myRating == null ? null : Number(row.myRating),
-})
+const mapRow = (row: AmeRow): AmeEntry =>
+  noExtraKeys({
+    ...row,
+    price: toNullableNumber(row.price),
+    reportDate: String(row.reportDate),
+    status: row.status as AmeStatus,
+    approvedAt: toNullableIsoString(row.approvedAt),
+    rejectedAt: toNullableIsoString(row.rejectedAt),
+    createdAt: toIsoString(row.createdAt),
+    updatedAt: toIsoString(row.updatedAt),
+    averageRating: row.averageRating == null ? null : Number(row.averageRating),
+    ratingCount: Number(row.ratingCount ?? 0),
+    myRating: row.myRating == null ? null : Number(row.myRating),
+  })
 
 /**
  * Maps a row written by an insert/update, which comes back from `returningAll()` with
@@ -323,32 +315,18 @@ type AmeEditSuggestionRow = DbRow<'club.ameEditSuggestion'> & {
   currentReportDate: CurrentAmeColumns['reportDate']
 }
 
-const mapEditSuggestionRow = (row: AmeEditSuggestionRow): AmeEditSuggestion => ({
-  id: row.id,
-  ameId: row.ameId,
-  submittedBy: row.submittedBy,
-  submittedByName: row.submittedByName,
-  name: row.name,
-  medicalCentre: row.medicalCentre,
-  location: row.location,
-  price: toNullableNumber(row.price),
-  medicalTypes: row.medicalTypes,
-  notes: row.notes,
-  reportDate: String(row.reportDate),
-  status: row.status as AmeReviewStatus,
-  reviewedAt: toNullableIsoString(row.reviewedAt),
-  reviewedBy: row.reviewedBy,
-  rejectionReason: row.rejectionReason,
-  createdAt: toIsoString(row.createdAt),
-  updatedAt: toIsoString(row.updatedAt),
-  currentName: row.currentName,
-  currentMedicalCentre: row.currentMedicalCentre,
-  currentLocation: row.currentLocation,
-  currentPrice: toNullableNumber(row.currentPrice),
-  currentMedicalTypes: row.currentMedicalTypes,
-  currentNotes: row.currentNotes,
-  currentReportDate: String(row.currentReportDate),
-})
+const mapEditSuggestionRow = (row: AmeEditSuggestionRow): AmeEditSuggestion =>
+  noExtraKeys({
+    ...row,
+    price: toNullableNumber(row.price),
+    reportDate: String(row.reportDate),
+    status: row.status as AmeReviewStatus,
+    reviewedAt: toNullableIsoString(row.reviewedAt),
+    createdAt: toIsoString(row.createdAt),
+    updatedAt: toIsoString(row.updatedAt),
+    currentPrice: toNullableNumber(row.currentPrice),
+    currentReportDate: String(row.currentReportDate),
+  })
 
 const editSuggestionBaseSelect = () =>
   db
@@ -515,20 +493,14 @@ type AmeRemovalRequestRow = DbRow<'club.ameRemovalRequest'> & {
   submittedByName: string | null
 }
 
-const mapRemovalRequestRow = (row: AmeRemovalRequestRow): AmeRemovalRequest => ({
-  id: row.id,
-  ameId: row.ameId,
-  ameName: row.ameName,
-  submittedBy: row.submittedBy,
-  submittedByName: row.submittedByName,
-  reason: row.reason,
-  status: row.status as AmeReviewStatus,
-  reviewedAt: toNullableIsoString(row.reviewedAt),
-  reviewedBy: row.reviewedBy,
-  rejectionReason: row.rejectionReason,
-  createdAt: toIsoString(row.createdAt),
-  updatedAt: toIsoString(row.updatedAt),
-})
+const mapRemovalRequestRow = (row: AmeRemovalRequestRow): AmeRemovalRequest =>
+  noExtraKeys({
+    ...row,
+    status: row.status as AmeReviewStatus,
+    reviewedAt: toNullableIsoString(row.reviewedAt),
+    createdAt: toIsoString(row.createdAt),
+    updatedAt: toIsoString(row.updatedAt),
+  })
 
 const removalRequestBaseSelect = () =>
   db

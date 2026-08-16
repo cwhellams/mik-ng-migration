@@ -1,3 +1,4 @@
+import { noExtraKeys } from './rowToContract.ts'
 import { auditCreate, auditUpdate, mapAudit } from './audit.ts'
 import { sql, type Kysely } from 'kysely'
 
@@ -38,15 +39,12 @@ function mapRowToHil(row: DbRow<'flight.aircraftHil'> & { name: string }): Aircr
 function mapRowToExtension(
   row: DbRow<'flight.aircraftHilExtension'> & { name: string },
 ): AircraftHilExtension {
-  return {
-    extensionId: row.extensionId,
-    hilId: row.hilId,
+  return noExtraKeys({
+    ...row,
     extensionDate: row.extensionDate.toISOString(),
-    name: row.name,
     extensionDue: row.extensionDue.toISOString(),
     createdAt: row.createdAt.toISOString(),
-    createdBy: row.createdBy,
-  }
+  })
 }
 
 export async function getAircraftHilEntries(aircraftRegistration: string): Promise<AircraftHil[]> {
