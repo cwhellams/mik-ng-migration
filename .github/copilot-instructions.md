@@ -90,6 +90,11 @@ pnpm format
 # Run tests - takes ~11 seconds. All tests pass with proper environment setup. NEVER CANCEL. Set timeout to 30+ seconds.
 # Note: the old "Called end on pool more than once" teardown error is fixed — closeDb
 # used to end the pg pool and then let Kysely's driver end it again (#1115 phase 5).
+# IMPORTANT: run with a plain locale (LANG=C.UTF-8 LC_ALL=C.UTF-8), matching the CI runner.
+# Frontend date/time-formatting tests call toLocaleTimeString([]) (system default locale).
+# Under a non-English shell locale (e.g. LANG=fi_FI.UTF-8) this renders times with '.'
+# instead of ':' (e.g. "09.00" vs "09:00"), which fails several tests locally even though
+# they pass in CI — a locale mismatch, not a real bug.
 pnpm test
 
 # Lint code - KNOWN ISSUE: ESLint configuration has missing dependencies in backend
@@ -137,6 +142,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 3. **Test Environment Variables**: Tests require SimplBooks API configuration to pass fully
 4. **PostgreSQL Credentials**: Local development uses admin/password (never use in production)
 5. **SimplBooks Config**: Ensure `SIMPLBOOKS_COMPANY_ID` is set in .env to prevent startup errors
+6. **Shell Locale Affects Frontend Tests**: Several `apps/frontend` tests format times via `toLocaleTimeString([])`, which resolves to the shell's locale. A non-English `LANG`/`LC_ALL` (e.g. `fi_FI.UTF-8`) makes these render with `.` instead of `:` (e.g. `09.00` vs `09:00`) and fails ~8 tests that pass fine in CI. Run `pnpm test` with `LANG=C.UTF-8 LC_ALL=C.UTF-8` (or otherwise match the CI runner's default locale) to avoid this false negative.
 
 ## Project Structure
 
@@ -366,17 +372,6 @@ needs a `COPY` line in the `Dockerfile`** — its manifest before `pnpm install`
 after — or the image builds fine and then crashes on boot.
 
 Always run `pnpm format` and `pnpm build` before committing changes to ensure CI passes.
-
-## Consolidating Chore PRs
-
-Dependabot (and other automated tooling) opens one PR per dependency bump, which is noisy to review and merge individually. Periodically consolidate all open chore PRs into a single PR:
-
-1. List open PRs and identify the "chore" ones — titles of the form `chore(deps): ...` / `chore(deps-dev): ...`, typically authored by `app/dependabot`: `gh pr list --state open --json number,title,author,headRefName`.
-2. For each candidate PR, inspect its diff (`gh pr diff <number>`) to see the actual version bump(s) — don't just merge branches, since multiple PRs frequently touch `pnpm-lock.yaml` and will conflict. Note any duplicate/overlapping bumps (e.g. two PRs bumping the same package to the same version via different dependabot groupings) and only apply them once.
-3. Create a single new branch off `main` (e.g. `chore/consolidate-dependency-bumps-<date>`) and manually apply each package.json version bump identified above, then run `pnpm install` once to regenerate `pnpm-lock.yaml` cleanly.
-4. Run `pnpm format`, `pnpm build` (backend + frontend), and `pnpm test` on the consolidated branch. All must pass before opening the PR.
-5. Push the branch and open a single PR summarizing every dependency bump it includes (list package name + old → new version for each).
-6. Close each individual chore PR with a comment pointing to the consolidated PR (e.g. `Consolidated into #<new PR number>.`), then close it — do not merge the individual PRs.
 
 ## SimplBooks Dry-Run Mode
 

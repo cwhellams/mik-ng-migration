@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'apps/**'
+      - 'apps/backend/**'
       - 'packages/**'
       - 'sql/schema/**'
       - '.github/workflows/**'
@@ -17,6 +17,18 @@ on:
       - 'packages/**'
       - 'sql/schema/**'
       - '.github/workflows/**'
+
+concurrency:
+  # PR runs share a group per ref, so a new push supersedes the in-flight run.
+  # Push-to-main runs get a group to themselves (`github.run_id`): such a run is
+  # the only automated check that ever validates the exact commit landing on
+  # main (issue #1184), so if two merges land in quick succession neither may be
+  # cancelled — and neither may queue behind the other, which a shared group
+  # would do even with cancellation off (and would then cancel the queued run
+  # outright once a third merge arrives).
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: '--max-old-space-size=8192' # Increase memory limit for Node.js
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
