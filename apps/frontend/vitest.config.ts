@@ -29,7 +29,11 @@ export default defineConfig({
     // Vitest 4 dropped `poolOptions.forks`; `maxWorkers` is the replacement and
     // has no minimum counterpart — workers are spawned up to this cap as files
     // become available, and the suite has far more files than workers.
-    maxWorkers: 4,
+    // Capped at 2 rather than 4: GitHub's hosted runner has ~4 vCPUs, and
+    // pinning all of them left no headroom for the main/orchestration thread,
+    // which pushed several user-event-heavy tests (MeetingsAdminPage's vote
+    // dialog) over the 20s testTimeout under CPU contention (PR #1188 CI run).
+    maxWorkers: 2,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'lcov', 'html'],

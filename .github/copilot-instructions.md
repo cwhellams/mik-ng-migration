@@ -90,6 +90,11 @@ pnpm format
 # Run tests - takes ~11 seconds. All tests pass with proper environment setup. NEVER CANCEL. Set timeout to 30+ seconds.
 # Note: the old "Called end on pool more than once" teardown error is fixed — closeDb
 # used to end the pg pool and then let Kysely's driver end it again (#1115 phase 5).
+# IMPORTANT: run with a plain locale (LANG=C.UTF-8 LC_ALL=C.UTF-8), matching the CI runner.
+# Frontend date/time-formatting tests call toLocaleTimeString([]) (system default locale).
+# Under a non-English shell locale (e.g. LANG=fi_FI.UTF-8) this renders times with '.'
+# instead of ':' (e.g. "09.00" vs "09:00"), which fails several tests locally even though
+# they pass in CI — a locale mismatch, not a real bug.
 pnpm test
 
 # Lint code - KNOWN ISSUE: ESLint configuration has missing dependencies in backend
@@ -137,6 +142,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 3. **Test Environment Variables**: Tests require SimplBooks API configuration to pass fully
 4. **PostgreSQL Credentials**: Local development uses admin/password (never use in production)
 5. **SimplBooks Config**: Ensure `SIMPLBOOKS_COMPANY_ID` is set in .env to prevent startup errors
+6. **Shell Locale Affects Frontend Tests**: Several `apps/frontend` tests format times via `toLocaleTimeString([])`, which resolves to the shell's locale. A non-English `LANG`/`LC_ALL` (e.g. `fi_FI.UTF-8`) makes these render with `.` instead of `:` (e.g. `09.00` vs `09:00`) and fails ~8 tests that pass fine in CI. Run `pnpm test` with `LANG=C.UTF-8 LC_ALL=C.UTF-8` (or otherwise match the CI runner's default locale) to avoid this false negative.
 
 ## Project Structure
 
