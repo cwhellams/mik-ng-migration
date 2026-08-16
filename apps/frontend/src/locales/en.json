@@ -129,6 +129,7 @@
     "selectAccidentHistory": "Please answer the accident history question",
     "selectCriminalRecord": "Please answer the criminal record question",
     "juniorAgeError": "Junior membership is only available for members under 18 years old",
+    "juniorMinAgeError": "We're sorry, but club membership is only available from age 15 onwards. Please check back once you've turned 15!",
     "juniorRecommended": "Based on your date of birth, you may be eligible for junior membership",
     "dateOfBirthRequired": "Please enter a valid date of birth",
     "pilotLicenceType": "Pilot Licence Type",

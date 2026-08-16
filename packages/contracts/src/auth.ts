@@ -103,6 +103,16 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
         path: ['dateOfBirth'],
       })
     }
+    // Finnish Guardianship Services Act (laki holhoustoimesta, 442/1999) § 25 lets a
+    // person who has turned 15 join an association without guardian consent — below
+    // that, membership isn't something the applicant can request on their own.
+    if (age < 15) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Junior membership is only available for members aged 15 or older',
+        path: ['dateOfBirth'],
+      })
+    }
   }
 
   // Postcode must be digits-only whenever provided (all member types)

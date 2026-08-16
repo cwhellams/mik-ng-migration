@@ -129,6 +129,7 @@
     "selectAccidentHistory": "Svara på frågan om olyckshistorik",
     "selectCriminalRecord": "Svara på frågan om brottsregister",
     "juniorAgeError": "Juniormedlemskap är endast tillgängligt för medlemmar under 18 år",
+    "juniorMinAgeError": "Tyvärr kan man bli medlem i klubben först från 15 års ålder. Välkommen att ansöka om medlemskap när du fyllt 15!",
     "juniorRecommended": "Baserat på ditt födelsedatum kan du vara berättigad till juniormedlemskap",
     "dateOfBirthRequired": "Ange ett giltigt födelsedatum",
     "pilotLicenceType": "Pilotlicenstyp",

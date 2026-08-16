@@ -166,6 +166,8 @@ const Register = () => {
         errors.push(t('register.dateOfBirthRequired'))
       } else if (age >= 18) {
         errors.push(t('register.juniorAgeError'))
+      } else if (age < 15) {
+        errors.push(t('register.juniorMinAgeError'))
       }
     }
 
@@ -407,6 +409,13 @@ const Register = () => {
               return (
                 <Alert severity='error' sx={{ mt: 1 }}>
                   {t('register.juniorAgeError')}
+                </Alert>
+              )
+            }
+            if (member.memberType === MIKMemberTypes.JUNIOR && age !== null && age < 15) {
+              return (
+                <Alert severity='error' sx={{ mt: 1 }}>
+                  {t('register.juniorMinAgeError')}
                 </Alert>
               )
             }
