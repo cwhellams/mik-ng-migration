@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate, mapAudit } from './audit.ts'
 import { sql, type ExpressionBuilder, type Kysely, type Transaction } from 'kysely'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
@@ -53,10 +54,7 @@ const toOccurrence = (
     comments: row.comments as OccurrenceComment[],
     handling: row.handling as OccurrenceHandling,
     attachments,
-    createdAt: row.createdAt.toISOString(),
-    createdBy: row.createdBy,
-    updatedAt: row.updatedAt.toISOString(),
-    updatedBy: row.updatedBy,
+    ...mapAudit(row),
   }
 }
 
@@ -327,6 +325,9 @@ export const addOccurrenceAccess = async (
   executor: Executor = connection.db,
   ...access: OccurrenceAccess[]
 ): Promise<OccurrenceAccess[]> => {
+  // One timestamp for the whole insert: called inside the map, each row would get its
+  // own instant and the batch would look like several separate edits.
+  const now = new Date()
   const inserted = await executor
     .insertInto('flight.occurrenceAccess')
     .values(
@@ -337,8 +338,7 @@ export const addOccurrenceAccess = async (
         author: access.author,
         writeAccess: access.write,
         manageAccess: access.manage,
-        updatedAt: new Date(),
-        updatedBy: user.memberId,
+        ...auditUpdate(user.memberId, now),
       })),
     )
     .returningAll()
@@ -367,8 +367,7 @@ export const updateOccurrenceAccess = async (
     .set({
       writeAccess: access.write,
       manageAccess: access.manage,
-      updatedAt: new Date(),
-      updatedBy: user.memberId,
+      ...auditUpdate(user.memberId),
     })
     .where('reportId', '=', reportId)
     .where('accessId', '=', access.accessId!)
@@ -405,10 +404,7 @@ const insertOccurrenceAttachment = async (
       fileSize: attachment.fileSize,
       storageKey: attachment.storageKey,
       originStatus: attachment.originStatus,
-      createdAt: now,
-      createdBy: createdBy,
-      updatedAt: now,
-      updatedBy: createdBy,
+      ...auditCreate(createdBy, now),
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -483,8 +479,7 @@ export const removeOccurrenceAttachment = async (
     .set({
       removedAt: new Date(),
       removedBy: user.memberId,
-      updatedAt: new Date(),
-      updatedBy: user.memberId,
+      ...auditUpdate(user.memberId),
     })
     .where('reportId', '=', reportId)
     .where('attachmentId', '=', attachmentId)

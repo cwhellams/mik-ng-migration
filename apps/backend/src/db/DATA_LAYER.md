@@ -100,6 +100,38 @@ value disagree with nothing to catch it: `row.updatedAt` is `undefined` and type
 
 Wrap any nested subquery result in `camelCaseNestedRows` from `connection.ts`.
 
+## The audit quadruple goes through `audit.ts`
+
+`created_by` / `created_at` / `updated_by` / `updated_at` are on most tables here, and
+were written out by hand at every call site. Use the helpers instead:
+
+```ts
+.values({ ...fields, ...auditCreate(jwt) })        // INSERT: all four, one instant
+.set({ ...fields, ...auditUpdate(jwt) })           // UPDATE: the updated_* pair only
+return { ...fields, ...mapAudit(row) }             // READ: the Auditable contract shape
+```
+
+- `auditCreate` gives `createdAt` and `updatedAt` the **same** `Date` object. A row whose
+  `updatedAt` is a millisecond past its `createdAt` reads as edited the moment it exists.
+- `auditUpdate` deliberately omits the `created_*` half. An update that writes it rewrites
+  who created the row, which is the history these columns exist to preserve.
+- Pass `at` to either when several rows are one logical action, so they share a timestamp.
+  The type is preserved: a `Date` for a row, an ISO string for a contract object.
+- `mapAudit` re-parses string timestamps rather than passing them through, because the
+  driver can hand back a Postgres-style `2026-01-02 03:04:05+00`, which
+  `AuditableSchema`'s `.datetime()` rejects. It does **not** accept `null` — a nullable
+  audit column is a real difference, and `?? ''` produces a string that fails that check
+  anyway.
+
+Three shapes deliberately still write the fields by hand: inserts that let the column
+defaults supply the timestamps (using `auditCreate` there would move the clock from
+Postgres to the app), mappers whose row is `Record<string, unknown>` — those need
+typing first, which is the separate `as any` problem — and tables carrying only the
+timestamps, with no `created_by`/`updated_by` columns at all (`prepaid.member_packages`).
+On that last one a bare `updatedAt: now` sitting next to a sibling statement that does
+use `auditUpdate` reads as an oversight, and has been reported as one; check the schema
+before "fixing" it.
+
 ## Rename identifiers, never data
 
 The single most common way to break a rename, and the compiler catches almost none of it.

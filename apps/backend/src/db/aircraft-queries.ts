@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import type { Updateable } from 'kysely'
 import { sql, type Selectable } from 'kysely'
 
@@ -132,10 +133,7 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
       equipment: aircraft.equipment,
       imageUrl: aircraft.imageUrl,
 
-      createdAt: now,
-      createdBy: jwt.memberId,
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditCreate(jwt.memberId, now),
     })
     .executeTakeFirst()
   if (!result.numInsertedOrUpdatedRows) {
@@ -192,8 +190,7 @@ export async function updateAircraft(
       location: patch.location,
       equipment: patch.equipment,
       imageUrl: patch.imageUrl,
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditUpdate(jwt.memberId, now),
     })
     .$if(!!patch.maintenance, (qb) =>
       qb.set({

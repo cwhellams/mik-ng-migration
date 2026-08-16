@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import { db } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 
@@ -19,8 +20,7 @@ export const setFuelPricesMarkdown = async (markdown: string, user: JWTUser): Pr
     .updateTable('fuelPricesContent')
     .set({
       markdown,
-      updatedAt: now,
-      updatedBy: user.memberId,
+      ...auditUpdate(user.memberId, now),
     })
     .where('id', '=', FUEL_PRICES_ID)
     .executeTakeFirst()
@@ -34,10 +34,7 @@ export const setFuelPricesMarkdown = async (markdown: string, user: JWTUser): Pr
       .values({
         id: FUEL_PRICES_ID,
         markdown,
-        createdAt: now,
-        updatedAt: now,
-        createdBy: user.memberId,
-        updatedBy: user.memberId,
+        ...auditCreate(user.memberId, now),
       })
       .execute()
   }

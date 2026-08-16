@@ -1,3 +1,4 @@
+import { mapAudit } from './audit.ts'
 import {
   type InvoiceItemQueryParams,
   type RecurringFeesProcessing,
@@ -274,10 +275,7 @@ export async function getRecurringFeesProcessing(
     fee_type: row.feeType,
     status: row.status,
     year: row.year,
-    createdAt: row.createdAt.toISOString(),
-    createdBy: row.createdBy,
-    updatedAt: row.updatedAt.toISOString(),
-    updatedBy: row.updatedBy,
+    ...mapAudit(row),
   }))
 }
 

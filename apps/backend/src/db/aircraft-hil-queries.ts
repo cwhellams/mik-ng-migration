@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate, mapAudit } from './audit.ts'
 import { sql, type Kysely } from 'kysely'
 
 import * as connection from './connection.ts'
@@ -30,10 +31,7 @@ function mapRowToHil(row: DbRow<'flight.aircraftHil'> & { name: string }): Aircr
     name: row.name,
     dueDate: row.dueDate?.toISOString() ?? null,
     resolvedNoteId: row.resolvedNoteId,
-    createdAt: row.createdAt.toISOString(),
-    createdBy: row.createdBy,
-    updatedAt: row.updatedAt.toISOString(),
-    updatedBy: row.updatedBy,
+    ...mapAudit(row),
   }
 }
 
@@ -99,10 +97,7 @@ export async function createAircraftHilEntry(
           name: data.name,
           dueDate: data.dueDate ? new Date(data.dueDate) : null,
           resolvedNoteId: null,
-          createdAt: now,
-          createdBy,
-          updatedAt: now,
-          updatedBy: createdBy,
+          ...auditCreate(createdBy, now),
         })
         .returningAll()
         .executeTakeFirstOrThrow()
@@ -120,8 +115,7 @@ export async function createAircraftHilEntry(
           .set({
             hilId: row.hilId,
             status: 'MOVED_TO_HIL',
-            updatedAt: now,
-            updatedBy: createdBy,
+            ...auditUpdate(createdBy, now),
           })
           .where('defectId', '=', data.defectId)
           .where('aircraftRegistration', '=', data.aircraftRegistration)

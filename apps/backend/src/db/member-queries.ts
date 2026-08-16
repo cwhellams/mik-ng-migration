@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate, mapAudit } from './audit.ts'
 import { sql } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
@@ -88,10 +89,7 @@ function toMember(member: DbRow<'member.register'>, roles: MemberRole[]): Member
     dateOfBirth: member.dateOfBirth,
     memberSince: member.memberSince,
 
-    createdAt: member.createdAt.toISOString(),
-    createdBy: member.createdBy,
-    updatedAt: member.updatedAt.toISOString(),
-    updatedBy: member.updatedBy,
+    ...mapAudit(member),
     emailVerifiedAt: member.emailVerifiedAt?.toISOString(),
 
     licenceId: member.licenceId ?? undefined,
@@ -365,8 +363,7 @@ export async function updateMemberLang(
     .updateTable('member.register')
     .set({
       langIso639: lang,
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditUpdate(jwt.memberId, now),
     })
     .where('memberId', '=', memberId)
     .executeTakeFirstOrThrow()
@@ -437,8 +434,7 @@ export async function updateMember(
 
       defaultInstructorMemberId: patch.defaultInstructorMemberId,
 
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditUpdate(jwt.memberId, now),
       emailVerifiedAt: patch.emailVerifiedAt,
     })
     .where('memberId', '=', memberId)
@@ -577,10 +573,7 @@ function toMemberRole(role: DbRow<'member.roles'>): MemberRole {
     },
     isPublic: role.isPublic,
     permissions: role.permissions as MIKPermissions[],
-    createdAt: role.createdAt.toISOString(),
-    createdBy: role.createdBy,
-    updatedAt: role.updatedAt.toISOString(),
-    updatedBy: role.updatedBy,
+    ...mapAudit(role),
   }
 }
 
@@ -640,10 +633,7 @@ export async function addMemberRole(role: Upsert<MemberRole>, jwt: JWTUser): Pro
       isPublic: role.isPublic,
       permissions: JSON.stringify(role.permissions),
 
-      createdAt: now,
-      createdBy: jwt.memberId,
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditCreate(jwt.memberId, now),
     })
     .executeTakeFirst()
   if (!result.numInsertedOrUpdatedRows) {
@@ -676,8 +666,7 @@ export async function updateMemberRole(
       isPublic: patch.isPublic,
       permissions: JSON.stringify(patch.permissions),
 
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditUpdate(jwt.memberId, now),
     })
     .where('roleId', '=', roleId)
     .executeTakeFirstOrThrow()
@@ -770,8 +759,7 @@ export async function setDashboardSettings(
     .updateTable('member.register')
     .set({
       dashboardSettings: settings,
-      updatedAt: new Date(),
-      updatedBy: memberId,
+      ...auditUpdate(memberId),
     })
     .where('memberId', '=', memberId)
     .execute()
@@ -863,8 +851,7 @@ export async function deactivateMember(
         removedAt: now,
         removedBy: removedBy,
         removalReason: reason ?? null,
-        updatedAt: now,
-        updatedBy: removedBy,
+        ...auditUpdate(removedBy, now),
       })
       .where('memberId', '=', memberId)
       .execute()
@@ -885,8 +872,7 @@ export async function restoreMember(memberId: string, restoredBy: string): Promi
       removedAt: null,
       removedBy: null,
       removalReason: null,
-      updatedAt: now,
-      updatedBy: restoredBy,
+      ...auditUpdate(restoredBy, now),
     })
     .where('memberId', '=', memberId)
     .returningAll()

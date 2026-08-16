@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import type { Updateable } from 'kysely'
 
 import type { FlightAircraftCards } from './schema.d.ts'
@@ -98,10 +99,7 @@ export const addAircraftCard = async (
       description: card.description || null,
       validFrom: card.validFrom || null,
       validTo: card.validTo || null,
-      createdAt: now,
-      createdBy: jwt.memberId,
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditCreate(jwt.memberId, now),
     })
     .returning('cardId')
     .executeTakeFirst()
@@ -128,8 +126,7 @@ export const updateAircraftCard = async (
   const now = new Date()
 
   const updateData: Updateable<FlightAircraftCards> = {
-    updatedAt: now,
-    updatedBy: jwt.memberId,
+    ...auditUpdate(jwt.memberId, now),
   }
 
   if (patch.name !== undefined) updateData.name = patch.name

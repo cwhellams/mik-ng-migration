@@ -1,3 +1,4 @@
+import { auditUpdate, mapAudit } from './audit.ts'
 import type { Updateable } from 'kysely'
 
 import type { MemberEvents } from './schema.d.ts'
@@ -63,10 +64,7 @@ const toEvent = (row: EventRow, translations: EventTranslations = {}): ClubEvent
   startTime: row.startTime.toISOString(),
   endTime: row.endTime.toISOString(),
   isPublic: row.isPublic,
-  createdAt: row.createdAt.toISOString(),
-  createdBy: row.createdBy,
-  updatedAt: row.updatedAt.toISOString(),
-  updatedBy: row.updatedBy,
+  ...mapAudit(row),
 })
 
 export const getAllEvents = async (filters: EventFilters = {}): Promise<ClubEvent[]> => {
@@ -223,8 +221,7 @@ export const updateEvent = async (
   // column names from the compiler, and three of these stayed snake_case through the
   // migration because of it.
   const updates: Updateable<MemberEvents> = {
-    updatedAt: new Date(),
-    updatedBy: user.memberId,
+    ...auditUpdate(user.memberId),
   }
 
   if (data.title !== undefined) updates.title = data.title

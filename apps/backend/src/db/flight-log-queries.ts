@@ -1,3 +1,4 @@
+import { auditUpdate } from './audit.ts'
 import { db, type DbRow } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
@@ -1008,8 +1009,7 @@ export const invoiceFlights = async (flights: InvoicableFlight[]): Promise<void>
         .updateTable('flight.logs')
         .set({
           status: FlightLogStatus.QUEUED_FOR_INVOICING,
-          updatedAt: now,
-          updatedBy: MIK_SIMPLBOOKS_MEMBER,
+          ...auditUpdate(MIK_SIMPLBOOKS_MEMBER, now),
         })
         .where('flightId', '=', flight.flightId)
         .execute()

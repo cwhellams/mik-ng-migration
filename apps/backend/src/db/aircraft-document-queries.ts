@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import type { Updateable } from 'kysely'
 
 import type { FlightAircraftDocumentsFiles, FlightAircraftDocumentType } from './schema.d.ts'
@@ -164,10 +165,7 @@ export const addAircraftDocument = async (
       fileSize: document.fileSize || null,
       mimeType: document.mimeType || null,
       storageKey: document.storageKey || null,
-      createdAt: now,
-      createdBy: jwt.memberId,
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditCreate(jwt.memberId, now),
     })
     .returning('documentId')
     .executeTakeFirst()
@@ -195,8 +193,7 @@ export const updateAircraftDocument = async (
   const now = new Date()
 
   const updateData: Updateable<FlightAircraftDocumentsFiles> = {
-    updatedAt: now,
-    updatedBy: jwt.memberId,
+    ...auditUpdate(jwt.memberId, now),
   }
 
   if (patch.title !== undefined) updateData.title = patch.title

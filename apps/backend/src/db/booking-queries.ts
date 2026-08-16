@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import * as connection from './connection.ts'
 import {
   BookingStatus,
@@ -226,10 +227,7 @@ export const insertBooking = async (
     calendarSequence: 0,
     startTime: newBooking.startTimeUtc.toISOString(),
     endTime: newBooking.endTimeUtc.toISOString(),
-    createdAt: now,
-    createdBy: jwt.memberId,
-    updatedAt: now,
-    updatedBy: jwt.memberId,
+    ...auditCreate(jwt.memberId, now),
   }
 }
 
@@ -250,8 +248,7 @@ export const updateBooking = async (
       endTimeEpoch: patch.endTimeEpoch,
       memberId: patch.memberId,
       instructorMemberId: patch.instructorMemberId,
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditUpdate(jwt.memberId, now),
       cancelledAt: patch.status === BookingStatus.CANCELLED ? now : undefined,
       cancelledBy: patch.status === BookingStatus.CANCELLED ? jwt.memberId : undefined,
       calendarSequence: sql`calendar_sequence + 1`,

@@ -1,3 +1,4 @@
+import { mapAudit } from './audit.ts'
 import type { Updateable } from 'kysely'
 
 import type { ShopCategories, ShopDiscountCodes, ShopProducts } from './schema.d.ts'
@@ -44,10 +45,7 @@ export async function getCategories(activeOnly = true): Promise<Category[]> {
     description: r.description as Category['description'],
     isActive: r.isActive,
     sortOrder: r.sortOrder,
-    createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : r.createdAt,
-    createdBy: r.createdBy,
-    updatedAt: r.updatedAt instanceof Date ? r.updatedAt.toISOString() : r.updatedAt,
-    updatedBy: r.updatedBy,
+    ...mapAudit(r),
   }))
 }
 
@@ -64,10 +62,7 @@ export async function getCategoryById(id: string): Promise<Category | undefined>
     description: r.description as Category['description'],
     isActive: r.isActive,
     sortOrder: r.sortOrder,
-    createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : r.createdAt,
-    createdBy: r.createdBy,
-    updatedAt: r.updatedAt instanceof Date ? r.updatedAt.toISOString() : r.updatedAt,
-    updatedBy: r.updatedBy,
+    ...mapAudit(r),
   }
 }
 

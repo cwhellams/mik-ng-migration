@@ -1,3 +1,4 @@
+import { auditUpdate } from './audit.ts'
 import { db } from './connection.ts'
 import { sql, type Updateable } from 'kysely'
 import type { Json, PrepaidPackages, ShopProducts } from './schema.d.ts'
@@ -541,11 +542,17 @@ export async function extendExpiryForAircraft(
 
   const ids = productIds.map((p) => p.productId)
 
+  // Both updates are one logical extension, so they share an instant rather than
+  // drifting apart mid-transaction.
+  const now = new Date()
+
+  // `prepaid.member_packages` has no `created_by`/`updated_by` columns (V820), so
+  // `auditUpdate` does not apply here — only the timestamp is tracked on this table.
   const result = await db
     .updateTable('prepaid.memberPackages')
     .set((eb) => ({
       expiresAt: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
-      updatedAt: new Date(),
+      updatedAt: now,
     }))
     .where('productId', 'in', ids)
     .where('isExpired', '=', false)
@@ -556,8 +563,7 @@ export async function extendExpiryForAircraft(
     .updateTable('prepaid.packages')
     .set((eb) => ({
       expiresAt: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
-      updatedAt: new Date(),
-      updatedBy: user.memberId,
+      ...auditUpdate(user.memberId, now),
     }))
     .where('aircraftRegistration', '=', aircraftRegistration)
     .where('isActive', '=', true)

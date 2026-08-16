@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import { db, type DbRow } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
@@ -139,10 +140,7 @@ export async function insertExam(data: ExamUpsert, user: JWTUser): Promise<Exam>
       examId: id,
       examType: data.examType ?? 'OTHER',
       name: data.name,
-      createdAt: now,
-      createdBy: user.memberId,
-      updatedAt: now,
-      updatedBy: user.memberId,
+      ...auditCreate(user.memberId, now),
     })
     .execute()
   const created = await getExamById(id)
@@ -160,8 +158,7 @@ export async function updateExam(
     .set({
       ...(data.name !== undefined && { name: data.name }),
       ...(data.examType !== undefined && { examType: data.examType }),
-      updatedAt: new Date(),
-      updatedBy: user.memberId,
+      ...auditUpdate(user.memberId),
     })
     .where('examId', '=', examId)
     .execute()
@@ -346,10 +343,7 @@ export async function createVersion(
         supportedLanguages: data.supportedLanguages ?? [],
         passPercent: data.passPercent ?? 75,
         questionCount: data.questionCount ?? null,
-        createdAt: now,
-        createdBy: user.memberId,
-        updatedAt: now,
-        updatedBy: user.memberId,
+        ...auditCreate(user.memberId, now),
       })
       .execute()
 
@@ -425,8 +419,7 @@ export async function updateVersion(
       }),
       ...(data.passPercent !== undefined && { passPercent: data.passPercent }),
       ...('questionCount' in data && { questionCount: data.questionCount ?? null }),
-      updatedAt: new Date(),
-      updatedBy: user.memberId,
+      ...auditUpdate(user.memberId),
     })
     .where('versionId', '=', versionId)
     .execute()
@@ -480,10 +473,7 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
         examId: examId,
         examType: data.examType ?? 'OTHER',
         name: data.name,
-        createdAt: now,
-        createdBy: user.memberId,
-        updatedAt: now,
-        updatedBy: user.memberId,
+        ...auditCreate(user.memberId, now),
       })
       .execute()
 
@@ -498,10 +488,7 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
         supportedLanguages: data.version.supportedLanguages ?? [],
         passPercent: data.version.passPercent ?? 75,
         questionCount: null,
-        createdAt: now,
-        createdBy: user.memberId,
-        updatedAt: now,
-        updatedBy: user.memberId,
+        ...auditCreate(user.memberId, now),
       })
       .execute()
 

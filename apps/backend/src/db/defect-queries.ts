@@ -1,3 +1,4 @@
+import { auditCreate, mapAudit } from './audit.ts'
 import { sql, type Kysely } from 'kysely'
 
 import * as connection from './connection.ts'
@@ -18,10 +19,7 @@ function mapRowToDefect(row: DbRow<'flight.defect'>): Defect {
     status: row.status,
     hilId: row.hilId,
     resolvedNoteId: row.resolvedNoteId,
-    createdAt: row.createdAt.toISOString(),
-    createdBy: row.createdBy,
-    updatedAt: row.updatedAt.toISOString(),
-    updatedBy: row.updatedBy,
+    ...mapAudit(row),
   }
 }
 
@@ -65,10 +63,7 @@ export async function createDefect(data: CreateDefectRequest, createdBy: string)
       status: 'ACTIVE',
       hilId: null,
       resolvedNoteId: null,
-      createdAt: now,
-      createdBy,
-      updatedAt: now,
-      updatedBy: createdBy,
+      ...auditCreate(createdBy, now),
     })
     .returningAll()
     .executeTakeFirstOrThrow()

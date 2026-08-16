@@ -35,6 +35,11 @@ export default [
 
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
+      // Base no-redeclare does not understand TypeScript function overloads and reports
+      // every signature as a redeclaration. The TS-aware version does.
+      'no-redeclare': 'off',
+      '@typescript-eslint/no-redeclare': 'error',
+
       // TypeScript ESLint rules
       '@typescript-eslint/explicit-function-return-type': 'off',
       'no-unused-vars': 'off',

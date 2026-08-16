@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import type { Updateable } from 'kysely'
 
 import type { MemberDocuments } from './schema.d.ts'
@@ -212,10 +213,7 @@ export const addDocument = async (document: Upsert<Document>, jwt: JWTUser): Pro
       fileSize: document.fileSize,
       mimeType: document.mimeType,
       storageKey: document.storageKey,
-      createdAt: now,
-      createdBy: jwt.memberId,
-      updatedAt: now,
-      updatedBy: jwt.memberId,
+      ...auditCreate(jwt.memberId, now),
     })
     .returning('documentId')
     .executeTakeFirst()
@@ -245,8 +243,7 @@ export const updateDocument = async (
   const now = new Date()
 
   const updateData: Updateable<MemberDocuments> = {
-    updatedAt: now,
-    updatedBy: jwt.memberId,
+    ...auditUpdate(jwt.memberId, now),
   }
 
   if (patch.title !== undefined) updateData.title = patch.title

@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import * as connection from './connection.ts'
 import type { DbRow } from './connection.ts'
 import { resolveDefectsByHil, resolveDefects } from './defect-queries.ts'
@@ -54,10 +55,7 @@ export async function createMaintenanceNote(
         flightMins: data.flightMins,
         rows: data.rows,
         blankRowsAfter: data.blankRowsAfter,
-        createdAt: now,
-        createdBy,
-        updatedAt: now,
-        updatedBy: createdBy,
+        ...auditCreate(createdBy, now),
       })
       .returningAll()
       .executeTakeFirstOrThrow()
@@ -68,8 +66,7 @@ export async function createMaintenanceNote(
         .updateTable('flight.aircraftHil')
         .set({
           resolvedNoteId: row.noteId,
-          updatedAt: now,
-          updatedBy: createdBy,
+          ...auditUpdate(createdBy, now),
         })
         .where('hilId', 'in', data.hilIds)
         .where('aircraftRegistration', '=', data.aircraftRegistration)
