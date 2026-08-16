@@ -12,7 +12,7 @@ import {
 } from './fixtures'
 import { apiUrl, problemResponse } from './msw/handlers'
 import { server } from './msw/server'
-import { renderWithProviders, type ProviderOptions } from './renderWithProviders'
+import { renderWithProviders } from './renderWithProviders'
 
 /**
  * Points `GET /api/v1/members/me` at the given member for the rest of the test.
@@ -110,7 +110,10 @@ export type AuthScenarioName = keyof typeof authScenarios
 export const renderAs = (
   scenario: AuthScenario,
   ui: ReactElement,
-  options: ProviderOptions = {},
+  // Taken from renderWithProviders rather than written as ProviderOptions, so
+  // the React Testing Library options it accepts (onRecoverableError and
+  // friends) stay reachable through here instead of being narrowed away.
+  options: Parameters<typeof renderWithProviders>[1] = {},
 ) => {
   signInAs(scenario.member)
   return renderWithProviders(ui, { sudo: scenario.sudo, ...options })
