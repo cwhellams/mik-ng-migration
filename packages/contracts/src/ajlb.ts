@@ -48,9 +48,15 @@ export const AjlbListResponseSchema = z.object({
 
 export type AjlbListResponse = z.infer<typeof AjlbListResponseSchema>
 
+// created_by / updated_by are `REFERENCES member.register ON DELETE SET NULL`, so a
+// baseline outlives the member who set it and its author columns really do go NULL.
+// The narrower `AuditableSchema` shape would be a lie the backend could only keep by
+// coercing the NULL to something — see MeetingSchema for the same override.
 export const AircraftLandingsBaselineSchema = AuditableSchema.extend({
   aircraftRegistration: z.string(),
   baselineLandings: z.number().int().min(0),
+  createdBy: z.string().nullable(),
+  updatedBy: z.string().nullable(),
 })
 
 export type AircraftLandingsBaseline = z.infer<typeof AircraftLandingsBaselineSchema>

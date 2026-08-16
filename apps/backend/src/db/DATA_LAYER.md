@@ -84,8 +84,10 @@ Check all three before starting:
 - **It uses raw `sql` fragments.** These are migratable, but only by hand — see
   [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment). Nothing about them is
   compiler-checked.
-- **It uses `pool.query()` directly**, bypassing Kysely entirely — `ajlb` does. Those
-  results are not transformed at all, so the module ends up half-and-half.
+- **It uses `pool.query()` directly**, bypassing Kysely entirely. Those results are not
+  transformed at all, so the module ends up half-and-half. Nothing does this any more —
+  see [Retiring a pool.query module](#retiring-a-poolquery-module) for how `ajlb` got
+  out of it.
 
 ## Auditing a raw sql fragment
 
@@ -116,6 +118,45 @@ Do audit whether a fragment needs to be raw in the first place. Two in this batc
 `` sql`d.valid_to` `` — and both compile to identical SQL through the builder while gaining
 compile-time checking. A raw fragment that could have been a builder call is a snake_case
 identifier the compiler cannot see, which is the same trap as `any`.
+
+## Retiring a pool.query module
+
+`ajlb` was the last module holding a `pg` client itself: three functions that called
+`connection.pool.connect()` and drove `BEGIN` / `COMMIT` / `ROLLBACK` by hand. The plugin
+never sees those queries, so the module could not be migrated without first getting them
+onto Kysely.
+
+The move is smaller than it looks, because **the SQL does not have to become a query
+builder expression to move**. Split the code by what it actually needs:
+
+| What the statement is                                                    | What it becomes                                        |
+| ------------------------------------------------------------------------ | ------------------------------------------------------ |
+| A plain select/insert/update/delete                                      | A `camelDb` query-builder call                         |
+| An upsert                                                                | `.onConflict((oc) => oc.column(...).doUpdateSet(...))` |
+| A recursive CTE, a window function, anything you would have to re-derive | ``sql`…`.execute(trx)`` with the text **unchanged**    |
+| `client.query('BEGIN')` … `COMMIT` / `ROLLBACK`                          | `camelDb.transaction().execute(async (trx) => …)`      |
+
+Only the placeholders change on the statements that stay raw: `$1` becomes
+`${aircraftRegistration}`. Keep the SQL text byte-identical and diff it afterwards —
+`ajlb`'s three backfill statements were compared statement-by-statement against the
+originals, normalised for whitespace, before the change was committed. Rewriting a
+recursive CTE into query-builder calls is a behaviour change wearing a refactor's
+clothes; there is no reason to take that risk in the same commit that changes the
+instance.
+
+Two things worth knowing:
+
+- A helper that took a `PoolClient` takes a `Transaction<CamelDB>` instead. That is the
+  same one-cluster rule as [Migrating a transaction cluster](#migrating-a-transaction-cluster):
+  the helper and its callers move together.
+- `result.rowCount` from `pg` becomes `numDeletedRows` / `numUpdatedRows`, which are
+  **`bigint`** — compare against `0n`, not `0`.
+
+The functions had no tests at all, which is normal for this group: `pool.query` code
+tends to predate the module's test file. `test/db/ajlb-landings-baseline.test.ts` was
+written first, against the old implementation, so the migration had something to be
+judged by — including a rollback case, since hand-rolled `ROLLBACK` and
+`transaction()` are exactly the thing that looks equivalent until it isn't.
 
 ## Migrating a transaction cluster
 
@@ -273,8 +314,8 @@ corrupted by it. `test/db/camel-case-plugin.test.ts` pins this.
 
 ## Progress
 
-**50 of 52 query modules migrated.** Everything with no raw SQL and no shared transaction
-is done — what remains is exactly the set that needs a judgement call.
+**51 of 52 query modules migrated.** Only `stats` is left, and it is left for a reason
+that is not about the data layer at all — see below.
 
 Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
 `aircraft-card`, `airfields`, `auth`, `brevo-sync`, `cost-centre`, `email-change`,
@@ -283,7 +324,9 @@ Migrated: `local-fuel-price`, `aircraft-pricing`, `invoicing`, `dto`, `exam`,
 `useful-phone-number`, `aircraft`, `aircraft-document`, `aircraft-navdata`,
 `fuel-report`, `instructor-worktime`, `tax-report`, `traficom-report`,
 `uplift-report`, `document`, `tiny-url`, `gdpr`, `aircraft-hil`, `defect`,
-`maintenance-note`, `shop`, `ame`, `booking`, `flight-log`, `member`, `prepaid-hours`.
+`maintenance-note`, `ame`, `booking`, `flight-log`, `member`, `prepaid-hours`, `shop`,
+`expense`, `expense-attachment`, `inventory`, `meeting`, `mileage`, `occurrence`,
+`outbox-simplbooks`, `ajlb`.
 
 Both transaction clusters are done — `aircraft-hil` + `defect` + `maintenance-note`, and
 `expense` + `expense-attachment` + `inventory` + `meeting` + `mileage` + `occurrence` +
@@ -291,19 +334,25 @@ Both transaction clusters are done — `aircraft-hil` + `defect` + `maintenance-
 [Migrating a transaction cluster](#migrating-a-transaction-cluster) before adding a
 module to either.
 
-The two that remain are both judgement calls rather than backlog:
+Remaining: **`stats`, and only `stats`.**
 
-- **`stats`** — **deliberately excluded on contract grounds.** Its contract is entirely
-  snake_case and its queries return rows straight to the wire with no mapper, so migrating
-  it would rename 160 API fields rather than refactor anything; see
-  [Wire contracts living inside db modules](#wire-contracts-living-inside-db-modules). Its
-  raw fragments are the awkward kind too — SQL _snippets composed into_ a larger query
-  (`` sql`AND takeoff_time_epoch >= …` ``) rather than whole expressions, so the fragment
-  table in [Auditing a raw sql fragment](#auditing-a-raw-sql-fragment) does not classify
-  them cleanly. It stays on `db` until someone versions that endpoint.
-- **`ajlb`** — **raw `pool.query`**, bypassing Kysely entirely, so the plugin never
-  applies and the results are not transformed at all. It stays snake_case until it is
-  rewritten as Kysely queries.
+It is not blocked by anything in this document. Its queries are ordinary, and the raw
+fragments are the composed-snippet kind described in
+[Auditing a raw sql fragment](#auditing-a-raw-sql-fragment). What blocks it is the wire:
+`@mik/contracts/stats` declares ~160 snake_case fields, and the route handlers return
+query rows to the client verbatim — see
+[Wire contracts living inside db modules](#wire-contracts-living-inside-db-modules).
+Under `camelDb` those rows come back camelCase, so migrating `stats` means either mapping
+every field back at the route boundary or changing the response shape — a breaking API
+change with frontend work attached.
+
+That is a product decision, not a data-layer one, so it gets its own PR rather than
+riding along with a mechanical migration.
+
+No query module calls `pool.query()` or `pool.connect()` any more. The one remaining
+caller is `testConnection`'s `SELECT 1` health check in `connection.ts` itself, which
+returns no columns and so has nothing to transform. `connection.pool` stays exported
+because the Kysely dialect and `closeDb` are built on it.
 
 When the last one moves, delete `schema.d.ts`, rename `schema.camel.d.ts` over it, and
 collapse `camelDb` back into `db`.

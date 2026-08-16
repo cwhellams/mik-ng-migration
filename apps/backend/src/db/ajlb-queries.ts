@@ -1,103 +1,107 @@
 import * as connection from './connection.ts'
-import type { AjlbFilter, AircraftJourneyLogBook } from '@mik/contracts/ajlb'
-import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './schema.js'
-import type { Selectable } from 'kysely'
+import type {
+  AjlbFilter,
+  AircraftJourneyLogBook,
+  AircraftLandingsBaseline,
+} from '@mik/contracts/ajlb'
+import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './schema.camel.js'
+import { sql, type Selectable, type Transaction } from 'kysely'
+import type { DB as CamelDB } from './schema.camel.d.ts'
 import type { Upsert } from '@mik/contracts/schema'
 import type { JWTUser } from '../routes/auth/token.ts'
-import type { PoolClient } from 'pg'
 
 const mapResultToAjlb = (
   row: Selectable<
     FlightAircraftJourneyLogBook &
       Pick<
         FlightVwFlightTimeTotals,
-        | 'last_page'
-        | 'new_flights_page'
-        | 'sum_new_time'
-        | 'sum_new_flights'
-        | 'sum_validated_time'
-        | 'sum_validated_flights'
-        | 'validated_on_block_time_utc'
-        | 'verified_total_flight_time'
-        | 'unverified_total_flight_time'
-        | 'validated_total_landings'
-        | 'total_landings'
+        | 'lastPage'
+        | 'newFlightsPage'
+        | 'sumNewTime'
+        | 'sumNewFlights'
+        | 'sumValidatedTime'
+        | 'sumValidatedFlights'
+        | 'validatedOnBlockTimeUtc'
+        | 'verifiedTotalFlightTime'
+        | 'unverifiedTotalFlightTime'
+        | 'validatedTotalLandings'
+        | 'totalLandings'
       >
   >,
 ): AircraftJourneyLogBook => ({
-  seqNo: row.seq_no,
-  aircraftRegistration: row.aircraft_registration,
-  startFlightMins: row.start_flight_mins,
-  startFlightTime: row.start_flight_time,
-  startLandings: row.start_landings,
-  noOfPages: row.no_of_pages,
-  rowsPerPage: row.rows_per_page,
-  startPage: row.start_page,
-  startDate: row.start_date,
-  endDate: row.end_date ? row.end_date : null,
+  seqNo: row.seqNo,
+  aircraftRegistration: row.aircraftRegistration,
+  startFlightMins: row.startFlightMins,
+  startFlightTime: row.startFlightTime,
+  startLandings: row.startLandings,
+  noOfPages: row.noOfPages,
+  rowsPerPage: row.rowsPerPage,
+  startPage: row.startPage,
+  startDate: row.startDate,
+  endDate: row.endDate ? row.endDate : null,
   view: {
-    lastPage: row.last_page ?? 0,
-    newFlightsPage: row.new_flights_page,
-    newFlightsCount: row.sum_new_flights ?? 0,
-    newFlightsTime: row.sum_new_time ?? '00:00',
-    validatedBeforeUTC: row.validated_on_block_time_utc?.toISOString() ?? null,
-    verifiedTotalFlightTime: row.verified_total_flight_time ?? '00:00',
-    unverifiedTotalFlightTime: row.unverified_total_flight_time ?? '00:00',
-    validatedFlightsCount: row.sum_validated_flights ?? 0,
-    validatedFlightsTime: row.sum_validated_time ?? '00:00',
-    validatedTotalLandings: row.validated_total_landings ?? 0,
-    totalLandings: row.total_landings ?? 0,
+    lastPage: row.lastPage ?? 0,
+    newFlightsPage: row.newFlightsPage,
+    newFlightsCount: row.sumNewFlights ?? 0,
+    newFlightsTime: row.sumNewTime ?? '00:00',
+    validatedBeforeUTC: row.validatedOnBlockTimeUtc?.toISOString() ?? null,
+    verifiedTotalFlightTime: row.verifiedTotalFlightTime ?? '00:00',
+    unverifiedTotalFlightTime: row.unverifiedTotalFlightTime ?? '00:00',
+    validatedFlightsCount: row.sumValidatedFlights ?? 0,
+    validatedFlightsTime: row.sumValidatedTime ?? '00:00',
+    validatedTotalLandings: row.validatedTotalLandings ?? 0,
+    totalLandings: row.totalLandings ?? 0,
   },
 
-  updatedAt: row.updated_at?.toISOString(),
-  updatedBy: row.updated_by,
-  createdAt: row.created_at?.toISOString(),
-  createdBy: row.created_by,
+  updatedAt: row.updatedAt?.toISOString(),
+  updatedBy: row.updatedBy,
+  createdAt: row.createdAt?.toISOString(),
+  createdBy: row.createdBy,
 })
 
 export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBook[]> {
-  let query = connection.db
-    .selectFrom('flight.aircraft_journey_log_book as ajlb')
-    .leftJoin('flight.vw_flight_time_totals as totals', (join) =>
+  let query = connection.camelDb
+    .selectFrom('flight.aircraftJourneyLogBook as ajlb')
+    .leftJoin('flight.vwFlightTimeTotals as totals', (join) =>
       join
-        .onRef('ajlb.aircraft_registration', '=', 'totals.aircraft_registration')
-        .onRef('ajlb.seq_no', '=', 'totals.ajlb_seq_no'),
+        .onRef('ajlb.aircraftRegistration', '=', 'totals.aircraftRegistration')
+        .onRef('ajlb.seqNo', '=', 'totals.ajlbSeqNo'),
     )
     .selectAll('ajlb')
     .select([
-      'totals.last_page',
-      'totals.new_flights_page',
-      'totals.sum_new_time',
-      'totals.sum_new_flights',
-      'totals.sum_validated_time',
-      'totals.sum_validated_flights',
-      'totals.validated_on_block_time_utc',
-      'totals.verified_total_flight_time',
-      'totals.unverified_total_flight_time',
-      'totals.validated_total_landings',
-      'totals.total_landings',
+      'totals.lastPage',
+      'totals.newFlightsPage',
+      'totals.sumNewTime',
+      'totals.sumNewFlights',
+      'totals.sumValidatedTime',
+      'totals.sumValidatedFlights',
+      'totals.validatedOnBlockTimeUtc',
+      'totals.verifiedTotalFlightTime',
+      'totals.unverifiedTotalFlightTime',
+      'totals.validatedTotalLandings',
+      'totals.totalLandings',
     ])
-    .orderBy('aircraft_registration')
-    .orderBy('seq_no', 'desc')
+    .orderBy('aircraftRegistration')
+    .orderBy('seqNo', 'desc')
 
   if (filter.aircraftRegistration) {
-    query = query.where('ajlb.aircraft_registration', '=', filter.aircraftRegistration)
+    query = query.where('ajlb.aircraftRegistration', '=', filter.aircraftRegistration)
   }
 
   if (filter.seqNo) {
-    query = query.where('ajlb.seq_no', '=', filter.seqNo)
+    query = query.where('ajlb.seqNo', '=', filter.seqNo)
   }
 
   if (filter.current) {
-    query = query.where('end_date', 'is', null)
+    query = query.where('endDate', 'is', null)
   }
 
   if (filter.toDate) {
-    query = query.where('end_date', '<=', filter.toDate)
+    query = query.where('endDate', '<=', filter.toDate)
   }
 
   if (filter.fromDate) {
-    query = query.where('start_date', '>=', filter.fromDate)
+    query = query.where('startDate', '>=', filter.fromDate)
   }
 
   const results = await query.execute()
@@ -108,29 +112,29 @@ export async function getAjlb(
   registration: string,
   seqNo: number,
 ): Promise<AircraftJourneyLogBook | undefined> {
-  const row = await connection.db
-    .selectFrom('flight.aircraft_journey_log_book as ajlb')
-    .leftJoin('flight.vw_flight_time_totals as totals', (join) =>
+  const row = await connection.camelDb
+    .selectFrom('flight.aircraftJourneyLogBook as ajlb')
+    .leftJoin('flight.vwFlightTimeTotals as totals', (join) =>
       join
-        .onRef('ajlb.aircraft_registration', '=', 'totals.aircraft_registration')
-        .onRef('ajlb.seq_no', '=', 'totals.ajlb_seq_no'),
+        .onRef('ajlb.aircraftRegistration', '=', 'totals.aircraftRegistration')
+        .onRef('ajlb.seqNo', '=', 'totals.ajlbSeqNo'),
     )
     .selectAll('ajlb')
     .select([
-      'totals.last_page',
-      'totals.new_flights_page',
-      'totals.sum_new_time',
-      'totals.sum_new_flights',
-      'totals.sum_validated_time',
-      'totals.sum_validated_flights',
-      'totals.validated_on_block_time_utc',
-      'totals.verified_total_flight_time',
-      'totals.unverified_total_flight_time',
-      'totals.validated_total_landings',
-      'totals.total_landings',
+      'totals.lastPage',
+      'totals.newFlightsPage',
+      'totals.sumNewTime',
+      'totals.sumNewFlights',
+      'totals.sumValidatedTime',
+      'totals.sumValidatedFlights',
+      'totals.validatedOnBlockTimeUtc',
+      'totals.verifiedTotalFlightTime',
+      'totals.unverifiedTotalFlightTime',
+      'totals.validatedTotalLandings',
+      'totals.totalLandings',
     ])
-    .where('ajlb.aircraft_registration', '=', registration)
-    .where('ajlb.seq_no', '=', seqNo)
+    .where('ajlb.aircraftRegistration', '=', registration)
+    .where('ajlb.seqNo', '=', seqNo)
     .executeTakeFirst()
 
   return row ? mapResultToAjlb(row) : undefined
@@ -141,33 +145,33 @@ export async function createAjlb(
   jwt: JWTUser,
 ): Promise<void> {
   const now = new Date()
-  await connection.db
-    .insertInto('flight.aircraft_journey_log_book')
+  await connection.camelDb
+    .insertInto('flight.aircraftJourneyLogBook')
     .values({
-      aircraft_registration: ajlb.aircraftRegistration,
-      seq_no: ajlb.seqNo,
-      start_flight_mins: ajlb.startFlightMins,
-      start_landings: ajlb.startLandings,
-      no_of_pages: ajlb.noOfPages,
-      rows_per_page: ajlb.rowsPerPage,
-      start_page: ajlb.startPage,
-      start_date: ajlb.startDate,
-      end_date: ajlb.endDate,
-      created_by: jwt.memberId!,
-      created_at: now,
-      updated_by: jwt.memberId!,
-      updated_at: now,
+      aircraftRegistration: ajlb.aircraftRegistration,
+      seqNo: ajlb.seqNo,
+      startFlightMins: ajlb.startFlightMins,
+      startLandings: ajlb.startLandings,
+      noOfPages: ajlb.noOfPages,
+      rowsPerPage: ajlb.rowsPerPage,
+      startPage: ajlb.startPage,
+      startDate: ajlb.startDate,
+      endDate: ajlb.endDate,
+      createdBy: jwt.memberId!,
+      createdAt: now,
+      updatedBy: jwt.memberId!,
+      updatedAt: now,
     })
     .execute()
 }
 
 export async function deleteAjlb(aircraft_registration: string, seq_no: number): Promise<boolean> {
-  const result = await connection.db
-    .deleteFrom('flight.aircraft_journey_log_book')
-    .where('aircraft_registration', '=', aircraft_registration)
-    .where('seq_no', '=', seq_no)
+  const result = await connection.camelDb
+    .deleteFrom('flight.aircraftJourneyLogBook')
+    .where('aircraftRegistration', '=', aircraft_registration)
+    .where('seqNo', '=', seq_no)
     .executeTakeFirstOrThrow()
-  return result.numDeletedRows == BigInt(1)
+  return result.numDeletedRows === 1n
 }
 
 export async function updateAjlb(
@@ -176,23 +180,23 @@ export async function updateAjlb(
   ajlb: Partial<AircraftJourneyLogBook>,
   jwt: JWTUser,
 ): Promise<AircraftJourneyLogBook | undefined> {
-  const result = await connection.db
-    .updateTable('flight.aircraft_journey_log_book')
+  const result = await connection.camelDb
+    .updateTable('flight.aircraftJourneyLogBook')
     .set({
-      aircraft_registration: ajlb.aircraftRegistration,
-      seq_no: ajlb.seqNo,
-      start_flight_mins: ajlb.startFlightMins,
-      start_landings: ajlb.startLandings,
-      no_of_pages: ajlb.noOfPages,
-      rows_per_page: ajlb.rowsPerPage,
-      start_page: ajlb.startPage,
-      start_date: ajlb.startDate,
-      end_date: ajlb.endDate,
-      updated_by: jwt.memberId!,
-      updated_at: new Date(),
+      aircraftRegistration: ajlb.aircraftRegistration,
+      seqNo: ajlb.seqNo,
+      startFlightMins: ajlb.startFlightMins,
+      startLandings: ajlb.startLandings,
+      noOfPages: ajlb.noOfPages,
+      rowsPerPage: ajlb.rowsPerPage,
+      startPage: ajlb.startPage,
+      startDate: ajlb.startDate,
+      endDate: ajlb.endDate,
+      updatedBy: jwt.memberId!,
+      updatedAt: new Date(),
     })
-    .where('aircraft_registration', '=', aircraft_registration)
-    .where('seq_no', '=', seq_no)
+    .where('aircraftRegistration', '=', aircraft_registration)
+    .where('seqNo', '=', seq_no)
     .executeTakeFirstOrThrow()
 
   if (!result.numUpdatedRows) {
@@ -201,40 +205,27 @@ export async function updateAjlb(
   return await getAjlb(aircraft_registration, seq_no)
 }
 
-export async function getAircraftLandingsBaseline(aircraftRegistration: string): Promise<
-  | {
-      aircraftRegistration: string
-      baselineLandings: number
-      createdAt: string
-      createdBy: string
-      updatedAt: string
-      updatedBy: string
-    }
-  | undefined
-> {
-  const result = await connection.pool.query(
-    `SELECT 
-       aircraft_registration as "aircraftRegistration",
-       baseline_landings as "baselineLandings",
-       created_at as "createdAt",
-       created_by as "createdBy",
-       updated_at as "updatedAt",
-       updated_by as "updatedBy"
-     FROM flight.aircraft_landings_baseline 
-     WHERE aircraft_registration = $1`,
-    [aircraftRegistration],
-  )
+export async function getAircraftLandingsBaseline(
+  aircraftRegistration: string,
+): Promise<AircraftLandingsBaseline | undefined> {
+  const row = await connection.camelDb
+    .selectFrom('flight.aircraftLandingsBaseline')
+    .selectAll()
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .executeTakeFirst()
 
-  if (!result.rows[0]) return undefined
+  if (!row) return undefined
 
-  const row = result.rows[0]
+  // createdBy / updatedBy are nullable in the schema (ON DELETE SET NULL on the member
+  // FK) and are passed through as NULL. They used to be coerced with `?? ''`, which
+  // reported a member id of '' for a baseline whose author had been deleted.
   return {
     aircraftRegistration: row.aircraftRegistration,
     baselineLandings: row.baselineLandings,
-    createdAt: row.createdAt?.toISOString() ?? '',
-    createdBy: row.createdBy ?? '',
-    updatedAt: row.updatedAt?.toISOString() ?? '',
-    updatedBy: row.updatedBy ?? '',
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy,
+    updatedAt: row.updatedAt.toISOString(),
+    updatedBy: row.updatedBy,
   }
 }
 
@@ -244,61 +235,62 @@ export async function setAircraftLandingsBaseline(
   jwt: JWTUser,
 ): Promise<void> {
   const now = new Date()
-  const client = await connection.pool.connect()
-  try {
-    await client.query('BEGIN')
-
+  await connection.camelDb.transaction().execute(async (trx) => {
     // Insert or update baseline
-    await client.query(
-      `INSERT INTO flight.aircraft_landings_baseline 
-       (aircraft_registration, baseline_landings, created_by, created_at, updated_by, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (aircraft_registration) DO UPDATE SET
-         baseline_landings = EXCLUDED.baseline_landings,
-         updated_by = EXCLUDED.updated_by,
-         updated_at = EXCLUDED.updated_at`,
-      [aircraftRegistration, baselineLandings, jwt.memberId!, now, jwt.memberId!, now],
-    )
+    await trx
+      .insertInto('flight.aircraftLandingsBaseline')
+      .values({
+        aircraftRegistration,
+        baselineLandings,
+        createdBy: jwt.memberId!,
+        createdAt: now,
+        updatedBy: jwt.memberId!,
+        updatedAt: now,
+      })
+      .onConflict((oc) =>
+        oc.column('aircraftRegistration').doUpdateSet((eb) => ({
+          baselineLandings: eb.ref('excluded.baselineLandings'),
+          updatedBy: eb.ref('excluded.updatedBy'),
+          updatedAt: eb.ref('excluded.updatedAt'),
+        })),
+      )
+      .execute()
 
-    await backfillLandingsFromBaseline(client, aircraftRegistration)
-
-    await client.query('COMMIT')
-  } catch (error) {
-    await client.query('ROLLBACK')
-    throw error
-  } finally {
-    client.release()
-  }
+    await backfillLandingsFromBaseline(trx, aircraftRegistration)
+  })
 }
 
+/**
+ * Three statements of recursive-CTE and window-function SQL, kept verbatim from the
+ * `pool.query` version they replaced — only the `$1` placeholders and the executor
+ * changed. Raw SQL text is never touched by the identifier transformer, so the
+ * snake_case column names in here are correct and must stay; rewriting them as query
+ * builder calls would be a behaviour change dressed up as a refactor.
+ */
 async function backfillLandingsFromBaseline(
-  client: PoolClient,
+  trx: Transaction<CamelDB>,
   aircraftRegistration: string,
 ): Promise<void> {
   // Step 1: Update first logbook's start_landings to baseline
-  await client.query(
-    `
+  await sql`
     WITH first_logbook AS (
       SELECT seq_no FROM flight.aircraft_journey_log_book 
-      WHERE aircraft_registration = $1
+      WHERE aircraft_registration = ${aircraftRegistration}
       ORDER BY seq_no ASC LIMIT 1
     ),
     baseline_val AS (
       SELECT baseline_landings FROM flight.aircraft_landings_baseline
-      WHERE aircraft_registration = $1
+      WHERE aircraft_registration = ${aircraftRegistration}
     )
     UPDATE flight.aircraft_journey_log_book
     SET start_landings = (SELECT baseline_landings FROM baseline_val)
-    WHERE aircraft_registration = $1
+    WHERE aircraft_registration = ${aircraftRegistration}
       AND seq_no = (SELECT seq_no FROM first_logbook)
-    `,
-    [aircraftRegistration],
-  )
+    `.execute(trx)
 
   // Step 2: Update subsequent logbooks using a recursive CTE so each logbook's
   // start_landings correctly accumulates across 3+ logbooks in sequence.
-  await client.query(
-    `
+  await sql`
     WITH RECURSIVE logbook_chain AS (
       SELECT
         ajlb.seq_no,
@@ -306,15 +298,15 @@ async function backfillLandingsFromBaseline(
         COALESCE(
           (SELECT SUM(l.number_of_landings)::int
            FROM flight.logs l
-           WHERE l.aircraft_registration = $1
+           WHERE l.aircraft_registration = ${aircraftRegistration}
              AND l.ajlb_seq_no = ajlb.seq_no
              AND l.status != 'NEW'),
           0
         ) AS landings_in_book
       FROM flight.aircraft_journey_log_book ajlb
-      WHERE ajlb.aircraft_registration = $1
+      WHERE ajlb.aircraft_registration = ${aircraftRegistration}
         AND ajlb.seq_no = (
-          SELECT MIN(seq_no) FROM flight.aircraft_journey_log_book WHERE aircraft_registration = $1
+          SELECT MIN(seq_no) FROM flight.aircraft_journey_log_book WHERE aircraft_registration = ${aircraftRegistration}
         )
       UNION ALL
       SELECT
@@ -323,34 +315,31 @@ async function backfillLandingsFromBaseline(
         COALESCE(
           (SELECT SUM(l.number_of_landings)::int
            FROM flight.logs l
-           WHERE l.aircraft_registration = $1
+           WHERE l.aircraft_registration = ${aircraftRegistration}
              AND l.ajlb_seq_no = next_ajlb.seq_no
              AND l.status != 'NEW'),
           0
         )
       FROM logbook_chain lc
       JOIN flight.aircraft_journey_log_book next_ajlb
-        ON next_ajlb.aircraft_registration = $1
+        ON next_ajlb.aircraft_registration = ${aircraftRegistration}
         AND next_ajlb.seq_no = (
           SELECT MIN(seq_no) FROM flight.aircraft_journey_log_book
-          WHERE aircraft_registration = $1 AND seq_no > lc.seq_no
+          WHERE aircraft_registration = ${aircraftRegistration} AND seq_no > lc.seq_no
         )
     )
     UPDATE flight.aircraft_journey_log_book ajlb
     SET start_landings = lc.new_start_landings
     FROM logbook_chain lc
-    WHERE ajlb.aircraft_registration = $1
+    WHERE ajlb.aircraft_registration = ${aircraftRegistration}
       AND ajlb.seq_no = lc.seq_no
       AND lc.seq_no != (
-        SELECT MIN(seq_no) FROM flight.aircraft_journey_log_book WHERE aircraft_registration = $1
+        SELECT MIN(seq_no) FROM flight.aircraft_journey_log_book WHERE aircraft_registration = ${aircraftRegistration}
       )
-    `,
-    [aircraftRegistration],
-  )
+    `.execute(trx)
 
   // Step 3: Recalculate flight landing totals for all flights
-  await client.query(
-    `
+  await sql`
     UPDATE flight.logs
     SET ajlb_total_landings = cumulative.total_landings
     FROM (
@@ -365,43 +354,35 @@ async function backfillLandingsFromBaseline(
       JOIN flight.aircraft_journey_log_book ajlb
         ON ajlb.aircraft_registration = l.aircraft_registration
         AND ajlb.seq_no = l.ajlb_seq_no
-      WHERE l.aircraft_registration = $1 AND l.status != 'NEW'
+      WHERE l.aircraft_registration = ${aircraftRegistration} AND l.status != 'NEW'
     ) cumulative
     WHERE flight.logs.flight_id = cumulative.flight_id
-    `,
-    [aircraftRegistration],
-  )
+    `.execute(trx)
 }
 
 export async function deleteAircraftLandingsBaseline(
   aircraftRegistration: string,
 ): Promise<boolean> {
-  const client = await connection.pool.connect()
-  try {
-    await client.query('BEGIN')
+  return await connection.camelDb.transaction().execute(async (trx) => {
+    const result = await trx
+      .deleteFrom('flight.aircraftLandingsBaseline')
+      .where('aircraftRegistration', '=', aircraftRegistration)
+      .executeTakeFirst()
 
-    const result = await client.query(
-      'DELETE FROM flight.aircraft_landings_baseline WHERE aircraft_registration = $1',
-      [aircraftRegistration],
-    )
-
-    if ((result.rowCount ?? 0) > 0) {
-      await client.query(
-        'UPDATE flight.aircraft_journey_log_book SET start_landings = 0 WHERE aircraft_registration = $1',
-        [aircraftRegistration],
-      )
-      await client.query(
-        'UPDATE flight.logs SET ajlb_total_landings = NULL WHERE aircraft_registration = $1',
-        [aircraftRegistration],
-      )
+    const removed = (result?.numDeletedRows ?? 0n) > 0n
+    if (removed) {
+      await trx
+        .updateTable('flight.aircraftJourneyLogBook')
+        .set({ startLandings: 0 })
+        .where('aircraftRegistration', '=', aircraftRegistration)
+        .execute()
+      await trx
+        .updateTable('flight.logs')
+        .set({ ajlbTotalLandings: null })
+        .where('aircraftRegistration', '=', aircraftRegistration)
+        .execute()
     }
 
-    await client.query('COMMIT')
-    return (result.rowCount ?? 0) > 0
-  } catch (error) {
-    await client.query('ROLLBACK')
-    throw error
-  } finally {
-    client.release()
-  }
+    return removed
+  })
 }

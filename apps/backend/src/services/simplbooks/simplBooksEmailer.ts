@@ -1,5 +1,5 @@
 import { getMemberById } from '../../db/member-queries.ts'
-import { db } from '../../db/connection.ts'
+import { camelDb } from '../../db/connection.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail, type EmailAttachment } from '../../lib/sendGmail.ts'
 import { getInvoice, getInvoicePdf } from './simplbooksApiClient.ts'
@@ -303,20 +303,20 @@ export async function sendDryRunInvoiceEmail(
     throw new Error(`Member with ID ${memberId} not found`)
   }
 
-  const localInvoice = await db
+  const localInvoice = await camelDb
     .selectFrom('accts.invoice')
     .selectAll()
     .where('id', '=', String(invoiceId))
-    .where('member_id', '=', memberId)
+    .where('memberId', '=', memberId)
     .executeTakeFirst()
 
   if (!localInvoice) {
     throw new Error(`Local invoice ${invoiceId} not found for member ${memberId}`)
   }
 
-  const totalSum = Number(localInvoice.total_sum) || 0
-  const dueDate = localInvoice.due_at
-  const pmt_ref = localInvoice.pmt_ref?.trim()
+  const totalSum = Number(localInvoice.totalSum) || 0
+  const dueDate = localInvoice.dueAt
+  const pmt_ref = localInvoice.pmtRef?.trim()
   const reference = pmt_ref ? pmt_ref.replace(/\s+/g, '') : undefined
 
   const itemsTableHtml = buildItemsTableHtml(tasks, member.lang)
