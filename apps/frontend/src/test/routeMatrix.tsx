@@ -463,6 +463,9 @@ const LocationProbe = () => {
 
 const currentPath = () => screen.getByTestId('pathname').textContent
 
+/** Flushes React's pending work — including recovery from a page that threw — inside `act`. */
+const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
 /**
  * Runs the whole route table as a visitor who is not signed in.
  *
@@ -503,13 +506,27 @@ export const runAnonymousRouteMatrix = () => {
           <AppRoutes />
         </PageBoundary>
       </>,
-      { route: route.url, serverClock: false },
+      {
+        route: route.url,
+        serverClock: false,
+        // A page that throws while React is rendering concurrently makes React
+        // discard that render, retry the root synchronously — where the boundary
+        // below does catch it — and then *report* that it had to. The default
+        // report is `reportError`, which in jsdom escapes as a process-level
+        // unhandled error and fails the run even though every assertion passed.
+        //
+        // Recovering from those pages is the harness's whole design (see
+        // PageBoundary), so the recovery is expected here and is swallowed. Real
+        // failures still surface: the boundary shows, and the route is counted as
+        // unobserved below.
+        onRecoverableError: () => {},
+      },
     )
 
     if (PUBLIC_PATHS.has(path)) {
       // Let whatever the page fetches on mount actually go out, so "no roles
       // request" is a finding rather than a race won.
-      await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+      await settle()
 
       expect(rolesRequests, `${route.url} asked the API who the visitor is`).toEqual([])
       expect(currentPath(), `${route.url} redirected a signed-out visitor away`).toBe(route.url)
