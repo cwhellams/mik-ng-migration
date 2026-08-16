@@ -1,3 +1,4 @@
+import { auditCreate, auditUpdate } from './audit.ts'
 import * as connection from './connection.ts'
 import type {
   AjlbFilter,
@@ -157,10 +158,7 @@ export async function createAjlb(
       startPage: ajlb.startPage,
       startDate: ajlb.startDate,
       endDate: ajlb.endDate,
-      createdBy: jwt.memberId!,
-      createdAt: now,
-      updatedBy: jwt.memberId!,
-      updatedAt: now,
+      ...auditCreate(jwt, now),
     })
     .execute()
 }
@@ -192,8 +190,7 @@ export async function updateAjlb(
       startPage: ajlb.startPage,
       startDate: ajlb.startDate,
       endDate: ajlb.endDate,
-      updatedBy: jwt.memberId!,
-      updatedAt: new Date(),
+      ...auditUpdate(jwt),
     })
     .where('aircraftRegistration', '=', aircraft_registration)
     .where('seqNo', '=', seq_no)
@@ -242,10 +239,7 @@ export async function setAircraftLandingsBaseline(
       .values({
         aircraftRegistration,
         baselineLandings,
-        createdBy: jwt.memberId!,
-        createdAt: now,
-        updatedBy: jwt.memberId!,
-        updatedAt: now,
+        ...auditCreate(jwt, now),
       })
       .onConflict((oc) =>
         oc.column('aircraftRegistration').doUpdateSet((eb) => ({

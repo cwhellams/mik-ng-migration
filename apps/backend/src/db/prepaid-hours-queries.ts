@@ -1,7 +1,7 @@
 import { auditUpdate } from './audit.ts'
 import { db } from './connection.ts'
 import { sql, type Updateable } from 'kysely'
-import type { Json, PrepaidPackages, ShopProducts } from './schema.d.ts'
+import type { PrepaidPackages, ShopProducts } from './schema.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   PrepaidPackage,
@@ -50,6 +50,8 @@ async function loadProductData(productIds: string[]): Promise<Map<string, Produc
     products.map((p) => [
       p.productId,
       {
+        // The columns are jsonb, so the database cannot prove they hold {en,fi,sv}.
+        // Narrowing Json to Localised is the one thing an assertion is actually for.
         name: p.name as unknown as Localised,
         description: p.description as unknown as Localised | null,
         simplbooksItemId: p.simplbooksItemId,
@@ -100,9 +102,7 @@ export async function getPrepaidPackages(aircraftRegistration?: string): Promise
   if (aircraftRegistration) q = q.where('aircraftRegistration', '=', aircraftRegistration)
   const rows = await q.orderBy('expiresAt').execute()
   const productMap = await loadProductData(rows.map((r) => r.productId))
-  return rows.map((r) =>
-    mapPackage(r as unknown as Record<string, unknown>, productMap.get(r.productId)),
-  )
+  return rows.map((r) => mapPackage(r, productMap.get(r.productId)))
 }
 
 export async function getPrepaidPackageById(id: string): Promise<PrepaidPackage | undefined> {
@@ -113,7 +113,7 @@ export async function getPrepaidPackageById(id: string): Promise<PrepaidPackage 
     .executeTakeFirst()
   if (!r) return undefined
   const productMap = await loadProductData([id])
-  return mapPackage(r as unknown as Record<string, unknown>, productMap.get(id))
+  return mapPackage(r, productMap.get(id))
 }
 
 export async function insertPrepaidPackage(
@@ -210,7 +210,7 @@ export async function updatePrepaidPackage(
         en: data.nameEn ?? current?.nameEn ?? '',
         fi: data.nameFi ?? current?.nameFi ?? '',
         sv: data.nameSv ?? current?.nameSv ?? '',
-      } as unknown as Json
+      }
     }
     if (
       data.descriptionEn !== undefined ||
@@ -221,7 +221,7 @@ export async function updatePrepaidPackage(
         en: data.descriptionEn ?? current?.descriptionEn ?? '',
         fi: data.descriptionFi ?? current?.descriptionFi ?? '',
         sv: data.descriptionSv ?? current?.descriptionSv ?? '',
-      } as unknown as Json
+      }
     }
     if (data.vatPercent !== undefined) productUpdate.vatPercent = data.vatPercent
     if (data.simplbooksItemId !== undefined) productUpdate.simplbooksItemId = data.simplbooksItemId
@@ -248,6 +248,9 @@ export async function updatePrepaidPackage(
 // Member packages (owned instances)
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Takes a joined row (member, package and product columns aliased together), not a
+// table row, so DbRow does not describe it. Typing this means declaring the join's
+// shape — a bigger change than the cast cleanup this file is part of.
 function mapMemberPackage(r: Record<string, unknown>): MemberPackage {
   const memberId = r.memberMemberId as string | undefined
   const firstName = r.memberFirstName as string | undefined

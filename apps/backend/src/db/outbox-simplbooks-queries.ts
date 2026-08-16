@@ -124,10 +124,10 @@ export async function getOutboxItems(filters: OutboxFilters) {
     query = query.where('createdAtUtc', '<=', new Date(filters.created_to))
   }
   if (filters.processed_from) {
-    query = query.where('processedAt', '>=', new Date(filters.processed_from) as any)
+    query = query.where('processedAt', '>=', new Date(filters.processed_from))
   }
   if (filters.processed_to) {
-    query = query.where('processedAt', '<=', new Date(filters.processed_to) as any)
+    query = query.where('processedAt', '<=', new Date(filters.processed_to))
   }
 
   return query.orderBy('createdAtUtc', 'desc').limit(200).execute()

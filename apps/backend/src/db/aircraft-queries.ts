@@ -26,9 +26,9 @@ export const getAllAircraft = async (
 
   return Promise.all(
     rows.map(async (row) => {
-      const docs = (await getAllAircraftDocuments({
+      const docs = await getAllAircraftDocuments({
         aircraftRegistration: row.registration,
-      })) as unknown as AircraftDocument[]
+      })
       return toAircraft(row, docs)
     }),
   )
@@ -50,9 +50,9 @@ export const getAircraftByRegistration = async (
   if (row) {
     return toAircraft(
       row,
-      (await getAllAircraftDocuments({
+      await getAllAircraftDocuments({
         aircraftRegistration: row.registration,
-      })) as unknown as AircraftDocument[],
+      }),
     )
   }
 }

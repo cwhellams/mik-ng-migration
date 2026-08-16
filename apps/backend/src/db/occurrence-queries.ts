@@ -225,10 +225,7 @@ export async function createOccurrence(
     id: generateShortId(),
     handling: {},
     attachments: [],
-    createdAt: now.toISOString(),
-    createdBy: user.memberId,
-    updatedAt: now.toISOString(),
-    updatedBy: user.memberId,
+    ...auditCreate(user, now.toISOString()),
   }
 
   await executor
@@ -284,8 +281,7 @@ export async function updateOccurrence(
   const updated: Occurrence = {
     ...existing,
     ...patch,
-    updatedBy: user.memberId,
-    updatedAt: now,
+    ...auditUpdate(user, now),
   }
 
   await executor

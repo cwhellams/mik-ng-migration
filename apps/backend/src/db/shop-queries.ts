@@ -2,7 +2,7 @@ import { mapAudit } from './audit.ts'
 import type { Updateable } from 'kysely'
 
 import type { ShopCategories, ShopDiscountCodes, ShopProducts } from './schema.d.ts'
-import { db } from './connection.ts'
+import { db, type DbRow } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
@@ -72,8 +72,8 @@ export async function insertCategory(data: CategoryUpsert, user: JWTUser): Promi
     .insertInto('shop.categories')
     .values({
       categoryId: id,
-      name: data.name as unknown as Json,
-      description: (data.description as unknown as Json) ?? null,
+      name: data.name,
+      description: data.description ?? null,
       isActive: data.isActive ?? true,
       sortOrder: data.sortOrder ?? 0,
       createdBy: user.memberId,
@@ -210,11 +210,11 @@ async function fillAircraftImages(products: Product[]): Promise<void> {
   }
 }
 
-function mapProduct(r: Record<string, unknown>): Product {
+function mapProduct(r: DbRow<'shop.products'>): Product {
   return {
-    productId: r.productId as string,
-    categoryId: r.categoryId as string,
-    simplbooksItemId: r.simplbooksItemId as string | null,
+    productId: r.productId,
+    categoryId: r.categoryId,
+    simplbooksItemId: r.simplbooksItemId,
     productType: r.productType as Product['productType'],
     name: r.name as Product['name'],
     description: r.description as Product['description'],
@@ -223,22 +223,13 @@ function mapProduct(r: Record<string, unknown>): Product {
     stockQuantity: Number(r.stockQuantity),
     lowStockThreshold: r.lowStockThreshold != null ? Number(r.lowStockThreshold) : null,
     maxOrderQuantity: r.maxOrderQuantity != null ? Number(r.maxOrderQuantity) : null,
-    isActive: r.isActive as boolean,
-    isPublished: r.isPublished as boolean,
+    isActive: r.isActive,
+    isPublished: r.isPublished,
     tags: r.tags as string[],
     metadata: r.metadata as Record<string, unknown> | null,
-    imageUrl: r.imageUrl as string | null,
+    imageUrl: r.imageUrl,
     hasOrders: false,
-    createdAt: (r.createdAt instanceof Date
-      ? r.createdAt
-      : new Date(r.createdAt as string)
-    ).toISOString(),
-    createdBy: r.createdBy as string,
-    updatedAt: (r.updatedAt instanceof Date
-      ? r.updatedAt
-      : new Date(r.updatedAt as string)
-    ).toISOString(),
-    updatedBy: r.updatedBy as string,
+    ...mapAudit(r),
   }
 }
 
@@ -251,8 +242,8 @@ export async function insertProduct(data: ProductUpsert, user: JWTUser): Promise
       categoryId: data.categoryId,
       simplbooksItemId: data.simplbooksItemId ?? null,
       productType: data.productType ?? 'STANDARD',
-      name: data.name as unknown as Json,
-      description: (data.description as unknown as Json) ?? null,
+      name: data.name,
+      description: data.description ?? null,
       price: data.price,
       vatPercent: data.vatPercent ?? 24,
       stockQuantity: data.stockQuantity ?? 0,
@@ -260,8 +251,10 @@ export async function insertProduct(data: ProductUpsert, user: JWTUser): Promise
       maxOrderQuantity: data.maxOrderQuantity ?? null,
       isActive: data.isActive ?? true,
       isPublished: data.isPublished ?? false,
-      tags: (data.tags ?? []) as unknown as string[],
-      metadata: (data.metadata as unknown as Json) ?? null,
+      tags: data.tags ?? [],
+      // The contract types metadata as Record<string, unknown>, so its values are not
+      // provably JSON. This is the boundary where that assumption is made.
+      metadata: (data.metadata as Json | undefined) ?? null,
       imageUrl: data.imageUrl ?? null,
       createdBy: user.memberId,
       updatedBy: user.memberId,
@@ -291,7 +284,7 @@ export async function updateProduct(
   if (data.maxOrderQuantity !== undefined) update.maxOrderQuantity = data.maxOrderQuantity
   if (data.isActive !== undefined) update.isActive = data.isActive
   if (data.isPublished !== undefined) update.isPublished = data.isPublished
-  if (data.tags !== undefined) update.tags = data.tags as unknown as string[]
+  if (data.tags !== undefined) update.tags = data.tags
   if (data.metadata !== undefined) update.metadata = data.metadata as JsonValue
   if (data.imageUrl !== undefined) update.imageUrl = data.imageUrl
   await db.updateTable('shop.products').set(update).where('productId', '=', id).execute()
@@ -366,7 +359,7 @@ export async function upsertProductProperty(
     await db
       .updateTable('shop.productProperties')
       .set({
-        name: data.name as unknown as Json,
+        name: data.name,
         isRequired: data.isRequired,
         sortOrder: data.sortOrder,
       })
@@ -378,7 +371,7 @@ export async function upsertProductProperty(
       .insertInto('shop.productProperties')
       .values({
         productId: productId,
-        name: data.name as unknown as Json,
+        name: data.name,
         isRequired: data.isRequired,
         sortOrder: data.sortOrder,
       })
@@ -392,7 +385,7 @@ export async function upsertProductProperty(
       await db
         .updateTable('shop.productPropertyOptions')
         .set({
-          value: opt.value as unknown as Json,
+          value: opt.value,
           sortOrder: opt.sortOrder,
           isActive: opt.isActive,
           stockQuantity: opt.stockQuantity ?? null,
@@ -404,7 +397,7 @@ export async function upsertProductProperty(
         .insertInto('shop.productPropertyOptions')
         .values({
           propertyId: propertyId,
-          value: opt.value as unknown as Json,
+          value: opt.value,
           sortOrder: opt.sortOrder,
           isActive: opt.isActive,
           stockQuantity: opt.stockQuantity ?? null,
@@ -596,6 +589,8 @@ function isDiscountCodeApplicableToCart(code: DiscountCode, cart: Cart): boolean
   })
 }
 
+// Takes the discount-code row plus an aggregated categoryIds column, so DbRow alone
+// does not describe it.
 function mapDiscountCode(r: Record<string, unknown>): DiscountCode {
   return {
     codeId: r.codeId as number,
@@ -832,7 +827,7 @@ export async function addCartItem(memberId: string, data: CartItemUpsert): Promi
         cartId: cartId,
         productId: data.productId,
         quantity: data.quantity,
-        selectedOptions: (selectedOptions as unknown as Json) ?? null,
+        selectedOptions: selectedOptions ?? null,
       })
       .execute()
   }
@@ -1242,13 +1237,13 @@ export async function createOrderFromCart(
       quantity: item.quantity,
       unitPrice: unitPrice,
       totalPrice: totalPrice,
-      selectedOptions: (item.selectedOptions as unknown as Json) ?? null,
+      selectedOptions: item.selectedOptions ?? null,
       productSnapshot: {
         name: item.product?.name,
         description: item.product?.description,
         price: unitPrice,
         simplbooksItemId: item.product?.simplbooksItemId,
-      } as unknown as Json,
+      },
     }
   })
 

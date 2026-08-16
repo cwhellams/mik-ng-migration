@@ -12,16 +12,20 @@ import type { Auditable } from '@mik/contracts/schema'
  * Not every site can use them, and the three that cannot are worth knowing:
  *
  *   - Inserts that set only `createdBy`/`updatedBy` and let the column defaults supply
- *     the timestamps. Using `auditCreate` there would move the clock from Postgres to
- *     the app, which is a behaviour change, not a refactor.
- *   - Mappers whose row is typed `Record<string, unknown>` (`shop-queries`,
- *     `prepaid-hours-queries`). `mapAudit` wants a typed quadruple, and giving it one
- *     means typing those rows properly — the separate `as any` problem from the same
- *     issue, not this one.
- *   - Tables that track only the timestamps, with no `created_by`/`updated_by` columns
- *     at all (`prepaid.member_packages`). A bare `updatedAt: now` next to a sibling
- *     statement using `auditUpdate` looks like an oversight and has been reported as
- *     one; it is the table's shape. Check the schema before "fixing" it.
+ *     the timestamps, which `schema.d.ts` shows as `Generated<Timestamp>`
+ *     (`inventory.locations`, `inventory.categories`, `inventory.items`). Using
+ *     `auditCreate` there would move the clock from Postgres to the app, which is a
+ *     behaviour change, not a refactor.
+ *   - Mappers whose row is typed `Record<string, unknown>`. `mapAudit` wants a typed
+ *     quadruple. Most of those rows have since been typed, but four remain because they
+ *     receive a *joined* row — member, package and product columns aliased together —
+ *     which no single table type describes.
+ *   - Tables that do not have the whole quadruple. Some track only the timestamps, with
+ *     no `created_by`/`updated_by` columns at all (`prepaid.member_packages`); others
+ *     track only the created half, with no `updated_*` pair (`member.member_to_roles`).
+ *     A bare `updatedAt: now`, or a hand-written `createdBy`/`createdAt` next to a
+ *     sibling statement using the helpers, looks like an oversight and has been reported
+ *     as one; it is the table's shape. Check the schema before "fixing" it.
  */
 
 /** Anything that identifies the acting member — a JWT user, a member row, or a raw id. */

@@ -165,6 +165,28 @@ columns the contract does not have**. Those mappers are performing a _projection
 rename: the field list is load-bearing, and deleting it would leak. So roughly half of the
 identity-looking lines in this layer are not redundant, whatever they look like.
 
+## Casts in this layer should be rare, and each should say why
+
+The db layer carried 89 `as any` / `as unknown as` assertions. Removing them one at a time
+and letting the compiler judge showed that **79 were dead weight** — mostly left over from
+before the CamelCasePlugin migration, when the row and contract spellings differed. Ten
+remain, and each is commented in place. They fall into three honest categories:
+
+- **Narrowing `Json` to a shape the database cannot prove.** A `jsonb` column is
+  `Json`; only the application knows it holds `{en,fi,sv}`. See `prepaid-hours-queries`.
+- **A generic helper that cannot name a column.** `applyYearFilter` in `stats-queries`
+  is generic over forty views, so `yr` cannot be resolved against a concrete table.
+- **A row that is not the table's row.** `ame-queries` maps an insert's `RETURNING` row
+  through a type describing the _list_ query's joined row.
+
+If you add one, add the reason with it. `Localised` is assignable to `Json` and Kysely's
+inferred row types are usually right — most of the 79 were asserting something already
+true.
+
+Four mapper parameters are still `Record<string, unknown>`, all for the same reason: they
+receive a **joined** row that no single table type describes. Typing those means declaring
+the join's shape, which is worth doing but is not a cast cleanup.
+
 ## Rename identifiers, never data
 
 The single most common way to break a rename, and the compiler catches almost none of it.

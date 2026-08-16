@@ -55,6 +55,9 @@ const applyYearFilter = <DB, TB extends keyof DB, O>(
 ): SelectQueryBuilder<DB, TB, O> => {
   if (!filters) return query
 
+  // This helper is generic over every stats view, so `yr` cannot be resolved against a
+  // concrete table. Every view it is applied to has the column; the casts are the price
+  // of one filter helper instead of forty copies.
   if (filters.yr) {
     return query.where('yr' as any, '=', filters.yr)
   }

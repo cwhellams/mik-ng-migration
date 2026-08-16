@@ -1,3 +1,4 @@
+import { auditUpdate } from './audit.ts'
 import { noExtraKeys } from './rowToContract.ts'
 import type { Updateable } from 'kysely'
 import { db } from './connection.ts'
@@ -13,7 +14,7 @@ import type {
   InventoryFilters,
   InventoryAuditLogEntry,
 } from '@mik/contracts/inventory'
-import type { Json, InventoryCategories, InventoryLocations } from './schema.d.ts'
+import type { InventoryCategories, InventoryItems, InventoryLocations, Json } from './schema.d.ts'
 import type { DB } from './schema.d.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
 
@@ -57,7 +58,7 @@ export async function getLocations(activeOnly = true): Promise<InventoryLocation
   let q = db.selectFrom('inventory.locations').selectAll()
   if (activeOnly) q = q.where('isActive', '=', true)
   const rows = await q.orderBy('sortOrder').execute()
-  return rows.map((r) => toLocation(r as unknown as LocationRow))
+  return rows.map((r) => toLocation(r))
 }
 
 export async function getLocationById(id: string): Promise<InventoryLocation | undefined> {
@@ -66,7 +67,7 @@ export async function getLocationById(id: string): Promise<InventoryLocation | u
     .selectAll()
     .where('locationId', '=', id)
     .executeTakeFirst()
-  return r ? toLocation(r as unknown as LocationRow) : undefined
+  return r ? toLocation(r) : undefined
 }
 
 export async function upsertLocation(
@@ -74,13 +75,9 @@ export async function upsertLocation(
   user: JWTUser,
 ): Promise<InventoryLocation> {
   if (data.locationId) {
-    const update: Updateable<InventoryLocations> = {
-      updatedBy: user.memberId,
-      updatedAt: new Date(),
-    }
-    if (data.name !== undefined) update.name = data.name as unknown as Json
-    if (data.description !== undefined)
-      update.description = (data.description as unknown as Json) ?? null
+    const update: Updateable<InventoryLocations> = { ...auditUpdate(user) }
+    if (data.name !== undefined) update.name = data.name
+    if (data.description !== undefined) update.description = data.description ?? null
     if (data.isActive !== undefined) update.isActive = data.isActive
     if (data.sortOrder !== undefined) update.sortOrder = data.sortOrder
 
@@ -96,8 +93,8 @@ export async function upsertLocation(
       .insertInto('inventory.locations')
       .values({
         locationId: id,
-        name: data.name as unknown as Json,
-        description: (data.description as unknown as Json) ?? null,
+        name: data.name,
+        description: data.description ?? null,
         isActive: data.isActive ?? true,
         sortOrder: data.sortOrder ?? 0,
         createdBy: user.memberId,
@@ -138,7 +135,7 @@ export async function getCategories(activeOnly = true): Promise<InventoryCategor
   let q = db.selectFrom('inventory.categories').selectAll()
   if (activeOnly) q = q.where('isActive', '=', true)
   const rows = await q.orderBy('sortOrder').execute()
-  return rows.map((r) => toCategory(r as unknown as CategoryRow))
+  return rows.map((r) => toCategory(r))
 }
 
 export async function getCategoryById(id: string): Promise<InventoryCategory | undefined> {
@@ -147,7 +144,7 @@ export async function getCategoryById(id: string): Promise<InventoryCategory | u
     .selectAll()
     .where('categoryId', '=', id)
     .executeTakeFirst()
-  return r ? toCategory(r as unknown as CategoryRow) : undefined
+  return r ? toCategory(r) : undefined
 }
 
 export async function upsertCategory(
@@ -155,13 +152,9 @@ export async function upsertCategory(
   user: JWTUser,
 ): Promise<InventoryCategory> {
   if (data.categoryId) {
-    const update: Updateable<InventoryCategories> = {
-      updatedBy: user.memberId,
-      updatedAt: new Date(),
-    }
-    if (data.name !== undefined) update.name = data.name as unknown as Json
-    if (data.description !== undefined)
-      update.description = (data.description as unknown as Json) ?? null
+    const update: Updateable<InventoryCategories> = { ...auditUpdate(user) }
+    if (data.name !== undefined) update.name = data.name
+    if (data.description !== undefined) update.description = data.description ?? null
     if (data.isActive !== undefined) update.isActive = data.isActive
     if (data.sortOrder !== undefined) update.sortOrder = data.sortOrder
 
@@ -177,8 +170,8 @@ export async function upsertCategory(
       .insertInto('inventory.categories')
       .values({
         categoryId: id,
-        name: data.name as unknown as Json,
-        description: (data.description as unknown as Json) ?? null,
+        name: data.name,
+        description: data.description ?? null,
         isActive: data.isActive ?? true,
         sortOrder: data.sortOrder ?? 0,
         createdBy: user.memberId,
@@ -276,7 +269,7 @@ export async function getItems(filters?: InventoryFilters): Promise<InventoryIte
     q = q.where('i.locationId', '=', filters.locationId)
   }
   if (filters?.itemType) {
-    q = q.where('i.itemType', '=', filters.itemType as any)
+    q = q.where('i.itemType', '=', filters.itemType)
   }
   if (filters?.search) {
     const term = `%${filters.search}%`
@@ -338,7 +331,7 @@ export async function getItemById(id: string): Promise<InventoryItem | undefined
     .executeTakeFirst()
   if (!r) return undefined
 
-  const itemRow = r as unknown as ItemRow
+  const itemRow = r
   const categoryRow = itemRow.categoryId ? await getCategoryRowById(itemRow.categoryId) : undefined
   const locationRow = itemRow.locationId ? await getLocationRowById(itemRow.locationId) : null
 
@@ -351,7 +344,7 @@ async function getCategoryRowById(id: string): Promise<CategoryRow | undefined> 
     .selectAll()
     .where('categoryId', '=', id)
     .executeTakeFirst()
-  return r ? (r as unknown as CategoryRow) : undefined
+  return r ? r : undefined
 }
 
 async function getLocationRowById(id: string): Promise<LocationRow | undefined> {
@@ -360,7 +353,7 @@ async function getLocationRowById(id: string): Promise<LocationRow | undefined> 
     .selectAll()
     .where('locationId', '=', id)
     .executeTakeFirst()
-  return r ? (r as unknown as LocationRow) : undefined
+  return r ? r : undefined
 }
 
 export async function upsertItem(data: InventoryItemUpsert, user: JWTUser): Promise<InventoryItem> {
@@ -373,46 +366,49 @@ export async function upsertItem(data: InventoryItemUpsert, user: JWTUser): Prom
     // changed fields for the audit log. `quantity` is intentionally NOT editable
     // here — stock is only ever changed through adjustQuantity so that every
     // movement is captured as a QUANTITY_CHANGE audit entry.
-    const update: Record<string, unknown> = {
-      updatedBy: user.memberId,
-      updatedAt: new Date(),
+    // `set` used to take a snake_case DB key *and* a camelCase contract key, because the
+    // two spellings differed. They are the same now, so it takes one — and typing the
+    // patch as Updateable means a wrong column is a compile error rather than something
+    // the `as any` on .set() used to swallow.
+    const update: Updateable<InventoryItems> = { ...auditUpdate(user) }
+    const changed: Record<string, Json> = {}
+    const set = <K extends keyof Updateable<InventoryItems> & keyof InventoryItem>(
+      key: K,
+      value: Updateable<InventoryItems>[K] & Json,
+    ) => {
+      update[key] = value
+      changed[key] = value
     }
-    const changed: Record<string, unknown> = {}
-    const set = <T>(dbKey: string, camelKey: keyof InventoryItem, value: T) => {
-      update[dbKey] = value
-      changed[camelKey as string] = value
-    }
-    if (data.categoryId !== undefined) set('category_id', 'categoryId', data.categoryId)
-    if (data.locationId !== undefined) set('location_id', 'locationId', data.locationId ?? null)
-    if (data.itemType !== undefined) set('item_type', 'itemType', data.itemType)
-    if (data.name !== undefined) set('name', 'name', data.name as unknown as Json)
-    if (data.description !== undefined)
-      set('description', 'description', (data.description as unknown as Json) ?? null)
+    if (data.categoryId !== undefined) set('categoryId', data.categoryId)
+    if (data.locationId !== undefined) set('locationId', data.locationId ?? null)
+    if (data.itemType !== undefined) set('itemType', data.itemType)
+    if (data.name !== undefined) set('name', data.name)
+    if (data.description !== undefined) set('description', data.description ?? null)
     if (data.lowStockThreshold !== undefined)
-      set('low_stock_threshold', 'lowStockThreshold', data.lowStockThreshold ?? null)
-    if (data.condition !== undefined) set('condition', 'condition', data.condition)
-    if (data.serialNumber !== undefined)
-      set('serial_number', 'serialNumber', data.serialNumber ?? null)
-    if (data.imageUrl !== undefined) set('image_url', 'imageUrl', data.imageUrl ?? null)
-    if (data.notes !== undefined) set('notes', 'notes', data.notes ?? null)
-    if (data.tags !== undefined) set('tags', 'tags', data.tags)
-    if (data.isActive !== undefined) set('is_active', 'isActive', data.isActive)
+      set('lowStockThreshold', data.lowStockThreshold ?? null)
+    if (data.condition !== undefined) set('condition', data.condition)
+    if (data.serialNumber !== undefined) set('serialNumber', data.serialNumber ?? null)
+    if (data.imageUrl !== undefined) set('imageUrl', data.imageUrl ?? null)
+    if (data.notes !== undefined) set('notes', data.notes ?? null)
+    if (data.tags !== undefined) set('tags', data.tags)
+    if (data.isActive !== undefined) set('isActive', data.isActive)
 
-    const oldValues: Record<string, unknown> = {}
+    const oldValues: Record<string, Json> = {}
     if (before) {
+      // `before` is the contract shape, read here by the same keys the patch used.
+      // Several of those fields are optional, so an absent one reads as `undefined`
+      // rather than a Json value — saying so is what makes the `?? null` below
+      // meaningful instead of decorative.
+      const previous = before as unknown as Record<string, Json | undefined>
       for (const key of Object.keys(changed)) {
-        oldValues[key] = (before as unknown as Record<string, unknown>)[key] ?? null
+        oldValues[key] = previous[key] ?? null
       }
     }
 
     // Item update and its audit entry must commit together — a partial write
     // would leave a gap in the audit trail.
     await db.transaction().execute(async (txn) => {
-      await txn
-        .updateTable('inventory.items')
-        .set(update as any)
-        .where('itemId', '=', itemId)
-        .execute()
+      await txn.updateTable('inventory.items').set(update).where('itemId', '=', itemId).execute()
 
       await writeAuditLog(txn, itemId, user.memberId, 'UPDATED', oldValues, changed)
     })
@@ -427,12 +423,12 @@ export async function upsertItem(data: InventoryItemUpsert, user: JWTUser): Prom
           itemId: id,
           categoryId: data.categoryId,
           locationId: data.locationId ?? null,
-          itemType: (data.itemType ?? 'CONSUMABLE') as any,
-          name: data.name as unknown as Json,
-          description: (data.description as unknown as Json) ?? null,
+          itemType: data.itemType ?? 'CONSUMABLE',
+          name: data.name,
+          description: data.description ?? null,
           quantity: data.quantity ?? 0,
           lowStockThreshold: data.lowStockThreshold ?? null,
-          condition: (data.condition ?? 'UNKNOWN') as any,
+          condition: data.condition ?? 'UNKNOWN',
           serialNumber: data.serialNumber ?? null,
           imageUrl: data.imageUrl ?? null,
           notes: data.notes ?? null,
@@ -464,8 +460,7 @@ export async function adjustQuantity(
       .updateTable('inventory.items')
       .set({
         quantity: sql`quantity + ${delta}`,
-        updatedBy: user.memberId,
-        updatedAt: new Date() as any,
+        ...auditUpdate(user),
       })
       .where('itemId', '=', itemId)
       .where(sql<boolean>`quantity + ${delta} >= 0`)
@@ -505,8 +500,8 @@ async function writeAuditLog(
   itemId: string,
   memberId: string,
   changeType: string,
-  oldValue: Record<string, unknown> | null,
-  newValue: Record<string, unknown> | null,
+  oldValue: Json | null,
+  newValue: Json | null,
   notes?: string | null,
 ): Promise<void> {
   await executor
@@ -515,8 +510,8 @@ async function writeAuditLog(
       itemId: itemId,
       memberId: memberId,
       changeType: changeType,
-      oldValue: oldValue ? (oldValue as unknown as Json) : null,
-      newValue: newValue ? (newValue as unknown as Json) : null,
+      oldValue: oldValue ? oldValue : null,
+      newValue: newValue ? newValue : null,
       notes: notes ?? null,
     })
     .execute()

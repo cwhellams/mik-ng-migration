@@ -337,10 +337,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
 
       langIso639: member.lang,
       applicationData: member.applicationData ? JSON.stringify(member.applicationData) : undefined,
-      createdAt: now,
-      createdBy: jwt?.memberId ?? new_member_id,
-      updatedAt: now,
-      updatedBy: jwt?.memberId ?? new_member_id,
+      ...auditCreate(jwt?.memberId ?? new_member_id, now),
     })
     .returning('memberId')
     .executeTakeFirstOrThrow()
@@ -462,7 +459,7 @@ export async function setMustUpdateProfileBulk(
   if (memberIds.length === 0) return 0
   const result = await db
     .updateTable('member.register')
-    .set({ mustUpdateProfile: value, updatedAt: new Date(), updatedBy: jwt.memberId })
+    .set({ mustUpdateProfile: value, ...auditUpdate(jwt) })
     .where('memberId', 'in', memberIds)
     .executeTakeFirst()
   return Number(result.numUpdatedRows)
@@ -471,7 +468,7 @@ export async function setMustUpdateProfileBulk(
 export async function clearMustUpdateProfile(memberId: string, jwt: JWTUser): Promise<void> {
   await db
     .updateTable('member.register')
-    .set({ mustUpdateProfile: false, updatedAt: new Date(), updatedBy: jwt.memberId })
+    .set({ mustUpdateProfile: false, ...auditUpdate(jwt) })
     .where('memberId', '=', memberId)
     .where('mustUpdateProfile', '=', true)
     .execute()
@@ -641,10 +638,7 @@ export async function addMemberRole(role: Upsert<MemberRole>, jwt: JWTUser): Pro
   }
   return {
     ...role,
-    createdAt: now.toISOString(),
-    createdBy: jwt.memberId,
-    updatedAt: now.toISOString(),
-    updatedBy: jwt.memberId,
+    ...auditCreate(jwt, now.toISOString()),
   }
 }
 
@@ -717,8 +711,7 @@ export async function suspendMemberReservations(memberId: string): Promise<void>
     .updateTable('member.register')
     .set({
       canMakeReservations: false,
-      updatedAt: new Date(),
-      updatedBy: 'k1mnimda',
+      ...auditUpdate('k1mnimda'),
     })
     .where('memberId', '=', memberId)
     .execute()
@@ -732,8 +725,7 @@ export async function restoreMemberReservations(memberId: string): Promise<void>
     .updateTable('member.register')
     .set({
       canMakeReservations: true,
-      updatedAt: new Date(),
-      updatedBy: 'k1mnimda',
+      ...auditUpdate('k1mnimda'),
     })
     .where('memberId', '=', memberId)
     .execute()
@@ -951,8 +943,7 @@ export async function promoteMemberToFlying(memberId: string): Promise<void> {
     .updateTable('member.register')
     .set({
       memberType: MIKMemberTypes.FLYING,
-      updatedAt: now,
-      updatedBy: 'k1mnimda',
+      ...auditUpdate('k1mnimda', now),
     })
     .where('memberId', '=', memberId)
     .execute()
