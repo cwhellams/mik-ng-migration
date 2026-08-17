@@ -128,6 +128,7 @@
     "selectAccidentHistory": "Vastaa onnettomuushistoriakysymykseen",
     "selectCriminalRecord": "Vastaa rikosrekisterikysymykseen",
     "juniorAgeError": "Nuorisojäsenyys on tarkoitettu alle 18-vuotiaille",
+    "juniorMinAgeError": "Valitettavasti kerhon jäseneksi voi liittyä vasta 15 vuotta täytettyään. Tervetuloa hakemaan jäsenyyttä, kun täytät 15 vuotta!",
     "juniorRecommended": "Syntymäaikasi perusteella voit olla oikeutettu nuorisojäsenyyteen",
     "dateOfBirthRequired": "Anna kelvollinen syntymäaika",
     "pilotLicenceType": "Lupakirjatyyppi",
