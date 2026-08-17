@@ -156,6 +156,11 @@ describe('EditAircraftModal new mode', () => {
     // A complete new-aircraft submission needs every one of the form's many
     // required fields, including selects; the details/PATCH path above covers
     // the same save logic and is the common case.
+    //
+    // Blocked on the form rather than on test effort — this is one of the three
+    // that layer native `required` over hand-rolled checks, so it comes with the
+    // react-hook-form + zodResolver conversion in #1115 §9, item 5. (#1116
+    // phase 7 was dropped.)
     'posts a complete new aircraft',
   )
 })

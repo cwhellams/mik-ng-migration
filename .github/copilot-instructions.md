@@ -112,6 +112,45 @@ After making changes, always test:
 4. **Schema Generation**: Run `pnpm schema` in apps/backend after database changes
 5. **Code Quality**: Run `pnpm format` before committing changes
 
+## Testing Policy
+
+**A change that alters behaviour brings tests for the behaviour it alters.** Not a
+separate task, not a follow-up issue — the same PR.
+
+This is deliberate policy, not a nicety. The frontend suite went from 3 test files to 99
+(~17k lines) in one dedicated effort, #1116. That effort is what closed the gap; this
+policy is what stops it reopening, and both were agreed in that issue. The coverage
+ratchet in CI enforces only the weaker half: it stops a directory's percentage _falling_,
+but a PR that adds one well-covered module and one untested one passes it comfortably.
+
+Where the tests go:
+
+| Area                 | Location                                              |
+| -------------------- | ----------------------------------------------------- |
+| `apps/backend`       | `test/`, mirroring `src/routes/<domain>/`             |
+| `apps/frontend`      | colocated `*.test.ts` / `*.test.tsx` next to the code |
+| `packages/contracts` | `packages/contracts/test/`                            |
+
+Rules that follow from it:
+
+- **Anything behind a permission gate is tested against the whole identity set**, never
+  just the happy path — the backend's admin / member / no-permissions token triad, and
+  `authScenarios` on the frontend. A gate with one test is a gate tested from the inside
+  only.
+- **Fixing a bug means writing the test that fails without the fix first.** Every defect in
+  #1132 was closed that way, and the test is the part that stops it coming back.
+- **If your change pushes a directory's coverage up, raise its bar in the same PR** —
+  `coverage.thresholds` in `apps/frontend/vitest.config.ts`. Bars may only ever be raised.
+- **Test decisions, not markup.** No snapshot tests. Pure-layout JSX, generated files and
+  config are genuinely out of scope, and saying so in the PR is a fine answer.
+- **When something is genuinely untestable today, say why in an `it.todo` with a comment
+  naming the blocker** — not a silent omission. The handful in the frontend suite are
+  blocked on forms that layer native `required` over hand-rolled validation, and point at
+  the issue that will unblock them.
+
+`apps/frontend/src/test/README.md` is the frontend harness guide — read it before writing
+a frontend test rather than re-inventing providers, fixtures or API stubs.
+
 ## Critical Timing Information
 
 **NEVER CANCEL** the following operations:
