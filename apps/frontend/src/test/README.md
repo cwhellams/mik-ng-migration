@@ -205,7 +205,7 @@ actually achieves:
 | `src/hooks/**`                                 | 97         | 93       | 99        |
 | `src/components/**`                            | 92         | 88       | 86        |
 | `src/{*,lib/**,layouts/**,theme/**,config/**}` | 71         | 46       | 68        |
-| `src/utils/**`                                 | 53         | 49       | 65        |
+| `src/utils/**`                                 | 61         | 55       | 76        |
 | `src/sections/**`                              | 40         | 34       | 26        |
 | _(all files, as a backstop)_                   | 44         | 37       | 31        |
 

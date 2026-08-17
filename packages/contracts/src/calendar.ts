@@ -6,13 +6,24 @@ import type { Booking } from './bookings.ts'
 // server-only parts (ORGANIZER, ATTENDEE) are arguments rather than env reads,
 // because this module is also loaded by the browser.
 
-const formatIcsDate = (epoch: string): string => {
-  const d = new Date(Number(epoch) * 1000)
-  return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
-}
+/**
+ * A `Date` as an ICS UTC timestamp (`20260314T090000Z`).
+ *
+ * Exported because the frontend also builds an ICS for club events, and had its
+ * own copy of this line plus `escapeIcsText` (issue #1115, finding 8 — the same
+ * finding, for the other entity). What differs between bookings and events is
+ * only how the instant is *parsed*: a booking carries epoch seconds, an event
+ * carries an ISO string. The formatting is identical, so that is what is shared.
+ */
+export const toIcsUtc = (date: Date): string =>
+  date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
-const escapeIcsText = (text: string): string =>
+/** Escapes the characters RFC 5545 gives special meaning inside a text value. */
+export const escapeIcsText = (text: string): string =>
   text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
+
+/** Booking times are stored as epoch seconds. */
+const formatIcsDate = (epoch: string): string => toIcsUtc(new Date(Number(epoch) * 1000))
 
 export interface BookingIcsOptions {
   /** REQUEST creates or updates the event in the invitee's calendar, CANCEL withdraws it. */
@@ -27,7 +38,7 @@ export const buildBookingIcs = (
   booking: Booking,
   { method, organizerEmail, attendeeEmail }: BookingIcsOptions,
 ): string => {
-  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+  const now = toIcsUtc(new Date())
 
   const lines = [
     'BEGIN:VCALENDAR',

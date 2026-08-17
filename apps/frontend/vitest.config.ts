@@ -131,7 +131,10 @@ export default defineConfig({
           branches: 46,
           functions: 68,
         },
-        'src/utils/**': { statements: 53, branches: 49, functions: 65 },
+        // 53/49/65 -> 61/55/76: #1115 finding 8 brought the two calendar modules
+        // and the extracted icsDownload under test (54.5% -> 62.9% statements for
+        // the directory). Raised in the PR that earned it, per the rule above.
+        'src/utils/**': { statements: 61, branches: 55, functions: 76 },
         'src/sections/**': { statements: 40, branches: 34, functions: 26 },
       },
     },

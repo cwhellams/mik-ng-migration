@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { AuditableSchema, BooleanSchema } from './schema.ts'
+import { AuditableSchema, BooleanSchema, LocalisedSchema } from './schema.ts'
 
 export enum MIKPermissions {
   // can see other club members and their public roles
@@ -171,16 +171,14 @@ export enum MIKLang {
 
 // roles endpoint
 
-export const LocalizedSchema = z.object({
-  [MIKLang.EN]: z.string(),
-  [MIKLang.FI]: z.string(),
-  [MIKLang.SV]: z.string(),
-})
-
 export const MemberRoleSchema = AuditableSchema.extend({
   roleId: z.string().max(20),
   description: z.string().nullable(),
-  name: LocalizedSchema,
+  // Was a `LocalizedSchema` declared here — the same `{en, fi, sv}` object as
+  // `LocalisedSchema` in ./schema.ts, spelled with a z and built from computed
+  // MIKLang keys, used by this one field while the other was used twenty times
+  // over. Issue #1115 finding 3 is about exactly this shape being defined twice.
+  name: LocalisedSchema,
   isPublic: z.boolean(),
   permissions: z.array(z.nativeEnum(MIKPermissions)),
 })
