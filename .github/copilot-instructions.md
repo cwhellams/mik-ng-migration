@@ -357,10 +357,17 @@ When asked to generate a changelog:
 
 The GitHub Actions workflows require:
 
-- ESLint error count below each project's ratchet (frontend 15, backend 83, `packages/contracts` 0)
+- ESLint error count below each project's ratchet (frontend 15, backend 79, `packages/contracts` 0)
 - Prettier formatting compliance (`pnpm format:check`)
 - Successful build completion
 - PostgreSQL service for backend tests
+- Frontend test coverage above each directory's ratchet, enforced by
+  `coverage.thresholds` in `apps/frontend/vitest.config.ts` — the bars are per directory
+  (`src/hooks`, `src/components`, `src/utils`, `src/sections`, and one shared bar for the
+  small remainder) rather than one global number, and **may only ever be raised**. The
+  rationale and the current numbers are documented there and in
+  `apps/frontend/src/test/README.md`. Backend coverage is still collected and uploaded as
+  an artifact but is not gated.
 
 Both app workflows also trigger on `packages/**`, since a change to `@mik/contracts` can
 break either app.

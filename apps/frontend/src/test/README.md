@@ -185,8 +185,47 @@ repeatedly there:
 - Assert on real strings (the harness pins English), not on `t()` keys.
 - Prefer role-based queries (`getByRole`) over test IDs.
 - Anything with a permission gate gets tested against the scenarios above, not just the happy path.
-- Coverage is reported, not enforced. Thresholds arrive with the ratchet in phase 6 of #1116, and
-  will be **per directory** rather than one global bar — `src/sections` is 90% of the codebase and
-  much of its coverage comes from the route matrix rendering pages it does not assert on, so a
-  global number would ratchet against page rendering while letting `hooks/` and `components/`
-  regress freely. The measurements behind that decision are in `vitest.config.ts`.
+- Coverage is **enforced**, per directory. See below.
+
+## The coverage ratchet
+
+`pnpm test:coverage` fails when any directory drops below its bar. The bars live in
+`coverage.thresholds` in `vitest.config.ts`, and that is the whole gate — the CI workflow just runs
+the command.
+
+They are **per directory** rather than one global bar because `src/sections` is 90% of the
+codebase, so a global number would be very nearly `src/sections`'s number: it would ratchet against
+the route matrix rendering pages it does not assert on, while leaving `hooks/` free to fall from 98%
+to 50% without the total moving much. Today's bars, each set about a point under what the suite
+actually achieves:
+
+| Directory                                      | Statements | Branches | Functions |
+| ---------------------------------------------- | ---------- | -------- | --------- |
+| `src/hooks/**`                                 | 97         | 93       | 99        |
+| `src/components/**`                            | 92         | 88       | 86        |
+| `src/{*,lib/**,layouts/**,theme/**,config/**}` | 71         | 46       | 68        |
+| `src/utils/**`                                 | 53         | 49       | 65        |
+| `src/sections/**`                              | 40         | 34       | 26        |
+| _(all files, as a backstop)_                   | 44         | 37       | 31        |
+
+That third row is `App.tsx`, `AppRoutes.tsx`, `i18n.ts` and the four small directories, sharing one
+bar: at 84 statements between them a single statement is worth 1.2 points, so separate bars would be
+measuring noise.
+
+Every collected file matches exactly one of those globs, so nothing is gated by nothing. If you add
+a top-level directory under `src/`, give it a bar.
+
+**A bar may only ever be raised.** If your change pushes a directory up, raise it in the same PR —
+the same habit as the ESLint counts in the two review workflows. If CI fails on one:
+
+```
+ERROR: Coverage for statements (91.4%) does not meet "src/components/**" threshold (92%)
+```
+
+that is the gate working. Cover the code you added, or explain in the PR why the directory genuinely
+got smaller in covered terms. Lowering a bar to make a build pass needs saying out loud in review.
+The `frontend-coverage-report` artifact is uploaded even on a failed run, and its HTML report names
+the uncovered lines the error doesn't.
+
+`lines` is not gated: under the v8 provider it tracks `statements` to within a point, so it would be
+a fourth column to maintain for no signal the other three don't already carry.

@@ -91,13 +91,20 @@ jobs:
         working-directory: apps/frontend
         run: pnpm run build
 
+      # The coverage ratchet lives in apps/frontend/vitest.config.ts, not here:
+      # `coverage.thresholds` is per directory, and Vitest exits non-zero when
+      # any of them is missed, so this step is the gate (issue #1116 phase 6).
+      # Unlike the ESLint ratchet above there is no threshold to read off in
+      # this file — the failure names the directory and the shortfall.
       - name: Run tests with coverage
         working-directory: apps/frontend
         run: pnpm run test:coverage
 
-      # Reported, not enforced — see issue #1116. No thresholds are configured
-      # yet; the artifact makes the number visible so it can be ratcheted later.
+      # `if: always()` because the report is most wanted on the run that just
+      # failed: the threshold error names the directory, the HTML report in here
+      # names the lines. Without it a ratchet breach uploads nothing.
       - name: Upload test coverage
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: frontend-coverage-report
