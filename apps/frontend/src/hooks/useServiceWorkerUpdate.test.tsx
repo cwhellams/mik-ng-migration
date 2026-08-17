@@ -90,16 +90,29 @@ describe('useServiceWorkerUpdate', () => {
     expect(result.current.isUpdateAvailable).toBe(false)
   })
 
-  it('keeps listening after unmount — the listener is never removed', () => {
-    // Current behaviour: the effect registers a listener with no cleanup, so a
-    // component that mounts this repeatedly accumulates listeners on the
-    // service worker container.
+  it('removes its listener on unmount, so remounts do not accumulate them', () => {
     const add = vi.spyOn(controller, 'addEventListener')
+    const remove = vi.spyOn(controller, 'removeEventListener')
 
     const first = renderHook(() => useServiceWorkerUpdate())
     first.unmount()
     renderHook(() => useServiceWorkerUpdate())
 
     expect(add).toHaveBeenCalledTimes(2)
+    expect(remove).toHaveBeenCalledTimes(1)
+    expect(remove).toHaveBeenCalledWith('controllerchange', add.mock.calls[0][1])
+  })
+
+  it('leaves nothing behind on an unmounted hook', () => {
+    const { result, unmount } = renderHook(() => useServiceWorkerUpdate())
+    unmount()
+
+    // Would warn about setting state on an unmounted hook if the listener
+    // survived; the state simply stays where it was.
+    act(() => {
+      controller.dispatchEvent(new Event('controllerchange'))
+    })
+
+    expect(result.current.isUpdateAvailable).toBe(false)
   })
 })

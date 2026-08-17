@@ -106,11 +106,10 @@ describe('toHelsinki', () => {
 })
 
 describe('getOffsetLabelInTz', () => {
-  it('labels UTC as UTC rather than GMT', () => {
-    // The doc comment promises a bare "UTC", but Intl's shortOffset for UTC is
-    // "GMT+0", so the zero offset survives the GMT→UTC replacement.
-    expect(getOffsetLabelInTz(SUMMER, 'utc')).toBe('UTC+0')
-    expect(getOffsetLabelInTz(SUMMER, 'utc')).not.toContain('GMT')
+  it('labels UTC as a bare UTC, not GMT and not UTC+0', () => {
+    // Intl's shortOffset for UTC is "GMT+0"; both halves are rewritten.
+    expect(getOffsetLabelInTz(SUMMER, 'utc')).toBe('UTC')
+    expect(getOffsetLabelInTz(WINTER, 'utc')).toBe('UTC')
   })
 
   it('labels the Helsinki offset, following DST', () => {
@@ -124,7 +123,7 @@ describe('getOffsetLabelInTz', () => {
   })
 
   it('falls back to now when given no timestamp', () => {
-    expect(getOffsetLabelInTz(undefined, 'utc')).toBe('UTC+0')
+    expect(getOffsetLabelInTz(undefined, 'utc')).toBe('UTC')
   })
 })
 

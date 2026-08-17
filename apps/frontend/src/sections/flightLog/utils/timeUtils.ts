@@ -18,23 +18,19 @@ export const durationToDayjs = (minutes: number): dayjs.Dayjs => {
 }
 
 /**
- * Create next time after previous time.
- * If the time is earlier than the previous time,
- * adds a day to handle cross-day flights. Similarily if time is
- * over 24h, subtract a day to keep them reasonable.
+ * Create next time after previous time. If the wall-clock time is earlier than
+ * the previous timestamp, adds a day to handle cross-day flights.
+ *
+ * The result can never land more than 24h after `previous`: setting only the
+ * hour and minute keeps it on `previous`'s own calendar day, so the +24h arm
+ * takes it to at most the same clock time the next day.
  */
 export const calculateNext = (previous: dayjs.Dayjs, time: dayjs.Dayjs) => {
-  const max = previous.add(24, 'hours')
-
   // copy current time to the date
   const dateTime = previous.hour(time.hour()).minute(time.minute()).second(0)
 
-  // add or remove a day to keep timestamps in chronological order
-  return dateTime.isBefore(previous)
-    ? dateTime.add(24, 'hours')
-    : dateTime.isAfter(max)
-      ? dateTime.subtract(24, 'hours')
-      : dateTime
+  // add a day to keep timestamps in chronological order
+  return dateTime.isBefore(previous) ? dateTime.add(24, 'hours') : dateTime
 }
 
 export const splitTime = (hhMM: string) => {

@@ -129,6 +129,8 @@ describe('buildFlightLogResolver', () => {
     })
 
     it('rejects a crew member who is not in the member list at all', async () => {
+      // Distinct from the still-loading case below: the list is here and the
+      // member is not in it, so no qualification can be read for them.
       const result = await resolve(aFlightLogForm({ crew2MemberId: 'Ghost1', crew2Role: 'FI' }))
 
       expect(result.errors.crew2MemberId?.message).toBe('flightLog.error.memberNotInstructor')
@@ -160,18 +162,18 @@ describe('buildFlightLogResolver', () => {
       expect(result.errors).toEqual({})
     })
 
-    it('rejects an FI slot while the member list is still loading', async () => {
-      // Contrary to the comment above buildFlightLogResolver, an absent member
-      // list does not skip the check — it fails it. In practice the picker
-      // offers no members until the list arrives, so this is unreachable from
-      // the UI, but it is what the code does.
+    it('skips the role check while the member list is still loading', async () => {
+      // There is nothing to check the role against until the list arrives, and
+      // the picker offers nobody before then, so an unqualified selection cannot
+      // have been made. Failing here would blame a member the form has not
+      // finished loading.
       const values = aFlightLogForm({ crew2MemberId: INSTRUCTOR_MEMBER_ID, crew2Role: 'FI' })
       const result = await buildFlightLogResolver(t, undefined, false)(values, undefined, {
         fields: {},
         shouldUseNativeValidation: false,
       })
 
-      expect(result.errors.crew2MemberId?.message).toBe('flightLog.error.memberNotInstructor')
+      expect(result.errors).toEqual({})
     })
   })
 

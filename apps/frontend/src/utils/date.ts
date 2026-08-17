@@ -67,7 +67,7 @@ export { HELSINKI_TIMEZONE, toHelsinki }
 export const timezoneName = (tz: 'utc' | 'local' | 'helsinki') =>
   tz === 'utc' ? 'UTC' : tz === 'helsinki' ? HELSINKI_TIMEZONE : undefined
 
-/** Returns the UTC offset label e.g. UTC, "UTC+2" or "UTC+3". */
+/** Returns the UTC offset label e.g. "UTC", "UTC+2" or "UTC+3". */
 export const getOffsetLabelInTz = (
   timestamp?: string | Date | number,
   tz: 'utc' | 'local' | 'helsinki' = 'local',
@@ -80,7 +80,10 @@ export const getOffsetLabelInTz = (
     .formatToParts(timestamp ? new Date(timestamp) : new Date())
     .find((p) => p.type === 'timeZoneName')
 
-  return parts?.value.replace('GMT', 'UTC') ?? 'HEL'
+  // Intl renders the zero offset as "GMT+0" (some ICU builds: a bare "GMT"), so
+  // the "+0" survives the replacement above and reads as "UTC+0". Drop it: the
+  // zero offset is written "UTC" everywhere else in the UI.
+  return parts?.value.replace('GMT', 'UTC').replace(/^UTC[+-]0$/, 'UTC') ?? 'HEL'
 }
 
 /**

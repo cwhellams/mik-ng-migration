@@ -324,11 +324,12 @@ describe('useApi 401 handling', () => {
 })
 
 /**
- * The redirect is driven by a `navigate()` call in the hook's render body, which
- * only settles because the redirect unmounts the component that made the call.
- * These are therefore written as route trees rather than bare `renderHook`s — a
- * hook left mounted across the redirect re-runs `navigate` on every render and
- * never stops (see the PR notes).
+ * The redirect runs from an effect, once per lost session. It used to run from
+ * the hook's render body, which terminated only because the redirect unmounts
+ * the component that made the call — a caller that survived the route change
+ * re-navigated on every render and never stopped. The last two tests here pin
+ * the fix; the rest are written as route trees because that is how the redirect
+ * is actually observed.
  */
 describe('useApi redirect to login', () => {
   const Protected = ({ request }: { request: Parameters<typeof useApi>[0] }) => {
@@ -419,6 +420,87 @@ describe('useApi redirect to login', () => {
     await user.click(screen.getByRole('button'))
 
     expect(await screen.findByRole('button', { name: 'no value' })).toBeInTheDocument()
+  })
+
+  it('redirects once, from a caller that stays mounted across the route change', async () => {
+    // The regression this guards: rendered outside <Routes>, the caller survives
+    // the navigation to /login. Driven from the render body, the redirect then
+    // re-fired on every render and the test hung. Recording each location the
+    // router visits makes an extra navigation visible instead.
+    server.use(
+      http.post(apiUrl('auth/refresh'), () => problemResponse(401, 'Refresh token expired')),
+      http.get(apiUrl('v1/thing'), () => problemResponse(401, 'Token expired')),
+    )
+
+    const visited: string[] = []
+    const Persistent = () => {
+      useApi<Payload>({ url: 'v1/thing' })
+      const { pathname } = useLocation()
+      if (visited.at(-1) !== pathname) visited.push(pathname)
+      return <span>at {pathname}</span>
+    }
+
+    renderWithProviders(<Persistent />, { route: '/club/members' })
+
+    await waitFor(() => expect(screen.getByText('at /login')).toBeInTheDocument())
+
+    // Give any runaway navigation a chance to show up before asserting.
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(visited).toEqual(['/club/members', '/login'])
+  })
+
+  it('remembers the page the user was on, not /login', async () => {
+    server.use(
+      http.post(apiUrl('auth/refresh'), () => problemResponse(401, 'Refresh token expired')),
+      http.get(apiUrl('v1/thing'), () => problemResponse(401, 'Token expired')),
+    )
+
+    const Persistent = () => {
+      useApi<Payload>({ url: 'v1/thing' })
+      const { pathname, state } = useLocation()
+      return (
+        <span>{`at ${pathname} from ${(state as { target?: string })?.target ?? 'nowhere'}`}</span>
+      )
+    }
+
+    renderWithProviders(<Persistent />, { route: '/club/members' })
+
+    expect(await screen.findByText('at /login from /club/members')).toBeInTheDocument()
+  })
+
+  it('keeps the original target when a later revalidation 401s again', async () => {
+    // A latch that re-arms whenever `shouldRedirect` drops would break here:
+    // `isValidating` flickers true on any revalidation, and when this one
+    // settles still-401 the second navigate would run from /login and overwrite
+    // `target` with '/login' itself. Guarding on the current pathname has no
+    // such state to reset.
+    server.use(
+      http.post(apiUrl('auth/refresh'), () => problemResponse(401, 'Refresh token expired')),
+      http.get(apiUrl('v1/thing'), () => problemResponse(401, 'Token expired')),
+    )
+
+    const visited: string[] = []
+    const Persistent = () => {
+      const { mutate } = useApi<Payload>({ url: 'v1/thing' })
+      const { pathname, state } = useLocation()
+      if (visited.at(-1) !== pathname) visited.push(pathname)
+      return (
+        <button onClick={() => mutate()}>
+          {`at ${pathname} from ${(state as { target?: string })?.target ?? 'nowhere'}`}
+        </button>
+      )
+    }
+
+    const { user } = renderWithProviders(<Persistent />, { route: '/club/members' })
+
+    await screen.findByRole('button', { name: 'at /login from /club/members' })
+
+    // Force the revalidation that flickers isValidating.
+    await user.click(screen.getByRole('button'))
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    expect(screen.getByRole('button', { name: 'at /login from /club/members' })).toBeInTheDocument()
+    expect(visited).toEqual(['/club/members', '/login'])
   })
 })
 

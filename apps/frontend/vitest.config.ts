@@ -54,6 +54,40 @@ export default defineConfig({
       ],
       // Reported, not enforced: no thresholds until the ratchet lands (issue
       // #1116, phase 6). A threshold set at today's coverage teaches nothing.
+      //
+      // #1132 §6b asked which number that ratchet should be built on, given the
+      // route matrix renders all 93 pages once per identity and asserts only on
+      // the gate. Measured on this suite (1756 tests, statements / branches):
+      //
+      //   src/hooks         98.4% / 94.5%      431 of   438 statements
+      //   src/theme         93.9% / 66.7%
+      //   src/components    93.2% / 89.2%      370 of   397
+      //   src/layouts       92.3% / 50.0%
+      //   src/lib           86.7%
+      //   src/utils         54.5% / 50.9%      181 of   332
+      //   src/sections      41.6% / 35.7%    4 893 of 11 772
+      //   ------------------------------------------------------
+      //   all files         45.6% / 38.7%    5 937 of 13 023
+      //
+      // The decision: **per-directory thresholds**, not a single global one.
+      //
+      // `src/sections` is 11 772 of 13 023 statements — 90% of the codebase — so
+      // the global figure is very nearly `src/sections`'s figure, and much of
+      // that is pages executed by the matrix rather than asserted on. A global
+      // bar set at ~45% would also leave every directory that is genuinely
+      // covered free to halve before anything failed: hooks could fall from 98%
+      // to 50% and the total would barely move.
+      //
+      // Excluding the matrix from collection (the other option on the table) was
+      // rejected: it lowers the number without making it mean more, and it
+      // discards the one signal the render coverage does carry — that a page
+      // still renders at all.
+      //
+      // `src/utils` reads low but is bimodal, not thin: date, format, lang,
+      // localisedText and formErrors are at 100% and wizardDraft at 95%, while
+      // six browser-API wrappers (pushNotifications, passkey, documentHelpers,
+      // eventCalendar, calendarEvent, haptics) sit at 7–33% with no tests at
+      // all. That is a gap to fill, not a bar to lower.
     },
   },
 })

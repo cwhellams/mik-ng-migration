@@ -13,13 +13,6 @@ import { renderWithProviders } from '../../../test/renderWithProviders'
 import { BookingEditor } from './EditBookingModal'
 
 /**
- * The shared fixture's licence and medical expiries are fixed 2026 dates, which
- * have since passed — and an expired medical blocks booking outright. A current
- * member is what these tests need, so both are pushed well into the future.
- */
-const aCurrentMember = () => aMember({ licenceExpiry: '2099-01-01', medicalExpiry: '2099-01-01' })
-
-/**
  * The booking editor: create, edit, cancel and transfer, with the readonly and
  * new-booking modes driven by flags the schedule page computes (see
  * `sections/schedule/helpers.ts`, covered in phase 1).
@@ -94,7 +87,7 @@ const renderEditor = (booking: EditorBooking, options = {}) => {
 describe('BookingEditor reading', () => {
   it('titles itself for editing an existing booking', async () => {
     bookingApi()
-    signInAs(aCurrentMember())
+    signInAs(aMember())
 
     renderEditor(editorBooking())
 
@@ -103,7 +96,7 @@ describe('BookingEditor reading', () => {
 
   it('titles itself for a new booking', async () => {
     bookingApi()
-    signInAs(aCurrentMember())
+    signInAs(aMember())
 
     renderEditor(editorBooking({}, { isNewBooking: true }))
 
@@ -112,7 +105,7 @@ describe('BookingEditor reading', () => {
 
   it('loads the booking’s aircraft and description', async () => {
     bookingApi()
-    signInAs(aCurrentMember())
+    signInAs(aMember())
 
     renderEditor(editorBooking({ description: 'Training flight' }))
 
@@ -121,7 +114,7 @@ describe('BookingEditor reading', () => {
 
   it('renders nothing at all without a booking', () => {
     bookingApi()
-    signInAs(aCurrentMember())
+    signInAs(aMember())
 
     const { container } = renderWithProviders(
       <BookingEditor booking={undefined} onClose={vi.fn()} />,
@@ -134,7 +127,7 @@ describe('BookingEditor reading', () => {
 describe('BookingEditor saving', () => {
   it('closes without saving on back', async () => {
     const writes = bookingApi()
-    signInAs(aCurrentMember())
+    signInAs(aMember())
 
     const { user, onClose } = renderEditor(editorBooking())
 
@@ -158,7 +151,7 @@ describe('BookingEditor saving', () => {
 describe('BookingEditor readonly mode', () => {
   it('offers no save button on a booking the member may not change', async () => {
     bookingApi()
-    signInAs(aCurrentMember())
+    signInAs(aMember())
 
     renderEditor(editorBooking({}, { isReadonly: true }))
 
@@ -168,7 +161,7 @@ describe('BookingEditor readonly mode', () => {
 
   it('still shows the booking’s details', async () => {
     bookingApi()
-    signInAs(aCurrentMember())
+    signInAs(aMember())
 
     renderEditor(editorBooking({ description: 'Training flight' }, { isReadonly: true }))
 
@@ -195,7 +188,7 @@ describe('BookingEditor booking types', () => {
     [BookingType.MAINTENANCE, 'Maintenance'],
   ])('shows a %s booking as %s', async (type, label) => {
     bookingApi()
-    signInAs(aCurrentMember())
+    signInAs(aMember())
 
     renderEditor(editorBooking({ type }))
 

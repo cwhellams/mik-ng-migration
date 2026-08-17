@@ -29,10 +29,10 @@ describe('useTimezone in UTC mode', () => {
     expect(current.formatISODateTime(SUMMER)).toBe('2025-06-02 09:00')
   })
 
-  it('reports a zero offset', () => {
+  it('reports a zero offset as a bare UTC', () => {
     const { current } = renderTimezone('utc')
 
-    expect(current.timezoneOffset(SUMMER)).toBe('UTC+0')
+    expect(current.timezoneOffset(SUMMER)).toBe('UTC')
   })
 })
 

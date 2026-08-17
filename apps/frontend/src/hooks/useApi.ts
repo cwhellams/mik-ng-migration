@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr'
 import { PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
@@ -8,6 +9,9 @@ import { useThemeMode } from '../theme/ThemeContext'
 import { validateApiPath } from '@mik/contracts/sanitizers'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
+
+/** Where a lost session sends the user, and the one place this hook won't redirect from. */
+const LOGIN_PATH = '/login'
 
 // withCredentials ensures the browser sends httpOnly cookies on every request.
 export const api = axios.create({
@@ -196,12 +200,34 @@ export default function useApi<
   // Only redirect when SWR has settled (isValidating = false) to avoid
   // redirecting during a transient re-validation.
   const isLoggedOut = error?.response?.status === 401 && !rest.isValidating
-  if (isLoggedOut && !request.allowUnauthenticated && !request.skipRedirectOnUnauthorized) {
+  const shouldRedirect =
+    isLoggedOut && !request.allowUnauthenticated && !request.skipRedirectOnUnauthorized
+
+  // Redirecting is a side effect, so it belongs in an effect rather than the
+  // render body. Calling navigate() during render used to terminate only
+  // because the redirect swaps MainLayout for AuthLayout and so unmounts the
+  // caller; a hook whose component survived the route change re-navigated on
+  // every render, forever.
+  //
+  // Being at /login already is the whole termination condition. Navigating makes
+  // `location.pathname` — a dependency — become '/login', so the effect re-runs
+  // and does nothing. A caller that stays mounted therefore redirects once, and
+  // `target` keeps the page the user was actually on rather than being
+  // overwritten with '/login' itself.
+  //
+  // This is deliberately not a `useRef` latch. `isValidating` flickers true on
+  // any background revalidation, which drops `shouldRedirect` to false and would
+  // re-arm such a latch; when the revalidation settled still-401 it would fire a
+  // second navigate, from /login, clobbering `target`. Reading the current
+  // pathname has no equivalent stale state to reset.
+  useEffect(() => {
+    if (!shouldRedirect || location.pathname === LOGIN_PATH) return
+
     // authentication is required
-    navigate('/login', {
+    navigate(LOGIN_PATH, {
       state: { target: location.pathname },
     })
-  }
+  }, [shouldRedirect, navigate, location.pathname])
 
   const mutation = useSWRMutation<
     AxiosResponse,

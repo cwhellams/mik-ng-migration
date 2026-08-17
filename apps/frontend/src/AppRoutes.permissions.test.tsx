@@ -10,6 +10,7 @@ import {
   GATED_ROUTES,
   isForbidden,
   OWN_GATES,
+  PUBLIC_PATHS,
   ROUTES,
   UNGATED_ROUTES,
   visitRoute,
@@ -19,12 +20,15 @@ import {
  * The route permission matrix — phase 3 of issue #1116, and the frontend's
  * analogue of the backend's per-endpoint permission tests.
  *
- * The matrix itself lives in the four `AppRoutes.permissions.<identity>.test.tsx`
- * files, which visit every route as an admin in sudo mode, the same admin with
+ * The matrix itself lives in the five `AppRoutes.permissions.<identity>.test.tsx`
+ * files. Four visit every route as an admin in sudo mode, the same admin with
  * sudo off, an ordinary member and a member with no permissions, asserting
- * `<Forbidden />` or not. This file holds the assumptions those runs rest on:
- * that the table still matches the source, and that the identities are far
- * enough apart for the expectations to mean something.
+ * `<Forbidden />` or not. The fifth visits as a signed-out visitor and asserts a
+ * redirect to /login instead, since that identity never reaches `<Forbidden />`.
+ *
+ * This file holds the assumptions those runs rest on: that the table still
+ * matches the source, and that the identities are far enough apart for the
+ * expectations to mean something.
  */
 describe('route table', () => {
   it('covers every gate in AppRoutes.tsx', () => {
@@ -54,6 +58,39 @@ describe('route table', () => {
     expect(OWN_GATES).toHaveLength(36)
     expect(GATED_ROUTES).toHaveLength(37)
     expect(UNGATED_ROUTES).toHaveLength(56)
+  })
+
+  it('opens nothing to the public beyond the sign-in routes and the 404', () => {
+    // #1132 §6d asked whether the 56 ungated routes are intentionally open. They
+    // are open to any *signed-in* member by design — that is what "no route-level
+    // gate" means here — and the anonymous run proves that is as far as it goes:
+    // everything outside this set sends a signed-out visitor to /login.
+    //
+    // So an ungated route is a decision about which members may see a page, never
+    // about whether the public may.
+    //
+    // Read out of AppRoutes.tsx rather than written down here, so adding a route
+    // under AuthLayout fails with "this route is public and PUBLIC_PATHS does not
+    // say so" instead of a bare waitFor timeout in the anonymous run.
+    const source = readFileSync(resolve(process.cwd(), 'src/AppRoutes.tsx'), 'utf-8')
+    const authLayoutBlock = source.match(/<Route element=\{<AuthLayout \/>\}>([\s\S]*?)<\/Route>/)
+    expect(authLayoutBlock, 'could not find the AuthLayout block in AppRoutes.tsx').not.toBeNull()
+
+    const authLayoutPaths = [...(authLayoutBlock?.[1] ?? '').matchAll(/path='([^']+)'/g)].map(
+      (match) => match[1],
+    )
+    expect(authLayoutPaths.length, 'AuthLayout parsed as empty — the regex has rotted').toBe(6)
+
+    // Plus '/*', the 404 fallback, which sits outside both layouts and so makes
+    // no API call either.
+    expect([...PUBLIC_PATHS].sort()).toEqual([...authLayoutPaths, '/*'].sort())
+
+    for (const path of PUBLIC_PATHS) {
+      expect(
+        ROUTES.map((route) => route.path),
+        `${path} is not in the route table`,
+      ).toContain(path)
+    }
   })
 
   it('demands an admin permission on every gated route', () => {

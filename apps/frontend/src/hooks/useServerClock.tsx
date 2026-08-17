@@ -20,21 +20,30 @@ export interface ServerClockState {
   skewMs: number
 }
 
-const defaultState: ServerClockState = {
+/**
+ * The pre-sync state, read from the local clock. Built on demand rather than
+ * held as a module constant: as a constant its `utcMs` would be frozen at the
+ * moment this module was first imported, so every consumer outside a provider
+ * would report import time instead of now.
+ */
+const unsyncedState = (): ServerClockState => ({
   utcMs: Date.now(),
   synced: false,
   skewed: false,
   skewMs: 0,
-}
+})
 
-const ServerClockContext = createContext<ServerClockState>(defaultState)
+// `null` rather than a default state object, for the same reason: it lets
+// `useServerClock` tell "no provider above me" apart from "a provider that has
+// not synced yet", and build a fresh fallback for the former.
+const ServerClockContext = createContext<ServerClockState | null>(null)
 
 export const ServerClockProvider = ({ children }: { children: React.ReactNode }) => {
   // Offset stored in a ref so the 1-second tick closure always reads the latest
   // value without needing to re-create the interval.
   const offsetRef = useRef<number>(0)
 
-  const [state, setState] = useState<ServerClockState>(defaultState)
+  const [state, setState] = useState<ServerClockState>(unsyncedState)
 
   const sync = useCallback(async () => {
     try {
@@ -82,5 +91,10 @@ export const ServerClockProvider = ({ children }: { children: React.ReactNode })
   return <ServerClockContext.Provider value={state}>{children}</ServerClockContext.Provider>
 }
 
-/** Returns the server-authoritative clock state. Must be within <ServerClockProvider>. */
-export const useServerClock = (): ServerClockState => useContext(ServerClockContext)
+/**
+ * Returns the server-authoritative clock state. Outside `<ServerClockProvider>`
+ * it degrades to the local clock, read afresh on every render — it cannot tick
+ * on its own, but it is never stale by more than one render.
+ */
+export const useServerClock = (): ServerClockState =>
+  useContext(ServerClockContext) ?? unsyncedState()
