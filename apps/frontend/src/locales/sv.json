@@ -2591,6 +2591,7 @@
       "title": "Titel",
       "description": "Beskrivning",
       "category": "Kategori",
+      "categoryPlaceholder": "— Välj en kategori —",
       "aircraft": "Flygplan",
       "aircraftOptional": "— Inget flygplan —",
       "fuelLitres": "Bränsle (liter)",

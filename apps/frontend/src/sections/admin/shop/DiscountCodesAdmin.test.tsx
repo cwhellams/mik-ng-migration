@@ -94,7 +94,10 @@ describe('DiscountCodesAdmin listing', () => {
   })
 
   it('reports a failed load', async () => {
-    server.use(http.get(apiUrl('v1/shop/discount-codes'), () => problemResponse(500, 'Down')))
+    server.use(
+      http.get(apiUrl('v1/shop/discount-codes'), () => problemResponse(500, 'Down')),
+      http.get(apiUrl('v1/shop/categories'), () => HttpResponse.json([aCategory()])),
+    )
 
     renderWithProviders(<DiscountCodesAdmin />)
 

@@ -20,7 +20,7 @@ import Register from './Register'
  */
 const joiningFees = () =>
   server.use(
-    http.get(apiUrl('v1/members/joining-fees'), () =>
+    http.get(apiUrl('auth/joining-fees'), () =>
       HttpResponse.json({ membershipFee: 100, joiningFee: 50 }),
     ),
   )

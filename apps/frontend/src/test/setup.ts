@@ -6,6 +6,13 @@ import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import i18n from '../i18n'
 import { server } from './msw/server'
 
+// App.tsx maps the default 'en' UI language to the 'en-gb' dayjs locale for
+// MUI X date pickers and imports 'dayjs/locale/en-gb' to register it. Tests
+// render through renderWithProviders instead of App, so without this import
+// any test that mounts a date picker at the default English language hits
+// dayjs's fallback-to-English "locale has not been found" console warning.
+import 'dayjs/locale/en-gb'
+
 // --- module stubs ----------------------------------------------------------
 
 // Iconify fetches icon data from api.iconify.design on first render, which

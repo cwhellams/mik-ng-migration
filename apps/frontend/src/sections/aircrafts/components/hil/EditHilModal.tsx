@@ -52,6 +52,7 @@ export const EditHilModal = ({
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 
   const isNew = mode === 'new'
+  const isEdit = mode === 'edit'
 
   const api = useApi({
     url: isNew ? 'v1/aircraft-hil' : `v1/aircraft-hil/${hil?.hilId}`,
@@ -72,7 +73,7 @@ export const EditHilModal = ({
   const [problem, setProblem] = useState<Problem | undefined>()
 
   const { data: maintenanceNotes } = useMaintenanceNotes(
-    !isNew && !hil?.resolvedNoteId ? aircraftRegistration : undefined,
+    isEdit && !hil?.resolvedNoteId ? aircraftRegistration : undefined,
   )
 
   // A hold item can only be opened from an existing, active flight-log defect.
@@ -81,7 +82,7 @@ export const EditHilModal = ({
   const needsDefectPicker = isNew && !defect
   // In edit mode the same list backs the "deferred defects" picker, so a hold
   // item opened against the wrong defect can be pointed at the right one.
-  const canEditDefects = !isNew && !hil?.resolvedNoteId
+  const canEditDefects = isEdit && !hil?.resolvedNoteId
   const { data: aircraftDefects } = useDefects(
     needsDefectPicker || canEditDefects ? aircraftRegistration : undefined,
   )

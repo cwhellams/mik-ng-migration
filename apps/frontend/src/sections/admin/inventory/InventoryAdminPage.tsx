@@ -389,7 +389,7 @@ function ItemsTab() {
   const [adjustDialog, setAdjustDialog] = useState<{ itemId: string; name: string } | null>(null)
   const [adjustDelta, setAdjustDelta] = useState('')
   const [adjustNotes, setAdjustNotes] = useState('')
-  const { mutation: adjustMutation } = useApi<InventoryItem>({ url: '' })
+  const { mutation: adjustMutation } = useApi<InventoryItem>({ url: '', skipFetch: true })
 
   const nameError = attemptedSubmit && !form.nameEn.trim()
   const categoryError = attemptedSubmit && !form.categoryId

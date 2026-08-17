@@ -2624,6 +2624,7 @@
       "title": "Otsikko",
       "description": "Kuvaus",
       "category": "Kategoria",
+      "categoryPlaceholder": "— Valitse kategoria —",
       "aircraft": "Ilma-alus",
       "aircraftOptional": "— Ei ilma-alusta —",
       "fuelLitres": "Polttoaine (litraa)",

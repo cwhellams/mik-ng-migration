@@ -548,6 +548,11 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                   setFieldErrors((e) => ({ ...e, category: undefined }))
                 }}
               >
+                {form.categoryId === 0 && (
+                  <MenuItem value={0} disabled>
+                    <em>{t('expenses.fields.categoryPlaceholder')}</em>
+                  </MenuItem>
+                )}
                 {categories.map((cat) => (
                   <MenuItem key={cat.id} value={cat.id}>
                     {getExpenseCategoryLabel({ categoryCode: cat.code, categoryId: cat.id }, t)}

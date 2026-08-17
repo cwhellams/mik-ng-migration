@@ -27,6 +27,9 @@ const wizardApi = () => {
     http.get(apiUrl('v1/members'), () => HttpResponse.json(aMemberListResponse())),
     http.get(apiUrl('v1/flight-logs/overlap-check'), () => HttpResponse.json({ conflicts: [] })),
     http.get(apiUrl('v1/flight-logs'), () => HttpResponse.json({ flightLogs: [] })),
+    http.get(apiUrl('v1/useful-phone-numbers/flight-plan-centre'), () =>
+      HttpResponse.json(null, { status: 404 }),
+    ),
     http.post(apiUrl('v1/defects'), async ({ request }) => {
       state.defects.push(await request.json())
       return HttpResponse.json({})
