@@ -81,14 +81,25 @@ export const BookingEditor = ({
 
   const { isBookingAdmin, me } = useRoles()
   const { config: appConfig } = useAppConfig()
-  const isNewBooking = booking?.isNewBooking
+  // `?? false` rather than leaving it `boolean | undefined`: `Schedule.tsx` keeps
+  // this editor mounted and passes `booking={undefined}` while the dialog is
+  // closed, and the new-versus-edit decision should not rest on undefined.
+  const isNewBooking = booking?.isNewBooking ?? false
   const isReadonly = booking?.isReadonly
   const minDate = booking?.minDate
 
   const now = dayjs().startOf('minute')
 
   const { mutation } = useApi<Booking>({
-    url: isNewBooking ? endpoints.bookings.root : endpoints.bookings.byId(booking?.bookingId ?? ''),
+    // The id has to be present as well as the booking not being new: with the
+    // dialog closed there is no booking at all, and keying only off `isNewBooking`
+    // handed the builder an empty segment and addressed `v1/bookings/`. A new
+    // booking carries `bookingId: ''` (see Schedule.tsx), so both conditions
+    // agree for every state that reaches a save.
+    url:
+      !isNewBooking && booking?.bookingId
+        ? endpoints.bookings.byId(booking.bookingId)
+        : endpoints.bookings.root,
     skipFetch: true,
   })
 

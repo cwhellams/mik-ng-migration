@@ -47,7 +47,12 @@ export const MemberRoleEditor = ({
   const { permissions } = useRoles()
 
   const { mutation } = useApi<MemberRole>({
-    url: isNewRole ? endpoints.members.roles : endpoints.members.role(role?.roleId ?? ''),
+    // Branch on the id, not on `isNewRole`. `Roles.tsx` keeps this editor mounted
+    // and passes `role={undefined}` while the dialog is closed, which makes
+    // `isNewRole` false — so keying the URL off it handed the builder an empty
+    // segment and addressed `v1/members/roles/`. A new role (`roleId: ''`) and a
+    // closed dialog both mean "no resource to address", which is the collection.
+    url: role?.roleId ? endpoints.members.role(role.roleId) : endpoints.members.roles,
     skipFetch: true,
   })
   const [formData, setFormData] = useState<Upsert<MemberRole>>({

@@ -24,6 +24,12 @@
  * - Paths never carry a leading slash, so they match what `useApi`'s `url` wants
  *   and are usable as cache keys verbatim.
  * - Anything variable is a **function**, so the caller cannot forget a segment.
+ * - **Never hand a builder an empty id.** `byId('')` yields `v1/…/` — a trailing
+ *   slash that addresses nothing and still occupies a cache key. Branch on whether
+ *   the id is there, rather than on a separate "is this new" flag that can be false
+ *   or `undefined` while the id is absent: several of these editors stay mounted
+ *   with an undefined entity while their dialog is closed, so that is the normal
+ *   state, not an edge case. `url: id ? endpoints.x.byId(id) : endpoints.x.root`.
  * - Query strings are **not** part of a path. Pass them as `params` to `useApi`,
  *   which serialises them and — importantly — includes them in the cache key.
  * - Use {@link absolute} for the third argument of `useApi`'s `trigger`, which

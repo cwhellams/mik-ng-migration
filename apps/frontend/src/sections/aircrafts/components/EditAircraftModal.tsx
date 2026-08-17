@@ -57,9 +57,13 @@ export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModal
   const isNewAircraft = !aircraft?.registration
 
   const { mutation } = useApi<Aircraft>({
-    url: isNewAircraft
-      ? endpoints.aircrafts.root
-      : endpoints.aircrafts.byRegistration(aircraft?.registration ?? ''),
+    // Branch on the registration itself. `isNewAircraft` is `!aircraft?.registration`,
+    // so the `?? ''` this replaces was unreachable — but only reachable via that
+    // one-line proof, which is exactly the kind of fallback that stops being dead
+    // when the flag's definition changes. Now the two cannot disagree.
+    url: aircraft?.registration
+      ? endpoints.aircrafts.byRegistration(aircraft.registration)
+      : endpoints.aircrafts.root,
     skipFetch: true,
   })
 
