@@ -162,7 +162,7 @@ const Register = () => {
     // Issue #770: validate age for junior membership
     const age = getAge(dateOfBirth)
     if (member.memberType === MIKMemberTypes.JUNIOR) {
-      if (!dateOfBirth || age === null) {
+      if (!dateOfBirth || age === null || age < 0) {
         errors.push(t('register.dateOfBirthRequired'))
       } else if (age >= 18) {
         errors.push(t('register.juniorAgeError'))
@@ -412,7 +412,12 @@ const Register = () => {
                 </Alert>
               )
             }
-            if (member.memberType === MIKMemberTypes.JUNIOR && age !== null && age < 15) {
+            if (
+              member.memberType === MIKMemberTypes.JUNIOR &&
+              age !== null &&
+              age >= 0 &&
+              age < 15
+            ) {
               return (
                 <Alert severity='error' sx={{ mt: 1 }}>
                   {t('register.juniorMinAgeError')}

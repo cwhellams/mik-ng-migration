@@ -331,7 +331,10 @@ router.patch(
     // check without knowing the member's current memberType.
     if ('dateOfBirth' in patch) {
       const existingMember = await getMemberById(req.user!.memberId)
-      const ageIssues = juniorAgeIssues(existingMember!.memberType, patch.dateOfBirth)
+      if (!existingMember) {
+        return problem({ status: 404 })
+      }
+      const ageIssues = juniorAgeIssues(existingMember.memberType, patch.dateOfBirth)
       if (ageIssues.length > 0) {
         return problem({
           status: 400,

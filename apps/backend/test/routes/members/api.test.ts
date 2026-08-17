@@ -1164,9 +1164,11 @@ describe('PATCH /members/me junior membership minimum age', () => {
   let juniorSelfToken: string
 
   beforeAll(async () => {
+    const email = `junior-age-self-${Date.now()}@test.com`
+
     juniorSelfId = await addMember({
       memberType: MIKMemberTypes.JUNIOR,
-      email: `junior-age-self-${Date.now()}@test.com`,
+      email,
       firstName: 'AgeTest',
       lastName: 'JuniorSelf',
       lang: MIKLang.FI,
@@ -1180,7 +1182,7 @@ describe('PATCH /members/me junior membership minimum age', () => {
     juniorSelfToken = generateAccessToken({
       memberId: juniorSelfId,
       lastName: 'JuniorSelf',
-      email: `junior-age-self-${Date.now()}@test.com`,
+      email,
       roles: ['MEMBER'],
       permissions: [MIKPermissions.MEMBER],
       canMakeReservations: false,
