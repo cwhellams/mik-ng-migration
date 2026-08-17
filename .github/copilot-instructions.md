@@ -436,9 +436,9 @@ The GitHub Actions workflows require:
 - PostgreSQL service for backend tests
 - Frontend test coverage above each directory's ratchet, enforced by
   `coverage.thresholds` in `apps/frontend/vitest.config.ts` — the bars are per directory
-  (`src/hooks`, `src/components`, `src/utils`, `src/sections`, and one shared bar for the
-  small remainder) rather than one global number, and **may only ever be raised**. The
-  rationale and the current numbers are documented there and in
+  (`src/api`, `src/hooks`, `src/components`, `src/utils`, `src/sections`, and one shared
+  bar for the small remainder) rather than one global number, and **may only ever be
+  raised**. The rationale and the current numbers are documented there and in
   `apps/frontend/src/test/README.md`. Backend coverage is still collected and uploaded as
   an artifact but is not gated.
 
