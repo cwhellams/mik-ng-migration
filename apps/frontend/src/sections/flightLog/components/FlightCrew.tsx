@@ -36,6 +36,7 @@ import useApi from '../../../hooks/useApi'
 import { useMe } from '../../../hooks/useMe'
 import { useIsFormSubmitted } from '../../../hooks/useIsFormSubmitted'
 import { formatRequiredFieldError, shouldShowFieldError } from '../../../utils/formErrors'
+import { endpoints } from '../../../api/endpoints'
 
 interface FlightCrewProps {
   flightType: FlightType
@@ -164,7 +165,7 @@ const FlightCrew = ({
 
   const { data: memberList } = useApi<MemberListResponse>(
     {
-      url: 'v1/members',
+      url: endpoints.members.root,
       params: {
         isMembershipApproved: true,
       },

@@ -88,7 +88,7 @@ describe('useRoles admin flags and sudo', () => {
 
     expect(result.current.isMembersAdmin).toBe(false)
     expect(result.current.isFlightLogAdmin).toBe(false)
-    expect(result.current.isInvoicingAdmin).toBe(false)
+    expect(result.current.hasSudoAccess(MIKPermissions.INVOICING_ADMIN)).toBe(false)
   })
 
   it('grants admin flags once sudo is on', async () => {
@@ -98,7 +98,7 @@ describe('useRoles admin flags and sudo', () => {
 
     expect(result.current.isMembersAdmin).toBe(true)
     expect(result.current.isFlightLogAdmin).toBe(true)
-    expect(result.current.isInvoicingAdmin).toBe(true)
+    expect(result.current.hasSudoAccess(MIKPermissions.INVOICING_ADMIN)).toBe(true)
   })
 
   it('keeps hasAccess itself un-downgraded — only the flags are sudo-gated', async () => {
@@ -122,30 +122,53 @@ describe('useRoles admin flags and sudo', () => {
   })
 })
 
-describe('useRoles user-level flags', () => {
-  it('treats an admin permission as satisfying the matching user flag without sudo', async () => {
+describe('useRoles hasSudoAccess', () => {
+  // #1115 §10 replaced fifteen `is<X>Admin` / `is<X>User` flags with these two
+  // accessors, so what used to be per-flag coverage is now coverage of the pair.
+  it('is the sudo-gated counterpart of hasAccess', async () => {
+    signInWithPermissions(MIKPermissions.STORE_ADMIN)
+
+    const withoutSudo = await settled(renderRoles({ sudo: false }))
+    expect(withoutSudo.result.current.hasAccess(MIKPermissions.STORE_ADMIN)).toBe(true)
+    expect(withoutSudo.result.current.hasSudoAccess(MIKPermissions.STORE_ADMIN)).toBe(false)
+
+    const withSudo = await settled(renderRoles({ sudo: true }))
+    expect(withSudo.result.current.hasSudoAccess(MIKPermissions.STORE_ADMIN)).toBe(true)
+  })
+
+  it('matches any of several permissions, like hasAccess', async () => {
+    signInWithPermissions(MIKPermissions.MEETING_ADMIN)
+
+    const { result } = await settled(renderRoles({ sudo: true }))
+
+    expect(
+      result.current.hasSudoAccess(MIKPermissions.INVENTORY_ADMIN, MIKPermissions.MEETING_ADMIN),
+    ).toBe(true)
+    expect(result.current.hasSudoAccess(MIKPermissions.INVENTORY_ADMIN)).toBe(false)
+  })
+
+  it('grants nothing to a member who lacks the permission, sudo or not', async () => {
+    signInAs(aMember())
+
+    const withSudo = await settled(renderRoles({ sudo: true }))
+
+    expect(withSudo.result.current.hasSudoAccess(MIKPermissions.MEETING_ADMIN)).toBe(false)
+  })
+
+  it('treats an admin permission as satisfying the matching user check without sudo', async () => {
+    // The pattern the removed `is<X>User` flags encoded: an admin is also a user,
+    // and that half is deliberately not sudo-gated.
     signInWithPermissions(MIKPermissions.STORE_ADMIN)
 
     const { result } = await settled(renderRoles({ sudo: false }))
 
-    // isStoreUser uses hasAccess (no sudo gate); isStoreAdmin uses hasSudoAccess.
-    expect(result.current.isStoreUser).toBe(true)
-    expect(result.current.isStoreAdmin).toBe(false)
+    expect(result.current.hasAccess(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN)).toBe(
+      true,
+    )
   })
+})
 
-  it.each([
-    ['isExamUser', MIKPermissions.EXAM_USER],
-    ['isInventoryUser', MIKPermissions.INVENTORY_USER],
-    ['isAmeUser', MIKPermissions.AME_USER],
-    ['isMeetingUser', MIKPermissions.MEETING_USER],
-  ] as const)('sets %s from the plain user permission', async (flag, permission) => {
-    signInWithPermissions(permission)
-
-    const { result } = await settled(renderRoles())
-
-    expect(result.current[flag]).toBe(true)
-  })
-
+describe('useRoles user-level flags', () => {
   it('treats DTO_INSTRUCTOR as ungated, unlike DTO_ADMIN', async () => {
     signInWithPermissions(MIKPermissions.DTO_INSTRUCTOR)
 

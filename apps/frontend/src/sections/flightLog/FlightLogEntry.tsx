@@ -85,6 +85,7 @@ import { useOverlapCheck } from './useOverlapCheck'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
 import { ReportDefectsSection } from './components/ReportDefectsSection'
 import { hasBlankReportedDefect, submitReportedDefects } from './reportDefectsApi'
+import { endpoints } from '../../api/endpoints'
 
 // Renders the guided mobile wizard for new entries on phone-width viewports (unless
 // the user opted into the classic form via the wizard's "Use full form instead" link);
@@ -134,7 +135,7 @@ const ClassicFlightLogEntry = () => {
   })
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
   // make sure old aircrafts are shown in the list
@@ -158,7 +159,7 @@ const ClassicFlightLogEntry = () => {
   // SWR deduplicates this request with the identical call in FlightCrew.
   const { data: memberList } = useApi<MemberListResponse>(
     {
-      url: 'v1/members',
+      url: endpoints.members.root,
       params: { isMembershipApproved: true },
     },
     {

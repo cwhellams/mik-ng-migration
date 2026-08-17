@@ -29,6 +29,7 @@ import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { RemoveButton } from '../../../components/RemoveButton'
 import { SaveButton } from '../../../components/SaveButton'
+import { endpoints } from '../../../api/endpoints'
 
 export const MemberRoleEditor = ({
   role,
@@ -46,7 +47,7 @@ export const MemberRoleEditor = ({
   const { permissions } = useRoles()
 
   const { mutation } = useApi<MemberRole>({
-    url: `v1/members/roles${isNewRole ? '' : `/${role?.roleId}`}`,
+    url: isNewRole ? endpoints.members.roles : endpoints.members.role(role?.roleId ?? ''),
     skipFetch: true,
   })
   const [formData, setFormData] = useState<Upsert<MemberRole>>({
@@ -82,7 +83,7 @@ export const MemberRoleEditor = ({
     }
 
     // clear the cache for roles list
-    mutate((key) => Array.isArray(key) && key[0] == 'v1/members/roles')
+    mutate((key) => Array.isArray(key) && key[0] == endpoints.members.roles)
 
     onClose()
   }

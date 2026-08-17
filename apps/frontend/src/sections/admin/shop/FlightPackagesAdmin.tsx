@@ -35,6 +35,7 @@ import { RemoteContent } from '../../../components/RemoteContent'
 import type { PrepaidPackage, MemberPackage } from '@mik/contracts/prepaid-hours'
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
 import type { ItemListResponse } from '@mik/contracts/invoicing'
+import { endpoints } from '../../../api/endpoints'
 
 interface PackageForm {
   nameEn: string
@@ -146,7 +147,7 @@ export default function FlightPackagesAdmin() {
     error: memberPackagesError,
   } = useApi<MemberPackage[]>({ url: 'v1/prepaid-hours/member-packages' })
   const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
   const { data: invoiceItemsData } = useApi<ItemListResponse>({

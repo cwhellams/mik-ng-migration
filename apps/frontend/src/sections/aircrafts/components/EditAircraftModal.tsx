@@ -39,6 +39,7 @@ import { SaveButton } from '../../../components/SaveButton'
 import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { HoursAndMinutes } from '../../flightLog/components/HoursAndMinutes'
+import { endpoints } from '../../../api/endpoints'
 
 export type AircraftEditMode = 'new' | 'details' | 'maintenance' | 'notes'
 
@@ -56,12 +57,14 @@ export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModal
   const isNewAircraft = !aircraft?.registration
 
   const { mutation } = useApi<Aircraft>({
-    url: isNewAircraft ? 'v1/aircrafts' : `v1/aircrafts/${aircraft?.registration}`,
+    url: isNewAircraft
+      ? endpoints.aircrafts.root
+      : endpoints.aircrafts.byRegistration(aircraft?.registration ?? ''),
     skipFetch: true,
   })
 
   const { data: fuelTypesData } = useApi<FuelTypesListResponse>({
-    url: 'v1/aircrafts/fuel-types',
+    url: endpoints.aircrafts.fuelTypes,
   })
   const availableFuelTypes = fuelTypesData?.fuelTypes ?? []
 
@@ -221,7 +224,7 @@ export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModal
     }
 
     // clear the cache for aircrafts
-    mutate((key) => Array.isArray(key) && key[0] == 'v1/aircrafts')
+    mutate((key) => Array.isArray(key) && key[0] == endpoints.aircrafts.root)
 
     onClose()
   }

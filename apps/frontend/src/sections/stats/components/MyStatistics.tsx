@@ -22,6 +22,7 @@ import { formatHHMM } from '../../../utils/format'
 import { useNivoTheme } from '../useNivoTheme'
 import type { MyStatistics as MyStatisticsType } from '@mik/contracts/stats'
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
+import { endpoints } from '../../../api/endpoints'
 
 type RangeMode = 'ytd' | 'all'
 
@@ -68,7 +69,7 @@ export const MyStatistics = () => {
   const [selectedAircraft, setSelectedAircraft] = useState<string>('')
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
 

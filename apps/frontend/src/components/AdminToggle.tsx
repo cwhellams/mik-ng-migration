@@ -3,36 +3,24 @@ import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
-import { MIKPermissions } from '@mik/contracts/members'
 
 const AdminToggle = () => {
-  const { hasAccess } = useRoles()
+  // `sudoers` asks the question this component actually cares about — "would
+  // admin mode change anything for this member?" — by testing their permissions
+  // against `downgradePermission`, the same function the backend applies to a
+  // request sent with `x-sudo: false`.
+  //
+  // This used to be a hand-maintained list of 20 permissions, which is the same
+  // list `downgradePermission` already encodes, kept in sync by hand. It had
+  // drifted: CAMO_USER is downgraded (dropped) by the backend but was missing
+  // here, so a member whose only sudo-relevant permission was CAMO_USER got no
+  // toggle, could never turn admin mode on, and therefore could never reach the
+  // CAMO occurrence endpoints their permission exists for. Deriving it fixes
+  // that and cannot drift again.
+  const { sudoers: canUseAdminMode } = useRoles()
   const { sudo, toggleSudo } = useThemeMode()
 
   const { t } = useTranslation()
-
-  const canUseAdminMode = hasAccess(
-    MIKPermissions.MEMBER_ADMIN,
-    MIKPermissions.FLIGHTLOG_ADMIN,
-    MIKPermissions.BOOKING_ADMIN,
-    MIKPermissions.AIRCRAFT_ADMIN,
-    MIKPermissions.INVOICING_ADMIN,
-    MIKPermissions.ACCESS_CODES_ADMIN,
-    MIKPermissions.FUEL_PRICES_ADMIN,
-    MIKPermissions.DOCUMENT_ADMIN,
-    MIKPermissions.SMS_PROCESSOR,
-    MIKPermissions.SMS_MANAGER,
-    MIKPermissions.STORE_ADMIN,
-    MIKPermissions.EXAM_ADMIN,
-    MIKPermissions.DTO_ADMIN,
-    MIKPermissions.EVENTS_ADMIN,
-    MIKPermissions.EXPENSE_ADMIN,
-    MIKPermissions.EXPENSE_HETU_ADMIN,
-    MIKPermissions.INVENTORY_ADMIN,
-    MIKPermissions.AME_ADMIN,
-    MIKPermissions.MEETING_ADMIN,
-    MIKPermissions.OUTBOX_ADMIN,
-  )
 
   if (!canUseAdminMode) {
     return <></>

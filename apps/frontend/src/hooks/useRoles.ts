@@ -8,36 +8,59 @@ import useApi from './useApi'
 import { Problem } from '@mik/contracts/problem'
 import { useMe } from './useMe'
 import { useThemeMode } from '../theme/ThemeContext'
+import { endpoints } from '../api/endpoints'
 
+/**
+ * Permissions and derived access checks for the signed-in member.
+ *
+ * The two accessors are the general case; the named flags are a convenience for
+ * the handful of permissions checked all over the app. #1115 §10 is why there are
+ * only six of them: this hook used to export 24, of which seven had no call site
+ * at all and nine had five or fewer, so every new permission meant editing a
+ * return type, an implementation and a union that nothing read. Reach for
+ * `hasSudoAccess(...)` rather than adding a flag — a flag has to earn its place
+ * by being checked in a lot of files.
+ */
 export function useRoles(): {
   me: ReturnType<typeof useMe>['me']
+
+  /** True if the member holds **any** of these permissions, sudo mode or not. */
   hasAccess: (...permission: MIKPermissions[]) => boolean
+
+  /**
+   * `hasAccess`, but only while admin mode is on — the frontend half of the
+   * backend's `downgradePermission`, which strips admin permissions from a
+   * request sent with `x-sudo: false`. This is what the removed `is<X>Admin`
+   * flags each were, so `hasSudoAccess(MIKPermissions.MEETING_ADMIN)` is the
+   * direct replacement for `isMeetingAdmin`.
+   */
+  hasSudoAccess: (...permission: MIKPermissions[]) => boolean
+
   isLoading: boolean
   isMembersAdmin: boolean
   isAircraftAdmin: boolean
   isFlightLogAdmin: boolean
-  isInvoicingAdmin: boolean
   isAccessCodesAdmin: boolean
   isBookingAdmin: boolean
-  isDocumentAdmin: boolean
-  isSMSProcessor: boolean
   isSMSManager: boolean
-  isOutboxAdmin: boolean
-  isStoreAdmin: boolean
-  isStoreUser: boolean
-  isExamAdmin: boolean
-  isExamUser: boolean
-  isInventoryAdmin: boolean
-  isInventoryUser: boolean
-  isAmeAdmin: boolean
-  isAmeUser: boolean
-  isMeetingAdmin: boolean
-  isMeetingUser: boolean
-  isExpenseAdmin: boolean
+
+  /**
+   * Kept as a flag despite only four call sites: the rule is bespoke — an
+   * instructor is ungated, a DTO admin is sudo-gated — and inlining it would
+   * copy that asymmetry to every caller.
+   */
   isDtoInstructor: boolean
+
   roles: MemberRole[]
   permissions: MIKPermissions[]
+
+  /**
+   * True when at least one of the member's permissions changes under
+   * `downgradePermission` — i.e. when admin mode would actually do something.
+   * `AdminToggle` shows the sudo switch on this.
+   */
   sudoers: boolean
+
   error: Problem | undefined
 } {
   const { me, isLoading } = useMe()
@@ -46,7 +69,7 @@ export function useRoles(): {
 
   const { data: rolesData, error } = useApi<MemberRolesResponse>(
     {
-      url: 'v1/members/roles',
+      url: endpoints.members.roles,
     },
     {
       // roles do not change often so skip automatic revalidations
@@ -61,33 +84,20 @@ export function useRoles(): {
   const hasAccess = (...permissions: MIKPermissions[]) =>
     permissions.length === 0 || permissions.some((p) => myPermissions.includes(p))
 
-  const hasSudoAccess = (permission: MIKPermissions) => (sudo ? hasAccess(permission) : false)
+  const hasSudoAccess = (...permissions: MIKPermissions[]) =>
+    sudo ? hasAccess(...permissions) : false
 
   return {
     me,
     hasAccess,
+    hasSudoAccess,
     isLoading,
     isMembersAdmin: hasSudoAccess(MIKPermissions.MEMBER_ADMIN),
     isAircraftAdmin: hasSudoAccess(MIKPermissions.AIRCRAFT_ADMIN),
     isFlightLogAdmin: hasSudoAccess(MIKPermissions.FLIGHTLOG_ADMIN),
-    isInvoicingAdmin: hasSudoAccess(MIKPermissions.INVOICING_ADMIN),
     isAccessCodesAdmin: hasSudoAccess(MIKPermissions.ACCESS_CODES_ADMIN),
     isBookingAdmin: hasSudoAccess(MIKPermissions.BOOKING_ADMIN),
-    isDocumentAdmin: hasSudoAccess(MIKPermissions.DOCUMENT_ADMIN),
-    isSMSProcessor: hasSudoAccess(MIKPermissions.SMS_PROCESSOR),
     isSMSManager: hasSudoAccess(MIKPermissions.SMS_MANAGER),
-    isOutboxAdmin: hasSudoAccess(MIKPermissions.OUTBOX_ADMIN),
-    isStoreAdmin: hasSudoAccess(MIKPermissions.STORE_ADMIN),
-    isStoreUser: hasAccess(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN),
-    isExamAdmin: hasSudoAccess(MIKPermissions.EXAM_ADMIN),
-    isExamUser: hasAccess(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-    isInventoryAdmin: hasSudoAccess(MIKPermissions.INVENTORY_ADMIN),
-    isInventoryUser: hasAccess(MIKPermissions.INVENTORY_USER, MIKPermissions.INVENTORY_ADMIN),
-    isAmeAdmin: hasSudoAccess(MIKPermissions.AME_ADMIN),
-    isAmeUser: hasAccess(MIKPermissions.AME_USER, MIKPermissions.AME_ADMIN),
-    isMeetingAdmin: hasSudoAccess(MIKPermissions.MEETING_ADMIN),
-    isMeetingUser: hasAccess(MIKPermissions.MEETING_USER, MIKPermissions.MEETING_ADMIN),
-    isExpenseAdmin: hasSudoAccess(MIKPermissions.EXPENSE_ADMIN),
     // DTO_INSTRUCTOR is not downgraded outside sudo mode, but DTO_ADMIN is
     isDtoInstructor:
       hasAccess(MIKPermissions.DTO_INSTRUCTOR) || hasSudoAccess(MIKPermissions.DTO_ADMIN),

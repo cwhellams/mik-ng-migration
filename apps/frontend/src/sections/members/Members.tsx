@@ -42,6 +42,7 @@ import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
 import { useMultiSelect } from '../../hooks/useMultiSelect'
+import { endpoints } from '../../api/endpoints'
 
 type SortDirection = 'asc' | 'desc'
 type SortField =
@@ -65,7 +66,7 @@ const Members = () => {
 
   const { data, isLoading, error, mutate, mutation } = useApi<MemberListResponse, Member>(
     {
-      url: 'v1/members',
+      url: endpoints.members.root,
       params: filters,
     },
     {

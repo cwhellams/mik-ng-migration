@@ -19,6 +19,7 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import type { InventoryItem, InventoryAuditLogEntry } from '@mik/contracts/inventory'
+import { MIKPermissions } from '@mik/contracts/members'
 import { resolveLanguage, localName, conditionColor } from './localized'
 
 export default function InventoryItemPage() {
@@ -27,7 +28,8 @@ export default function InventoryItemPage() {
   const lang = resolveLanguage(i18n.language)
   // Sudo-gated: the audit log and low-stock cue are admin-only and only shown
   // once the admin has entered admin mode, consistent with the rest of the app.
-  const { isInventoryAdmin: isAdmin } = useRoles()
+  const { hasSudoAccess } = useRoles()
+  const isAdmin = hasSudoAccess(MIKPermissions.INVENTORY_ADMIN)
 
   const { data, isLoading, error } = useApi<{
     item: InventoryItem

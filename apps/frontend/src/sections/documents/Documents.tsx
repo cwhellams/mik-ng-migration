@@ -35,6 +35,7 @@ import type {
   Document,
   DownloadDocument,
 } from '@mik/contracts/documents'
+import { MIKPermissions } from '@mik/contracts/members'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
@@ -49,7 +50,8 @@ const bufferToDataUrl = (buf: any): string | null => {
 const Documents = () => {
   const { t } = useTranslation()
   const { showSnackbar } = useSnackbar()
-  const { isDocumentAdmin } = useRoles()
+  const { hasSudoAccess } = useRoles()
+  const isDocumentAdmin = hasSudoAccess(MIKPermissions.DOCUMENT_ADMIN)
   const { formatDate } = useTimezone()
   const [searchParams, setSearchParams] = useSearchParams()
 

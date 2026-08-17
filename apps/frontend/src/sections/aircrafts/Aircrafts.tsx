@@ -49,10 +49,12 @@ import ProgressLine from './components/Progress'
 import { Title } from '../../components/Title'
 import { RemoveButton } from '../../components/RemoveButton'
 import { AircraftPricing } from '@mik/contracts/aircraft-pricing'
+import { MIKPermissions } from '@mik/contracts/members'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { mutate } from 'swr'
 import { formatHHMM } from '../../utils/format'
 import { useTimezone } from '../../hooks/useTimezone'
+import { endpoints } from '../../api/endpoints'
 
 // Index of the Hold Item List entry in the per-card bottom navigation
 const HIL_TAB = 5
@@ -62,12 +64,12 @@ const Aircrafts = () => {
   const [problem, setProblem] = useState<Problem | undefined>()
 
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: !showInactive },
   })
 
-  const { isAircraftAdmin, isInvoicingAdmin, isFlightLogAdmin } = useRoles()
-  const canEditPricing = isAircraftAdmin || isInvoicingAdmin
+  const { isAircraftAdmin, isFlightLogAdmin, hasSudoAccess } = useRoles()
+  const canEditPricing = isAircraftAdmin || hasSudoAccess(MIKPermissions.INVOICING_ADMIN)
 
   const pricingDelete = useApi({ url: 'v1/aircraft-pricing', skipFetch: true })
 

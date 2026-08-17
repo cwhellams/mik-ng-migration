@@ -302,6 +302,40 @@ Rules:
 - Anything the registry can't express as data (building vars from a domain object, non-email text) belongs in a helper next to it — see `bookingEmailHelpers.ts`, `occurrenceEmailHelpers.ts` and `qualificationExpiryEmailTemplate.ts`. One helper per domain object, shared by every email that renders it.
 - `test/templates/email.test.ts` snapshots the rendered HTML of every template in all three languages. If a change to shared rendering updates those snapshots, that is a real change to what members receive — review it, don't just `-u`.
 
+## Frontend API Paths
+
+Every API path the frontend calls lives in `apps/frontend/src/api/endpoints.ts`, never as a
+string at the call site:
+
+```ts
+import { absolute, endpoints } from '../../api/endpoints'
+
+const { data, mutation } = useApi<Member>({ url: endpoints.members.byId(memberId) })
+await mutation.trigger('POST', {}, absolute(endpoints.members.restore(memberId)))
+```
+
+Rules:
+
+- **Paths carry no leading slash and no query string.** They must match what `useApi`'s
+  `url` wants, because `useApi` keys its SWR cache on `[url, params]` — so a `mutate()`
+  that revalidates a resource has to reproduce the _exact_ string the fetching component
+  passed. Two hand-built copies can differ and the revalidation then silently does
+  nothing; two calls to the same registry function cannot.
+- **Query strings go in `params`**, which `useApi` serialises _and_ includes in the cache
+  key. Baked into the path they are invisible to both.
+- **Anything variable is a function** (`byId(id)`), so a caller cannot forget a segment.
+  This is also what makes `tsc` catch a possibly-undefined id — the raw template literal
+  it replaced would happily fetch `v1/members/undefined`.
+- Use `absolute(...)` for the third argument of `trigger`, which replaces the hook's `url`
+  when the path starts with `/` and appends to it otherwise.
+- **An ESLint rule enforces this per domain.** `no-restricted-syntax` in
+  `apps/frontend/eslint.config.js` rejects a raw `'v1/…'` literal for every domain already
+  migrated. Migrating a domain means adding its paths here, moving its call sites, and
+  adding it to that rule's list so it cannot regress. Tests are exempt: an MSW handler
+  asserting `apiUrl('v1/members/:memberId')` is stating the wire path on purpose.
+- Migration is **domain by domain** and the two styles coexist meanwhile (#1115 §6). The
+  rule's list is the record of which domains are done.
+
 ## Database Layer
 
 `apps/backend/src/db/connection.ts` exports **one** Kysely instance, `db`, over one pg

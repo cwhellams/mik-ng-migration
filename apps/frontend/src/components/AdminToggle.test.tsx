@@ -1,4 +1,4 @@
-import { MIKPermissions } from '@mik/contracts/members'
+import { MIKPermissions, downgradePermission } from '@mik/contracts/members'
 import { screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -20,29 +20,47 @@ describe('AdminToggle visibility', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: TOGGLE })).toBeNull())
   })
 
-  it.each([
-    MIKPermissions.MEMBER_ADMIN,
-    MIKPermissions.FLIGHTLOG_ADMIN,
-    MIKPermissions.BOOKING_ADMIN,
-    MIKPermissions.AIRCRAFT_ADMIN,
-    MIKPermissions.INVOICING_ADMIN,
-    MIKPermissions.ACCESS_CODES_ADMIN,
-    MIKPermissions.FUEL_PRICES_ADMIN,
-    MIKPermissions.DOCUMENT_ADMIN,
-    MIKPermissions.SMS_PROCESSOR,
-    MIKPermissions.SMS_MANAGER,
-    MIKPermissions.STORE_ADMIN,
-    MIKPermissions.EXAM_ADMIN,
-    MIKPermissions.DTO_ADMIN,
-    MIKPermissions.EVENTS_ADMIN,
-    MIKPermissions.EXPENSE_ADMIN,
-    MIKPermissions.EXPENSE_HETU_ADMIN,
-    MIKPermissions.INVENTORY_ADMIN,
-    MIKPermissions.AME_ADMIN,
-    MIKPermissions.MEETING_ADMIN,
-    MIKPermissions.OUTBOX_ADMIN,
-  ])('appears for a member holding %s', async (permission) => {
+  // Driven off `downgradePermission` rather than a list written out here, because
+  // a list written out here is exactly what went wrong: the component used to
+  // carry its own copy of these 21 permissions and it had drifted from the
+  // function the backend actually applies. Enumerating MIKPermissions means a new
+  // permission is covered the day it is added, in whichever direction it belongs.
+  const sudoRelevant = Object.values(MIKPermissions).filter(
+    (permission) => downgradePermission(permission) !== permission,
+  )
+  const ordinary = Object.values(MIKPermissions).filter(
+    (permission) => downgradePermission(permission) === permission,
+  )
+
+  it('has both kinds of permission to test', () => {
+    // Guards the two tables below against silently emptying if the enum or
+    // downgradePermission is restructured.
+    expect(sudoRelevant.length).toBeGreaterThan(15)
+    expect(ordinary.length).toBeGreaterThan(0)
+  })
+
+  it.each(sudoRelevant)('appears for a member holding %s', async (permission) => {
     signInWithPermissions(permission)
+
+    renderWithProviders(<AdminToggle />)
+
+    expect(await screen.findByRole('button', { name: TOGGLE })).toBeInTheDocument()
+  })
+
+  it.each(ordinary)('stays hidden for a member holding only %s', async (permission) => {
+    signInWithPermissions(permission)
+
+    renderWithProviders(<AdminToggle />)
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: TOGGLE })).toBeNull())
+  })
+
+  it('appears for a CAMO reviewer', async () => {
+    // Kept explicit as well as covered by the table above: CAMO_USER is the
+    // permission the old hardcoded list omitted. The backend strips it outside
+    // sudo mode, so without a toggle a CAMO reviewer could never turn admin mode
+    // on and never reach the occurrence endpoints the permission is for.
+    signInWithPermissions(MIKPermissions.CAMO_USER)
 
     renderWithProviders(<AdminToggle />)
 

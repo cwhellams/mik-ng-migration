@@ -60,6 +60,7 @@ import {
 import { generateGoogleCalendarLink } from '@mik/contracts/calendar'
 import { downloadIcs } from '../../../utils/calendarEvent'
 import { SelectMember } from '../../../components/SelectMember'
+import { endpoints } from '../../../api/endpoints'
 
 export type BookingFlags = {
   isNewBooking: boolean
@@ -87,13 +88,13 @@ export const BookingEditor = ({
   const now = dayjs().startOf('minute')
 
   const { mutation } = useApi<Booking>({
-    url: `v1/bookings${isNewBooking ? '' : `/${booking?.bookingId}`}`,
+    url: isNewBooking ? endpoints.bookings.root : endpoints.bookings.byId(booking?.bookingId ?? ''),
     skipFetch: true,
   })
 
   const { data: aircraftData } = useApi<AircraftListResponse>(
     {
-      url: 'v1/aircrafts',
+      url: endpoints.aircrafts.root,
       params: { activeOnly: true, visibleOnly: false },
       skipFetch: !booking,
     },
@@ -107,7 +108,7 @@ export const BookingEditor = ({
 
   const { data: instructorData } = useApi<MemberListResponse>(
     {
-      url: 'v1/members',
+      url: endpoints.members.root,
       params: { role: ['INSTRUCTOR', 'EXAMINER'] },
       skipFetch: !booking,
     },
@@ -156,7 +157,7 @@ export const BookingEditor = ({
     startDate?.date.isValid() && endDate?.date.isValid() && !startDate.error && !endDate.error
 
   const { data: overlaps } = useApi<BookingListResponse>({
-    url: 'v1/bookings',
+    url: endpoints.bookings.root,
     skipFetch: !booking || !datesAreValid || isReadonly,
     params: {
       registration: [formData.registration],
@@ -224,7 +225,7 @@ export const BookingEditor = ({
     }
 
     // clear the cache for booking list
-    mutate((key) => Array.isArray(key) && key[0] == 'v1/bookings')
+    mutate((key) => Array.isArray(key) && key[0] == endpoints.bookings.root)
 
     onClose()
   }
@@ -253,7 +254,7 @@ export const BookingEditor = ({
       return setProblem(error)
     }
 
-    mutate((key) => Array.isArray(key) && key[0] == 'v1/bookings')
+    mutate((key) => Array.isArray(key) && key[0] == endpoints.bookings.root)
     onClose()
   }
 
@@ -286,7 +287,7 @@ export const BookingEditor = ({
       return setProblem(error)
     }
 
-    mutate((key) => Array.isArray(key) && key[0] == 'v1/bookings')
+    mutate((key) => Array.isArray(key) && key[0] == endpoints.bookings.root)
     onClose()
   }
 

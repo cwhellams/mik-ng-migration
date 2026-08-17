@@ -2,6 +2,7 @@ import { MemberListFilters, MemberListResponse } from '@mik/contracts/members'
 import useApi from '../hooks/useApi'
 import { Autocomplete, TextField } from '@mui/material'
 import { useMemo } from 'react'
+import { endpoints } from '../api/endpoints'
 
 type Member = {
   id?: string
@@ -39,7 +40,7 @@ export const SelectMember = ({
 
   const { data: memberList } = useApi<MemberListResponse>(
     {
-      url: 'v1/members',
+      url: endpoints.members.root,
       params: filters,
     },
     {

@@ -18,7 +18,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { MIKMemberTypes, type MemberListFilters } from '@mik/contracts/members'
+import { MIKMemberTypes, MIKPermissions, type MemberListFilters } from '@mik/contracts/members'
 import type {
   CreateMeeting,
   CreateVote,
@@ -115,7 +115,8 @@ const DocumentFilterField = ({
 
 const MeetingsAdminPage = () => {
   const { t } = useTranslation()
-  const { isMeetingAdmin, isLoading: rolesLoading } = useRoles()
+  const { hasSudoAccess, isLoading: rolesLoading } = useRoles()
+  const isMeetingAdmin = hasSudoAccess(MIKPermissions.MEETING_ADMIN)
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null)
   const [meetingForm, setMeetingForm] = useState<CreateMeeting>(emptyMeetingForm)
   const [createMeetingOpen, setCreateMeetingOpen] = useState(false)

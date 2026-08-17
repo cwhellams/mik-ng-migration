@@ -18,6 +18,7 @@ import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type { TotalFlightTimeByAcYrMth } from '@mik/contracts/stats'
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
+import { endpoints } from '../../../api/endpoints'
 
 const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
 
@@ -53,7 +54,7 @@ export const YearOnYearReport = () => {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
 

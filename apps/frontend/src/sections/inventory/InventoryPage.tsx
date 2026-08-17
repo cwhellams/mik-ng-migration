@@ -22,6 +22,7 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import type { InventoryItem, InventoryCategory, InventoryLocation } from '@mik/contracts/inventory'
+import { MIKPermissions } from '@mik/contracts/members'
 import { resolveLanguage, localName, conditionColor } from './localized'
 
 export default function InventoryPage() {
@@ -29,7 +30,8 @@ export default function InventoryPage() {
   const lang = resolveLanguage(i18n.language)
   // Sudo-gated: admin-only cues (low-stock highlight) stay hidden until the
   // admin explicitly enters admin mode, consistent with the rest of the app.
-  const { isInventoryAdmin: isAdmin } = useRoles()
+  const { hasSudoAccess } = useRoles()
+  const isAdmin = hasSudoAccess(MIKPermissions.INVENTORY_ADMIN)
 
   const [categoryId, setCategoryId] = useState('')
   const [locationId, setLocationId] = useState('')

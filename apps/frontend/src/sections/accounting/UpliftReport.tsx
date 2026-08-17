@@ -32,6 +32,7 @@ import { Download, OpenInNew } from '@mui/icons-material'
 import { Link } from 'react-router'
 import { useTimezone } from '../../hooks/useTimezone'
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
+import { endpoints } from '../../api/endpoints'
 
 interface UpliftReportEntry {
   flightId: string
@@ -83,7 +84,7 @@ export const UpliftReport = () => {
   const [shouldFetch, setShouldFetch] = useState(false)
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
 

@@ -201,6 +201,7 @@ actually achieves:
 
 | Directory                                      | Statements | Branches | Functions |
 | ---------------------------------------------- | ---------- | -------- | --------- |
+| `src/api/**`                                   | 99         | 99       | 99        |
 | `src/hooks/**`                                 | 97         | 93       | 99        |
 | `src/components/**`                            | 92         | 88       | 86        |
 | `src/{*,lib/**,layouts/**,theme/**,config/**}` | 71         | 46       | 68        |

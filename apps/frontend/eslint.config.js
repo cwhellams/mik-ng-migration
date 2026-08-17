@@ -53,4 +53,36 @@ export default tseslint.config(
       ],
     },
   },
+  // API paths belong in src/api/endpoints.ts, not at the call site (#1115 §6, and
+  // Q8 in that issue, which asked for the guardrail rather than just the cleanup).
+  //
+  // `MIGRATED_DOMAINS` is the enforcement, and it is deliberately a list of
+  // domains rather than of directories: the literals are spread across
+  // src/sections by page, not by domain, so there is no directory to point at.
+  // A domain in here can never regain a raw literal; the ~37 domains not in here
+  // yet are untouched, and each gets added as its call sites move over. When the
+  // list covers everything it collapses to a plain `^v1/`.
+  //
+  // Tests are exempt: an MSW handler asserting `apiUrl('v1/members/:memberId')`
+  // is stating the wire path on purpose, and routing it through the registry
+  // would make the test agree with the code by construction rather than check it.
+  {
+    files: ['**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', 'src/test/**', 'src/api/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Literal[value=/^v1\\u002F(members|aircrafts|bookings)(\\u002F|$)/]',
+          message:
+            'Use the path from src/api/endpoints.ts (e.g. endpoints.members.byId(id)) instead of a raw API path. Defining it once keeps renames to one edit and keeps SWR cache keys in step with the URL that was fetched.',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/^v1\\u002F(members|aircrafts|bookings)\\u002F/]',
+          message:
+            'Use the path builder from src/api/endpoints.ts (e.g. endpoints.members.byId(id)) instead of interpolating an API path.',
+        },
+      ],
+    },
+  },
 )

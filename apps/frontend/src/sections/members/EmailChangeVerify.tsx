@@ -6,6 +6,7 @@ import useApi from '../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
 import { Member } from '@mik/contracts/members'
 import { Title } from '../../components/Title'
+import { endpoints } from '../../api/endpoints'
 
 const EmailChangeVerify = () => {
   const [searchParams] = useSearchParams()
@@ -17,7 +18,7 @@ const EmailChangeVerify = () => {
   const { t } = useTranslation()
 
   const { mutation } = useApi<Member>({
-    url: 'v1/members/me',
+    url: endpoints.members.me,
     skipFetch: true,
   })
 

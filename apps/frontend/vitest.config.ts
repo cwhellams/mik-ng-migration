@@ -93,11 +93,11 @@ export default defineConfig({
       // all. That is a gap to fill, not a bar to lower — it is the obvious next
       // directory to earn a raise, not a reason to have set this one low.
       //
-      // Every collected file matches exactly one glob below (318 of 318): the
-      // four directories that carry mass get their own bar, and the four small
-      // ones that don't — plus `App.tsx`, `AppRoutes.tsx`, `i18n.ts` — share the
-      // (*) bar, because at 84 statements between them a single statement is
-      // worth 1.2 points and separate bars would be measuring noise.
+      // Every collected file matches exactly one glob below: the directories that
+      // carry mass get their own bar, and the four small ones that don't — plus
+      // `App.tsx`, `AppRoutes.tsx`, `i18n.ts` — share the (*) bar, because at 84
+      // statements between them a single statement is worth 1.2 points and
+      // separate bars would be measuring noise.
       //
       // Each bar is its measured figure less about a point of headroom (one
       // uncovered unit, in the small shared set). A ratchet pinned exactly to the
@@ -119,6 +119,11 @@ export default defineConfig({
         branches: 37,
         functions: 31,
 
+        // New in #1115 phase 6. It is a registry of paths plus one one-line
+        // helper, exercised directly by endpoints.test.ts and transitively by
+        // every migrated call site, so it starts at the top of the range and
+        // there is no reason for it ever to leave.
+        'src/api/**': { statements: 99, branches: 99, functions: 99 },
         'src/hooks/**': { statements: 97, branches: 93, functions: 99 },
         'src/components/**': { statements: 92, branches: 88, functions: 86 },
         'src/{*,lib/**,layouts/**,theme/**,config/**}': {

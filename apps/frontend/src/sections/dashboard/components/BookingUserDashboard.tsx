@@ -13,6 +13,7 @@ import { BookingEditor, BookingFlags } from '../../schedule/components/EditBooki
 import dayjs from 'dayjs'
 import { useMe } from '../../../hooks/useMe'
 import { bookingFlags } from '../../schedule/helpers'
+import { endpoints } from '../../../api/endpoints'
 
 export const BookingUserDashboard = () => {
   const { me } = useMe()
@@ -35,7 +36,7 @@ export const BookingUserDashboard = () => {
     isLoading: isLoadingSchedule,
     error: scheduleError,
   } = useApi<BookingListResponse, Booking>({
-    url: 'v1/bookings',
+    url: endpoints.bookings.root,
     skipFetch: !bookingFilters.memberId,
     params: bookingFilters,
   })

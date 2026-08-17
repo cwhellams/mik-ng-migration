@@ -61,10 +61,15 @@ import { PasskeysCard } from './components/PasskeysCard'
 import { PushNotificationsCard } from './components/PushNotificationsCard'
 import { ApplicationDataCard } from './components/ApplicationDataCard'
 import { GdprExportCard } from './components/GdprExportCard'
+import { endpoints } from '../../api/endpoints'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
-  const { memberId } = useParams()
+  // This page is only ever mounted at `members/:memberId`, so the param is always
+  // there — React Router just can't prove it. Defaulted once here rather than at
+  // each use: `endpoints.members.byId` takes a `string`, and the raw template
+  // literal it replaced would happily have fetched `v1/members/undefined`.
+  const { memberId = '' } = useParams()
   const navigate = useNavigate()
   const roles = useRoles()
   const { formatDate } = useTimezone()
@@ -73,14 +78,14 @@ const MemberProfile = () => {
   const isAdmin = roles.isMembersAdmin && memberId !== 'me'
 
   const { data, isLoading, error, mutation } = useApi<Member>({
-    url: `v1/members/${memberId}`,
+    url: endpoints.members.byId(memberId),
   })
 
   // Members can list other members filtered by role even without admin rights, unlike
   // GET /v1/members/:id which is admin-only — use the list endpoint to resolve the
   // default instructor's name.
   const { data: instructorListData } = useApi<MemberListResponse>({
-    url: 'v1/members',
+    url: endpoints.members.root,
     params: { role: ['INSTRUCTOR'] },
     skipFetch: !data?.defaultInstructorMemberId,
   })
@@ -92,7 +97,7 @@ const MemberProfile = () => {
   // /v1/members/must-update-profile endpoint with a one-element id array, so the
   // per-member toggle and the bulk list action go through the same backend path.
   const { mutation: mustUpdateMutation } = useApi<{ updated: number }>({
-    url: 'v1/members',
+    url: endpoints.members.root,
     skipFetch: true,
   })
 
@@ -207,7 +212,7 @@ const MemberProfile = () => {
       detail: t('member.approvedSnackbarMessage', data),
     })
 
-    mutate((key) => Array.isArray(key) && key[0] == `v1/members/${memberId}`)
+    mutate((key) => Array.isArray(key) && key[0] == endpoints.members.byId(memberId))
   }
 
   //Deconstructing the data object to extract the properties we need
@@ -843,7 +848,8 @@ const MemberProfile = () => {
                               setProblem({ status: 404, detail: t('member.noMembersFound') })
                             } else {
                               mutate(
-                                (key) => Array.isArray(key) && key[0] === `v1/members/${memberId}`,
+                                (key) =>
+                                  Array.isArray(key) && key[0] === endpoints.members.byId(memberId),
                               )
                             }
                           }}
@@ -985,11 +991,11 @@ const MailingListsCard = ({
 }) => {
   const { t } = useTranslation()
   const { data: availableLists, isLoading } = useApi<MailingList[]>({
-    url: 'v1/members/mailing-lists',
+    url: endpoints.members.mailingLists,
   })
 
   const { mutation } = useApi<{ mailingLists: string[] }>({
-    url: memberId === 'me' ? 'v1/members/me' : `v1/members/${memberId}`,
+    url: memberId === 'me' ? endpoints.members.me : endpoints.members.byId(memberId),
   })
 
   const [selected, setSelected] = useState<string[]>(currentLists)
@@ -1089,7 +1095,7 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
   const { t } = useTranslation()
   const { formatDate } = useTimezone()
   const { data, isLoading, error } = useApi<InvoiceListResponse>({
-    url: `v1/members/${memberId}/invoices`,
+    url: endpoints.members.invoices(memberId),
     alwaysSudo: true,
   })
 
@@ -1211,7 +1217,7 @@ const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
   const { t } = useTranslation()
   const { formatDate, formatTime } = useTimezone()
   const { data, isLoading, error } = useApi<FlightLogListResponse>({
-    url: `v1/members/${memberId}/flights`,
+    url: endpoints.members.flights(memberId),
     alwaysSudo: true,
   })
 
@@ -1284,7 +1290,7 @@ const AdminBookingsCard = ({ memberId }: { memberId: string }) => {
     [memberId],
   )
   const { data, isLoading, error } = useApi<BookingListResponse>({
-    url: 'v1/bookings',
+    url: endpoints.bookings.root,
     params: bookingFilters,
     alwaysSudo: true,
   })

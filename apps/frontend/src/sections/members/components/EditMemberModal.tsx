@@ -36,6 +36,7 @@ import { SaveButton } from '../../../components/SaveButton'
 import { PhoneNumberInput } from '../../../components/PhoneNumberInput'
 import { CountrySelect } from '../../../components/CountrySelect'
 import { useNavigate } from 'react-router'
+import { endpoints } from '../../../api/endpoints'
 
 export type MemberEditMode =
   | 'register'
@@ -79,7 +80,7 @@ export const EditMemberModal = ({
 
   const { data: instructorData } = useApi<MemberListResponse>(
     {
-      url: 'v1/members',
+      url: endpoints.members.root,
       params: { role: ['INSTRUCTOR'] },
       skipFetch: mode !== 'training',
     },

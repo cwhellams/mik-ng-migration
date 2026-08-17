@@ -19,6 +19,7 @@ import useApi from '../../../hooks/useApi'
 import { FormTitle } from '../../../components/FormTitle'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
+import { endpoints } from '../../../api/endpoints'
 import {
   isSecureContextForPasskeys,
   passkeySupported,
@@ -55,7 +56,8 @@ interface PasskeysCardProps {
  */
 export const PasskeysCard = ({ memberId, isAdmin }: PasskeysCardProps) => {
   const { t } = useTranslation()
-  const apiPath = memberId === 'me' ? 'v1/members/me/passkeys' : `v1/members/${memberId}/passkeys`
+  const apiPath =
+    memberId === 'me' ? endpoints.members.myPasskeys : endpoints.members.passkeys(memberId)
 
   const { data, isLoading, mutation, mutate } = useApi<PasskeysResponse>({
     url: apiPath,
