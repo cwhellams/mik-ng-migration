@@ -14,6 +14,7 @@ import { Title } from '../../components/Title'
 import { FlightLogEntryWizard } from './wizard/FlightLogEntryWizard'
 import { ReviewStep } from './wizard/steps/ReviewStep'
 import type { WizardStep } from './wizard/useWizardSteps'
+import { endpoints } from '../../api/endpoints'
 
 interface Props {
   onSwitchToClassicForm: () => void
@@ -34,11 +35,11 @@ export const MobileFlightLogView = ({ onSwitchToClassicForm }: Props) => {
     url: `v1/flight-logs/${flightId}`,
   })
   const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
   const { data: memberList } = useApi<MemberListResponse>(
-    { url: 'v1/members', params: { isMembershipApproved: true } },
+    { url: endpoints.members.root, params: { isMembershipApproved: true } },
     { revalidateIfStale: false, revalidateOnFocus: false, revalidateOnReconnect: false },
   )
 

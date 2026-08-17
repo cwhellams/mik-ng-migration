@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { buildBookingIcs, generateGoogleCalendarLink } from '../src/calendar.ts'
+import {
+  buildBookingIcs,
+  escapeIcsText,
+  generateGoogleCalendarLink,
+  toIcsUtc,
+} from '../src/calendar.ts'
 import { BookingStatus, BookingType, type Booking } from '../src/bookings.ts'
 
 // 2026-03-14 09:00:00Z -> 10:30:00Z
@@ -165,5 +170,49 @@ describe('generateGoogleCalendarLink', () => {
 
     expect(url.searchParams.get('details')).toBe('A&B=C')
     expect(url.searchParams.get('text')).toBe('MIK - OH ABC')
+  })
+})
+
+// Both helpers are exported rather than module-private because the frontend's
+// club-event ICS needs them too, and had its own copies (issue #1115 finding 8).
+// Their behaviour is therefore a contract between two callers, not an internal
+// detail of buildBookingIcs, so it is asserted directly.
+describe('toIcsUtc', () => {
+  it('renders a Date as a compact UTC timestamp', () => {
+    expect(toIcsUtc(new Date('2026-03-14T09:00:00.000Z'))).toBe('20260314T090000Z')
+  })
+
+  it('normalises a non-UTC instant to UTC', () => {
+    // Same instant, written with an offset. ICS UTC values must not carry it.
+    expect(toIcsUtc(new Date('2026-03-14T11:00:00.000+02:00'))).toBe('20260314T090000Z')
+  })
+
+  it('drops sub-second precision rather than rounding it', () => {
+    expect(toIcsUtc(new Date('2026-03-14T09:00:00.999Z'))).toBe('20260314T090000Z')
+  })
+})
+
+describe('escapeIcsText', () => {
+  // String.raw throughout: these assertions are about backslashes, and writing
+  // them with JS escapes is how the first draft of this test came out asserting
+  // `';'` where it meant `'\;'`.
+  it.each([
+    ['semicolons', 'a;b', String.raw`a\;b`],
+    ['commas', 'a,b', String.raw`a\,b`],
+    ['newlines', 'a\nb', String.raw`a\nb`],
+    ['backslashes', String.raw`a\b`, String.raw`a\\b`],
+  ])('escapes %s', (_what, input, expected) => {
+    expect(escapeIcsText(input)).toBe(expected)
+  })
+
+  it('escapes the backslash before the characters it introduces', () => {
+    // Order matters. Escaping `;` first and `\` second would go back over the
+    // backslash this function had just inserted and double it.
+    expect(escapeIcsText(';')).toBe(String.raw`\;`)
+    expect(escapeIcsText(String.raw`\;`)).toBe(String.raw`\\\;`)
+  })
+
+  it('leaves ordinary text alone', () => {
+    expect(escapeIcsText('MIK - OH-ABC')).toBe('MIK - OH-ABC')
   })
 })

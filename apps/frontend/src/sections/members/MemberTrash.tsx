@@ -13,6 +13,7 @@ import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
+import { absolute, endpoints } from '../../api/endpoints'
 
 const MemberTrash = () => {
   const [nameFilter, setNameFilter] = useState('')
@@ -20,7 +21,7 @@ const MemberTrash = () => {
 
   const { data, isLoading, error, mutate, mutation } = useApi<MemberListResponse, Member>(
     {
-      url: 'v1/members/trash',
+      url: endpoints.members.trash,
     },
     {
       keepPreviousData: true,
@@ -35,7 +36,11 @@ const MemberTrash = () => {
       return
     }
 
-    const { error } = await mutation.trigger('POST', {}, `/v1/members/${memberId}/restore`)
+    const { error } = await mutation.trigger(
+      'POST',
+      {},
+      absolute(endpoints.members.restore(memberId)),
+    )
     if (error) {
       return setProblem(error)
     }

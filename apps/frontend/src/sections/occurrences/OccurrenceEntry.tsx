@@ -59,10 +59,11 @@ import { OccurrenceStatusChip } from './components/OccurrenceStatusChip'
 import { ConfirmButton } from '../../components/ConfirmDialog'
 import { FormTitle } from '../../components/FormTitle'
 import { SelectMember } from '../../components/SelectMember'
-import { Member, MemberRole, MIKLang } from '@mik/contracts/members'
+import { Member, MemberRole, MIKLang, MIKPermissions } from '@mik/contracts/members'
 import { EditButton } from '../../components/EditButton'
 import { Box } from '@mui/system'
 import { useTimezone } from '../../hooks/useTimezone'
+import { endpoints } from '../../api/endpoints'
 
 const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB, matches the backend's raw upload limit
 const ACCEPTED_ATTACHMENT_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -1195,9 +1196,9 @@ export const OccurrenceEntry = () => {
 
   const { reportId } = useParams()
 
-  const { isSMSProcessor, isSMSManager, me, roles } = useRoles()
+  const { isSMSManager, me, roles, hasSudoAccess } = useRoles()
 
-  const isAdmin = isSMSManager || isSMSProcessor
+  const isAdmin = isSMSManager || hasSudoAccess(MIKPermissions.SMS_PROCESSOR)
 
   const isNew = reportId == 'new'
 
@@ -1208,7 +1209,7 @@ export const OccurrenceEntry = () => {
 
   const { data: aircraftData } = useApi<AircraftListResponse>(
     {
-      url: 'v1/aircrafts',
+      url: endpoints.aircrafts.root,
       params: { activeOnly: true },
     },
     {

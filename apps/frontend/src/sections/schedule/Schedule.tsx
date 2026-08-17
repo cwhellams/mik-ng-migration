@@ -55,6 +55,7 @@ import { Problem } from '@mik/contracts/problem'
 import { Title } from '../../components/Title'
 import { Icon } from '@iconify/react'
 import { bookingFlags, bookingMinDate } from './helpers'
+import { endpoints } from '../../api/endpoints'
 
 const withDragAndDrop = ((
   withDragAndDropImport as unknown as { default?: typeof withDragAndDropImport }
@@ -107,7 +108,7 @@ const Schedule = () => {
 
   const { data: aircraftData } = useApi<AircraftListResponse>(
     {
-      url: 'v1/aircrafts',
+      url: endpoints.aircrafts.root,
       params: { activeOnly: true, visibleOnly: false },
     },
     {
@@ -162,7 +163,7 @@ const Schedule = () => {
     error: eventError,
     isLoading: eventLoading,
   } = useApi<BookingListResponse, Booking>({
-    url: 'v1/bookings',
+    url: endpoints.bookings.root,
     params: filters,
   })
 

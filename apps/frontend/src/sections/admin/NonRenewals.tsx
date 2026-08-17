@@ -28,6 +28,7 @@ import { formatPhoneNumber } from '../../utils/format'
 import type { Problem } from '@mik/contracts/problem'
 import type { NonRenewalListResponse, NonRenewalMember } from '@mik/contracts/members'
 import { useTimezone } from '../../hooks/useTimezone'
+import { absolute, endpoints } from '../../api/endpoints'
 
 export default function NonRenewals() {
   const { t } = useTranslation()
@@ -38,10 +39,10 @@ export default function NonRenewals() {
   const [bulkLoading, setBulkLoading] = useState(false)
 
   const { data, isLoading, error, mutate } = useApi<NonRenewalListResponse>({
-    url: 'v1/members/non-renewals',
+    url: endpoints.members.nonRenewals,
   })
 
-  const { mutation } = useApi<void, void>({ url: 'v1/members/non-renewals' })
+  const { mutation } = useApi<void, void>({ url: endpoints.members.nonRenewals })
 
   const year = data?.year ?? new Date().getFullYear()
   const members = data?.members ?? []
@@ -72,7 +73,7 @@ export default function NonRenewals() {
     const { error: mutErr } = await mutation.trigger(
       'POST',
       {},
-      `/v1/members/${member.memberId}/send-renewal-reminder`,
+      absolute(endpoints.members.sendRenewalReminder(member.memberId)),
     )
     setActionLoadingId(null)
 
@@ -98,7 +99,7 @@ export default function NonRenewals() {
     const { error: mutErr } = await mutation.trigger(
       'POST',
       { reason: 'Membership deactivated due to non-renewal of annual fee' },
-      `/v1/members/${member.memberId}/deactivate`,
+      absolute(endpoints.members.deactivate(member.memberId)),
     )
     setActionLoadingId(null)
 
@@ -130,7 +131,7 @@ export default function NonRenewals() {
       const { error: mutErr } = await mutation.trigger(
         'POST',
         {},
-        `/v1/members/${memberId}/send-renewal-reminder`,
+        absolute(endpoints.members.sendRenewalReminder(memberId)),
       )
       if (mutErr) {
         firstError = mutErr
@@ -176,7 +177,7 @@ export default function NonRenewals() {
       const { error: mutErr } = await mutation.trigger(
         'POST',
         { reason: 'Membership deactivated due to non-renewal of annual fee' },
-        `/v1/members/${memberId}/deactivate`,
+        absolute(endpoints.members.deactivate(memberId)),
       )
       if (mutErr) {
         firstError = mutErr

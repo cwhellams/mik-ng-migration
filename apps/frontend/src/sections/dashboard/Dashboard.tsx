@@ -33,9 +33,8 @@ const createComponentMap = (
   flyingUser: boolean,
   me: ReturnType<typeof useRoles>['me'],
   hasAccess: ReturnType<typeof useRoles>['hasAccess'],
+  hasSudoAccess: ReturnType<typeof useRoles>['hasSudoAccess'],
   isDtoInstructor: boolean,
-  isExpenseAdmin: boolean,
-  isAmeAdmin: boolean,
 ): Record<string, () => JSX.Element | null> => ({
   reservationsSuspended: () => (isMember ? <ReservationsSuspendedBanner /> : null),
   overdueInvoice: () => (isMember ? <OverdueInvoiceBanner /> : null),
@@ -53,12 +52,12 @@ const createComponentMap = (
   flightLogAdmin: () =>
     hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) ? <FlightLogAdminDashboard /> : null,
   dtoInstructor: () => (isDtoInstructor ? <DtoInstructorWidget /> : null),
-  expenseAdmin: () => (isExpenseAdmin ? <ExpenseAdminWidget /> : null),
-  ameAdmin: () => (isAmeAdmin ? <AmeAdminWidget /> : null),
+  expenseAdmin: () => (hasSudoAccess(MIKPermissions.EXPENSE_ADMIN) ? <ExpenseAdminWidget /> : null),
+  ameAdmin: () => (hasSudoAccess(MIKPermissions.AME_ADMIN) ? <AmeAdminWidget /> : null),
 })
 
 const Dashboard = () => {
-  const { hasAccess, me, isDtoInstructor, isExpenseAdmin, isAmeAdmin } = useRoles()
+  const { hasAccess, hasSudoAccess, me, isDtoInstructor } = useRoles()
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
 
   const isMember = hasAccess(MIKPermissions.MEMBER)
@@ -94,9 +93,8 @@ const Dashboard = () => {
     flyingUser,
     me,
     hasAccess,
+    hasSudoAccess,
     isDtoInstructor,
-    isExpenseAdmin,
-    isAmeAdmin,
   )
   const alwaysVisibleComponentIds: readonly string[] = ALWAYS_VISIBLE_COMPONENTS
   const customizableComponentIds = useMemo(

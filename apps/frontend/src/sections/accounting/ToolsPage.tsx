@@ -15,6 +15,7 @@ import useApi from '../../hooks/useApi'
 import type { RecurringFeesProcessing, AnnualBillingResponse } from '@mik/contracts/invoicing'
 import type { AnnualMembershipStats } from '@mik/contracts/members'
 import { RemoteContent } from '../../components/RemoteContent'
+import { endpoints } from '../../api/endpoints'
 
 export default function ToolsPage() {
   const { t } = useTranslation()
@@ -43,7 +44,11 @@ export default function ToolsPage() {
     isLoading: isLoadingStats,
     error: statsError,
   } = useApi<AnnualMembershipStats>({
-    url: `v1/members/annual-membership-stats?year=${currentYear}`,
+    // `year` moves from the path to `params`, which is where useApi wants a query
+    // string: it serialises them and, unlike a hand-built URL, includes them in
+    // the SWR cache key, so switching year can't serve the previous year's data.
+    url: endpoints.members.annualMembershipStats,
+    params: { year: currentYear },
     skipFetch: false,
   })
 

@@ -52,26 +52,29 @@ export default defineConfig({
         'src/main.tsx',
         'src/vite-env.d.ts',
       ],
-      // Reported, not enforced: no thresholds until the ratchet lands (issue
-      // #1116, phase 6). A threshold set at today's coverage teaches nothing.
+      // The coverage ratchet — phase 6 of #1116. Vitest exits non-zero when any
+      // bar below is missed, so `pnpm test:coverage` is the gate and the CI step
+      // that runs it needs no threshold logic of its own.
       //
-      // #1132 §6b asked which number that ratchet should be built on, given the
+      // #1132 §6b asked which number the ratchet should be built on, given the
       // route matrix renders all 93 pages once per identity and asserts only on
-      // the gate. Measured on this suite (1756 tests, statements / branches):
+      // the gate. Measured on this suite (1759 passing, 5 todo):
       //
-      //   src/hooks         98.4% / 94.5%      431 of   438 statements
-      //   src/theme         93.9% / 66.7%
-      //   src/components    93.2% / 89.2%      370 of   397
-      //   src/layouts       92.3% / 50.0%
-      //   src/lib           86.7%
-      //   src/utils         54.5% / 50.9%      181 of   332
-      //   src/sections      41.6% / 35.7%    4 893 of 11 772
-      //   ------------------------------------------------------
-      //   all files         45.6% / 38.7%    5 937 of 13 023
+      //                                statements       branches     functions
+      //   src/hooks/**              98.4%  427/434    94.5%   207/219    100%
+      //   src/components/**         93.2%  370/397    89.2%   315/353   87.7%
+      //   src/{*,lib,layouts,       73.8%   62/ 84    50.0%    13/ 26   72.0%
+      //     theme,config}  (*)
+      //   src/utils/**              54.5%  181/332    50.9%    83/163   66.7%
+      //   src/sections/**           41.6% 4893/11772  35.7%  3863/10812 27.6%
+      //   ----------------------------------------------------------------------
+      //   all files                 45.6% 5933/13019  38.7%  4481/11573 32.6%
+      //
+      //   (*) written out below as `src/{*,lib/**,layouts/**,theme/**,config/**}`
       //
       // The decision: **per-directory thresholds**, not a single global one.
       //
-      // `src/sections` is 11 772 of 13 023 statements — 90% of the codebase — so
+      // `src/sections` is 11 772 of 13 019 statements — 90% of the codebase — so
       // the global figure is very nearly `src/sections`'s figure, and much of
       // that is pages executed by the matrix rather than asserted on. A global
       // bar set at ~45% would also leave every directory that is genuinely
@@ -87,7 +90,53 @@ export default defineConfig({
       // localisedText and formErrors are at 100% and wizardDraft at 95%, while
       // six browser-API wrappers (pushNotifications, passkey, documentHelpers,
       // eventCalendar, calendarEvent, haptics) sit at 7–33% with no tests at
-      // all. That is a gap to fill, not a bar to lower.
+      // all. That is a gap to fill, not a bar to lower — it is the obvious next
+      // directory to earn a raise, not a reason to have set this one low.
+      //
+      // Every collected file matches exactly one glob below: the directories that
+      // carry mass get their own bar, and the four small ones that don't — plus
+      // `App.tsx`, `AppRoutes.tsx`, `i18n.ts` — share the (*) bar, because at 84
+      // statements between them a single statement is worth 1.2 points and
+      // separate bars would be measuring noise.
+      //
+      // Each bar is its measured figure less about a point of headroom (one
+      // uncovered unit, in the small shared set). A ratchet pinned exactly to the
+      // measurement fails on the first unrelated refactor that deletes covered
+      // code along with the code it covered, and a gate the team learns to
+      // distrust is worse than no gate. **These may only ever be raised** — raise
+      // them in the PR that earns it, the same habit as the ESLint counts in the
+      // two review workflows.
+      //
+      // `lines` is deliberately not gated: under the v8 provider it tracks
+      // `statements` to within a point, so it would be a fourth column to keep
+      // up to date for no signal the other three don't already carry.
+      thresholds: {
+        // Applies to every file, including those matched by the globs below.
+        // Not the mechanism — the per-directory bars are — but it is what keeps
+        // a directory nobody has written a bar for yet (a future
+        // `src/features/`) from being collected and gated by nothing.
+        statements: 44,
+        branches: 37,
+        functions: 31,
+
+        // New in #1115 phase 6. It is a registry of paths plus one one-line
+        // helper, exercised directly by endpoints.test.ts and transitively by
+        // every migrated call site, so it starts at the top of the range and
+        // there is no reason for it ever to leave.
+        'src/api/**': { statements: 99, branches: 99, functions: 99 },
+        'src/hooks/**': { statements: 97, branches: 93, functions: 99 },
+        'src/components/**': { statements: 92, branches: 88, functions: 86 },
+        'src/{*,lib/**,layouts/**,theme/**,config/**}': {
+          statements: 71,
+          branches: 46,
+          functions: 68,
+        },
+        // 53/49/65 -> 61/55/76: #1115 finding 8 brought the two calendar modules
+        // and the extracted icsDownload under test (54.5% -> 62.9% statements for
+        // the directory). Raised in the PR that earned it, per the rule above.
+        'src/utils/**': { statements: 61, branches: 55, functions: 76 },
+        'src/sections/**': { statements: 40, branches: 34, functions: 26 },
+      },
     },
   },
 })

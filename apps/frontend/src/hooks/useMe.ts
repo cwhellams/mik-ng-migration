@@ -1,10 +1,11 @@
 import { Member } from '@mik/contracts/members'
 import useApi from './useApi'
+import { endpoints } from '../api/endpoints'
 
 export const useMe = () => {
   const { data, isLoading, mutate } = useApi<Member | null>(
     {
-      url: 'v1/members/me',
+      url: endpoints.members.me,
       // Allow the refresh interceptor to silently restore the session, but don't
       // redirect to /login if the user is genuinely unauthenticated.
       skipRedirectOnUnauthorized: true,

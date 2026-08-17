@@ -25,6 +25,7 @@ import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
+import { MIKPermissions } from '@mik/contracts/members'
 import type { AmeEntry, AmeListResponse } from '@mik/contracts/ame'
 import { AME_MEDICAL_TYPES } from '@mik/contracts/ame'
 import { AmeRemovalRequestDialog } from './AmeRemovalRequestDialog'
@@ -39,7 +40,8 @@ const MEDICAL_TYPE_LABELS: Record<string, string> = {
 export default function AmeList() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { isAmeUser } = useRoles()
+  const { hasAccess } = useRoles()
+  const isAmeUser = hasAccess(MIKPermissions.AME_USER, MIKPermissions.AME_ADMIN)
 
   const [medicalType, setMedicalType] = useState('')
   const [sort, setSort] = useState<'report_date_desc' | 'price_asc'>('report_date_desc')

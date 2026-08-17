@@ -52,6 +52,7 @@ import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
 import { useOverlapCheck } from '../useOverlapCheck'
 import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
 import { hasBlankReportedDefect, submitReportedDefects } from '../reportDefectsApi'
+import { endpoints } from '../../../api/endpoints'
 
 interface Props {
   onSwitchToClassicForm: () => void
@@ -180,12 +181,12 @@ const FlightLogEntryWizardInner = ({
   const [showRestoredBanner, setShowRestoredBanner] = useState(!!persistedDraft)
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
 
   const { data: memberList } = useApi<MemberListResponse>(
-    { url: 'v1/members', params: { isMembershipApproved: true } },
+    { url: endpoints.members.root, params: { isMembershipApproved: true } },
     { revalidateIfStale: false, revalidateOnFocus: false, revalidateOnReconnect: false },
   )
 

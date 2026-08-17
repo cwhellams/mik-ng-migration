@@ -21,6 +21,7 @@ import useApi from '../hooks/useApi'
 import { Member, MIKLang } from '@mik/contracts/members'
 import { useTimezone } from '../hooks/useTimezone'
 import { getOffsetLabelInTz } from '../utils/date'
+import { endpoints } from '../api/endpoints'
 
 const User = () => {
   const { t, i18n } = useTranslation()
@@ -36,7 +37,7 @@ const User = () => {
   const logout = useAuth('logout')
 
   const { mutation } = useApi<Pick<Member, 'lang'>>({
-    url: `v1/members/me/lang`,
+    url: endpoints.members.myLang,
     skipFetch: true,
   })
 

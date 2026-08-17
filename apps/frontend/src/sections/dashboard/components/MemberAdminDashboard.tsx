@@ -15,6 +15,7 @@ import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
+import { endpoints } from '../../../api/endpoints'
 
 export const MemberAdminDashboard = () => {
   const { t } = useTranslation()
@@ -27,7 +28,7 @@ export const MemberAdminDashboard = () => {
   }
 
   const { data, isLoading, error } = useApi<MemberListResponse, Member>({
-    url: 'v1/members',
+    url: endpoints.members.root,
     params: unapprovedUsersFilter,
     alwaysSudo: true,
   })

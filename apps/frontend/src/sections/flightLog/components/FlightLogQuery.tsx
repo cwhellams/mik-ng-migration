@@ -3,6 +3,7 @@ import { FlightLogFilters } from '@mik/contracts/flight-log'
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { t } from 'i18next'
 import useApi from '../../../hooks/useApi'
+import { endpoints } from '../../../api/endpoints'
 
 type Props = {
   registration?: string
@@ -11,7 +12,7 @@ type Props = {
 
 export const FlightLogQuery = ({ registration, setFilters }: Props) => {
   const { data } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
 

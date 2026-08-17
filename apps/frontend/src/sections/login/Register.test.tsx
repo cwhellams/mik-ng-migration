@@ -194,8 +194,12 @@ describe('Register step two', SLOW, () => {
   it.todo(
     // Step two reveals further required fields as its radio groups are
     // answered, and pinning a complete happy-path submission proved brittle
-    // against that. The checks above cover everything up to the final POST;
-    // the submission itself is left to a journey test (phase 7).
+    // against that. The checks above cover everything up to the final POST.
+    //
+    // The brittleness is the form's, not the test's: this is one of the three
+    // that layer native `required` over hand-rolled checks, so the submission
+    // comes with the react-hook-form + zodResolver conversion in #1115 §9,
+    // item 5. (#1116 phase 7, which this used to point at, was dropped.)
     'sends the application once every answer is given',
   )
 })

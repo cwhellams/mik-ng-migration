@@ -36,6 +36,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import type { Navdata, NavdataListResponse } from '@mik/contracts/aircraft-navdata'
 import type { MemberListResponse } from '@mik/contracts/members'
 import type { Problem } from '@mik/contracts/problem'
+import { endpoints } from '../../../api/endpoints'
 
 interface NavdataSectionProps {
   aircraftRegistration: string
@@ -161,7 +162,7 @@ const AddNavdataModal = ({ open, aircraftRegistration, onClose }: AddNavdataModa
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 
   const { data: membersData } = useApi<MemberListResponse>({
-    url: 'v1/members',
+    url: endpoints.members.root,
     skipFetch: !open,
   })
 

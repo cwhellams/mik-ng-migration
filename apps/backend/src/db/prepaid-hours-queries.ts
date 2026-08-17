@@ -10,6 +10,7 @@ import type {
   UsageLog,
   UnbilledTimeByAircraft,
 } from '@mik/contracts/prepaid-hours'
+import type { Localised } from '@mik/contracts/schema'
 import { FlightLogStatus } from '@mik/contracts/flight-log'
 import { ProductTypeEnum } from '@mik/contracts/shop'
 import { insertProduct } from './shop-queries.ts'
@@ -18,7 +19,6 @@ import { insertProduct } from './shop-queries.ts'
 // Package definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
-type Localised = { en: string; fi: string; sv: string }
 const FLIGHT_PACKAGE_CATEGORY_ID = 'FLT_PKG'
 const FLIGHT_PACKAGE_PRODUCT_TYPE = ProductTypeEnum.enum.FLIGHT_HOURS_PACKAGE
 

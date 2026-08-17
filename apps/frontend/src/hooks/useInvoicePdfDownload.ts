@@ -2,6 +2,7 @@ import { useState } from 'react'
 import useApi from './useApi'
 import { useRoles } from './useRoles'
 import { downloadBase64Pdf } from '../lib/pdfDownload'
+import { MIKPermissions } from '@mik/contracts/members'
 
 interface UseInvoicePdfDownloadOptions {
   invoiceNumber: string | null | undefined
@@ -16,7 +17,7 @@ export function useInvoicePdfDownload({
   invoiceNumber,
   billableMemberId,
 }: UseInvoicePdfDownloadOptions) {
-  const { me, isInvoicingAdmin } = useRoles()
+  const { me, hasSudoAccess } = useRoles()
   const [loading, setLoading] = useState(false)
   const { mutation } = useApi({ url: 'v1/invoices', skipFetch: true })
 
@@ -28,7 +29,7 @@ export function useInvoicePdfDownload({
   const canDownloadInvoice = (): boolean => {
     const id = Number(invoiceNumber)
     if (!invoiceNumber || !Number.isInteger(id) || id <= 0) return false
-    if (isInvoicingAdmin) return true
+    if (hasSudoAccess(MIKPermissions.INVOICING_ADMIN)) return true
     return me?.memberId === billableMemberId
   }
 

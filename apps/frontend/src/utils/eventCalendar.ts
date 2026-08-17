@@ -1,16 +1,17 @@
 import type { ClubEvent } from '@mik/contracts/events'
+import { escapeIcsText, toIcsUtc } from '@mik/contracts/calendar'
 
-const formatIcsDate = (iso: string): string =>
-  new Date(iso).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+import { sanitizeFilenamePart, saveIcsFile } from './icsDownload'
 
-const escapeIcsText = (text: string): string =>
-  text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
-
-const sanitizeFilenamePart = (value: string): string => value.replace(/[^A-Za-z0-9._-]/g, '_')
+// Event times are ISO strings, unlike a booking's epoch seconds — which is the
+// only thing that ever differed between this file's ICS code and the booking
+// builder's. The UTC formatting and the text escaping are shared (issue #1115,
+// finding 8); this file previously had its own copies of both.
+const eventIcsDate = (iso: string): string => toIcsUtc(new Date(iso))
 
 export const generateEventGoogleCalendarLink = (event: ClubEvent): string => {
-  const start = formatIcsDate(event.startTime)
-  const end = formatIcsDate(event.endTime)
+  const start = eventIcsDate(event.startTime)
+  const end = eventIcsDate(event.endTime)
   const text = encodeURIComponent(`MIK – ${event.title}`)
   const details = encodeURIComponent(event.description ?? '')
   const location = encodeURIComponent(event.location ?? '')
@@ -19,7 +20,6 @@ export const generateEventGoogleCalendarLink = (event: ClubEvent): string => {
 }
 
 export const downloadEventIcs = (event: ClubEvent): void => {
-  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
   const summary = escapeIcsText(`MIK – ${event.title}`)
   const description = escapeIcsText(event.description ?? '')
   const location = escapeIcsText(event.location ?? '')
@@ -31,9 +31,9 @@ export const downloadEventIcs = (event: ClubEvent): void => {
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
     `UID:event-${event.eventId}@mik.fi`,
-    `DTSTAMP:${now}`,
-    `DTSTART:${formatIcsDate(event.startTime)}`,
-    `DTEND:${formatIcsDate(event.endTime)}`,
+    `DTSTAMP:${toIcsUtc(new Date())}`,
+    `DTSTART:${eventIcsDate(event.startTime)}`,
+    `DTEND:${eventIcsDate(event.endTime)}`,
     `SUMMARY:${summary}`,
     `DESCRIPTION:${description}`,
     ...(location ? [`LOCATION:${location}`] : []),
@@ -41,12 +41,5 @@ export const downloadEventIcs = (event: ClubEvent): void => {
     'END:VCALENDAR',
   ]
 
-  const ics = lines.join('\r\n')
-  const blob = new Blob([ics], { type: 'text/calendar' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `event-${sanitizeFilenamePart(event.title)}.ics`
-  a.click()
-  URL.revokeObjectURL(url)
+  saveIcsFile(lines.join('\r\n'), `event-${sanitizeFilenamePart(event.title)}.ics`)
 }

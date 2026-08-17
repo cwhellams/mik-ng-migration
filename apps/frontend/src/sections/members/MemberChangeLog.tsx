@@ -35,6 +35,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { Title } from '../../components/Title'
 import { useTimezone } from '../../hooks/useTimezone'
+import { endpoints } from '../../api/endpoints'
 
 /** The secretary's default reporting window */
 const DEFAULT_PERIOD_DAYS = 30
@@ -85,7 +86,7 @@ const MemberChangeLog = () => {
 
   const { data, isLoading, error } = useApi<MemberChangeLogResponse>(
     {
-      url: 'v1/members/changelog',
+      url: endpoints.members.changelog,
       params: validationError
         ? {}
         : {

@@ -141,8 +141,16 @@ describe('BookingEditor saving', () => {
   // Driving a successful save through this editor means satisfying its date
   // pickers, its aircraft select and several member-eligibility checks at once,
   // and the attempts to do so proved brittle rather than informative. The read,
-  // mode and dismissal behaviour above is covered; the save path is left for a
-  // journey test (phase 7).
+  // mode and dismissal behaviour above is covered.
+  //
+  // These are not waiting on more test effort, they are waiting on the form:
+  // this editor stacks the browser's native `required` on top of hand-rolled
+  // checks, which is what makes a complete submission so awkward to drive.
+  // `DefectDialog` — already on react-hook-form + zodResolver — was the only
+  // form of the four in #1131 whose save path tested cleanly first try. So
+  // these belong to that conversion (#1115 §9, item 5) and should be written
+  // as part of it, not before it. #1116 phase 7, which they used to point at,
+  // was dropped.
   it.todo('patches an existing booking')
   it.todo('posts a new booking to the collection')
   it.todo('reports a rejected save without closing')

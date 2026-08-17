@@ -26,6 +26,7 @@ import { FlightLogExportFormat, type FlightLogExportCountResponse } from '@mik/c
 import useApi, { sharedApi } from '../../../hooks/useApi'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { AxiosError } from 'axios'
+import { endpoints } from '../../../api/endpoints'
 
 const ALL_FORMATS = [
   FlightLogExportFormat.CSV,
@@ -66,7 +67,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
   }, [open, defaultAircraftRegistration])
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
+    url: endpoints.aircrafts.root,
     params: { activeOnly: true },
   })
 

@@ -29,6 +29,7 @@ import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { RemoveButton } from '../../../components/RemoveButton'
 import { SaveButton } from '../../../components/SaveButton'
+import { endpoints } from '../../../api/endpoints'
 
 export const MemberRoleEditor = ({
   role,
@@ -46,7 +47,12 @@ export const MemberRoleEditor = ({
   const { permissions } = useRoles()
 
   const { mutation } = useApi<MemberRole>({
-    url: `v1/members/roles${isNewRole ? '' : `/${role?.roleId}`}`,
+    // Branch on the id, not on `isNewRole`. `Roles.tsx` keeps this editor mounted
+    // and passes `role={undefined}` while the dialog is closed, which makes
+    // `isNewRole` false — so keying the URL off it handed the builder an empty
+    // segment and addressed `v1/members/roles/`. A new role (`roleId: ''`) and a
+    // closed dialog both mean "no resource to address", which is the collection.
+    url: role?.roleId ? endpoints.members.role(role.roleId) : endpoints.members.roles,
     skipFetch: true,
   })
   const [formData, setFormData] = useState<Upsert<MemberRole>>({
@@ -82,7 +88,7 @@ export const MemberRoleEditor = ({
     }
 
     // clear the cache for roles list
-    mutate((key) => Array.isArray(key) && key[0] == 'v1/members/roles')
+    mutate((key) => Array.isArray(key) && key[0] == endpoints.members.roles)
 
     onClose()
   }
