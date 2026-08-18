@@ -1,9 +1,15 @@
 import { FlightLogStatus, type FlightLog } from '@mik/contracts/flight-log'
+import type { Defect } from '@mik/contracts/defects'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { aFlightLog, aMemberListResponse, anAircraftListResponse } from '../../../test/fixtures'
+import {
+  aFlightLog,
+  aMemberListResponse,
+  anAircraftListResponse,
+  AIRCRAFT_REGISTRATION,
+} from '../../../test/fixtures'
 import { apiUrl, problemResponse } from '../../../test/msw/handlers'
 import { server } from '../../../test/msw/server'
 import { renderWithProviders } from '../../../test/renderWithProviders'
@@ -19,7 +25,25 @@ const DRAFT_KEY_PREFIX = 'wizardDraft:flightLog:'
 
 type Write = { method: string; body: unknown }
 
-const wizardApi = () => {
+const anExistingDefect = (overrides: Partial<Defect> = {}): Defect =>
+  ({
+    defectId: 'def-existing-1',
+    aircraftRegistration: AIRCRAFT_REGISTRATION,
+    description: 'Landing light flickers',
+    status: 'ACTIVE',
+    flightMins: 285_000,
+    rows: 0,
+    flightId: 'fi_inst1',
+    hilId: null,
+    resolvedNoteId: null,
+    createdBy: 'Matti1',
+    createdAt: '2025-06-02T09:00:00.000Z',
+    updatedAt: '2025-06-02T09:00:00.000Z',
+    updatedBy: 'Matti1',
+    ...overrides,
+  }) as unknown as Defect
+
+const wizardApi = (existingDefects: Defect[] = []) => {
   const state = { writes: [] as Write[], defects: [] as unknown[] }
 
   server.use(
@@ -30,6 +54,7 @@ const wizardApi = () => {
     http.get(apiUrl('v1/useful-phone-numbers/flight-plan-centre'), () =>
       HttpResponse.json(null, { status: 404 }),
     ),
+    http.get(apiUrl('v1/defects'), () => HttpResponse.json(existingDefects)),
     http.post(apiUrl('v1/defects'), async ({ request }) => {
       state.defects.push(await request.json())
       return HttpResponse.json({})
@@ -441,6 +466,34 @@ describe('FlightLogEntryWizard saving', () => {
 
     expect(await screen.findByText('Notes')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /defect/i })).toBeInTheDocument()
+  })
+
+  it('shows a defect already reported against this flight, alongside the ability to add new ones', async () => {
+    wizardApi([anExistingDefect()])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    expect(await screen.findByText('Landing light flickers')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add defect/i })).toBeInTheDocument()
+  })
+
+  it("does not show another flight's defects", async () => {
+    wizardApi([anExistingDefect({ flightId: 'some-other-flight' })])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await screen.findByText('Notes')
+    expect(screen.queryByText('Landing light flickers')).not.toBeInTheDocument()
   })
 
   it('withholds defect reporting once the entry has been validated', async () => {

@@ -1316,6 +1316,7 @@
       "addPreFlightButton": "Rapportera fel",
       "addPreFlightTitle": "Nytt fel (före flygning)",
       "addInFlightTitle": "Nytt fel (under flygning)",
+      "existingSectionTitle": "Redan rapporterade fel",
       "reportSectionTitle": "Rapportera fel",
       "reportSectionNote": "Om du upptäckte fel under flygningen, beskriv varje fel nedan. Varje fel måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning.",
       "addDefectRow": "Lägg till fel",

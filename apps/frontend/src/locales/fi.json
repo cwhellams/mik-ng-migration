@@ -1315,6 +1315,7 @@
       "addPreFlightButton": "Kirjaa vika",
       "addPreFlightTitle": "Uusi vikamerkintä (ennen lentoa)",
       "addInFlightTitle": "Uusi vikamerkintä (lennon aikainen)",
+      "existingSectionTitle": "Jo ilmoitetut viat",
       "reportSectionTitle": "Ilmoita viat",
       "reportSectionNote": "Jos havaitsit lennon aikana vikoja, kuvaile jokainen alla. Jokaisesta viasta on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
       "addDefectRow": "Lisää vika",

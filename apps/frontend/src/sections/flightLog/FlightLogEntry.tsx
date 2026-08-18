@@ -85,6 +85,8 @@ import { useOverlapCheck } from './useOverlapCheck'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
 import { ReportDefectsSection } from './components/ReportDefectsSection'
 import { hasBlankReportedDefect, submitReportedDefects } from './reportDefectsApi'
+import { DefectMarker } from './DefectMarker'
+import { useDefects } from '../../hooks/useDefects'
 import { endpoints } from '../../api/endpoints'
 
 // Renders the guided mobile wizard for new entries on phone-width viewports (unless
@@ -255,6 +257,18 @@ const ClassicFlightLogEntry = () => {
     () => aircraftData?.aircrafts.find((a) => a.registration === registration),
     [registration, aircraftData],
   )
+
+  // Defects already reported against this flight (e.g. via the old separate
+  // "Add in-flight defect" button, or a previous save of this same form) --
+  // fetched by aircraft and filtered by flightId here, since GET /defects has
+  // no flightId filter of its own. Only relevant when editing; a new entry
+  // has no flightId yet for any defect to be tied to.
+  const { data: aircraftDefects, mutate: mutateAircraftDefects } = useDefects(
+    isNew ? undefined : registration,
+  )
+  const existingDefects = !isNew
+    ? (aircraftDefects?.filter((d) => d.flightId === flightId) ?? [])
+    : []
 
   const partiallyBillableFlight = watch('partiallyBillableFlight')
   const flightType = watch('flightType')
@@ -947,6 +961,25 @@ const ClassicFlightLogEntry = () => {
                 }}
               />
             </Grid>
+
+            {/* Already reported defects */}
+            {existingDefects.length > 0 && registration && (
+              <Grid size={12}>
+                <Typography variant='h6' gutterBottom>
+                  {t('flightLog.defects.existingSectionTitle')}
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {existingDefects.map((defect) => (
+                    <DefectMarker
+                      key={defect.defectId}
+                      defect={defect}
+                      aircraftRegistration={registration}
+                      onChanged={mutateAircraftDefects}
+                    />
+                  ))}
+                </Box>
+              </Grid>
+            )}
 
             {/* Report Defects */}
             {isEditable && (

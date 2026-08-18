@@ -22,6 +22,7 @@ import {
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { MemberListResponse } from '@mik/contracts/members'
 import useApi from '../../../hooks/useApi'
+import { useDefects } from '../../../hooks/useDefects'
 import { useMe } from '../../../hooks/useMe'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
@@ -426,6 +427,18 @@ const FlightLogEntryWizardInner = ({
   const registration = watch('aircraftRegistration')
   const aircraft = aircraftData?.aircrafts.find((a) => a.registration === registration)
 
+  // Defects already reported against this flight (e.g. via the old separate
+  // "Add in-flight defect" button, or a previous save of this same wizard) --
+  // fetched by aircraft and filtered by flightId here, since GET /defects has
+  // no flightId filter of its own. Only relevant when editing; a new entry
+  // has no flightId yet for any defect to be tied to.
+  const { data: aircraftDefects, mutate: mutateAircraftDefects } = useDefects(
+    isEditing ? registration : undefined,
+  )
+  const existingDefects = flightId
+    ? (aircraftDefects?.filter((d) => d.flightId === flightId) ?? [])
+    : []
+
   const canGoNext = (): boolean => {
     switch (currentStep) {
       case 'aircraftType':
@@ -635,6 +648,9 @@ const FlightLogEntryWizardInner = ({
           reportedDefects={reportedDefects}
           onReportedDefectsChange={setReportedDefects}
           canReportDefects={canReportDefects}
+          existingDefects={existingDefects}
+          aircraftRegistration={registration}
+          onExistingDefectsChanged={mutateAircraftDefects}
         />
       )}
       {currentStep === 'review' && (

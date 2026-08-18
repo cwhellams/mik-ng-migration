@@ -1,9 +1,11 @@
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import { FlightType } from '@mik/contracts/flight-log'
+import type { Defect } from '@mik/contracts/defects'
 import { TxtField } from '../../components/TxtField'
 import { ReportDefectsSection } from '../../components/ReportDefectsSection'
+import { DefectMarker } from '../../DefectMarker'
 import type { WizardFormProps } from '../types'
 
 interface Props extends WizardFormProps {
@@ -13,6 +15,11 @@ interface Props extends WizardFormProps {
   // backend's own rule (see apps/backend/src/routes/defects/api.ts) -- hidden rather
   // than shown-then-rejected once a flight has been validated.
   canReportDefects: boolean
+  // Defects already tied to this flight (flightId) from a previous save --
+  // shown so editing an existing entry doesn't hide what's already reported.
+  existingDefects: Defect[]
+  aircraftRegistration?: string
+  onExistingDefectsChanged: () => void
 }
 
 export const NotesStep = ({
@@ -24,6 +31,9 @@ export const NotesStep = ({
   reportedDefects,
   onReportedDefectsChange,
   canReportDefects,
+  existingDefects,
+  aircraftRegistration,
+  onExistingDefectsChanged,
 }: Props) => {
   const { t } = useTranslation()
   const flightType = watch('flightType')
@@ -68,6 +78,19 @@ export const NotesStep = ({
             helperText: t('flightLog.billingRemarksTestOrFerryInstruction'),
           }}
         />
+      )}
+      {existingDefects.length > 0 && aircraftRegistration && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant='h6'>{t('flightLog.defects.existingSectionTitle')}</Typography>
+          {existingDefects.map((defect) => (
+            <DefectMarker
+              key={defect.defectId}
+              defect={defect}
+              aircraftRegistration={aircraftRegistration}
+              onChanged={onExistingDefectsChanged}
+            />
+          ))}
+        </Box>
       )}
       {canReportDefects && (
         <ReportDefectsSection descriptions={reportedDefects} onChange={onReportedDefectsChange} />
