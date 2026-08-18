@@ -1309,8 +1309,6 @@
       "addPreFlightTitle": "Report Defect (Pre-flight)",
       "addInFlightTitle": "Report Defect (In-flight)",
       "existingSectionTitle": "Already reported defects",
-      "reportSectionTitle": "Report Defects",
-      "reportSectionNote": "If you found any defects during this flight, describe each one below. Every defect must also be reported directly to the kalustovastaava (fleet manager) by phone — don't rely on this entry alone.",
       "fleetManagersTitle": "Fleet managers",
       "addDefectRow": "Add defect",
       "blankDescriptionError": "Defect description can't be empty",
@@ -1341,11 +1339,13 @@
     },
     "remarks": {
       "existingSectionTitle": "Remarks",
-      "reportSectionTitle": "Report Remarks",
-      "reportSectionNote": "For minor observations that don't affect airworthiness -- anything more serious belongs in Report Defects above.",
       "addRemarkRow": "Add remark",
       "blankDescriptionError": "Remark description can't be empty",
       "description": "Description"
+    },
+    "defectsAndRemarks": {
+      "intro1": "If you found any defects or other aircraft during this flight, report each one below. For any minor observations not affecting airworthiness, write a remark instead.",
+      "intro2": "Please note that a reported defect will ground the aircraft until the defect is closed or transferred to HIL. Every aircraft related observation must also be reported directly to the kalustovastaava (fleet manager) by phone — don't rely on this entry alone."
     }
   },
   "invoicing": {

@@ -83,12 +83,9 @@ import {
 import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
-import { ReportDefectsSection } from './components/ReportDefectsSection'
-import { ReportRemarksSection } from './components/ReportRemarksSection'
-import { ExistingRemarks } from './components/ExistingRemarks'
+import { DefectsAndRemarksSection } from './components/DefectsAndRemarksSection'
 import { hasBlankReportedDefect, submitReportedDefects } from './reportDefectsApi'
 import { hasBlankReportedRemark, submitReportedRemarks } from './reportRemarksApi'
-import { DefectMarker } from './DefectMarker'
 import { useDefects } from '../../hooks/useDefects'
 import { useRemarks } from '../../hooks/useRemarks'
 import { endpoints } from '../../api/endpoints'
@@ -957,6 +954,22 @@ const ClassicFlightLogEntry = () => {
               <Typography variant='h6'>{t('flightLog.notes')}</Typography>
             </Grid>
 
+            {/* Defects and Remarks */}
+            <Grid size={12}>
+              <DefectsAndRemarksSection
+                reportedDefects={reportedDefects}
+                onReportedDefectsChange={setReportedDefects}
+                canReportDefects={isEditable}
+                existingDefects={existingDefects}
+                aircraftRegistration={registration}
+                onExistingDefectsChanged={mutateAircraftDefects}
+                reportedRemarks={reportedRemarks}
+                onReportedRemarksChange={setReportedRemarks}
+                canReportRemarks={isEditable}
+                existingRemarks={existingRemarks}
+              />
+            </Grid>
+
             <Grid size={12}>
               <TxtField
                 name='incidentOrObservations'
@@ -980,52 +993,6 @@ const ClassicFlightLogEntry = () => {
                 }}
               />
             </Grid>
-
-            {/* Already reported defects */}
-            {existingDefects.length > 0 && registration && (
-              <Grid size={12}>
-                <Typography variant='h6' gutterBottom>
-                  {t('flightLog.defects.existingSectionTitle')}
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {existingDefects.map((defect) => (
-                    <DefectMarker
-                      key={defect.defectId}
-                      defect={defect}
-                      aircraftRegistration={registration}
-                      onChanged={mutateAircraftDefects}
-                    />
-                  ))}
-                </Box>
-              </Grid>
-            )}
-
-            {/* Report Defects */}
-            {isEditable && (
-              <Grid size={12}>
-                <ReportDefectsSection
-                  descriptions={reportedDefects}
-                  onChange={setReportedDefects}
-                />
-              </Grid>
-            )}
-
-            {/* Already logged remarks */}
-            {existingRemarks.length > 0 && (
-              <Grid size={12}>
-                <ExistingRemarks remarks={existingRemarks} />
-              </Grid>
-            )}
-
-            {/* Report Remarks */}
-            {isEditable && (
-              <Grid size={12}>
-                <ReportRemarksSection
-                  descriptions={reportedRemarks}
-                  onChange={setReportedRemarks}
-                />
-              </Grid>
-            )}
 
             {/* Billing Information */}
             <Grid size={12}>

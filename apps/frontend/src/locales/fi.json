@@ -1316,8 +1316,6 @@
       "addPreFlightTitle": "Uusi vikamerkintä (ennen lentoa)",
       "addInFlightTitle": "Uusi vikamerkintä (lennon aikainen)",
       "existingSectionTitle": "Jo ilmoitetut viat",
-      "reportSectionTitle": "Ilmoita viat",
-      "reportSectionNote": "Jos havaitsit lennon aikana vikoja, kuvaile jokainen alla. Jokaisesta viasta on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
       "fleetManagersTitle": "Kalustovastaavat",
       "addDefectRow": "Lisää vika",
       "blankDescriptionError": "Vian kuvaus ei voi olla tyhjä",
@@ -1348,11 +1346,13 @@
     },
     "remarks": {
       "existingSectionTitle": "Huomiot",
-      "reportSectionTitle": "Ilmoita huomioita",
-      "reportSectionNote": "Pienille havainnoille, jotka eivät vaikuta lentokelpoisuuteen -- vakavammat kuuluvat yllä olevaan vikailmoitukseen.",
       "addRemarkRow": "Lisää huomio",
       "blankDescriptionError": "Huomion kuvaus ei voi olla tyhjä",
       "description": "Kuvaus"
+    },
+    "defectsAndRemarks": {
+      "intro1": "Jos havaitsit lennon aikana vikoja tai muita ilma-alukseen liittyviä huomioita, ilmoita jokainen alla. Merkitse pienet, lentokelpoisuuteen vaikuttamattomat havainnot sen sijaan huomiona.",
+      "intro2": "Huomaa, että ilmoitettu vika asettaa lentokoneen lentokieltoon, kunnes vika on korjattu tai siirretty siirrettyjen vikojen listalle (HIL). Jokainen ilma-alukseen liittyvä havainto on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään."
     }
   },
   "invoicing": {

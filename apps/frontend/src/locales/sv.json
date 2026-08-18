@@ -1317,8 +1317,6 @@
       "addPreFlightTitle": "Nytt fel (före flygning)",
       "addInFlightTitle": "Nytt fel (under flygning)",
       "existingSectionTitle": "Redan rapporterade fel",
-      "reportSectionTitle": "Rapportera fel",
-      "reportSectionNote": "Om du upptäckte fel under flygningen, beskriv varje fel nedan. Varje fel måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning.",
       "fleetManagersTitle": "Materialansvariga",
       "addDefectRow": "Lägg till fel",
       "blankDescriptionError": "Felbeskrivningen får inte vara tom",
@@ -1349,11 +1347,13 @@
     },
     "remarks": {
       "existingSectionTitle": "Anmärkningar",
-      "reportSectionTitle": "Rapportera anmärkningar",
-      "reportSectionNote": "För mindre observationer som inte påverkar lufttjänstdugligheten -- allvarligare hör hemma i Rapportera fel ovan.",
       "addRemarkRow": "Lägg till anmärkning",
       "blankDescriptionError": "Anmärkningens beskrivning får inte vara tom",
       "description": "Beskrivning"
+    },
+    "defectsAndRemarks": {
+      "intro1": "Om du upptäckte fel eller andra anmärkningar på flygplanet under denna flygning, rapportera var och en nedan. Skriv istället en anmärkning för mindre observationer som inte påverkar lufttjänstdugligheten.",
+      "intro2": "Observera att ett rapporterat fel sätter flygplanet i flygförbud tills felet är åtgärdat eller överfört till Hold Item List (HIL). Varje flygplansrelaterad observation måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning."
     }
   },
   "invoicing": {
