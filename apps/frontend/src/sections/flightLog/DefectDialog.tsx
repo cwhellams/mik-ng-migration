@@ -37,11 +37,11 @@ const EditDefectFormSchema = z
   .object({
     description: z.string().min(1),
     rows: z.coerce.number().int().min(0).optional(),
-    blankRowsAfter: z.coerce.number().int().min(0).optional(),
+    blankRowsBefore: z.coerce.number().int().min(0).optional(),
   })
-  .refine((data) => (data.rows ?? 1) > 0 || (data.blankRowsAfter ?? 0) === 0, {
-    message: 'blankRowsAfter must be 0 when rows is 0',
-    path: ['blankRowsAfter'],
+  .refine((data) => (data.rows ?? 1) > 0 || (data.blankRowsBefore ?? 0) === 0, {
+    message: 'blankRowsBefore must be 0 when rows is 0',
+    path: ['blankRowsBefore'],
   })
 
 type EditDefectFormValues = z.infer<typeof EditDefectFormSchema>
@@ -108,7 +108,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
   const handleOpenNote = useOpenNoteLink(aircraftRegistration)
 
   // In-flight defects (flightId set) are always inline chips anchored to that flight --
-  // rows/blankRowsAfter can only be corrected on a pre-flight (standalone) defect.
+  // rows/blankRowsBefore can only be corrected on a pre-flight (standalone) defect.
   const isPreFlight = defect.flightId == null
 
   const {
@@ -121,7 +121,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
     values: {
       description: defect.description,
       rows: defect.rows,
-      blankRowsAfter: defect.blankRowsAfter,
+      blankRowsBefore: defect.blankRowsBefore,
     },
   })
 
@@ -138,7 +138,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
       description: values.description,
       ...(isPreFlight && {
         rows: values.rows,
-        blankRowsAfter: values.rows === 0 ? 0 : values.blankRowsAfter,
+        blankRowsBefore: values.rows === 0 ? 0 : values.blankRowsBefore,
       }),
     })
     if (error) {
@@ -241,18 +241,18 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
                   />
 
                   <Controller
-                    name='blankRowsAfter'
+                    name='blankRowsBefore'
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
-                        label={t('flightLog.maintenanceNotes.blankRowsAfter')}
+                        label={t('flightLog.maintenanceNotes.blankRowsBefore')}
                         type='number'
                         disabled={rows === 0}
-                        error={!!errors.blankRowsAfter}
+                        error={!!errors.blankRowsBefore}
                         helperText={
-                          errors.blankRowsAfter?.message ??
-                          t('flightLog.maintenanceNotes.blankRowsAfterHelp')
+                          errors.blankRowsBefore?.message ??
+                          t('flightLog.maintenanceNotes.blankRowsBeforeHelp')
                         }
                         fullWidth
                         slotProps={{
@@ -304,7 +304,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
                 </Box>
               )}
 
-              {isPreFlight && defect.blankRowsAfter > 0 && (
+              {isPreFlight && defect.blankRowsBefore > 0 && (
                 <Box>
                   <Typography
                     variant='caption'
@@ -312,9 +312,9 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
                       color: 'text.secondary',
                     }}
                   >
-                    {t('flightLog.maintenanceNotes.blankRowsAfter')}
+                    {t('flightLog.maintenanceNotes.blankRowsBefore')}
                   </Typography>
-                  <Typography>{defect.blankRowsAfter}</Typography>
+                  <Typography>{defect.blankRowsBefore}</Typography>
                 </Box>
               )}
 

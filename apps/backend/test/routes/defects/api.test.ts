@@ -99,7 +99,7 @@ const insertNote = async (aircraftRegistration: string): Promise<string> => {
       description: `${TEST_MARKER} note`,
       performedBy: 'AME',
       flightMins: 50,
-      blankRowsAfter: 0,
+      blankRowsBefore: 0,
       createdAt: new Date(),
       createdBy: 'Matti1',
     })
@@ -228,7 +228,7 @@ describe('POST /defects', () => {
     createdDefectIds.push(res.body.defectId)
   })
 
-  it('returns 400 when rows is 0 and blankRowsAfter is non-zero', async () => {
+  it('returns 400 when rows is 0 and blankRowsBefore is non-zero', async () => {
     const res = await request(app)
       .post('/defects')
       .set('Cookie', `accessToken=${ownerToken}`)
@@ -238,7 +238,7 @@ describe('POST /defects', () => {
         description: `${TEST_MARKER} invalid inline defect`,
         flightMins: LIVE_FLIGHT_MINS,
         rows: 0,
-        blankRowsAfter: 1,
+        blankRowsBefore: 1,
       })
 
     expect(res.status).toBe(400)
@@ -332,35 +332,35 @@ describe('PATCH /defects/:id', () => {
     expect(res.body.description).toBe('edited by owner')
   })
 
-  it('returns 400 for blankRowsAfter alone when the persisted rows is 0', async () => {
+  it('returns 400 for blankRowsBefore alone when the persisted rows is 0', async () => {
     // The beforeEach POST explicitly sends rows: 0, and this PATCH doesn't touch rows,
-    // so the persisted value must still be checked against the incoming blankRowsAfter.
+    // so the persisted value must still be checked against the incoming blankRowsBefore.
     const res = await request(app)
       .patch(`/defects/${defectId}`)
       .set('Cookie', `accessToken=${ownerToken}`)
-      .send({ blankRowsAfter: 2 })
+      .send({ blankRowsBefore: 2 })
 
     expect(res.status).toBe(400)
   })
 
-  it('lets the owner correct rows and blankRowsAfter together on a pre-flight defect', async () => {
+  it('lets the owner correct rows and blankRowsBefore together on a pre-flight defect', async () => {
     // The beforeEach POST's defect has no flightId, so it's a pre-flight defect: rows
-    // (and blankRowsAfter) can be corrected after the fact if the initial entry was wrong.
+    // (and blankRowsBefore) can be corrected after the fact if the initial entry was wrong.
     const res = await request(app)
       .patch(`/defects/${defectId}`)
       .set('Cookie', `accessToken=${ownerToken}`)
-      .send({ rows: 1, blankRowsAfter: 2 })
+      .send({ rows: 1, blankRowsBefore: 2 })
 
     expect(res.status).toBe(200)
     expect(res.body.rows).toBe(1)
-    expect(res.body.blankRowsAfter).toBe(2)
+    expect(res.body.blankRowsBefore).toBe(2)
   })
 
-  it('returns 400 when rows is changed to 0 while blankRowsAfter stays non-zero', async () => {
+  it('returns 400 when rows is changed to 0 while blankRowsBefore stays non-zero', async () => {
     const setup = await request(app)
       .patch(`/defects/${defectId}`)
       .set('Cookie', `accessToken=${ownerToken}`)
-      .send({ rows: 1, blankRowsAfter: 2 })
+      .send({ rows: 1, blankRowsBefore: 2 })
     expect(setup.status).toBe(200)
 
     const res = await request(app)

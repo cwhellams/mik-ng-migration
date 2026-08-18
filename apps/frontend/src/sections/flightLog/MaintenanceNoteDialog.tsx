@@ -85,7 +85,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
       flightHours: Math.floor(note.flightMins / 60),
       flightMinutes: note.flightMins % 60,
       rows: note.rows,
-      blankRowsAfter: note.blankRowsAfter,
+      blankRowsBefore: note.blankRowsBefore,
     },
   })
 
@@ -105,7 +105,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
       performedBy: values.performedBy,
       flightMins: values.flightHours * 60 + values.flightMinutes,
       rows: values.rows,
-      blankRowsAfter: values.rows > 0 ? values.blankRowsAfter : 0,
+      blankRowsBefore: values.rows > 0 ? values.blankRowsBefore : 0,
     })
 
     if (error) {
@@ -251,18 +251,18 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                 />
 
                 <Controller
-                  name='blankRowsAfter'
+                  name='blankRowsBefore'
                   control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label={t('flightLog.maintenanceNotes.blankRowsAfter')}
+                      label={t('flightLog.maintenanceNotes.blankRowsBefore')}
                       type='number'
                       disabled={rows === 0}
-                      error={!!errors.blankRowsAfter}
+                      error={!!errors.blankRowsBefore}
                       helperText={
-                        errors.blankRowsAfter?.message ??
-                        t('flightLog.maintenanceNotes.blankRowsAfterHelp')
+                        errors.blankRowsBefore?.message ??
+                        t('flightLog.maintenanceNotes.blankRowsBeforeHelp')
                       }
                       fullWidth
                       slotProps={{
@@ -329,7 +329,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                   <Typography>{note.rows}</Typography>
                 </Box>
 
-                {note.blankRowsAfter > 0 && (
+                {note.blankRowsBefore > 0 && (
                   <Box>
                     <Typography
                       variant='caption'
@@ -337,9 +337,9 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                         color: 'text.secondary',
                       }}
                     >
-                      {t('flightLog.maintenanceNotes.blankRowsAfter')}
+                      {t('flightLog.maintenanceNotes.blankRowsBefore')}
                     </Typography>
-                    <Typography>{note.blankRowsAfter}</Typography>
+                    <Typography>{note.blankRowsBefore}</Typography>
                   </Box>
                 )}
 

@@ -25,7 +25,7 @@ const AddDefectFormSchema = z.object({
   flightHours: z.coerce.number().int().min(0),
   flightMinutes: z.coerce.number().int().min(0).max(59),
   rows: z.coerce.number().int().min(0),
-  blankRowsAfter: z.coerce.number().int().min(0),
+  blankRowsBefore: z.coerce.number().int().min(0),
 })
 
 type AddDefectFormValues = z.infer<typeof AddDefectFormSchema>
@@ -70,7 +70,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
       flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
       flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
       rows: isPreFlight ? 1 : 0,
-      blankRowsAfter: 0,
+      blankRowsBefore: 0,
     },
   })
 
@@ -84,7 +84,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
         flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
         flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
         rows: isPreFlight ? 1 : 0,
-        blankRowsAfter: 0,
+        blankRowsBefore: 0,
       })
     }
   }, [open, defaultFlightMins, isPreFlight, reset])
@@ -101,7 +101,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
       // value here could drift the defect onto a different flight's row if
       // cumulative totals ever change.
       rows: isPreFlight ? values.rows : 0,
-      blankRowsAfter: isPreFlight && values.rows > 0 ? values.blankRowsAfter : 0,
+      blankRowsBefore: isPreFlight && values.rows > 0 ? values.blankRowsBefore : 0,
     })
 
     if (error) {
@@ -222,18 +222,18 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
                 />
 
                 <Controller
-                  name='blankRowsAfter'
+                  name='blankRowsBefore'
                   control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label={t('flightLog.maintenanceNotes.blankRowsAfter')}
+                      label={t('flightLog.maintenanceNotes.blankRowsBefore')}
                       type='number'
                       disabled={rows === 0}
-                      error={!!errors.blankRowsAfter}
+                      error={!!errors.blankRowsBefore}
                       helperText={
-                        errors.blankRowsAfter?.message ??
-                        t('flightLog.maintenanceNotes.blankRowsAfterHelp')
+                        errors.blankRowsBefore?.message ??
+                        t('flightLog.maintenanceNotes.blankRowsBeforeHelp')
                       }
                       fullWidth
                       slotProps={{

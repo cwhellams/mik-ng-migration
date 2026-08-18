@@ -468,9 +468,9 @@ export const PageItemRowSchema = z.object({
   rowNumber: z.number().int().positive(),
   itemType: z.enum(['note', 'defect']),
   itemId: z.string(),
-  // true for the item's own content row (shows its description); false for a
-  // continuation of its own multi-row content or one of its blankRowsAfter spacer
-  // rows -- both render identically (blank), so the caller doesn't need to
+  // true for the item's own content row (shows its description); false for one of
+  // its leading blankRowsBefore spacer rows or a continuation of its own multi-row
+  // content -- both render identically (blank), so the caller doesn't need to
   // distinguish between them.
   isContentRow: z.boolean(),
 })

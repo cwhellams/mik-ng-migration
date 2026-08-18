@@ -67,17 +67,17 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Maintena
     }
   }
 
-  // The schema's own refine only validates rows/blankRowsAfter against each
-  // other *within this PATCH body* -- a partial update (e.g. blankRowsAfter
+  // The schema's own refine only validates rows/blankRowsBefore against each
+  // other *within this PATCH body* -- a partial update (e.g. blankRowsBefore
   // alone) must be checked against the note's already-persisted value for
   // whichever field it didn't touch, or it can pass validation here yet still
   // violate the DB's zero-rows-no-blank check constraint.
   const effectiveRows = data.rows ?? existing.rows
-  const effectiveBlankRowsAfter = data.blankRowsAfter ?? existing.blankRowsAfter
-  if (effectiveRows === 0 && effectiveBlankRowsAfter > 0) {
+  const effectiveBlankRowsBefore = data.blankRowsBefore ?? existing.blankRowsBefore
+  if (effectiveRows === 0 && effectiveBlankRowsBefore > 0) {
     return problem({
       status: 400,
-      detail: 'blankRowsAfter must be 0 when rows is 0',
+      detail: 'blankRowsBefore must be 0 when rows is 0',
     })
   }
 

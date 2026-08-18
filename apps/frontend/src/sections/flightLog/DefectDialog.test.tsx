@@ -24,7 +24,7 @@ const aDefect = (overrides: Partial<Defect> = {}) =>
     status: 'ACTIVE',
     flightMins: 285_000,
     rows: 1,
-    blankRowsAfter: 0,
+    blankRowsBefore: 0,
     createdBy: MEMBER_ID,
     createdAt: '2025-06-02T09:00:00.000Z',
     flightId: null,

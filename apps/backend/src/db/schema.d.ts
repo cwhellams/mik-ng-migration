@@ -858,7 +858,7 @@ export interface FlightAircraftNavdata {
 export interface FlightDefect {
   aircraftRegistration: string
   ajlbSeqNo: number
-  blankRowsAfter: Generated<number>
+  blankRowsBefore: Generated<number>
   createdAt: Generated<Timestamp>
   createdBy: string
   defectId: Generated<string>
@@ -980,7 +980,7 @@ export interface FlightLogsAudit {
 export interface FlightMaintenanceNote {
   aircraftRegistration: string
   ajlbSeqNo: number
-  blankRowsAfter: Generated<number>
+  blankRowsBefore: Generated<number>
   createdAt: Generated<Timestamp>
   createdBy: string
   description: string
@@ -1081,6 +1081,7 @@ export interface FlightVwAjlbLiveSequence {
   ajlbRowNumber: Int8 | null
   ajlbSeqNo: number | null
   anchorFlightId: string | null
+  contentRowOffset: number | null
   itemId: string | null
   itemType: string | null
   rowsConsumed: number | null

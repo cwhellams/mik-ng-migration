@@ -91,7 +91,7 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
       flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
       flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
       rows: 1,
-      blankRowsAfter: 0,
+      blankRowsBefore: 0,
     },
   })
 
@@ -108,7 +108,7 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
         flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
         flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
         rows: 1,
-        blankRowsAfter: 0,
+        blankRowsBefore: 0,
       })
     }
   }, [open, defaultFlightMins, defaultHilIds, reset])
@@ -121,7 +121,7 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
       performedBy: values.performedBy,
       flightMins: values.flightHours * 60 + values.flightMinutes,
       rows: values.rows,
-      blankRowsAfter: values.rows > 0 ? values.blankRowsAfter : 0,
+      blankRowsBefore: values.rows > 0 ? values.blankRowsBefore : 0,
       ...(selectedHilIds.length ? { hilIds: selectedHilIds } : {}),
       ...(selectedDefectIds.length ? { defectIds: selectedDefectIds } : {}),
     })
@@ -249,18 +249,18 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
             />
 
             <Controller
-              name='blankRowsAfter'
+              name='blankRowsBefore'
               control={control}
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label={t('flightLog.maintenanceNotes.blankRowsAfter')}
+                  label={t('flightLog.maintenanceNotes.blankRowsBefore')}
                   type='number'
                   disabled={rows === 0}
-                  error={!!errors.blankRowsAfter}
+                  error={!!errors.blankRowsBefore}
                   helperText={
-                    errors.blankRowsAfter?.message ??
-                    t('flightLog.maintenanceNotes.blankRowsAfterHelp')
+                    errors.blankRowsBefore?.message ??
+                    t('flightLog.maintenanceNotes.blankRowsBeforeHelp')
                   }
                   fullWidth
                   slotProps={{

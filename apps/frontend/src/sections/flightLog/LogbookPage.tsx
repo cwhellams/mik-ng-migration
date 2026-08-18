@@ -30,7 +30,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import { AircraftJourneyLogBook } from '@mik/contracts/ajlb'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { EditButton } from '../../components/EditButton'
 import { Problem } from '@mik/contracts/problem'
 import { StatusButton } from './components/StatusButton'
@@ -105,6 +105,12 @@ type LogbookTableRow = {
   isDefectBlankRow: boolean
   inlineItems: LogbookInsertItem[]
 }
+
+// A blank continuation/spacer row is still consumed by the note/defect above or
+// below it -- distinguishing it from a genuinely empty row (isEmptyRow but not
+// this) is what tells the reader it isn't available for a new flight.
+export const isBlankButUsedRow = (row: LogbookTableRow): boolean =>
+  row.isNoteBlankRow || row.isDefectBlankRow
 
 const rowDefaults = {
   note: undefined as MaintenanceNote | undefined,
@@ -395,7 +401,7 @@ const FlightLogsList = () => {
     ajlb?.seqNo,
   )
 
-  // A note/defect's rows/blankRowsAfter can shift data.pageItemRows (the server's
+  // A note/defect's rows/blankRowsBefore can shift data.pageItemRows (the server's
   // physical-row placement for this page), so any change to either must also
   // refresh the flight-logs list, not just the note/defect list itself.
   const refreshAfterNoteChange = () => {
@@ -557,18 +563,39 @@ const FlightLogsList = () => {
   // row (the traditional in-flight-defect chip, now unified for both kinds).
   // Own-row (rows > 0) items are placed directly from data.pageItemRows, the
   // server's exact physical-row breakdown for this page -- see buildLogbookRows.
-  const inlineItems = buildInlineItems(maintenanceNotes, defects)
-  const notesById = Object.fromEntries((maintenanceNotes ?? []).map((note) => [note.noteId, note]))
-  const defectsById = Object.fromEntries((defects ?? []).map((defect) => [defect.defectId, defect]))
+  const inlineItems = useMemo(
+    () => buildInlineItems(maintenanceNotes, defects),
+    [maintenanceNotes, defects],
+  )
+  const notesById = useMemo(
+    () => Object.fromEntries((maintenanceNotes ?? []).map((note) => [note.noteId, note])),
+    [maintenanceNotes],
+  )
+  const defectsById = useMemo(
+    () => Object.fromEntries((defects ?? []).map((defect) => [defect.defectId, defect])),
+    [defects],
+  )
 
-  const mergedRows = buildLogbookRows(
-    data?.logs,
-    data?.pageItemRows ?? [],
-    inlineItems,
-    notesById,
-    defectsById,
-    ajlb?.rowsPerPage ?? 0,
-    data?.pageStartFlightMins ?? null,
+  const mergedRows = useMemo(
+    () =>
+      buildLogbookRows(
+        data?.logs,
+        data?.pageItemRows ?? [],
+        inlineItems,
+        notesById,
+        defectsById,
+        ajlb?.rowsPerPage ?? 0,
+        data?.pageStartFlightMins ?? null,
+      ),
+    [
+      data?.logs,
+      data?.pageItemRows,
+      inlineItems,
+      notesById,
+      defectsById,
+      ajlb?.rowsPerPage,
+      data?.pageStartFlightMins,
+    ],
   )
 
   return (
@@ -642,8 +669,9 @@ const FlightLogsList = () => {
           }
           notFoundMsg={t('flightLog.noLogs')}
           rows={mergedRows}
-          rowProps={() => ({
+          rowProps={(row) => ({
             minHeight: rowHeight,
+            ...(isBlankButUsedRow(row) && { bgcolor: 'action.hover' }),
           })}
           row={({
             log,

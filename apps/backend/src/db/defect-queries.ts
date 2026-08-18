@@ -15,7 +15,7 @@ function mapRowToDefect(row: DbRow<'flight.defect'>): Defect {
     description: row.description,
     flightMins: row.flightMins,
     rows: row.rows,
-    blankRowsAfter: row.blankRowsAfter,
+    blankRowsBefore: row.blankRowsBefore,
     status: row.status,
     hilId: row.hilId,
     resolvedNoteId: row.resolvedNoteId,
@@ -59,7 +59,7 @@ export async function createDefect(data: CreateDefectRequest, createdBy: string)
       description: data.description,
       flightMins: data.flightMins,
       rows: data.rows,
-      blankRowsAfter: data.blankRowsAfter,
+      blankRowsBefore: data.blankRowsBefore,
       status: 'ACTIVE',
       hilId: null,
       resolvedNoteId: null,
@@ -82,7 +82,7 @@ export async function updateDefect(
     .set({
       ...(data.description !== undefined && { description: data.description }),
       ...(data.rows !== undefined && { rows: data.rows }),
-      ...(data.blankRowsAfter !== undefined && { blankRowsAfter: data.blankRowsAfter }),
+      ...(data.blankRowsBefore !== undefined && { blankRowsBefore: data.blankRowsBefore }),
       ...(data.hilId !== undefined && {
         hilId: data.hilId,
         status: data.hilId !== null ? 'MOVED_TO_HIL' : 'ACTIVE',
