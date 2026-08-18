@@ -631,9 +631,7 @@ const FlightLogsList = () => {
               startIcon={<Icon icon='mdi:alert-circle-outline' />}
               onClick={() => {
                 setAddDefectFlightId(null)
-                setAddDefectFlightMins(
-                  data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined,
-                )
+                setAddDefectFlightMins(ajlb?.view?.unverifiedTotalFlightMins)
                 setAddDefectOpen(true)
               }}
               size='small'
@@ -958,7 +956,7 @@ const FlightLogsList = () => {
           }}
           aircraftRegistration={ajlb.aircraftRegistration}
           ajlbSeqNo={ajlb.seqNo}
-          defaultFlightMins={data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined}
+          defaultFlightMins={ajlb.view?.unverifiedTotalFlightMins}
           defaultHilIds={closeHilId ? [closeHilId] : undefined}
         />
       )}
