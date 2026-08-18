@@ -9,3 +9,13 @@ export function useRemarks(flightId?: string) {
     skipFetch: !flightId,
   })
 }
+
+/** Every remark for a logbook page's aircraft, optionally scoped to one ajlbSeqNo --
+ * for LogbookPage's inline markers, mirroring useDefects. */
+export function useRemarksForAircraft(aircraftRegistration?: string, ajlbSeqNo?: number) {
+  return useApi<Remark[]>({
+    url: 'v1/remarks',
+    params: { aircraftRegistration, ajlbSeqNo },
+    skipFetch: !aircraftRegistration,
+  })
+}

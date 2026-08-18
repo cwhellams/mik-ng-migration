@@ -23,6 +23,25 @@ export async function getRemarksByFlightId(flightId: string): Promise<Remark[]> 
   return rows.map(mapRowToRemark)
 }
 
+// LogbookPage's inline markers: every remark for a whole logbook page (aircraft, and
+// optionally one specific ajlbSeqNo), joined through flight.logs since flight.remark
+// has no aircraft/seqNo column of its own -- mirrors getDefects's scoping.
+export async function getRemarksByAircraft(
+  aircraftRegistration: string,
+  ajlbSeqNo?: number,
+): Promise<Remark[]> {
+  const rows = await connection.db
+    .selectFrom('flight.remark')
+    .innerJoin('flight.logs', 'flight.logs.flightId', 'flight.remark.flightId')
+    .selectAll('flight.remark')
+    .where('flight.logs.aircraftRegistration', '=', aircraftRegistration)
+    .$if(ajlbSeqNo !== undefined, (qb) => qb.where('flight.logs.ajlbSeqNo', '=', ajlbSeqNo!))
+    .orderBy('flight.remark.createdAt', 'asc')
+    .execute()
+
+  return rows.map(mapRowToRemark)
+}
+
 export async function createRemark(data: CreateRemarkRequest, createdBy: string): Promise<Remark> {
   const row = await connection.db
     .insertInto('flight.remark')

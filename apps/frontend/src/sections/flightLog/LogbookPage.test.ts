@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 import type { FlightLogListEntry, PageItemRow } from '@mik/contracts/flight-log'
 import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import type { Defect } from '@mik/contracts/defects'
-import { buildLogbookRows, buildInlineItems, isBlankButUsedRow } from './LogbookPage'
+import type { Remark } from '@mik/contracts/remarks'
+import {
+  buildLogbookRows,
+  buildInlineItems,
+  isBlankButUsedRow,
+  groupRemarksByFlightId,
+} from './LogbookPage'
 
 let logCounter = 0
 const makeLog = (overrides: Partial<FlightLogListEntry>): FlightLogListEntry => {
@@ -91,6 +97,21 @@ const makeDefect = (overrides: Partial<Defect>): Defect => {
   }
 }
 
+let remarkCounter = 0
+const makeRemark = (overrides: Partial<Remark>): Remark => {
+  remarkCounter++
+  return {
+    remarkId: `remark${remarkCounter}`,
+    flightId: `flight${remarkCounter}`,
+    description: 'Test remark',
+    createdAt: `2026-01-01T00:00:0${remarkCounter}.000Z`,
+    createdBy: 'Matti1',
+    updatedAt: `2026-01-01T00:00:0${remarkCounter}.000Z`,
+    updatedBy: 'Matti1',
+    ...overrides,
+  }
+}
+
 const makeItemRow = (overrides: Partial<PageItemRow>): PageItemRow => ({
   rowNumber: 1,
   itemType: 'note',
@@ -127,6 +148,24 @@ describe('buildInlineItems', () => {
 
     expect(items).toHaveLength(1)
     expect(items[0].kind).toBe('defect')
+  })
+})
+
+describe('groupRemarksByFlightId', () => {
+  it('groups remarks under their anchor flight', () => {
+    const remarkA = makeRemark({ flightId: 'flightA' })
+    const remarkB = makeRemark({ flightId: 'flightB' })
+    const remarkA2 = makeRemark({ flightId: 'flightA' })
+
+    const grouped = groupRemarksByFlightId([remarkA, remarkB, remarkA2])
+
+    expect(grouped.flightA).toEqual([remarkA, remarkA2])
+    expect(grouped.flightB).toEqual([remarkB])
+  })
+
+  it('returns an empty object for undefined or empty input', () => {
+    expect(groupRemarksByFlightId(undefined)).toEqual({})
+    expect(groupRemarksByFlightId([])).toEqual({})
   })
 })
 

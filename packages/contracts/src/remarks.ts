@@ -24,9 +24,19 @@ export const CreateRemarkSchema = z.object({
 
 export type CreateRemarkRequest = z.infer<typeof CreateRemarkSchema>
 
-export const RemarkFilterSchema = z.object({
-  flightId: z.string().min(1),
-})
+// Either the one flight being edited (NotesStep/FlightLogEntry's "already logged"
+// display) or a whole logbook page's aircraft/seqNo scope (LogbookPage's inline
+// markers, mirroring DefectFilterSchema) -- a remark has no aircraft/seqNo column of
+// its own, so the latter is resolved through a join with flight.logs.
+export const RemarkFilterSchema = z
+  .object({
+    flightId: z.string().min(1).optional(),
+    aircraftRegistration: z.string().min(1).optional(),
+    ajlbSeqNo: z.coerce.number().int().positive().optional(),
+  })
+  .refine((data) => !!data.flightId || !!data.aircraftRegistration, {
+    message: 'Either flightId or aircraftRegistration is required',
+  })
 
 export type RemarkFilter = z.infer<typeof RemarkFilterSchema>
 

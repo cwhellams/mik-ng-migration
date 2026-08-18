@@ -104,6 +104,50 @@ describe('GET /remarks', () => {
       description: `${TEST_MARKER} oil stain on the ramp, wiped off`,
     })
   })
+
+  it('lists every remark for the given aircraft when scoped by aircraftRegistration', async () => {
+    await insertRemark(FLIGHT_ID, `${TEST_MARKER} oil stain on the ramp, wiped off`)
+    await insertRemark(OTHER_FLIGHT_ID, `${TEST_MARKER} slight vibration on climb-out`)
+
+    const res = await request(app)
+      .get('/remarks')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      // mass1 and mass2 are both OH-STL, book 1 (see V60__LandingBaselineData.sql)
+      .query({ aircraftRegistration: 'OH-STL', ajlbSeqNo: 1 })
+
+    expect(res.status).toBe(200)
+    const descriptions = res.body.map((r: { description: string }) => r.description)
+    expect(descriptions).toEqual(
+      expect.arrayContaining([
+        `${TEST_MARKER} oil stain on the ramp, wiped off`,
+        `${TEST_MARKER} slight vibration on climb-out`,
+      ]),
+    )
+  })
+
+  it('excludes remarks belonging to a different aircraft', async () => {
+    await insertRemark(FLIGHT_ID, `${TEST_MARKER} oil stain on the ramp, wiped off`)
+
+    const res = await request(app)
+      .get('/remarks')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .query({ aircraftRegistration: 'OH-IHQ' })
+
+    expect(res.status).toBe(200)
+    expect(res.body).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          description: `${TEST_MARKER} oil stain on the ramp, wiped off`,
+        }),
+      ]),
+    )
+  })
+
+  it('returns 400 when neither flightId nor aircraftRegistration is given', async () => {
+    const res = await request(app).get('/remarks').set('Cookie', `accessToken=${ownerToken}`)
+
+    expect(res.status).toBe(400)
+  })
 })
 
 describe('POST /remarks', () => {

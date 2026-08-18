@@ -5,7 +5,12 @@ import {
   type Remark,
   type RecentRemarksResponse,
 } from '@mik/contracts/remarks'
-import { getRemarksByFlightId, createRemark, getRecentRemarks } from '../../db/remark-queries.ts'
+import {
+  getRemarksByFlightId,
+  getRemarksByAircraft,
+  createRemark,
+  getRecentRemarks,
+} from '../../db/remark-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '@mik/contracts/members'
 
@@ -28,7 +33,9 @@ router.get('/recent', async (req: Request, res: Response<RecentRemarksResponse>)
 
 router.get('/', async (req: Request, res: Response<Remark[]>) => {
   const filters = RemarkFilterSchema.parse(req.query)
-  const remarks = await getRemarksByFlightId(filters.flightId)
+  const remarks = filters.flightId
+    ? await getRemarksByFlightId(filters.flightId)
+    : await getRemarksByAircraft(filters.aircraftRegistration!, filters.ajlbSeqNo)
   res.status(200).json(remarks)
 })
 
