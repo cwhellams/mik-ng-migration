@@ -381,7 +381,7 @@ exports[`Db query ajlb get tests should return all ajlbs 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 83,
+      "lastPage": 85,
       "newFlightsCount": 19,
       "newFlightsPage": 81,
       "newFlightsTime": "35:25",
@@ -531,7 +531,7 @@ exports[`Db query ajlb get tests should return all current ajlbs 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 83,
+      "lastPage": 85,
       "newFlightsCount": 19,
       "newFlightsPage": 81,
       "newFlightsTime": "35:25",

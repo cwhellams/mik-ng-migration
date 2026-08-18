@@ -659,7 +659,74 @@ describe('PATCH /maintenance-notes/:id', () => {
 })
 
 describe('DELETE /maintenance-notes/:id', () => {
-  it('returns 404 — maintenance notes cannot be deleted', async () => {
+  let noteId: string
+
+  beforeEach(async () => {
+    const note = await createMaintenanceNote(
+      {
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Pre-delete note',
+        performedBy: 'Matti Virtanen',
+        flightMins: 200,
+        rows: 1,
+      },
+      'Matti1',
+    )
+    noteId = note.noteId
+  })
+
+  afterEach(async () => {
+    await deleteMaintenanceNote(noteId)
+  })
+
+  it('returns 401 for invalid JWT', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', 'accessToken=INVALID')
+
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when user lacks permission', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${noAccessToken}`)
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 404 when non-owner tries to delete', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${otherUserToken}`)
+
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 204 when owner deletes their own note', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+
+    expect(res.status).toBe(204)
+
+    const check = await request(app)
+      .get('/maintenance-notes')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .query({ aircraftRegistration: AIRCRAFT, ajlbSeqNo: AJLB_SEQ_NO })
+    expect(check.body.some((n: { noteId: string }) => n.noteId === noteId)).toBe(false)
+  })
+
+  it('returns 204 when admin deletes a note owned by another user', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(res.status).toBe(204)
+  })
+
+  it('returns 404 for non-existent note id', async () => {
     const res = await request(app)
       .delete('/maintenance-notes/00000000-0000-0000-0000-000000000000')
       .set('Cookie', `accessToken=${adminToken}`)

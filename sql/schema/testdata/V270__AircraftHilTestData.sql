@@ -52,20 +52,26 @@ VALUES (
 
 -- The logbook defects deferred to each of the three hold items above, so the
 -- HIL <-> flight log links can be followed both ways for all of them.
+--
+-- flight_mins must be at or after each aircraft/ajlb's live baseline
+-- (flight.vw_ajlb_live_sequence only includes items from there on -- see
+-- V1700), so these sit just past OH-STL/1's (21301), OH-IHQ/2's (367120) and
+-- OH-P28/4's (313810) baselines rather than an arbitrary small number, or
+-- they'd never appear as live rows on the current logbook page.
 INSERT INTO flight.defect (
         aircraft_registration, ajlb_seq_no, flight_id, description, flight_mins,
         status, hil_id, created_by, updated_by
     )
 VALUES (
-        'OH-STL', 1, NULL, 'Landing light does not illuminate on pre-flight check', 1200,
+        'OH-STL', 1, NULL, 'Landing light does not illuminate on pre-flight check', 21310,
         'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000001', 'Matti1', 'Matti1'
     ),
     (
-        'OH-STL', 1, NULL, 'ADF fails to lock onto any station', 1150,
+        'OH-STL', 1, NULL, 'ADF fails to lock onto any station', 21320,
         'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000002', 'Matti1', 'Matti1'
     ),
     (
-        'OH-IHQ', 2, NULL, 'Right main tyre worn close to limit on walkaround', 800,
+        'OH-IHQ', 2, NULL, 'Right main tyre worn close to limit on walkaround', 367130,
         'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000003', 'Liisa1', 'Liisa1'
     );
 
@@ -75,6 +81,6 @@ INSERT INTO flight.defect (
         status, hil_id, created_by, updated_by
     )
 VALUES (
-        'OH-P28', 4, NULL, 'Oil seepage noticed around the cowling', 900,
+        'OH-P28', 4, NULL, 'Oil seepage noticed around the cowling', 313820,
         'ACTIVE', NULL, 'Liisa1', 'Liisa1'
     );

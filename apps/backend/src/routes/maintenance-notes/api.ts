@@ -10,6 +10,7 @@ import {
   getMaintenanceNote,
   createMaintenanceNote,
   updateMaintenanceNote,
+  deleteMaintenanceNote,
 } from '../../db/maintenance-note-queries.ts'
 import { getAjlbLiveBaselineFlightMins } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -75,6 +76,14 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Maintena
   )
   if (!updated) return problem({ status: 404, detail: 'Maintenance note not found' })
   res.status(200).json(updated)
+})
+
+router.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
+  const { id } = req.params
+  const isAdmin = req.user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN)
+  const deleted = await deleteMaintenanceNote(id, isAdmin ? undefined : req.user!.memberId!)
+  if (!deleted) return problem({ status: 404, detail: 'Maintenance note not found' })
+  res.status(204).end()
 })
 
 export default router

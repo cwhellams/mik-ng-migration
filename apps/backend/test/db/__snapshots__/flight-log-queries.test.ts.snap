@@ -337,7 +337,7 @@ exports[`Db query FlightLog tests getFlightLogs for start date should match snap
   "acTotalLandings": 0,
   "aircraftRegistration": "OH-P28",
   "ajlbBlankRowsBefore": 0,
-  "ajlbRowNo": 6,
+  "ajlbRowNo": 7,
   "ajlbSeqNo": 4,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Risto1",

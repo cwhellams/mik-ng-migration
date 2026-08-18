@@ -109,8 +109,16 @@ export async function updateMaintenanceNote(
   return row ? mapRowToNote(row) : undefined
 }
 
-export async function deleteMaintenanceNote(noteId: string): Promise<void> {
-  await connection.db.deleteFrom('flight.maintenanceNote').where('noteId', '=', noteId).execute()
+export async function deleteMaintenanceNote(
+  noteId: string,
+  createdByFilter?: string,
+): Promise<MaintenanceNote | undefined> {
+  let query = connection.db.deleteFrom('flight.maintenanceNote').where('noteId', '=', noteId)
+  if (createdByFilter !== undefined) {
+    query = query.where('createdBy', '=', createdByFilter)
+  }
+  const row = await query.returningAll().executeTakeFirst()
+  return row ? mapRowToNote(row) : undefined
 }
 
 export async function getMaintenanceNote(noteId: string): Promise<MaintenanceNote | undefined> {
