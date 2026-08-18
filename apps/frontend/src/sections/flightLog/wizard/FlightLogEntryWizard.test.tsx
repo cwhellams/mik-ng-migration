@@ -703,3 +703,65 @@ describe('FlightLogEntryWizard defect grounding confirmation', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })
+
+describe('FlightLogEntryWizard long taxi confirmation', () => {
+  // 2025-06-02T09:00:00.000Z, 65 minutes before takeoff
+  const longTaxiOutOverrides = {
+    offBlockTimeEpoch: '1748854800',
+    takeoffTimeEpoch: '1748858700',
+  }
+
+  it('asks for confirmation before saving when taxi-out exceeds an hour', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiOutOverrides),
+      initialStep: 'review',
+      onClose: () => {},
+    })
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/65 minutes of taxi-out time/)).toBeInTheDocument()
+    expect(state.writes).toHaveLength(0)
+  })
+
+  it('saves once the long-taxi confirmation is accepted', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiOutOverrides),
+      initialStep: 'review',
+      onClose: () => {},
+    })
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+  })
+
+  it('does not save when the long-taxi confirmation is cancelled', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiOutOverrides),
+      initialStep: 'review',
+      onClose: () => {},
+    })
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(state.writes).toHaveLength(0)
+  })
+})

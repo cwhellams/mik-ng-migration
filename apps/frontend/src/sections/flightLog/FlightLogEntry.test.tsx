@@ -67,7 +67,11 @@ window.matchMedia = ((query: string) => ({
   removeListener: () => {},
 })) as typeof window.matchMedia
 
-const classicFormApi = (existingDefects: Defect[] = [], existingRemarks: Remark[] = []) => {
+const classicFormApi = (
+  existingDefects: Defect[] = [],
+  existingRemarks: Remark[] = [],
+  flightOverrides: Partial<ReturnType<typeof aFlightLog>> = {},
+) => {
   const state = { patches: 0, defects: [] as unknown[] }
 
   server.use(
@@ -75,7 +79,9 @@ const classicFormApi = (existingDefects: Defect[] = [], existingRemarks: Remark[
     // otherwise greedily match "overlap-check" as an id on any GET request.
     http.get(apiUrl('v1/flight-logs/overlap-check'), () => HttpResponse.json({ conflicts: [] })),
     http.get(apiUrl('v1/flight-logs/:id'), () =>
-      HttpResponse.json(aFlightLog({ flightId: 'fi_inst1', status: FlightLogStatus.NEW })),
+      HttpResponse.json(
+        aFlightLog({ flightId: 'fi_inst1', status: FlightLogStatus.NEW, ...flightOverrides }),
+      ),
     ),
     http.get(apiUrl('v1/useful-phone-numbers/flight-plan-centre'), () =>
       HttpResponse.json(null, { status: 404 }),
@@ -239,5 +245,52 @@ describe('FlightLogEntry (classic form) defect grounding confirmation', () => {
 
     await waitFor(() => expect(state.patches).toBe(1))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('FlightLogEntry (classic form) long taxi confirmation', () => {
+  // 2025-06-02T09:00:00.000Z, 65 minutes before takeoff (the fixture's own default)
+  const longTaxiOutOverrides = {
+    offBlockTimeEpoch: '1748854800',
+    takeoffTimeEpoch: '1748858700',
+  }
+
+  it('asks for confirmation before saving when taxi-out exceeds an hour', async () => {
+    const state = classicFormApi([], [], longTaxiOutOverrides)
+    const { user } = renderClassicForm()
+
+    await screen.findByRole('button', { name: /add defect/i })
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/65 minutes of taxi-out time/)).toBeInTheDocument()
+    expect(state.patches).toBe(0)
+  })
+
+  it('saves once the long-taxi confirmation is accepted', async () => {
+    const state = classicFormApi([], [], longTaxiOutOverrides)
+    const { user } = renderClassicForm()
+
+    await screen.findByRole('button', { name: /add defect/i })
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
+
+    await waitFor(() => expect(state.patches).toBe(1))
+  })
+
+  it('does not save when the long-taxi confirmation is cancelled', async () => {
+    const state = classicFormApi([], [], longTaxiOutOverrides)
+    const { user } = renderClassicForm()
+
+    await screen.findByRole('button', { name: /add defect/i })
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(state.patches).toBe(0)
   })
 })

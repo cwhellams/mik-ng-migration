@@ -1359,6 +1359,12 @@
       "intro2": "Observera att ett rapporterat fel sätter flygplanet i flygförbud tills felet är åtgärdat eller överfört till Hold Item List (HIL). Varje flygplansrelaterad observation måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning.",
       "defectFieldLabel": "Felbeskrivning",
       "remarkFieldLabel": "Anmärkningens beskrivning"
+    },
+    "longTaxi": {
+      "confirmTitle": "Lång taxningstid",
+      "outMessage": "Du har angett {{minutes}} minuter taxningstid ut, bekräfta att detta stämmer.",
+      "inMessage": "Du har angett {{minutes}} minuter taxningstid in, bekräfta att detta stämmer.",
+      "confirmButton": "Bekräfta och spara"
     }
   },
   "invoicing": {

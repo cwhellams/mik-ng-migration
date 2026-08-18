@@ -83,6 +83,7 @@ import {
 import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
 import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'
+import { useLongTaxiCheck } from './useLongTaxiCheck'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
 import { DefectsAndRemarksSection } from './components/DefectsAndRemarksSection'
@@ -389,6 +390,14 @@ const ClassicFlightLogEntry = () => {
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(isNew ? undefined : flightId)
   const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
+  const { withLongTaxiCheck, longLegs, longTaxiDialogProps } = useLongTaxiCheck()
+  const longTaxiMessage = longLegs
+    .map((leg) =>
+      t(leg.leg === 'out' ? 'flightLog.longTaxi.outMessage' : 'flightLog.longTaxi.inMessage', {
+        minutes: leg.minutes,
+      }),
+    )
+    .join(' ')
   // Local-only state for fuel type — not stored in the flight log, used only for expense prefill
   const [fuelUpliftType, setFuelUpliftType] = useState<(typeof FUEL_TYPES)[number] | ''>('')
   const [fuelClaimCreating, setFuelClaimCreating] = useState(false)
@@ -548,7 +557,11 @@ const ClassicFlightLogEntry = () => {
   }
 
   const onSubmit = (data: FlightLogUpsertRequest) =>
-    withOverlapCheck(data, () => withGroundingConfirm(reportedDefects, () => continueSubmit(data)))
+    withOverlapCheck(data, () =>
+      withLongTaxiCheck(data, () =>
+        withGroundingConfirm(reportedDefects, () => continueSubmit(data)),
+      ),
+    )
 
   // Save current form state without navigating away; used before validate
   const saveChanges = async (): Promise<boolean> => {
@@ -1355,6 +1368,14 @@ const ClassicFlightLogEntry = () => {
         </DialogActions>
       </Dialog>
       <OverlapWarningDialog {...overlapDialogProps} />
+      <ConfirmDialog
+        {...longTaxiDialogProps}
+        title={t('flightLog.longTaxi.confirmTitle')}
+        message={longTaxiMessage}
+        confirmText={t('flightLog.longTaxi.confirmButton')}
+        cancelText={t('general.cancel')}
+        severity='info'
+      />
       <ConfirmDialog
         {...groundingDialogProps}
         title={t('flightLog.defects.groundingConfirmTitle')}

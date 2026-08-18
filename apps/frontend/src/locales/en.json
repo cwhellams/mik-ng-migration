@@ -1351,6 +1351,12 @@
       "intro2": "Please note that a reported defect will ground the aircraft until the defect is closed or transferred to HIL. Every aircraft related observation must also be reported directly to the kalustovastaava (fleet manager) by phone — don't rely on this entry alone.",
       "defectFieldLabel": "Defect description",
       "remarkFieldLabel": "Remark description"
+    },
+    "longTaxi": {
+      "confirmTitle": "Long taxi time",
+      "outMessage": "You have entered {{minutes}} minutes of taxi-out time, please confirm this is correct.",
+      "inMessage": "You have entered {{minutes}} minutes of taxi-in time, please confirm this is correct.",
+      "confirmButton": "Confirm & Save"
     }
   },
   "invoicing": {

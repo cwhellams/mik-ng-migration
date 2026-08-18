@@ -1358,6 +1358,12 @@
       "intro2": "Huomaa, että ilmoitettu vika asettaa lentokoneen lentokieltoon, kunnes vika on korjattu tai siirretty siirrettyjen vikojen listalle (HIL). Jokainen ilma-alukseen liittyvä havainto on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
       "defectFieldLabel": "Vian kuvaus",
       "remarkFieldLabel": "Huomion kuvaus"
+    },
+    "longTaxi": {
+      "confirmTitle": "Pitkä rullausaika",
+      "outMessage": "Olet syöttänyt {{minutes}} minuuttia rullausaikaa lähtöön, vahvista että tämä on oikein.",
+      "inMessage": "Olet syöttänyt {{minutes}} minuuttia rullausaikaa saapumisen jälkeen, vahvista että tämä on oikein.",
+      "confirmButton": "Vahvista ja tallenna"
     }
   },
   "invoicing": {

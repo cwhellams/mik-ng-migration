@@ -220,10 +220,10 @@ describe('buildFlightLogResolver', () => {
       expect(result.errors.landingTimeEpoch).toBeDefined()
     })
 
-    it('reports a taxi-out longer than the permitted hour', async () => {
+    it('does not block a long taxi-out -- see useLongTaxiCheck for the soft confirmation instead (#1223)', async () => {
       const result = await resolve(aFlightLogForm({ takeoffTimeEpoch: epoch(90) }))
 
-      expect(result.errors.takeoffTimeEpoch).toBeDefined()
+      expect(result.errors.takeoffTimeEpoch).toBeUndefined()
     })
 
     it('reports times in the future', async () => {

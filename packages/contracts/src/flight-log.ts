@@ -240,7 +240,10 @@ export const validateFlightLogTimes = (
   const validate = (
     prevKey: keyof FlightLogTimes,
     nextKey: keyof FlightLogTimes,
-    minutes: number,
+    // Omitted for a leg that has no hard cap -- see the taxi legs below, where a
+    // long duration is only a soft, client-side confirmation (#1223) rather than a
+    // validation error, since taxiway congestion can genuinely make it long.
+    minutes?: number,
   ) => {
     if (times[prevKey] && times[nextKey]) {
       const prev = Number(times[prevKey])
@@ -260,29 +263,32 @@ export const validateFlightLogTimes = (
       }
 
       // check limit how long the block can be
-      const maximum = prev + minutes * 60
-      if (next > maximum) {
-        addIssue({
-          code: 'too_big',
-          maximum,
-          inclusive: true,
-          origin: 'number',
-          input: next,
-          message: maximum.toString(),
-          path: [nextKey],
-        })
+      if (minutes !== undefined) {
+        const maximum = prev + minutes * 60
+        if (next > maximum) {
+          addIssue({
+            code: 'too_big',
+            maximum,
+            inclusive: true,
+            origin: 'number',
+            input: next,
+            message: maximum.toString(),
+            path: [nextKey],
+          })
+        }
       }
     }
   }
 
-  // taxi out is limited to 1 hour
-  validate('offBlockTimeEpoch', 'takeoffTimeEpoch', 60)
+  // Taxi out/in have no hard cap -- a long one due to taxiway congestion is a
+  // client-side confirmation (useLongTaxiCheck), not a blocked submission (#1223).
+  // Order is still enforced (next must be after prev).
+  validate('offBlockTimeEpoch', 'takeoffTimeEpoch')
 
   // flight max 6 hours
   validate('takeoffTimeEpoch', 'landingTimeEpoch', 360)
 
-  // taxi in is limited to 30 minutes
-  validate('landingTimeEpoch', 'onBlockTimeEpoch', 30)
+  validate('landingTimeEpoch', 'onBlockTimeEpoch')
 
   // None of the times may be in the future — the DB has the same constraint, but
   // checking it here surfaces a friendly validation message at entry time instead of
