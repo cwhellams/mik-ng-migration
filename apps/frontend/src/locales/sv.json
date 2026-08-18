@@ -1341,7 +1341,9 @@
       },
       "openHil": "Öppna på Hold Item List",
       "deferToNewHil": "Skjut upp till ny HIL-post",
-      "openNote": "Öppna underhållsanteckning"
+      "openNote": "Öppna underhållsanteckning",
+      "groundingConfirmTitle": "Sätt flygplanet i flygförbud?",
+      "groundingConfirmMessage": "OBS: Att skicka in detta sätter flygplanet i flygförbud tills felet har åtgärdats eller överförts till Hold Item List (HIL). Samråd med kalustovastaava (materialansvarig) krävs."
     }
   },
   "invoicing": {

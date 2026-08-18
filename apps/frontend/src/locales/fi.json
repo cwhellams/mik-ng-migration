@@ -1340,7 +1340,9 @@
       },
       "openHil": "Avaa siirretyt viat -listalta",
       "deferToNewHil": "Siirrä uuteen HIL-merkintään",
-      "openNote": "Avaa huoltomerkintä"
+      "openNote": "Avaa huoltomerkintä",
+      "groundingConfirmTitle": "Asetetaanko lentokone lentokieltoon?",
+      "groundingConfirmMessage": "HUOM: Tämän lähettäminen asettaa lentokoneen lentokieltoon, kunnes vika on korjattu tai siirretty siirrettyjen vikojen listalle (HIL). Asiasta on neuvoteltava kalustovastaavan kanssa."
     }
   },
   "invoicing": {

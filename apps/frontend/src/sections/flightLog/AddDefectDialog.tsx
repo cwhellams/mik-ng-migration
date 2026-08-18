@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import useApi from '../../hooks/useApi'
 import type { Defect } from '@mik/contracts/defects'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
@@ -50,6 +51,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
 }) => {
   const { t } = useTranslation()
   const [problem, setProblem] = useState<Problem | undefined>()
+  const [pendingValues, setPendingValues] = useState<AddDefectFormValues | undefined>()
   const isPreFlight = flightId === null
 
   const { mutation } = useApi<Defect>({
@@ -75,6 +77,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
   useEffect(() => {
     if (open) {
       setProblem(undefined)
+      setPendingValues(undefined)
       reset({
         description: '',
         flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
@@ -84,7 +87,12 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
     }
   }, [open, defaultFlightMins, isPreFlight, reset])
 
-  const onSubmit = async (values: AddDefectFormValues) => {
+  // A new defect is always created ACTIVE with no HIL link, which immediately
+  // grounds the aircraft (flight.vw_aircraft_grounding_status) -- so submitting
+  // requires an explicit confirmation of that consequence before the API call.
+  const handleConfirmedSubmit = async () => {
+    if (!pendingValues) return
+    const values = pendingValues
     const { error } = await mutation.trigger('POST', {
       aircraftRegistration,
       ajlbSeqNo,
@@ -98,6 +106,8 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
       rows: isPreFlight ? values.rows : 0,
     })
 
+    setPendingValues(undefined)
+
     if (error) {
       setProblem(error)
       return
@@ -107,123 +117,135 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
-      <DialogTitle>
-        {isPreFlight
-          ? t('flightLog.defects.addPreFlightTitle')
-          : t('flightLog.defects.addInFlightTitle')}
-      </DialogTitle>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent>
-          <SnackAlert problem={problem} />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Controller
-              name='description'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label={t('flightLog.defects.description')}
-                  error={!!errors.description}
-                  helperText={errors.description?.message}
-                  fullWidth
-                  required
-                  autoFocus
-                  multiline
-                  minRows={2}
-                />
-              )}
-            />
-
-            {isPreFlight && (
-              <>
-                <Box>
-                  <Typography
-                    variant='body2'
-                    gutterBottom
-                    sx={{
-                      color: 'text.secondary',
-                    }}
-                  >
-                    {t('flightLog.defects.flightTime')}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Controller
-                      name='flightHours'
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label={t('flightLog.maintenanceNotes.hours')}
-                          type='number'
-                          error={!!errors.flightHours}
-                          helperText={errors.flightHours?.message}
-                          sx={{ flex: 1 }}
-                          slotProps={{
-                            input: {
-                              endAdornment: <InputAdornment position='end'>h</InputAdornment>,
-                            },
-
-                            htmlInput: { min: 0 },
-                          }}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name='flightMinutes'
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label={t('flightLog.maintenanceNotes.minutes')}
-                          type='number'
-                          error={!!errors.flightMinutes}
-                          helperText={errors.flightMinutes?.message}
-                          sx={{ flex: 1 }}
-                          slotProps={{
-                            input: {
-                              endAdornment: <InputAdornment position='end'>min</InputAdornment>,
-                            },
-
-                            htmlInput: { min: 0, max: 59 },
-                          }}
-                        />
-                      )}
-                    />
-                  </Box>
-                </Box>
-              </>
-            )}
-
-            {isPreFlight && (
+    <>
+      <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
+        <DialogTitle>
+          {isPreFlight
+            ? t('flightLog.defects.addPreFlightTitle')
+            : t('flightLog.defects.addInFlightTitle')}
+        </DialogTitle>
+        <form onSubmit={handleSubmit((values) => setPendingValues(values))}>
+          <DialogContent>
+            <SnackAlert problem={problem} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
               <Controller
-                name='rows'
+                name='description'
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label={t('flightLog.maintenanceNotes.rows')}
-                    type='number'
-                    error={!!errors.rows}
-                    helperText={errors.rows?.message ?? t('flightLog.maintenanceNotes.rowsHelp')}
+                    label={t('flightLog.defects.description')}
+                    error={!!errors.description}
+                    helperText={errors.description?.message}
                     fullWidth
-                    slotProps={{
-                      htmlInput: { min: 0 },
-                    }}
+                    required
+                    autoFocus
+                    multiline
+                    minRows={2}
                   />
                 )}
               />
-            )}
-          </Box>
-        </DialogContent>
 
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={onClose} variant='outlined'>
-            {t('general.cancel')}
-          </Button>
-          <SaveButton loading={mutation.isMutating} />
-        </DialogActions>
-      </form>
-    </Dialog>
+              {isPreFlight && (
+                <>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      gutterBottom
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {t('flightLog.defects.flightTime')}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Controller
+                        name='flightHours'
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            label={t('flightLog.maintenanceNotes.hours')}
+                            type='number'
+                            error={!!errors.flightHours}
+                            helperText={errors.flightHours?.message}
+                            sx={{ flex: 1 }}
+                            slotProps={{
+                              input: {
+                                endAdornment: <InputAdornment position='end'>h</InputAdornment>,
+                              },
+
+                              htmlInput: { min: 0 },
+                            }}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name='flightMinutes'
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            label={t('flightLog.maintenanceNotes.minutes')}
+                            type='number'
+                            error={!!errors.flightMinutes}
+                            helperText={errors.flightMinutes?.message}
+                            sx={{ flex: 1 }}
+                            slotProps={{
+                              input: {
+                                endAdornment: <InputAdornment position='end'>min</InputAdornment>,
+                              },
+
+                              htmlInput: { min: 0, max: 59 },
+                            }}
+                          />
+                        )}
+                      />
+                    </Box>
+                  </Box>
+                </>
+              )}
+
+              {isPreFlight && (
+                <Controller
+                  name='rows'
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label={t('flightLog.maintenanceNotes.rows')}
+                      type='number'
+                      error={!!errors.rows}
+                      helperText={errors.rows?.message ?? t('flightLog.maintenanceNotes.rowsHelp')}
+                      fullWidth
+                      slotProps={{
+                        htmlInput: { min: 0 },
+                      }}
+                    />
+                  )}
+                />
+              )}
+            </Box>
+          </DialogContent>
+
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button onClick={onClose} variant='outlined'>
+              {t('general.cancel')}
+            </Button>
+            <SaveButton loading={mutation.isMutating} />
+          </DialogActions>
+        </form>
+      </Dialog>
+      <ConfirmDialog
+        open={!!pendingValues}
+        onClose={() => setPendingValues(undefined)}
+        onConfirm={handleConfirmedSubmit}
+        title={t('flightLog.defects.groundingConfirmTitle')}
+        message={t('flightLog.defects.groundingConfirmMessage')}
+        confirmText={t('general.save')}
+        cancelText={t('general.cancel')}
+        severity='warning'
+      />
+    </>
   )
 }
