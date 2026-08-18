@@ -1750,10 +1750,8 @@
       "accept": "Acceptera",
       "cancel": "Avbryt"
     },
-    "latestFlightsWithIncidents": "Senaste flyg med incidenter eller observationer",
-    "noFlightsWithIncidents": "Inga flyg med incidenter eller observationer.",
-    "latestRemarks": "Senaste anmärkningarna",
-    "noRemarks": "Inga anmärkningar registrerade.",
+    "latestFlightsWithIncidents": "Senaste flyg med incidenter, observationer eller anmärkningar",
+    "noFlightsWithIncidents": "Inga flyg med incidenter, observationer eller anmärkningar.",
     "newFlightsToValidate": "Nya flyg att validera",
     "noNewFlights": "Inga nya flyg att validera.",
     "newFlightsSince": "{{count}} nya flyg sedan {{date}}",

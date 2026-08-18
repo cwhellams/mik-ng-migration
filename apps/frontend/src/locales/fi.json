@@ -1749,10 +1749,8 @@
       "accept": "Hyväksy",
       "cancel": "Peruuta"
     },
-    "latestFlightsWithIncidents": "Viimeisimmät lennot poikkeamien tai havaintojen kanssa",
-    "noFlightsWithIncidents": "Ei lentoja poikkeamien tai havaintojen kanssa.",
-    "latestRemarks": "Viimeisimmät huomiot",
-    "noRemarks": "Ei kirjattuja huomioita.",
+    "latestFlightsWithIncidents": "Viimeisimmät lennot poikkeamien, havaintojen tai huomioiden kanssa",
+    "noFlightsWithIncidents": "Ei lentoja poikkeamien, havaintojen tai huomioiden kanssa.",
     "newFlightsToValidate": "Uudet lennot vahvistettavaksi",
     "noNewFlights": "Ei uusia lentoja vahvistettavaksi.",
     "newFlightsSince": "{{count}} uutta lentoa sitten {{date}}",

@@ -67,7 +67,8 @@ export const FlightLogAdminDashboard = () => {
     },
   )
 
-  // fetch recent remarks (#1226) for the "Latest Remarks" accordion below
+  // fetch recent remarks (#1226) -- merged with the incidents/observations list below
+  // into one combined widget, rather than a separate accordion of its own.
   const {
     data: recentRemarks,
     isLoading: remarksLoading,
@@ -83,6 +84,39 @@ export const FlightLogAdminDashboard = () => {
     },
   )
 
+  // One combined, most-recent-first feed: an incident/observation and a remark are
+  // both "something noteworthy happened on this flight", just with a different
+  // source and no shared id space, so they're normalised to a common shape here
+  // rather than shown in two separate lists.
+  type NotableFlightItem = {
+    key: string
+    flightId: string
+    aircraftRegistration: string
+    takeoffTimeUtc: string
+    text: string
+  }
+  const notableFlights: NotableFlightItem[] | undefined =
+    observations && recentRemarks
+      ? [
+          ...observations.logs.map((log) => ({
+            key: `incident-${log.flightId}`,
+            flightId: log.flightId,
+            aircraftRegistration: log.aircraftRegistration,
+            takeoffTimeUtc: log.takeoffTimeUtc,
+            text: log.incidentOrObservations ?? '',
+          })),
+          ...recentRemarks.remarks.map((remark) => ({
+            key: `remark-${remark.remarkId}`,
+            flightId: remark.flightId,
+            aircraftRegistration: remark.aircraftRegistration,
+            takeoffTimeUtc: remark.takeoffTimeUtc,
+            text: remark.description,
+          })),
+        ]
+          .sort((a, b) => b.takeoffTimeUtc.localeCompare(a.takeoffTimeUtc))
+          .slice(0, 10)
+      : undefined
+
   return (
     <>
       <Accordion defaultExpanded>
@@ -90,50 +124,23 @@ export const FlightLogAdminDashboard = () => {
           <Typography variant='h5'>{t('dashboard.latestFlightsWithIncidents')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <RemoteContent isLoading={observationsLoading} error={observationsError}>
+          <RemoteContent
+            isLoading={observationsLoading || remarksLoading}
+            error={observationsError ?? remarksError}
+          >
             <List>
-              {observations?.logs.length === 0 && (
+              {notableFlights?.length === 0 && (
                 <Typography>{t('dashboard.noFlightsWithIncidents')}</Typography>
               )}
-              {observations?.logs.map((log) => (
-                <ListItem key={log.flightId}>
+              {notableFlights?.map((item) => (
+                <ListItem key={item.key}>
                   <ListItemText
                     primary={
-                      <Link to={`/logs/flights/${log.flightId}`} onClick={() => toggleSudo(true)}>
-                        {log.aircraftRegistration} - {formatDate(log.takeoffTimeUtc)}
+                      <Link to={`/logs/flights/${item.flightId}`} onClick={() => toggleSudo(true)}>
+                        {item.aircraftRegistration} - {formatDate(item.takeoffTimeUtc)}
                       </Link>
                     }
-                    secondary={log.incidentOrObservations}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </RemoteContent>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant='h5'>{t('dashboard.latestRemarks')}</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <RemoteContent isLoading={remarksLoading} error={remarksError}>
-            <List>
-              {recentRemarks?.remarks.length === 0 && (
-                <Typography>{t('dashboard.noRemarks')}</Typography>
-              )}
-              {recentRemarks?.remarks.map((remark) => (
-                <ListItem key={remark.remarkId}>
-                  <ListItemText
-                    primary={
-                      <Link
-                        to={`/logs/flights/${remark.flightId}`}
-                        onClick={() => toggleSudo(true)}
-                      >
-                        {remark.aircraftRegistration} - {formatDate(remark.takeoffTimeUtc)}
-                      </Link>
-                    }
-                    secondary={remark.description}
+                    secondary={item.text}
                   />
                 </ListItem>
               ))}

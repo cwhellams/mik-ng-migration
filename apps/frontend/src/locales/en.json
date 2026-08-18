@@ -1742,10 +1742,8 @@
       "accept": "Accept",
       "cancel": "Cancel"
     },
-    "latestFlightsWithIncidents": "Latest Flights with Incidents or Observations",
-    "noFlightsWithIncidents": "No flights with incidents or observations.",
-    "latestRemarks": "Latest Remarks",
-    "noRemarks": "No remarks logged.",
+    "latestFlightsWithIncidents": "Latest Flights with Incidents, Observations & Remarks",
+    "noFlightsWithIncidents": "No flights with incidents, observations or remarks.",
     "newFlightsToValidate": "New Flights to Validate",
     "noNewFlights": "No new flights to validate.",
     "newFlightsSince": "{{count}} new flights since {{date}}",
