@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   aFlightLog,
+  aMemberListEntry,
   aMemberListResponse,
   anAircraftListResponse,
   AIRCRAFT_REGISTRATION,
@@ -466,6 +467,38 @@ describe('FlightLogEntryWizard saving', () => {
 
     expect(await screen.findByText('Notes')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /defect/i })).toBeInTheDocument()
+  })
+
+  it('shows fleet manager contact details next to the defect-reporting note', async () => {
+    wizardApi()
+    server.use(
+      http.get(apiUrl('v1/members'), () =>
+        HttpResponse.json(
+          aMemberListResponse([
+            aMemberListEntry({
+              memberId: 'plane-captain-1',
+              first: 'Pekka',
+              last: 'Kalustovastaava',
+              phoneNumber: '0409998888',
+              roles: ['PLANE_CAPTAIN'],
+            }),
+          ]),
+        ),
+      ),
+    )
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    expect(await screen.findByText('Pekka Kalustovastaava')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '0409998888' })).toHaveAttribute(
+      'href',
+      'tel:0409998888',
+    )
   })
 
   it('shows a defect already reported against this flight, alongside the ability to add new ones', async () => {

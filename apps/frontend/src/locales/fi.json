@@ -1318,6 +1318,7 @@
       "existingSectionTitle": "Jo ilmoitetut viat",
       "reportSectionTitle": "Ilmoita viat",
       "reportSectionNote": "Jos havaitsit lennon aikana vikoja, kuvaile jokainen alla. Jokaisesta viasta on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
+      "fleetManagersTitle": "Kalustovastaavat",
       "addDefectRow": "Lisää vika",
       "blankDescriptionError": "Vian kuvaus ei voi olla tyhjä",
       "viewTitle": "Vikamerkintä",

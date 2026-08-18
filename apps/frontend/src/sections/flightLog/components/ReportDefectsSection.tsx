@@ -1,6 +1,7 @@
 import { Box, Typography, TextField, IconButton, Button, Alert, Stack } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
+import { FleetManagerContacts } from './FleetManagerContacts'
 
 interface ReportDefectsSectionProps {
   descriptions: string[]
@@ -32,7 +33,10 @@ export const ReportDefectsSection = ({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <Typography variant='h6'>{t('flightLog.defects.reportSectionTitle')}</Typography>
-      <Alert severity='warning'>{t('flightLog.defects.reportSectionNote')}</Alert>
+      <Alert severity='warning'>
+        {t('flightLog.defects.reportSectionNote')}
+        <FleetManagerContacts />
+      </Alert>
 
       {descriptions.map((description, index) => {
         const isBlank = description.length > 0 && description.trim().length === 0

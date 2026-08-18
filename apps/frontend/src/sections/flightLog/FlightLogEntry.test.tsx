@@ -4,7 +4,12 @@ import { screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 
-import { aFlightLog, AIRCRAFT_REGISTRATION } from '../../test/fixtures'
+import {
+  aFlightLog,
+  aMemberListEntry,
+  aMemberListResponse,
+  AIRCRAFT_REGISTRATION,
+} from '../../test/fixtures'
 import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import { renderWithProviders } from '../../test/renderWithProviders'
@@ -94,5 +99,32 @@ describe('FlightLogEntry (classic form) already-reported defects', () => {
 
     await screen.findByRole('button', { name: /add defect/i })
     expect(screen.queryByText('Landing light flickers')).not.toBeInTheDocument()
+  })
+
+  it('shows fleet manager contact details next to the defect-reporting note', async () => {
+    classicFormApi()
+    server.use(
+      http.get(apiUrl('v1/members'), () =>
+        HttpResponse.json(
+          aMemberListResponse([
+            aMemberListEntry({
+              memberId: 'plane-captain-1',
+              first: 'Pekka',
+              last: 'Kalustovastaava',
+              phoneNumber: '0409998888',
+              roles: ['PLANE_CAPTAIN'],
+            }),
+          ]),
+        ),
+      ),
+    )
+
+    renderClassicForm()
+
+    expect(await screen.findByText('Pekka Kalustovastaava')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '0409998888' })).toHaveAttribute(
+      'href',
+      'tel:0409998888',
+    )
   })
 })
