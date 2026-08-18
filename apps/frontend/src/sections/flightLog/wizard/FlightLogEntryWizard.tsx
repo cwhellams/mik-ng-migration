@@ -503,7 +503,34 @@ const FlightLogEntryWizardInner = ({
       const valid = await trigger(fields)
       if (!valid) return
     }
-    setStepIndex((i) => Math.min(i + 1, WIZARD_STEPS.length - 1))
+
+    const advance = () => setStepIndex((i) => Math.min(i + 1, WIZARD_STEPS.length - 1))
+
+    // Checked right on the step that collected the times, rather than only at the
+    // very end on Review -- by then the pilot has moved well past the page that
+    // caused it (#1223 follow-up).
+    if (currentStep === 'timeDeparture') {
+      withLongTaxiCheck(
+        {
+          offBlockTimeEpoch: watch('offBlockTimeEpoch'),
+          takeoffTimeEpoch: watch('takeoffTimeEpoch'),
+        },
+        advance,
+      )
+      return
+    }
+    if (currentStep === 'timeArrival') {
+      withLongTaxiCheck(
+        {
+          landingTimeEpoch: watch('landingTimeEpoch'),
+          onBlockTimeEpoch: watch('onBlockTimeEpoch'),
+        },
+        advance,
+      )
+      return
+    }
+
+    advance()
   }
 
   const handleBack = () => setStepIndex((i) => Math.max(i - 1, 0))
@@ -558,9 +585,7 @@ const FlightLogEntryWizardInner = ({
   }
 
   const handleAccept = handleSubmit((data) =>
-    withOverlapCheck(data, () =>
-      withLongTaxiCheck(data, () => withGroundingConfirm(reportedDefects, () => void doSave(data))),
-    ),
+    withOverlapCheck(data, () => withGroundingConfirm(reportedDefects, () => void doSave(data))),
   )
 
   const timeEpochFor = (field: keyof FlightLogUpsertRequest): string | null => {

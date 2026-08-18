@@ -710,58 +710,104 @@ describe('FlightLogEntryWizard long taxi confirmation', () => {
     offBlockTimeEpoch: '1748854800',
     takeoffTimeEpoch: '1748858700',
   }
+  // 2025-06-02T10:50:00.000Z, 35 minutes before on-block
+  const longTaxiInOverrides = {
+    landingTimeEpoch: '1748861400',
+    onBlockTimeEpoch: '1748863500',
+  }
 
-  it('asks for confirmation before saving when taxi-out exceeds an hour', async () => {
-    const state = wizardApi()
+  it('asks for confirmation on the departure-times step itself, not later on Review', async () => {
+    wizardApi()
 
     const { user } = renderWizard({
       flightId: 'fi_inst1',
       initialData: anEditableLog(longTaxiOutOverrides),
-      initialStep: 'review',
+      initialStep: 'timeDeparture',
       onClose: () => {},
     })
-    await screen.findByText('Review')
-    await user.click(screen.getByRole('button', { name: 'Accept' }))
+    await screen.findByText('Off-block & takeoff time')
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
 
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText(/65 minutes of taxi-out time/)).toBeInTheDocument()
-    expect(state.writes).toHaveLength(0)
+    // still on the departure-times step -- the confirmation gates advancing, it
+    // doesn't wait until Review/Accept at the end of the wizard.
+    expect(screen.getByText('Off-block & takeoff time')).toBeInTheDocument()
   })
 
-  it('saves once the long-taxi confirmation is accepted', async () => {
-    const state = wizardApi()
+  it('advances to the next step once the taxi-out confirmation is accepted', async () => {
+    wizardApi()
 
     const { user } = renderWizard({
       flightId: 'fi_inst1',
       initialData: anEditableLog(longTaxiOutOverrides),
-      initialStep: 'review',
+      initialStep: 'timeDeparture',
       onClose: () => {},
     })
-    await screen.findByText('Review')
-    await user.click(screen.getByRole('button', { name: 'Accept' }))
+    await screen.findByText('Off-block & takeoff time')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
 
     const dialog = await screen.findByRole('dialog')
     await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
 
-    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(await screen.findByText('Landing & on-block time')).toBeInTheDocument()
   })
 
-  it('does not save when the long-taxi confirmation is cancelled', async () => {
-    const state = wizardApi()
+  it('stays on the departure-times step when the taxi-out confirmation is cancelled', async () => {
+    wizardApi()
 
     const { user } = renderWizard({
       flightId: 'fi_inst1',
       initialData: anEditableLog(longTaxiOutOverrides),
-      initialStep: 'review',
+      initialStep: 'timeDeparture',
       onClose: () => {},
     })
-    await screen.findByText('Review')
-    await user.click(screen.getByRole('button', { name: 'Accept' }))
+    await screen.findByText('Off-block & takeoff time')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
 
     const dialog = await screen.findByRole('dialog')
     await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(state.writes).toHaveLength(0)
+    expect(screen.getByText('Off-block & takeoff time')).toBeInTheDocument()
+  })
+
+  it('asks for confirmation on the arrival-times step for a long taxi-in', async () => {
+    wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiInOverrides),
+      initialStep: 'timeArrival',
+      onClose: () => {},
+    })
+    await screen.findByText('Landing & on-block time')
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/35 minutes of taxi-in time/)).toBeInTheDocument()
+    expect(screen.getByText('Landing & on-block time')).toBeInTheDocument()
+  })
+
+  it('does not ask again on Review/Accept for a flight opened straight there with an already-long taxi', async () => {
+    // Editing an existing flight typically opens straight on Review (see the
+    // initialStep doc-comment on FlightLogEntryWizard's Props) rather than
+    // walking back through every step -- a pre-existing long taxi on a flight
+    // that's already saved shouldn't re-prompt on every unrelated edit.
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiOutOverrides),
+      initialStep: 'review',
+      onClose: () => {},
+    })
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

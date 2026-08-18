@@ -17,6 +17,19 @@ const minutesBetween = (fromEpoch?: string, toEpoch?: string): number | undefine
   return (Number(toEpoch) - Number(fromEpoch)) / 60
 }
 
+// A caller only ever has (and only ever needs to check) one or two of these four
+// fields at a time -- the wizard checks taxi-out right on the departure-times step
+// and taxi-in right on the arrival-times step (#1223 follow-up: checking both only
+// at the very end, on the review step, asked for the confirmation long after the
+// pilot had moved on from the page that caused it), while the classic form checks
+// both together from its one page.
+type FlightLogTimesInput = Partial<
+  Pick<
+    FlightLogUpsertRequest,
+    'offBlockTimeEpoch' | 'takeoffTimeEpoch' | 'landingTimeEpoch' | 'onBlockTimeEpoch'
+  >
+>
+
 /**
  * Warns instead of blocking when taxi-out or taxi-in looks unusually long.
  *
@@ -29,7 +42,7 @@ export function useLongTaxiCheck() {
   const [open, setOpen] = useState(false)
   const pendingSubmit = useRef<(() => void) | null>(null)
 
-  const withLongTaxiCheck = (values: FlightLogUpsertRequest, submit: () => void) => {
+  const withLongTaxiCheck = (values: FlightLogTimesInput, submit: () => void) => {
     const legs: LongTaxiLeg[] = []
 
     const taxiOutMinutes = minutesBetween(values.offBlockTimeEpoch, values.takeoffTimeEpoch)
