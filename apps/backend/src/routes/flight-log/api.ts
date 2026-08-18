@@ -110,6 +110,9 @@ router.get('/page-for-mins', async (req: Request, res: Response<{ page: number |
     filters.aircraftRegistration,
     filters.ajlbSeqNo,
     filters.flightMins,
+    filters.itemType && filters.itemId
+      ? { itemType: filters.itemType, itemId: filters.itemId }
+      : undefined,
   )
   res.status(200).json({ page })
 })

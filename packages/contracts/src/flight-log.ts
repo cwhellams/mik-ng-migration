@@ -508,6 +508,13 @@ export const FlightLogPageForMinsFilterSchema = z.object({
   aircraftRegistration: z.string().min(1),
   ajlbSeqNo: z.coerce.number().int().positive(),
   flightMins: z.coerce.number().int().min(0),
+  // When set, resolves the exact page from the item's own physical-row
+  // placement (flight.vw_ajlb_live_rows) instead of approximating from
+  // flightMins alone, which can't account for how many rows earlier
+  // notes/defects on the page have consumed. Falls back to the flightMins
+  // heuristic for a rows: 0 inline item, which has no row of its own.
+  itemType: z.enum(['note', 'defect']).optional(),
+  itemId: z.string().optional(),
 })
 export type FlightLogPageForMinsFilter = z.infer<typeof FlightLogPageForMinsFilterSchema>
 

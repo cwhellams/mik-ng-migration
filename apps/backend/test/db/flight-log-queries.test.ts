@@ -4,6 +4,7 @@ import {
   countFlightLogsForExport,
   deleteFlightLog,
   getFlightLog,
+  getFlightLogPageForMins,
   getFlightLogs,
   getFlightLogsForExport,
   getFlightLogTotals,
@@ -438,6 +439,109 @@ describe('Db query FlightLog tests', () => {
       ])
     } finally {
       await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
+      await deleteFlightLog(flightIdA)
+    }
+  })
+
+  it("getFlightLogPageForMins resolves an own-row item to its actual page, not its anchor flight's", async () => {
+    // OH-STL ajlb_seq_no 3's rows_per_page is 5. flightA becomes the sole flight
+    // on page 502 (row 1). A filler defect (rows: 4) anchored right after it
+    // fills the rest of page 502 (rows 2-5) exactly. Neither item is a flight,
+    // so they don't move the running flight-time total -- the flightMins-only
+    // heuristic (no item given) would still match flightA (the last/only flight
+    // whose cumulative total reaches these flightMins) and return its page,
+    // 502. But a further defect anchored after the filler has nowhere left on
+    // page 502 and actually lands on page 504 -- the bug this test guards
+    // against is exactly that mismatch.
+    const flightIdA = await insertFlightLog(
+      {
+        aircraftRegistration: 'OH-STL',
+        picMemberId: 'Liisa1',
+        oilUpliftLitres: 1,
+        fuelUpliftLitres: 20,
+        personsOnBoard: 1,
+        numberOfLandings: 1,
+        numberOfNightLandings: 0,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFHK',
+        flightType: FlightType.SCHOOL,
+        billingRemarks: null,
+        personalRemarks: 'page-for-mins overflow test',
+        picRole: 'PIC' as const,
+        crew2MemberId: null,
+        crew2Role: null,
+        crew3MemberId: null,
+        crew3Role: null,
+        crew4MemberId: null,
+        crew4Role: null,
+        fuelRemainingLitres: 20,
+        incidentOrObservations: null,
+        totalTimeInService: 1,
+        instrumentFlyingMins: 0,
+        nightFlyingMins: 0,
+        partiallyBillableFlight: false,
+        offBlockTimeEpoch: '1784282400', // 2026-07-17T10:00:00Z
+        takeoffTimeEpoch: '1784282700',
+        landingTimeEpoch: '1784286300', // 60 min flight
+        onBlockTimeEpoch: '1784286600',
+      } as FlightLogMemberRequest,
+      { memberId: 'Matti1', permissions: [MIKPermissions.FLIGHTLOG_USER] },
+    )
+
+    const filler = await createDefect(
+      {
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        flightId: null,
+        description: 'fills the rest of page 502',
+        flightMins: 700405 + 60, // anchors to flightA, same as its own total
+        rows: 4,
+      },
+      'Matti1',
+    )
+
+    const overflow = await createDefect(
+      {
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        flightId: null,
+        description: 'has nowhere left on page 502',
+        flightMins: 700405 + 60,
+        rows: 1,
+      },
+      'Matti1',
+    )
+
+    try {
+      const heuristicOnly = await getFlightLogPageForMins('OH-STL', 3, overflow.flightMins)
+      expect(heuristicOnly).toBe(502) // the anchor flight's page -- known-wrong for this item
+
+      const resolved = await getFlightLogPageForMins('OH-STL', 3, overflow.flightMins, {
+        itemType: 'defect',
+        itemId: overflow.defectId,
+      })
+      expect(resolved).toBe(504) // where it actually landed
+
+      const page502 = await getFlightLogs({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        page: 502,
+      })
+      expect(page502.pageItemRows?.some((row) => row.itemId === overflow.defectId)).toBe(false)
+
+      const page504 = await getFlightLogs({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        page: 504,
+      })
+      expect(page504.pageItemRows).toEqual([
+        { rowNumber: 1, itemType: 'defect', itemId: overflow.defectId, isContentRow: true },
+      ])
+    } finally {
+      await db
+        .deleteFrom('flight.defect')
+        .where('defectId', 'in', [filler.defectId, overflow.defectId])
+        .execute()
       await deleteFlightLog(flightIdA)
     }
   })

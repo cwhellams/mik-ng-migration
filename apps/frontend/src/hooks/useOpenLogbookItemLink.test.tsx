@@ -13,8 +13,14 @@ import { useOpenLogbookItemLink } from './useOpenLogbookItemLink'
  * The hook navigates, so it is exercised through a route tree: click the opener,
  * then read back where the router landed.
  */
-const Opener = ({ highlightParam = 'defect' }: { highlightParam?: string }) => {
-  const open = useOpenLogbookItemLink(AIRCRAFT_REGISTRATION, highlightParam)
+const Opener = ({
+  highlightParam = 'defect',
+  itemType = 'defect',
+}: {
+  highlightParam?: string
+  itemType?: 'note' | 'defect'
+}) => {
+  const open = useOpenLogbookItemLink(AIRCRAFT_REGISTRATION, highlightParam, itemType)
   return (
     <button onClick={() => open({ ajlbSeqNo: 4, flightMins: 285_000 }, 'defect-7')}>open</button>
   )
@@ -25,10 +31,10 @@ const Landing = () => {
   return <span>landed {pathname + search}</span>
 }
 
-const renderOpener = (highlightParam?: string) =>
+const renderOpener = (highlightParam?: string, itemType?: 'note' | 'defect') =>
   renderWithProviders(
     <Routes>
-      <Route path='/' element={<Opener highlightParam={highlightParam} />} />
+      <Route path='/' element={<Opener highlightParam={highlightParam} itemType={itemType} />} />
       <Route path='/logs/books/:registration/:seq' element={<Landing />} />
     </Routes>,
   )
@@ -47,7 +53,7 @@ describe('useOpenLogbookItemLink', () => {
     )
   })
 
-  it('asks the API for the page using the aircraft, book and flight minutes', async () => {
+  it('asks the API for the page using the aircraft, book, flight minutes and item', async () => {
     const searches: string[] = []
     server.use(
       http.get(apiUrl('v1/flight-logs/page-for-mins'), ({ request }) => {
@@ -61,7 +67,7 @@ describe('useOpenLogbookItemLink', () => {
 
     await screen.findByText(/^landed/)
     expect(searches).toEqual([
-      `?aircraftRegistration=${AIRCRAFT_REGISTRATION}&ajlbSeqNo=4&flightMins=285000`,
+      `?aircraftRegistration=${AIRCRAFT_REGISTRATION}&ajlbSeqNo=4&flightMins=285000&itemType=defect&itemId=defect-7`,
     ])
   })
 
@@ -97,7 +103,7 @@ describe('useOpenLogbookItemLink', () => {
       http.get(apiUrl('v1/flight-logs/page-for-mins'), () => HttpResponse.json({ page: 3 })),
     )
 
-    const { user } = renderOpener('note')
+    const { user } = renderOpener('note', 'note')
     await user.click(screen.getByRole('button', { name: 'open' }))
 
     expect(await screen.findByText(/^landed/)).toHaveTextContent(
