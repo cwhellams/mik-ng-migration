@@ -1083,8 +1083,8 @@
     "validationRemarks": "Validation Remarks",
     "billingRemarks": "Billing Remarks",
     "billingRemarksTestOrFerryInstruction": "Describe the reason for the flight, who approved it, and whether there were any occurrences such as weather avoidance or technical issues found. If this was a test flight, please add the date the report was sent to kalusto@mik.fi",
-    "notes": "Notes",
-    "incidentOrObservations": "Incidents or Observations",
+    "otherNotesTitle": "Other notes",
+    "incidentOrObservations": "Other flight related incidents or observations",
     "personalRemarks": "Personal Remarks",
     "flightTimeline": "Flight Timeline",
     "taxiOut": "Taxi Out",
@@ -1309,6 +1309,7 @@
       "addPreFlightTitle": "Report Defect (Pre-flight)",
       "addInFlightTitle": "Report Defect (In-flight)",
       "existingSectionTitle": "Already reported defects",
+      "newSectionTitle": "Defects",
       "fleetManagersTitle": "Fleet managers",
       "addDefectRow": "Add defect",
       "blankDescriptionError": "Defect description can't be empty",
@@ -1339,13 +1340,16 @@
     },
     "remarks": {
       "existingSectionTitle": "Remarks",
+      "newSectionTitle": "Remarks",
       "addRemarkRow": "Add remark",
-      "blankDescriptionError": "Remark description can't be empty",
-      "description": "Description"
+      "blankDescriptionError": "Remark description can't be empty"
     },
     "defectsAndRemarks": {
-      "intro1": "If you found any defects or other aircraft during this flight, report each one below. For any minor observations not affecting airworthiness, write a remark instead.",
-      "intro2": "Please note that a reported defect will ground the aircraft until the defect is closed or transferred to HIL. Every aircraft related observation must also be reported directly to the kalustovastaava (fleet manager) by phone — don't rely on this entry alone."
+      "title": "Aircraft defects and remarks",
+      "intro1": "If you found any aircraft defects during this flight, report each one below. For any minor observations not affecting airworthiness, write a remark instead.",
+      "intro2": "Please note that a reported defect will ground the aircraft until the defect is closed or transferred to HIL. Every aircraft related observation must also be reported directly to the kalustovastaava (fleet manager) by phone — don't rely on this entry alone.",
+      "defectFieldLabel": "Defect description",
+      "remarkFieldLabel": "Remark description"
     }
   },
   "invoicing": {

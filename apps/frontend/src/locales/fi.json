@@ -1090,8 +1090,8 @@
     "validationRemarks": "Vahvistushuomautukset",
     "billingRemarks": "Laskutushuomautukset",
     "billingRemarksTestOrFerryInstruction": "Kuvaile lennon syy, kuka hyväksyi lennon ja oliko lennolla poikkeamia kuten sääväistöjä tai havaittuja teknisiä vikoja. Jos kyseessä oli koelento, lisää tähän päivämäärä jolloin raportti lähetettiin osoitteeseen kalusto@mik.fi",
-    "notes": "Muistiinpanot",
-    "incidentOrObservations": "Havainnot tai poikkeamat",
+    "otherNotesTitle": "Muut merkinnät",
+    "incidentOrObservations": "Muut lentoon liittyvät havainnot tai poikkeamat",
     "personalRemarks": "Omat muistiinpanot",
     "flightTimeline": "Lennon aikajana",
     "taxiOut": "Rullaus lentoonlähtöön",
@@ -1316,6 +1316,7 @@
       "addPreFlightTitle": "Uusi vikamerkintä (ennen lentoa)",
       "addInFlightTitle": "Uusi vikamerkintä (lennon aikainen)",
       "existingSectionTitle": "Jo ilmoitetut viat",
+      "newSectionTitle": "Viat",
       "fleetManagersTitle": "Kalustovastaavat",
       "addDefectRow": "Lisää vika",
       "blankDescriptionError": "Vian kuvaus ei voi olla tyhjä",
@@ -1346,13 +1347,16 @@
     },
     "remarks": {
       "existingSectionTitle": "Huomiot",
+      "newSectionTitle": "Huomiot",
       "addRemarkRow": "Lisää huomio",
-      "blankDescriptionError": "Huomion kuvaus ei voi olla tyhjä",
-      "description": "Kuvaus"
+      "blankDescriptionError": "Huomion kuvaus ei voi olla tyhjä"
     },
     "defectsAndRemarks": {
-      "intro1": "Jos havaitsit lennon aikana vikoja tai muita ilma-alukseen liittyviä huomioita, ilmoita jokainen alla. Merkitse pienet, lentokelpoisuuteen vaikuttamattomat havainnot sen sijaan huomiona.",
-      "intro2": "Huomaa, että ilmoitettu vika asettaa lentokoneen lentokieltoon, kunnes vika on korjattu tai siirretty siirrettyjen vikojen listalle (HIL). Jokainen ilma-alukseen liittyvä havainto on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään."
+      "title": "Ilma-aluksen viat ja huomiot",
+      "intro1": "Jos havaitsit tällä lennolla ilma-aluksen vikoja, ilmoita jokainen alla. Merkitse pienet, lentokelpoisuuteen vaikuttamattomat havainnot sen sijaan huomiona.",
+      "intro2": "Huomaa, että ilmoitettu vika asettaa lentokoneen lentokieltoon, kunnes vika on korjattu tai siirretty siirrettyjen vikojen listalle (HIL). Jokainen ilma-alukseen liittyvä havainto on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
+      "defectFieldLabel": "Vian kuvaus",
+      "remarkFieldLabel": "Huomion kuvaus"
     }
   },
   "invoicing": {

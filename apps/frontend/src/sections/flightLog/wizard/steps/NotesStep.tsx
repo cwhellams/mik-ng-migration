@@ -1,4 +1,4 @@
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import { FlightType } from '@mik/contracts/flight-log'
@@ -79,16 +79,21 @@ export const NotesStep = ({
         canReportRemarks={canReportRemarks}
         existingRemarks={existingRemarks}
       />
-      <TxtField
-        name='incidentOrObservations'
-        control={control}
-        props={{ multiline: true, rows: 3, fullWidth: true }}
-      />
-      <TxtField
-        name='personalRemarks'
-        control={control}
-        props={{ multiline: true, rows: 3, fullWidth: true }}
-      />
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+          {t('flightLog.otherNotesTitle')}
+        </Typography>
+        <TxtField
+          name='incidentOrObservations'
+          control={control}
+          props={{ variant: 'standard', multiline: true, rows: 2, fullWidth: true }}
+        />
+        <TxtField
+          name='personalRemarks'
+          control={control}
+          props={{ variant: 'standard', multiline: true, rows: 2, fullWidth: true }}
+        />
+      </Box>
       {hasMandatoryBillingRemarks && (
         <TxtField
           name='billingRemarks'

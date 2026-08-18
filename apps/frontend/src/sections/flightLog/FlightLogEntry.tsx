@@ -949,11 +949,6 @@ const ClassicFlightLogEntry = () => {
               <OilUplift control={control} disabled={!isEditable} />
             </Grid>
 
-            {/* Notes */}
-            <Grid size={12}>
-              <Typography variant='h6'>{t('flightLog.notes')}</Typography>
-            </Grid>
-
             {/* Defects and Remarks */}
             <Grid size={12}>
               <DefectsAndRemarksSection
@@ -970,14 +965,22 @@ const ClassicFlightLogEntry = () => {
               />
             </Grid>
 
+            {/* Other notes */}
+            <Grid size={12}>
+              <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+                {t('flightLog.otherNotesTitle')}
+              </Typography>
+            </Grid>
+
             <Grid size={12}>
               <TxtField
                 name='incidentOrObservations'
                 control={control}
                 props={{
                   disabled: !isEditable,
+                  variant: 'standard',
                   multiline: true,
-                  rows: 3,
+                  rows: 2,
                 }}
               />
             </Grid>
@@ -988,8 +991,9 @@ const ClassicFlightLogEntry = () => {
                 control={control}
                 props={{
                   disabled: isFlightLogAdmin && isInvoiced,
+                  variant: 'standard',
                   multiline: true,
-                  rows: 3,
+                  rows: 2,
                 }}
               />
             </Grid>

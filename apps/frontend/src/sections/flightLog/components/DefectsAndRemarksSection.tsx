@@ -1,4 +1,4 @@
-import { Box, Typography, TextField, IconButton, Button, Alert, Stack } from '@mui/material'
+import { Box, Typography, TextField, IconButton, Button, Stack } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import type { Defect } from '@mik/contracts/defects'
@@ -30,21 +30,31 @@ interface Props {
 interface DescriptionRowsProps {
   descriptions: string[]
   onChange: (descriptions: string[]) => void
+  heading: string
   fieldLabel: string
   blankError: string
   disabled?: boolean
 }
 
 // One text-row-per-item editor, shared by the defect and remark lists below --
-// identical shape, differing only in field label and blank-row error text.
+// identical shape, differing only in the group heading, field label and blank-row
+// error text. The heading (and the rows themselves) only appear once there is at
+// least one row -- otherwise it's a label sitting above nothing (#1226 follow-up:
+// with both lists merged into one section, "Description" alone left it unclear
+// which list a given row belonged to).
 const DescriptionRows = ({
   descriptions,
   onChange,
+  heading,
   fieldLabel,
   blankError,
   disabled,
 }: DescriptionRowsProps) => {
   const { t } = useTranslation()
+
+  if (descriptions.length === 0) {
+    return null
+  }
 
   const updateAt = (index: number, value: string) => {
     const next = [...descriptions]
@@ -57,7 +67,8 @@ const DescriptionRows = ({
   }
 
   return (
-    <>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <Typography variant='subtitle2'>{heading}</Typography>
       {descriptions.map((description, index) => {
         const isBlank = description.length > 0 && description.trim().length === 0
         return (
@@ -86,7 +97,7 @@ const DescriptionRows = ({
           </Stack>
         )
       })}
-    </>
+    </Box>
   )
 }
 
@@ -112,13 +123,14 @@ export const DefectsAndRemarksSection = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      <Alert severity='warning'>
+      <Box>
+        <Typography variant='h6'>{t('flightLog.defectsAndRemarks.title')}</Typography>
         <Typography variant='body2'>{t('flightLog.defectsAndRemarks.intro1')}</Typography>
         <Typography variant='body2' sx={{ mt: 1 }}>
           {t('flightLog.defectsAndRemarks.intro2')}
         </Typography>
         <FleetManagerContacts />
-      </Alert>
+      </Box>
 
       <ExistingDefects
         defects={existingDefects}
@@ -156,7 +168,8 @@ export const DefectsAndRemarksSection = ({
         <DescriptionRows
           descriptions={reportedDefects}
           onChange={onReportedDefectsChange}
-          fieldLabel={t('flightLog.defects.description')}
+          heading={t('flightLog.defects.newSectionTitle')}
+          fieldLabel={t('flightLog.defectsAndRemarks.defectFieldLabel')}
           blankError={t('flightLog.defects.blankDescriptionError')}
           disabled={disabled}
         />
@@ -165,7 +178,8 @@ export const DefectsAndRemarksSection = ({
         <DescriptionRows
           descriptions={reportedRemarks}
           onChange={onReportedRemarksChange}
-          fieldLabel={t('flightLog.remarks.description')}
+          heading={t('flightLog.remarks.newSectionTitle')}
+          fieldLabel={t('flightLog.defectsAndRemarks.remarkFieldLabel')}
           blankError={t('flightLog.remarks.blankDescriptionError')}
           disabled={disabled}
         />

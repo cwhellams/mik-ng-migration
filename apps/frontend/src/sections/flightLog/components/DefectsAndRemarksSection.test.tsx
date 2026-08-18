@@ -55,8 +55,9 @@ describe('DefectsAndRemarksSection', () => {
     // renders nothing -- this test is about the surrounding section, not that block.
     renderWithProviders(<DefectsAndRemarksSection {...baseProps} />)
 
+    expect(screen.getByText('Aircraft defects and remarks')).toBeInTheDocument()
     expect(
-      screen.getByText(/If you found any defects or other aircraft during this flight/),
+      screen.getByText(/If you found any aircraft defects during this flight/),
     ).toBeInTheDocument()
     expect(
       screen.getByText(/Please note that a reported defect will ground the aircraft/),

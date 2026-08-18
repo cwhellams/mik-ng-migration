@@ -1091,8 +1091,8 @@
     "validationRemarks": "Valideringskommentarer",
     "billingRemarks": "Faktureringskommentarer",
     "billingRemarksTestOrFerryInstruction": "Beskriv orsaken till flygningen, vem som godkände den och om det fanns händelser som väderundvikande eller tekniska problem som upptäcktes. Om det var en testflygning, lägg till datumet då rapporten skickades till kalusto@mik.fi",
-    "notes": "Anteckningar",
-    "incidentOrObservations": "Incidenter eller observationer",
+    "otherNotesTitle": "Övriga anteckningar",
+    "incidentOrObservations": "Övriga flygrelaterade incidenter eller observationer",
     "personalRemarks": "Personliga kommentarer",
     "flightTimeline": "Flygtidslinje",
     "taxiOut": "Taxi ut",
@@ -1317,6 +1317,7 @@
       "addPreFlightTitle": "Nytt fel (före flygning)",
       "addInFlightTitle": "Nytt fel (under flygning)",
       "existingSectionTitle": "Redan rapporterade fel",
+      "newSectionTitle": "Fel",
       "fleetManagersTitle": "Materialansvariga",
       "addDefectRow": "Lägg till fel",
       "blankDescriptionError": "Felbeskrivningen får inte vara tom",
@@ -1347,13 +1348,16 @@
     },
     "remarks": {
       "existingSectionTitle": "Anmärkningar",
+      "newSectionTitle": "Anmärkningar",
       "addRemarkRow": "Lägg till anmärkning",
-      "blankDescriptionError": "Anmärkningens beskrivning får inte vara tom",
-      "description": "Beskrivning"
+      "blankDescriptionError": "Anmärkningens beskrivning får inte vara tom"
     },
     "defectsAndRemarks": {
-      "intro1": "Om du upptäckte fel eller andra anmärkningar på flygplanet under denna flygning, rapportera var och en nedan. Skriv istället en anmärkning för mindre observationer som inte påverkar lufttjänstdugligheten.",
-      "intro2": "Observera att ett rapporterat fel sätter flygplanet i flygförbud tills felet är åtgärdat eller överfört till Hold Item List (HIL). Varje flygplansrelaterad observation måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning."
+      "title": "Flygplanets fel och anmärkningar",
+      "intro1": "Om du upptäckte några fel på flygplanet under denna flygning, rapportera varje ett nedan. Skriv istället en anmärkning för mindre observationer som inte påverkar lufttjänstdugligheten.",
+      "intro2": "Observera att ett rapporterat fel sätter flygplanet i flygförbud tills felet är åtgärdat eller överfört till Hold Item List (HIL). Varje flygplansrelaterad observation måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning.",
+      "defectFieldLabel": "Felbeskrivning",
+      "remarkFieldLabel": "Anmärkningens beskrivning"
     }
   },
   "invoicing": {
