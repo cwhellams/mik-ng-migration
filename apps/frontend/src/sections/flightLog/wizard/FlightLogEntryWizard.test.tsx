@@ -619,3 +619,87 @@ describe('FlightLogEntryWizard saving', () => {
     expect(screen.queryByRole('button', { name: /defect/i })).toBeNull()
   })
 })
+
+describe('FlightLogEntryWizard defect grounding confirmation', () => {
+  const addDefectAndReachReview = async (
+    user: ReturnType<typeof renderWizard>['user'],
+  ): Promise<void> => {
+    await screen.findByText('Notes')
+    await user.click(screen.getByRole('button', { name: /add defect/i }))
+    await user.type(screen.getByLabelText(/description/i), 'Oil stain on the ramp')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+  }
+
+  it('asks for grounding confirmation before saving when a defect was reported', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await addDefectAndReachReview(user)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/will ground the aircraft/)).toBeInTheDocument()
+    expect(state.writes).toHaveLength(0)
+  })
+
+  it('saves once the grounding confirmation is accepted', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await addDefectAndReachReview(user)
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+  })
+
+  it('does not save when the grounding confirmation is cancelled', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await addDefectAndReachReview(user)
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(state.writes).toHaveLength(0)
+  })
+
+  it('saves directly, with no confirmation, when no defect was reported', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'review',
+      onClose: () => {},
+    })
+    await screen.findByText('Review')
+
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})

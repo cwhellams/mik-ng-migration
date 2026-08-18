@@ -1,7 +1,7 @@
 import { FlightLogStatus } from '@mik/contracts/flight-log'
 import type { Defect } from '@mik/contracts/defects'
 import type { Remark } from '@mik/contracts/remarks'
-import { screen } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 
@@ -68,20 +68,34 @@ window.matchMedia = ((query: string) => ({
 })) as typeof window.matchMedia
 
 const classicFormApi = (existingDefects: Defect[] = [], existingRemarks: Remark[] = []) => {
+  const state = { patches: 0, defects: [] as unknown[] }
+
   server.use(
+    // More specific path first: MSW tries handlers in order, and ':id' would
+    // otherwise greedily match "overlap-check" as an id on any GET request.
+    http.get(apiUrl('v1/flight-logs/overlap-check'), () => HttpResponse.json({ conflicts: [] })),
     http.get(apiUrl('v1/flight-logs/:id'), () =>
       HttpResponse.json(aFlightLog({ flightId: 'fi_inst1', status: FlightLogStatus.NEW })),
     ),
-    http.get(apiUrl('v1/flight-logs/overlap-check'), () => HttpResponse.json({ conflicts: [] })),
     http.get(apiUrl('v1/useful-phone-numbers/flight-plan-centre'), () =>
       HttpResponse.json(null, { status: 404 }),
     ),
     http.get(apiUrl('v1/defects'), () => HttpResponse.json(existingDefects)),
+    http.post(apiUrl('v1/defects'), async ({ request }) => {
+      state.defects.push(await request.json())
+      return HttpResponse.json({})
+    }),
     http.get(apiUrl('v1/remarks'), ({ request }) => {
       const flightId = new URL(request.url).searchParams.get('flightId')
       return HttpResponse.json(existingRemarks.filter((r) => r.flightId === flightId))
     }),
+    http.patch(apiUrl('v1/flight-logs/:id'), () => {
+      state.patches += 1
+      return HttpResponse.json(aFlightLog({ flightId: 'fi_inst1', status: FlightLogStatus.NEW }))
+    }),
   )
+
+  return state
 }
 
 const renderClassicForm = () =>
@@ -170,5 +184,60 @@ describe('FlightLogEntry (classic form) already-logged remarks', () => {
 
     await screen.findByRole('button', { name: /add remark/i })
     expect(screen.queryByText('Oil stain noticed on the ramp, wiped off')).not.toBeInTheDocument()
+  })
+})
+
+describe('FlightLogEntry (classic form) defect grounding confirmation', () => {
+  it('asks for grounding confirmation before saving when a defect was reported', async () => {
+    const state = classicFormApi()
+    const { user } = renderClassicForm()
+
+    await user.click(await screen.findByRole('button', { name: /add defect/i }))
+    await user.type(screen.getByLabelText(/description/i), 'Oil stain on the ramp')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/will ground the aircraft/)).toBeInTheDocument()
+    expect(state.patches).toBe(0)
+  })
+
+  it('saves once the grounding confirmation is accepted', async () => {
+    const state = classicFormApi()
+    const { user } = renderClassicForm()
+
+    await user.click(await screen.findByRole('button', { name: /add defect/i }))
+    await user.type(screen.getByLabelText(/description/i), 'Oil stain on the ramp')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
+
+    await waitFor(() => expect(state.patches).toBe(1))
+  })
+
+  it('does not save when the grounding confirmation is cancelled', async () => {
+    const state = classicFormApi()
+    const { user } = renderClassicForm()
+
+    await user.click(await screen.findByRole('button', { name: /add defect/i }))
+    await user.type(screen.getByLabelText(/description/i), 'Oil stain on the ramp')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(state.patches).toBe(0)
+  })
+
+  it('saves directly, with no confirmation, when no defect was reported', async () => {
+    const state = classicFormApi()
+    const { user } = renderClassicForm()
+
+    await screen.findByRole('button', { name: /add defect/i })
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(state.patches).toBe(1))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

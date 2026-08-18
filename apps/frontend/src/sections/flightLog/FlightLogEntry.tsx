@@ -82,6 +82,8 @@ import {
 } from '../dto/dtoApi'
 import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
+import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
 import { DefectsAndRemarksSection } from './components/DefectsAndRemarksSection'
 import { hasBlankReportedDefect, submitReportedDefects } from './reportDefectsApi'
@@ -386,6 +388,7 @@ const ClassicFlightLogEntry = () => {
   const [pendingSubmitData, setPendingSubmitData] = useState<FlightLogUpsertRequest | null>(null)
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(isNew ? undefined : flightId)
+  const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
   // Local-only state for fuel type — not stored in the flight log, used only for expense prefill
   const [fuelUpliftType, setFuelUpliftType] = useState<(typeof FUEL_TYPES)[number] | ''>('')
   const [fuelClaimCreating, setFuelClaimCreating] = useState(false)
@@ -545,7 +548,7 @@ const ClassicFlightLogEntry = () => {
   }
 
   const onSubmit = (data: FlightLogUpsertRequest) =>
-    withOverlapCheck(data, () => continueSubmit(data))
+    withOverlapCheck(data, () => withGroundingConfirm(reportedDefects, () => continueSubmit(data)))
 
   // Save current form state without navigating away; used before validate
   const saveChanges = async (): Promise<boolean> => {
@@ -1352,6 +1355,14 @@ const ClassicFlightLogEntry = () => {
         </DialogActions>
       </Dialog>
       <OverlapWarningDialog {...overlapDialogProps} />
+      <ConfirmDialog
+        {...groundingDialogProps}
+        title={t('flightLog.defects.groundingConfirmTitle')}
+        message={t('flightLog.defects.groundingConfirmMessage')}
+        confirmText={t('flightLog.defects.groundingConfirmButton')}
+        cancelText={t('general.cancel')}
+        severity='warning'
+      />
     </RemoteContent>
   )
 }

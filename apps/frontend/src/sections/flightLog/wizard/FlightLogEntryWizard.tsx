@@ -53,6 +53,8 @@ import { ReviewStep } from './steps/ReviewStep'
 import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
 import { useOverlapCheck } from '../useOverlapCheck'
 import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
+import { useDefectGroundingConfirm } from '../useDefectGroundingConfirm'
+import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { hasBlankReportedDefect, submitReportedDefects } from '../reportDefectsApi'
 import { hasBlankReportedRemark, submitReportedRemarks } from '../reportRemarksApi'
 import { endpoints } from '../../../api/endpoints'
@@ -370,6 +372,7 @@ const FlightLogEntryWizardInner = ({
   const [submitting, setSubmitting] = useState(false)
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(flightId)
+  const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
 
   // Set the instant the draft is intentionally cleared (discard, or a successful
   // save) so the debounced autosave below can never resurrect it. Clearing storage
@@ -545,7 +548,9 @@ const FlightLogEntryWizardInner = ({
     }
   }
 
-  const handleAccept = handleSubmit((data) => withOverlapCheck(data, () => void doSave(data)))
+  const handleAccept = handleSubmit((data) =>
+    withOverlapCheck(data, () => withGroundingConfirm(reportedDefects, () => void doSave(data))),
+  )
 
   const timeEpochFor = (field: keyof FlightLogUpsertRequest): string | null => {
     const value = getValues(field)
@@ -716,6 +721,14 @@ const FlightLogEntryWizardInner = ({
       </Dialog>
 
       <OverlapWarningDialog {...overlapDialogProps} />
+      <ConfirmDialog
+        {...groundingDialogProps}
+        title={t('flightLog.defects.groundingConfirmTitle')}
+        message={t('flightLog.defects.groundingConfirmMessage')}
+        confirmText={t('flightLog.defects.groundingConfirmButton')}
+        cancelText={t('general.cancel')}
+        severity='warning'
+      />
     </WizardShell>
   )
 }

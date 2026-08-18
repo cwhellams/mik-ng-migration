@@ -1336,7 +1336,8 @@
       "deferToNewHil": "Defer to new HIL entry",
       "openNote": "Open maintenance note",
       "groundingConfirmTitle": "Ground the aircraft?",
-      "groundingConfirmMessage": "NOTE: Submitting this action will ground the aircraft until the defect has been repaired or transferred to the Hold Item List. Fleet Manager consultation is required."
+      "groundingConfirmMessage": "NOTE: Submitting this action will ground the aircraft until the defect has been repaired or transferred to the Hold Item List. Fleet Manager consultation is required.",
+      "groundingConfirmButton": "Confirm & Save"
     },
     "remarks": {
       "existingSectionTitle": "Remarks",
