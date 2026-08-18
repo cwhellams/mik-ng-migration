@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { usePendingConfirm } from './usePendingConfirm'
 
 // A newly reported in-flight defect is always created ACTIVE with no HIL link, which
 // immediately grounds the aircraft (flight.vw_aircraft_grounding_status) -- the same
@@ -6,28 +6,11 @@ import { useRef, useState } from 'react'
 // Defects" section on the flight log entry itself reaches that same outcome via the
 // entry's own save, so it needs the same confirmation gate before that save proceeds.
 export function useDefectGroundingConfirm() {
-  const [open, setOpen] = useState(false)
-  const pendingSubmit = useRef<(() => void) | null>(null)
+  const { open, guard, confirm, cancel } = usePendingConfirm<true>()
 
   const withGroundingConfirm = (reportedDefects: string[], submit: () => void) => {
     const hasReportedDefect = reportedDefects.some((d) => d.trim().length > 0)
-    if (!hasReportedDefect) {
-      submit()
-      return
-    }
-    pendingSubmit.current = submit
-    setOpen(true)
-  }
-
-  const confirm = () => {
-    setOpen(false)
-    pendingSubmit.current?.()
-    pendingSubmit.current = null
-  }
-
-  const cancel = () => {
-    setOpen(false)
-    pendingSubmit.current = null
+    guard(hasReportedDefect ? true : undefined, submit)
   }
 
   return {

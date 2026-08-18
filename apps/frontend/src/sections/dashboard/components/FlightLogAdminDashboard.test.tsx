@@ -97,4 +97,58 @@ describe('FlightLogAdminDashboard incidents, observations and remarks', () => {
       await screen.findByText('No flights with incidents, observations or remarks.'),
     ).toBeInTheDocument()
   })
+
+  it('requests remarks scoped to the same NEW status as the observations list', async () => {
+    signInAs(anAdmin())
+    let capturedStatus: string | null = null
+    server.use(
+      http.get(apiUrl('v1/ajlb'), () => HttpResponse.json({ books: [] })),
+      http.get(apiUrl('v1/flight-logs'), () => HttpResponse.json({ logs: [] })),
+      http.get(apiUrl('v1/remarks/recent'), ({ request }) => {
+        capturedStatus = new URL(request.url).searchParams.get('status')
+        return HttpResponse.json({ remarks: [] })
+      }),
+    )
+
+    renderWithProviders(<FlightLogAdminDashboard />)
+
+    await screen.findByText('No flights with incidents, observations or remarks.')
+    expect(capturedStatus).toBe('NEW')
+  })
+
+  it('does not let backend truncation by createdAt silently drop a remark for the newest flight', async () => {
+    signInAs(anAdmin())
+
+    // Ten remarks the backend would return first under its own createdAt DESC + limit
+    // ordering (as if just bulk-backfilled onto old flights), plus one remark on a
+    // genuinely much newer flight. Fetching only the final display limit (10) raw
+    // would cut the newest-flight remark off before this component's own merge/sort
+    // by takeoffTimeUtc ever saw it -- the over-fetch below is what prevents that.
+    const oldFlightBackfilledRemarks = Array.from({ length: 10 }, (_, i) =>
+      aRecentRemark({
+        remarkId: `backfill-${i}`,
+        description: `Backfilled remark ${i}`,
+        takeoffTimeUtc: '2020-01-01T09:00:00.000Z',
+      }),
+    )
+    const newestFlightRemark = aRecentRemark({
+      remarkId: 'newest',
+      description: 'Remark on the actual newest flight',
+      takeoffTimeUtc: '2025-06-10T09:00:00.000Z',
+    })
+
+    server.use(
+      http.get(apiUrl('v1/ajlb'), () => HttpResponse.json({ books: [] })),
+      http.get(apiUrl('v1/flight-logs'), () => HttpResponse.json({ logs: [] })),
+      http.get(apiUrl('v1/remarks/recent'), ({ request }) => {
+        const limit = Number(new URL(request.url).searchParams.get('limit'))
+        const all = [...oldFlightBackfilledRemarks, newestFlightRemark]
+        return HttpResponse.json({ remarks: all.slice(0, limit) })
+      }),
+    )
+
+    renderWithProviders(<FlightLogAdminDashboard />)
+
+    expect(await screen.findByText('Remark on the actual newest flight')).toBeInTheDocument()
+  })
 })

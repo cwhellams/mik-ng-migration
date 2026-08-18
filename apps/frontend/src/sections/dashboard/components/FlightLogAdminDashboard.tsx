@@ -46,6 +46,16 @@ export const FlightLogAdminDashboard = () => {
     (logbook) => (logbook.view?.newFlightsCount ?? 0) > 0,
   )
 
+  // The combined widget below only ever shows the most recent 10, but each source
+  // is fetched well past that: getRecentRemarks truncates by its own createdAt, not
+  // by the related flight's takeoff time, so if the two lists were each fetched at
+  // the final display limit, an observation and a remark could both be genuinely
+  // recent-by-flight yet one gets silently dropped before the merge/sort below ever
+  // sees it. Over-fetching here means the merge (sorted by takeoffTimeUtc) is what
+  // decides the final top 10, not either source's own truncation order.
+  const NOTABLE_FLIGHTS_LIMIT = 10
+  const NOTABLE_FLIGHTS_FETCH_LIMIT = 30
+
   const {
     data: observations,
     isLoading: observationsLoading,
@@ -58,7 +68,7 @@ export const FlightLogAdminDashboard = () => {
         status: FlightLogStatus.NEW,
         incidentsOrObservations: true,
         orderLatestFirst: true,
-        limit: 10,
+        limit: NOTABLE_FLIGHTS_FETCH_LIMIT,
       },
     },
     {
@@ -68,7 +78,9 @@ export const FlightLogAdminDashboard = () => {
   )
 
   // fetch recent remarks (#1226) -- merged with the incidents/observations list below
-  // into one combined widget, rather than a separate accordion of its own.
+  // into one combined widget, rather than a separate accordion of its own. status
+  // matches the observations query above so both sources feeding the widget share
+  // the same flight-validation scoping.
   const {
     data: recentRemarks,
     isLoading: remarksLoading,
@@ -77,7 +89,7 @@ export const FlightLogAdminDashboard = () => {
     {
       url: 'v1/remarks/recent',
       alwaysSudo: true,
-      params: { limit: 10 },
+      params: { limit: NOTABLE_FLIGHTS_FETCH_LIMIT, status: FlightLogStatus.NEW },
     },
     {
       keepPreviousData: true,
@@ -114,7 +126,7 @@ export const FlightLogAdminDashboard = () => {
           })),
         ]
           .sort((a, b) => b.takeoffTimeUtc.localeCompare(a.takeoffTimeUtc))
-          .slice(0, 10)
+          .slice(0, NOTABLE_FLIGHTS_LIMIT)
       : undefined
 
   return (

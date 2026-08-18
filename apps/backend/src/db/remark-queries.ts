@@ -2,6 +2,7 @@ import { auditCreate, mapAudit } from './audit.ts'
 import * as connection from './connection.ts'
 import type { DbRow } from './connection.ts'
 import type { Remark, CreateRemarkRequest, RecentRemark } from '@mik/contracts/remarks'
+import type { FlightLogStatus } from '@mik/contracts/flight-log'
 
 function mapRowToRemark(row: DbRow<'flight.remark'>): Remark {
   return {
@@ -58,8 +59,13 @@ export async function createRemark(data: CreateRemarkRequest, createdBy: string)
 
 // The flight log admin dashboard's "recent remarks" list -- joined with flight.logs
 // for the aircraft registration and takeoff time a dashboard link needs, same as the
-// existing "flights with incidents" list next to it.
-export async function getRecentRemarks(limit: number): Promise<RecentRemark[]> {
+// existing "flights with incidents" list next to it. status mirrors that sibling
+// list's own status filter so the two share the same flight-validation scoping
+// when both feed into the same combined dashboard widget.
+export async function getRecentRemarks(
+  limit: number,
+  status?: FlightLogStatus,
+): Promise<RecentRemark[]> {
   const rows = await connection.db
     .selectFrom('flight.remark')
     .innerJoin('flight.logs', 'flight.logs.flightId', 'flight.remark.flightId')
@@ -74,6 +80,7 @@ export async function getRecentRemarks(limit: number): Promise<RecentRemark[]> {
       'flight.logs.aircraftRegistration',
       'flight.logs.takeoffTimeUtc',
     ])
+    .$if(status !== undefined, (qb) => qb.where('flight.logs.status', '=', status!))
     .orderBy('flight.remark.createdAt', 'desc')
     .limit(limit)
     .execute()

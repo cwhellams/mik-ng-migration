@@ -83,7 +83,7 @@ describe('AddDefectDialog', () => {
     const confirmDialog = (
       await screen.findByText(/Submitting this action will ground the aircraft/)
     ).closest('[role="dialog"]') as HTMLElement
-    await user.click(within(confirmDialog).getByRole('button', { name: 'Save' }))
+    await user.click(within(confirmDialog).getByRole('button', { name: 'Confirm & Save' }))
 
     await waitFor(() => expect(posts).toHaveLength(1))
     expect(posts[0]).toMatchObject({ description: 'Nose wheel shimmy on landing' })

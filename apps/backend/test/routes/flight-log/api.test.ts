@@ -428,13 +428,13 @@ describe('POST /flight-log', () => {
       title: 'Bad Request',
       instance: '/flight-log',
       timestamp: expect.any(String),
-      detail: '3600',
+      detail: '86400',
       errors: expect.arrayContaining([
         expect.objectContaining({
           code: 'too_big',
           inclusive: true,
-          maximum: 3600,
-          message: '3600',
+          maximum: 86400,
+          message: '86400',
           path: ['takeoffTimeEpoch'],
         }),
       ]),
@@ -587,8 +587,8 @@ describe('PATCH /flight-log/', () => {
         expect.objectContaining({
           code: 'too_big',
           inclusive: true,
-          maximum: 3600,
-          message: '3600',
+          maximum: 86400,
+          message: '86400',
           path: ['takeoffTimeEpoch'],
         }),
       ]),

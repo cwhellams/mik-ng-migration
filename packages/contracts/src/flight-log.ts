@@ -233,6 +233,15 @@ export const FlightLogTimesSchema = z.object({
 
 type FlightLogTimes = z.infer<typeof FlightLogTimesSchema>
 
+// Taxi legs have no hard cap at the useLongTaxiCheck thresholds (60/30 min) -- a
+// long one due to taxiway congestion is only a client-side confirmation (#1223),
+// not a blocked submission. But leaving them fully unbounded meant a caller that
+// bypasses the UI (or a garbage input, e.g. an off-block epoch of 0) fell through
+// validation entirely and hit a raw DB constraint violation as an unhandled 500
+// instead of a clean 400. This cap is generous enough that no real taxi delay
+// could ever hit it -- it only catches values a legitimate flight never would.
+const TAXI_SANITY_CAP_MINUTES = 24 * 60
+
 export const validateFlightLogTimes = (
   times: Partial<FlightLogTimes>,
   addIssue: (i: z.IssueData) => void,
@@ -280,15 +289,15 @@ export const validateFlightLogTimes = (
     }
   }
 
-  // Taxi out/in have no hard cap -- a long one due to taxiway congestion is a
-  // client-side confirmation (useLongTaxiCheck), not a blocked submission (#1223).
-  // Order is still enforced (next must be after prev).
-  validate('offBlockTimeEpoch', 'takeoffTimeEpoch')
+  // Taxi out/in only get the generous sanity cap above -- a long one due to
+  // taxiway congestion is a client-side confirmation (useLongTaxiCheck), not a
+  // blocked submission (#1223). Order is still enforced (next must be after prev).
+  validate('offBlockTimeEpoch', 'takeoffTimeEpoch', TAXI_SANITY_CAP_MINUTES)
 
   // flight max 6 hours
   validate('takeoffTimeEpoch', 'landingTimeEpoch', 360)
 
-  validate('landingTimeEpoch', 'onBlockTimeEpoch')
+  validate('landingTimeEpoch', 'onBlockTimeEpoch', TAXI_SANITY_CAP_MINUTES)
 
   // None of the times may be in the future — the DB has the same constraint, but
   // checking it here surfaces a friendly validation message at entry time instead of

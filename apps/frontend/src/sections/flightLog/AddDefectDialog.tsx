@@ -20,6 +20,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
+import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'
 
 const AddDefectFormSchema = z.object({
   description: z.string().min(1),
@@ -51,7 +52,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
 }) => {
   const { t } = useTranslation()
   const [problem, setProblem] = useState<Problem | undefined>()
-  const [pendingValues, setPendingValues] = useState<AddDefectFormValues | undefined>()
+  const { groundingDialogProps, withGroundingConfirm } = useDefectGroundingConfirm()
   const isPreFlight = flightId === null
 
   const { mutation } = useApi<Defect>({
@@ -77,7 +78,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
   useEffect(() => {
     if (open) {
       setProblem(undefined)
-      setPendingValues(undefined)
+      groundingDialogProps.onClose()
       reset({
         description: '',
         flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
@@ -85,14 +86,17 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
         rows: isPreFlight ? 1 : 0,
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- groundingDialogProps.onClose
+    // is a new function each render; only re-run this when the dialog's own open state
+    // changes.
   }, [open, defaultFlightMins, isPreFlight, reset])
 
   // A new defect is always created ACTIVE with no HIL link, which immediately
   // grounds the aircraft (flight.vw_aircraft_grounding_status) -- so submitting
-  // requires an explicit confirmation of that consequence before the API call.
-  const handleConfirmedSubmit = async () => {
-    if (!pendingValues) return
-    const values = pendingValues
+  // requires an explicit confirmation of that consequence before the API call
+  // (useDefectGroundingConfirm, shared with the flight log entry's own "Report
+  // Defects" section, which reaches the same consequence via its save).
+  const handleConfirmedSubmit = async (values: AddDefectFormValues) => {
     const { error } = await mutation.trigger('POST', {
       aircraftRegistration,
       ajlbSeqNo,
@@ -105,8 +109,6 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
       // cumulative totals ever change.
       rows: isPreFlight ? values.rows : 0,
     })
-
-    setPendingValues(undefined)
 
     if (error) {
       setProblem(error)
@@ -124,7 +126,11 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
             ? t('flightLog.defects.addPreFlightTitle')
             : t('flightLog.defects.addInFlightTitle')}
         </DialogTitle>
-        <form onSubmit={handleSubmit((values) => setPendingValues(values))}>
+        <form
+          onSubmit={handleSubmit((values) =>
+            withGroundingConfirm([values.description], () => void handleConfirmedSubmit(values)),
+          )}
+        >
           <DialogContent>
             <SnackAlert problem={problem} />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -237,12 +243,10 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
         </form>
       </Dialog>
       <ConfirmDialog
-        open={!!pendingValues}
-        onClose={() => setPendingValues(undefined)}
-        onConfirm={handleConfirmedSubmit}
+        {...groundingDialogProps}
         title={t('flightLog.defects.groundingConfirmTitle')}
         message={t('flightLog.defects.groundingConfirmMessage')}
-        confirmText={t('general.save')}
+        confirmText={t('flightLog.defects.groundingConfirmButton')}
         cancelText={t('general.cancel')}
         severity='warning'
       />

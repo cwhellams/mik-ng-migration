@@ -562,15 +562,18 @@ const FlightLogEntryWizardInner = ({
 
       const savedFlightId = isEditing ? flightId : saved?.flightId
       if (savedFlightId) {
-        await submitReportedDefects(savedFlightId, reportedDefects).catch((err) => {
-          // non-fatal: the flight log itself is already saved; the pilot can still
-          // report a missed defect separately via the standalone pre-flight dialog
-          console.error('Failed to submit reported defects:', err)
-        })
-        await submitReportedRemarks(savedFlightId, reportedRemarks).catch((err) => {
-          // non-fatal: the flight log itself is already saved
-          console.error('Failed to submit reported remarks:', err)
-        })
+        // Independent of each other -- run together rather than one after the other.
+        await Promise.all([
+          submitReportedDefects(savedFlightId, reportedDefects).catch((err) => {
+            // non-fatal: the flight log itself is already saved; the pilot can still
+            // report a missed defect separately via the standalone pre-flight dialog
+            console.error('Failed to submit reported defects:', err)
+          }),
+          submitReportedRemarks(savedFlightId, reportedRemarks).catch((err) => {
+            // non-fatal: the flight log itself is already saved
+            console.error('Failed to submit reported remarks:', err)
+          }),
+        ])
       }
 
       discardDraft()

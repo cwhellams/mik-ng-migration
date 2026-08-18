@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { FlightLogStatus } from './flight-log.ts'
+
 // A minor, non-airworthiness observation logged against a flight (#1226) -- unlike
 // a Defect, a remark has no status, no HIL link and nothing to resolve. It exists
 // purely "for your information", always tied to the flight it was written on.
@@ -54,3 +56,16 @@ export const RecentRemarksResponseSchema = z.object({
 })
 
 export type RecentRemarksResponse = z.infer<typeof RecentRemarksResponseSchema>
+
+// GET /v1/remarks/recent's query params. limit is coerced/validated here rather
+// than parsed with a raw Number.parseInt at the route, which let a non-numeric
+// value reach the DB as NaN and surface as an unhandled 500 instead of a 400.
+export const RecentRemarksQuerySchema = z.object({
+  limit: z.coerce.number().int().positive().optional(),
+  // Optional so a plain "give me the last N remarks" call keeps working -- the
+  // flight log admin dashboard passes FlightLogStatus.NEW to match the scoping
+  // of the "flights with incidents/observations" list shown alongside it.
+  status: z.nativeEnum(FlightLogStatus).optional(),
+})
+
+export type RecentRemarksQuery = z.infer<typeof RecentRemarksQuerySchema>

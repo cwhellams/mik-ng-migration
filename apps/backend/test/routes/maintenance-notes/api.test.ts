@@ -668,7 +668,9 @@ describe('DELETE /maintenance-notes/:id', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: 'Pre-delete note',
         performedBy: 'Matti Virtanen',
-        flightMins: 200,
+        // Past OH-STL/1's last validated flight total (21301, test data) -- see the
+        // baseline-guard tests below for the below-baseline case specifically.
+        flightMins: LIVE_FLIGHT_MINS,
         rows: 1,
       },
       'Matti1',
@@ -732,5 +734,51 @@ describe('DELETE /maintenance-notes/:id', () => {
       .set('Cookie', `accessToken=${adminToken}`)
 
     expect(res.status).toBe(404)
+  })
+
+  it('returns 400 when the note is before the last validated flight', async () => {
+    // OH-STL/1's last validated flight total is 21301 in the test data -- deleting a
+    // note behind that baseline would silently alter an already-validated logbook page.
+    const belowBaseline = await createMaintenanceNote(
+      {
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Note behind the validated baseline',
+        performedBy: 'Matti Virtanen',
+        flightMins: 21300,
+        rows: 1,
+      },
+      'Matti1',
+    )
+
+    const res = await request(app)
+      .delete(`/maintenance-notes/${belowBaseline.noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(res.status).toBe(400)
+
+    await deleteMaintenanceNote(belowBaseline.noteId)
+  })
+
+  it('returns 204 when the note is exactly at the last validated flight', async () => {
+    // A note isn't tied to a specific flight, so this legitimately matches the
+    // baseline exactly -- mirrors the equivalent POST/PATCH boundary tests.
+    const atBaseline = await createMaintenanceNote(
+      {
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Note exactly at the validated baseline',
+        performedBy: 'Matti Virtanen',
+        flightMins: 21301,
+        rows: 1,
+      },
+      'Matti1',
+    )
+
+    const res = await request(app)
+      .delete(`/maintenance-notes/${atBaseline.noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(res.status).toBe(204)
   })
 })

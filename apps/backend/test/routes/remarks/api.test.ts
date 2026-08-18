@@ -7,6 +7,7 @@ import { db } from '../../../src/db/connection.ts'
 import { router } from '../../../src/routes/remarks/api.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '@mik/contracts/members'
+import { FlightLogStatus } from '@mik/contracts/flight-log'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 const app = express()
@@ -27,6 +28,15 @@ const ownerToken = generateAccessToken({
   email: 'liisa@mik.fi',
   roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_USER],
+  canMakeReservations: false,
+})
+
+const adminToken = generateAccessToken({
+  memberId: 'Matti1',
+  lastName: 'Virtanen',
+  email: 'matti@mik.fi',
+  roles: [],
+  permissions: [MIKPermissions.FLIGHTLOG_ADMIN],
   canMakeReservations: false,
 })
 
@@ -148,6 +158,15 @@ describe('GET /remarks', () => {
 
     expect(res.status).toBe(400)
   })
+
+  it('allows an admin without FLIGHTLOG_USER to list remarks', async () => {
+    const res = await request(app)
+      .get('/remarks')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .query({ flightId: FLIGHT_ID })
+
+    expect(res.status).toBe(200)
+  })
 })
 
 describe('POST /remarks', () => {
@@ -213,6 +232,19 @@ describe('POST /remarks', () => {
 
     expect(res.status).toBe(500)
   })
+
+  it('allows an admin without FLIGHTLOG_USER to create a remark', async () => {
+    const res = await request(app)
+      .post('/remarks')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        flightId: FLIGHT_ID,
+        description: `${TEST_MARKER} admin-created remark`,
+      })
+
+    expect(res.status).toBe(201)
+    createdRemarkIds.push(res.body.remarkId)
+  })
 })
 
 describe('GET /remarks/recent', () => {
@@ -248,5 +280,37 @@ describe('GET /remarks/recent', () => {
       aircraftRegistration: 'OH-STL',
     })
     expect(found.takeoffTimeUtc).toBeTruthy()
+  })
+
+  it('allows an admin without FLIGHTLOG_USER to fetch recent remarks', async () => {
+    const res = await request(app).get('/remarks/recent').set('Cookie', `accessToken=${adminToken}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('returns 400 for a non-numeric limit instead of an unhandled 500', async () => {
+    const res = await request(app)
+      .get('/remarks/recent')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .query({ limit: 'abc' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it("filters by status to match the same flight-validation scoping as the dashboard's other list", async () => {
+    // mass1 (see V60__LandingBaselineData.sql) has already been bulk-validated;
+    // mass199 is deliberately left as NEW.
+    await insertRemark(FLIGHT_ID, `${TEST_MARKER} validated-flight remark`)
+    await insertRemark('mass199', `${TEST_MARKER} new-flight remark`)
+
+    const res = await request(app)
+      .get('/remarks/recent')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .query({ limit: 50, status: FlightLogStatus.NEW })
+
+    expect(res.status).toBe(200)
+    const descriptions = res.body.remarks.map((r: { description: string }) => r.description)
+    expect(descriptions).toContain(`${TEST_MARKER} new-flight remark`)
+    expect(descriptions).not.toContain(`${TEST_MARKER} validated-flight remark`)
   })
 })

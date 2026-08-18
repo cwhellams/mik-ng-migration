@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
 import type { FlightLogUpsertRequest } from '@mik/contracts/flight-log'
+import { usePendingConfirm } from './usePendingConfirm'
 
 // Past this many minutes, taxiing is unusual enough to double-check, but not
 // unusual enough to block outright -- taxiway congestion can genuinely make it
@@ -33,14 +33,14 @@ type FlightLogTimesInput = Partial<
 /**
  * Warns instead of blocking when taxi-out or taxi-in looks unusually long.
  *
- * Mirrors useOverlapCheck/useDefectGroundingConfirm's shape: give the user a
- * readable heads-up and let them confirm the save anyway, rather than a hard
- * validation error rejecting a value that congestion can make genuinely correct.
+ * Mirrors useOverlapCheck/useDefectGroundingConfirm's shape (via the shared
+ * usePendingConfirm): give the user a readable heads-up and let them confirm the
+ * save anyway, rather than a hard validation error rejecting a value that
+ * congestion can make genuinely correct.
  */
 export function useLongTaxiCheck() {
-  const [longLegs, setLongLegs] = useState<LongTaxiLeg[]>([])
-  const [open, setOpen] = useState(false)
-  const pendingSubmit = useRef<(() => void) | null>(null)
+  const { open, extra, guard, confirm, cancel } = usePendingConfirm<LongTaxiLeg[]>()
+  const longLegs = extra ?? []
 
   const withLongTaxiCheck = (values: FlightLogTimesInput, submit: () => void) => {
     const legs: LongTaxiLeg[] = []
@@ -55,25 +55,7 @@ export function useLongTaxiCheck() {
       legs.push({ leg: 'in', minutes: Math.round(taxiInMinutes) })
     }
 
-    if (legs.length === 0) {
-      submit()
-      return
-    }
-
-    setLongLegs(legs)
-    pendingSubmit.current = submit
-    setOpen(true)
-  }
-
-  const confirm = () => {
-    setOpen(false)
-    pendingSubmit.current?.()
-    pendingSubmit.current = null
-  }
-
-  const cancel = () => {
-    setOpen(false)
-    pendingSubmit.current = null
+    guard(legs.length === 0 ? undefined : legs, submit)
   }
 
   return {

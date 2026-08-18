@@ -25,13 +25,14 @@ VALUES (
         'Matti1', 'Matti1'
     );
 
--- flight_mins must be at or after OH-STL/1's live baseline (21301, see V270's
--- note) or this never appears as a live row on the current logbook page.
+-- No blank_rows_after column here: V1870 (this branch) drops it from
+-- flight.defect entirely -- see V270's note. (flight_mins is bumped to sit
+-- above OH-STL/1's live baseline in V290 instead of here.)
 INSERT INTO flight.defect (
         aircraft_registration, ajlb_seq_no, flight_id, description, flight_mins,
         status, hil_id, created_by, updated_by
     )
 VALUES (
-        'OH-STL', 1, NULL, 'Cabin heat control very stiff, hard to move in flight', 21330,
+        'OH-STL', 1, NULL, 'Cabin heat control very stiff, hard to move in flight', 1100,
         'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000004', 'Matti1', 'Matti1'
     );

@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express'
 import {
   RemarkFilterSchema,
   CreateRemarkSchema,
+  RecentRemarksQuerySchema,
   type Remark,
   type RecentRemarksResponse,
 } from '@mik/contracts/remarks'
@@ -24,10 +25,8 @@ const RECENT_REMARKS_DEFAULT_LIMIT = 10
 // come before GET /:flightId-shaped routes below it -- there are none here, but see
 // the identical ordering note on the defects router if one is ever added.
 router.get('/recent', async (req: Request, res: Response<RecentRemarksResponse>) => {
-  const limit = req.query.limit
-    ? Number.parseInt(req.query.limit as string)
-    : RECENT_REMARKS_DEFAULT_LIMIT
-  const remarks = await getRecentRemarks(limit)
+  const { limit, status } = RecentRemarksQuerySchema.parse(req.query)
+  const remarks = await getRecentRemarks(limit ?? RECENT_REMARKS_DEFAULT_LIMIT, status)
   res.status(200).json({ remarks })
 })
 

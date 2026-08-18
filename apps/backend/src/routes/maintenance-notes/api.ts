@@ -81,6 +81,21 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Maintena
 router.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
   const { id } = req.params
   const isAdmin = req.user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN)
+
+  const existing = await getMaintenanceNote(id)
+  if (!existing) return problem({ status: 404, detail: 'Maintenance note not found' })
+
+  const baseline = await getAjlbLiveBaselineFlightMins(
+    existing.aircraftRegistration,
+    existing.ajlbSeqNo,
+  )
+  if (existing.flightMins < baseline) {
+    return problem({
+      status: 400,
+      detail: "This time can't be earlier than the logbook's last validated flight",
+    })
+  }
+
   const deleted = await deleteMaintenanceNote(id, isAdmin ? undefined : req.user!.memberId!)
   if (!deleted) return problem({ status: 404, detail: 'Maintenance note not found' })
   res.status(204).end()
