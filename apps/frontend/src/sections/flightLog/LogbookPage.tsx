@@ -692,7 +692,7 @@ const FlightLogsList = () => {
                     note={note}
                     onChanged={refreshAfterNoteChange}
                     highlighted={note.noteId === highlightNoteId}
-                    flightDate={log?.offBlockTimeUtc}
+                    recordedDate={note.createdAt}
                   />
                 </Box>
               )
@@ -710,7 +710,7 @@ const FlightLogsList = () => {
                     aircraftRegistration={ajlb.aircraftRegistration}
                     onChanged={refreshAfterDefectChange}
                     highlighted={defect.defectId === highlightDefectId}
-                    flightDate={log?.offBlockTimeUtc}
+                    recordedDate={defect.createdAt}
                   />
                 </Box>
               )
