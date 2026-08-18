@@ -84,9 +84,13 @@ import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
 import { ReportDefectsSection } from './components/ReportDefectsSection'
+import { ReportRemarksSection } from './components/ReportRemarksSection'
+import { ExistingRemarks } from './components/ExistingRemarks'
 import { hasBlankReportedDefect, submitReportedDefects } from './reportDefectsApi'
+import { hasBlankReportedRemark, submitReportedRemarks } from './reportRemarksApi'
 import { DefectMarker } from './DefectMarker'
 import { useDefects } from '../../hooks/useDefects'
+import { useRemarks } from '../../hooks/useRemarks'
 import { endpoints } from '../../api/endpoints'
 
 // Renders the guided mobile wizard for new entries on phone-width viewports (unless
@@ -270,6 +274,12 @@ const ClassicFlightLogEntry = () => {
     ? (aircraftDefects?.filter((d) => d.flightId === flightId) ?? [])
     : []
 
+  // Remarks already logged against this flight (#1226) -- unlike defects, remarks are
+  // always tied to a flightId, so this can filter server-side instead of fetching by
+  // aircraft and filtering client-side.
+  const { data: existingRemarksData } = useRemarks(isNew ? undefined : flightId)
+  const existingRemarks = existingRemarksData ?? []
+
   const partiallyBillableFlight = watch('partiallyBillableFlight')
   const flightType = watch('flightType')
   const isBillableFlight = watch('isBillableFlight')
@@ -364,6 +374,8 @@ const ClassicFlightLogEntry = () => {
   // Defects found on this flight, reported alongside the entry itself instead of via
   // the old separate "Add in-flight defect" button on the logbook view -- see doSave.
   const [reportedDefects, setReportedDefects] = useState<string[]>([])
+  // Remarks found on this flight (#1226), reported the same way -- see doSave.
+  const [reportedRemarks, setReportedRemarks] = useState<string[]>([])
 
   // DTO syllabus integration
   const billableMemberIdWatched = watch('billableMemberId')
@@ -469,6 +481,9 @@ const ClassicFlightLogEntry = () => {
     if (hasBlankReportedDefect(reportedDefects)) {
       return setProblem({ status: 400, detail: t('flightLog.defects.blankDescriptionError') })
     }
+    if (hasBlankReportedRemark(reportedRemarks)) {
+      return setProblem({ status: 400, detail: t('flightLog.remarks.blankDescriptionError') })
+    }
     try {
       const { data: savedFlight, error } = await mutation.trigger(
         isNew ? 'POST' : 'PATCH',
@@ -509,6 +524,10 @@ const ClassicFlightLogEntry = () => {
           // non-fatal: the flight log itself is already saved; the pilot can still
           // report a missed defect separately via the standalone pre-flight dialog
           console.error('Failed to submit reported defects:', err)
+        })
+        await submitReportedRemarks(savedFlightId, reportedRemarks).catch((err) => {
+          // non-fatal: the flight log itself is already saved
+          console.error('Failed to submit reported remarks:', err)
         })
       }
 
@@ -987,6 +1006,23 @@ const ClassicFlightLogEntry = () => {
                 <ReportDefectsSection
                   descriptions={reportedDefects}
                   onChange={setReportedDefects}
+                />
+              </Grid>
+            )}
+
+            {/* Already logged remarks */}
+            {existingRemarks.length > 0 && (
+              <Grid size={12}>
+                <ExistingRemarks remarks={existingRemarks} />
+              </Grid>
+            )}
+
+            {/* Report Remarks */}
+            {isEditable && (
+              <Grid size={12}>
+                <ReportRemarksSection
+                  descriptions={reportedRemarks}
+                  onChange={setReportedRemarks}
                 />
               </Grid>
             )}

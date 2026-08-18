@@ -1,5 +1,6 @@
 import { FlightLogStatus } from '@mik/contracts/flight-log'
 import type { Defect } from '@mik/contracts/defects'
+import type { Remark } from '@mik/contracts/remarks'
 import { screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -39,6 +40,17 @@ const anExistingDefect = (overrides: Partial<Defect> = {}): Defect =>
     ...overrides,
   }) as unknown as Defect
 
+const anExistingRemark = (overrides: Partial<Remark> = {}): Remark => ({
+  remarkId: 'remark-existing-1',
+  flightId: 'fi_inst1',
+  description: 'Oil stain noticed on the ramp, wiped off',
+  createdAt: '2025-06-02T09:00:00.000Z',
+  createdBy: 'Matti1',
+  updatedAt: '2025-06-02T09:00:00.000Z',
+  updatedBy: 'Matti1',
+  ...overrides,
+})
+
 // FlightLogEntry renders the mobile wizard below the "sm" breakpoint and the
 // classic form at or above it. The test harness's default matchMedia stub
 // answers `matches: false` to every query -- fine for components that check
@@ -55,7 +67,7 @@ window.matchMedia = ((query: string) => ({
   removeListener: () => {},
 })) as typeof window.matchMedia
 
-const classicFormApi = (existingDefects: Defect[] = []) => {
+const classicFormApi = (existingDefects: Defect[] = [], existingRemarks: Remark[] = []) => {
   server.use(
     http.get(apiUrl('v1/flight-logs/:id'), () =>
       HttpResponse.json(aFlightLog({ flightId: 'fi_inst1', status: FlightLogStatus.NEW })),
@@ -65,6 +77,10 @@ const classicFormApi = (existingDefects: Defect[] = []) => {
       HttpResponse.json(null, { status: 404 }),
     ),
     http.get(apiUrl('v1/defects'), () => HttpResponse.json(existingDefects)),
+    http.get(apiUrl('v1/remarks'), ({ request }) => {
+      const flightId = new URL(request.url).searchParams.get('flightId')
+      return HttpResponse.json(existingRemarks.filter((r) => r.flightId === flightId))
+    }),
   )
 }
 
@@ -126,5 +142,33 @@ describe('FlightLogEntry (classic form) already-reported defects', () => {
       'href',
       'tel:0409998888',
     )
+  })
+})
+
+describe('FlightLogEntry (classic form) already-logged remarks', () => {
+  it('shows a remark already logged against this flight', async () => {
+    classicFormApi([], [anExistingRemark()])
+
+    renderClassicForm()
+
+    expect(await screen.findByText('Oil stain noticed on the ramp, wiped off')).toBeInTheDocument()
+  })
+
+  it('still offers to report new remarks alongside existing ones', async () => {
+    classicFormApi([], [anExistingRemark()])
+
+    renderClassicForm()
+
+    await screen.findByText('Oil stain noticed on the ramp, wiped off')
+    expect(screen.getByRole('button', { name: /add remark/i })).toBeInTheDocument()
+  })
+
+  it("does not show another flight's remarks", async () => {
+    classicFormApi([], [anExistingRemark({ flightId: 'some-other-flight' })])
+
+    renderClassicForm()
+
+    await screen.findByRole('button', { name: /add remark/i })
+    expect(screen.queryByText('Oil stain noticed on the ramp, wiped off')).not.toBeInTheDocument()
   })
 })

@@ -23,6 +23,7 @@ import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { MemberListResponse } from '@mik/contracts/members'
 import useApi from '../../../hooks/useApi'
 import { useDefects } from '../../../hooks/useDefects'
+import { useRemarks } from '../../../hooks/useRemarks'
 import { useMe } from '../../../hooks/useMe'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
@@ -53,6 +54,7 @@ import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
 import { useOverlapCheck } from '../useOverlapCheck'
 import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
 import { hasBlankReportedDefect, submitReportedDefects } from '../reportDefectsApi'
+import { hasBlankReportedRemark, submitReportedRemarks } from '../reportRemarksApi'
 import { endpoints } from '../../../api/endpoints'
 
 interface Props {
@@ -77,6 +79,7 @@ interface FlightLogWizardDraft {
   refueled: boolean | null
   oilAdded: boolean | null
   reportedDefects: string[]
+  reportedRemarks: string[]
 }
 
 const FIELDS_TO_VALIDATE_PER_STEP: Partial<Record<WizardStep, (keyof FlightLogUpsertRequest)[]>> = {
@@ -356,6 +359,12 @@ const FlightLogEntryWizardInner = ({
   // Mirrors the backend's own rule that an in-flight defect's flight must still be
   // unvalidated -- hidden rather than shown-then-rejected once already validated.
   const canReportDefects = !isEditing || initialData?.status === FlightLogStatus.NEW
+  // Remarks found on this flight (#1226) -- same "reported alongside the entry,
+  // submitted once the flightId exists" shape as reportedDefects.
+  const [reportedRemarks, setReportedRemarks] = useState<string[]>(
+    () => persistedDraft?.reportedRemarks ?? [],
+  )
+  const canReportRemarks = canReportDefects
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -394,6 +403,7 @@ const FlightLogEntryWizardInner = ({
         refueled,
         oilAdded,
         reportedDefects,
+        reportedRemarks,
       })
     }
     snapshot()
@@ -420,6 +430,7 @@ const FlightLogEntryWizardInner = ({
     refueled,
     oilAdded,
     reportedDefects,
+    reportedRemarks,
     watch,
     getValues,
   ])
@@ -438,6 +449,12 @@ const FlightLogEntryWizardInner = ({
   const existingDefects = flightId
     ? (aircraftDefects?.filter((d) => d.flightId === flightId) ?? [])
     : []
+
+  // Remarks already logged against this flight (#1226) -- unlike defects, remarks are
+  // always tied to a flightId, so this can filter server-side instead of fetching by
+  // aircraft and filtering client-side.
+  const { data: existingRemarksData } = useRemarks(flightId)
+  const existingRemarks = existingRemarksData ?? []
 
   const canGoNext = (): boolean => {
     switch (currentStep) {
@@ -484,6 +501,10 @@ const FlightLogEntryWizardInner = ({
       setProblem({ status: 400, detail: t('flightLog.defects.blankDescriptionError') })
       return
     }
+    if (hasBlankReportedRemark(reportedRemarks)) {
+      setProblem({ status: 400, detail: t('flightLog.remarks.blankDescriptionError') })
+      return
+    }
     setSubmitting(true)
     try {
       const { data: saved, error } = await mutation.trigger(
@@ -506,6 +527,10 @@ const FlightLogEntryWizardInner = ({
           // non-fatal: the flight log itself is already saved; the pilot can still
           // report a missed defect separately via the standalone pre-flight dialog
           console.error('Failed to submit reported defects:', err)
+        })
+        await submitReportedRemarks(savedFlightId, reportedRemarks).catch((err) => {
+          // non-fatal: the flight log itself is already saved
+          console.error('Failed to submit reported remarks:', err)
         })
       }
 
@@ -651,6 +676,10 @@ const FlightLogEntryWizardInner = ({
           existingDefects={existingDefects}
           aircraftRegistration={registration}
           onExistingDefectsChanged={mutateAircraftDefects}
+          reportedRemarks={reportedRemarks}
+          onReportedRemarksChange={setReportedRemarks}
+          canReportRemarks={canReportRemarks}
+          existingRemarks={existingRemarks}
         />
       )}
       {currentStep === 'review' && (

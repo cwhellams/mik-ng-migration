@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import { FlightType } from '@mik/contracts/flight-log'
 import type { Defect } from '@mik/contracts/defects'
+import type { Remark } from '@mik/contracts/remarks'
 import { TxtField } from '../../components/TxtField'
 import { ReportDefectsSection } from '../../components/ReportDefectsSection'
+import { ReportRemarksSection } from '../../components/ReportRemarksSection'
+import { ExistingRemarks } from '../../components/ExistingRemarks'
 import { DefectMarker } from '../../DefectMarker'
 import type { WizardFormProps } from '../types'
 
@@ -20,6 +23,13 @@ interface Props extends WizardFormProps {
   existingDefects: Defect[]
   aircraftRegistration?: string
   onExistingDefectsChanged: () => void
+  reportedRemarks: string[]
+  onReportedRemarksChange: (descriptions: string[]) => void
+  // Same editability rule as canReportDefects -- a remark can only be added while
+  // the flight is still unvalidated.
+  canReportRemarks: boolean
+  // Remarks already tied to this flight from a previous save (#1226).
+  existingRemarks: Remark[]
 }
 
 export const NotesStep = ({
@@ -34,6 +44,10 @@ export const NotesStep = ({
   existingDefects,
   aircraftRegistration,
   onExistingDefectsChanged,
+  reportedRemarks,
+  onReportedRemarksChange,
+  canReportRemarks,
+  existingRemarks,
 }: Props) => {
   const { t } = useTranslation()
   const flightType = watch('flightType')
@@ -94,6 +108,10 @@ export const NotesStep = ({
       )}
       {canReportDefects && (
         <ReportDefectsSection descriptions={reportedDefects} onChange={onReportedDefectsChange} />
+      )}
+      <ExistingRemarks remarks={existingRemarks} />
+      {canReportRemarks && (
+        <ReportRemarksSection descriptions={reportedRemarks} onChange={onReportedRemarksChange} />
       )}
     </Box>
   )

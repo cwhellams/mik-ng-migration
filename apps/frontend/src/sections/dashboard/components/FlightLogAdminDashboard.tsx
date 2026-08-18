@@ -13,6 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { FlightLogListResponse, FlightLogStatus } from '@mik/contracts/flight-log'
+import type { RecentRemarksResponse } from '@mik/contracts/remarks'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
 import { useTimezone } from '../../../hooks/useTimezone'
@@ -66,6 +67,22 @@ export const FlightLogAdminDashboard = () => {
     },
   )
 
+  // fetch recent remarks (#1226) for the "Latest Remarks" accordion below
+  const {
+    data: recentRemarks,
+    isLoading: remarksLoading,
+    error: remarksError,
+  } = useApi<RecentRemarksResponse>(
+    {
+      url: 'v1/remarks/recent',
+      alwaysSudo: true,
+      params: { limit: 10 },
+    },
+    {
+      keepPreviousData: true,
+    },
+  )
+
   return (
     <>
       <Accordion defaultExpanded>
@@ -87,6 +104,36 @@ export const FlightLogAdminDashboard = () => {
                       </Link>
                     }
                     secondary={log.incidentOrObservations}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </RemoteContent>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion defaultExpanded>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant='h5'>{t('dashboard.latestRemarks')}</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <RemoteContent isLoading={remarksLoading} error={remarksError}>
+            <List>
+              {recentRemarks?.remarks.length === 0 && (
+                <Typography>{t('dashboard.noRemarks')}</Typography>
+              )}
+              {recentRemarks?.remarks.map((remark) => (
+                <ListItem key={remark.remarkId}>
+                  <ListItemText
+                    primary={
+                      <Link
+                        to={`/logs/flights/${remark.flightId}`}
+                        onClick={() => toggleSudo(true)}
+                      >
+                        {remark.aircraftRegistration} - {formatDate(remark.takeoffTimeUtc)}
+                      </Link>
+                    }
+                    secondary={remark.description}
                   />
                 </ListItem>
               ))}

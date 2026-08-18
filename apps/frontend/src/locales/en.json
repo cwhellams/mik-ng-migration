@@ -1338,6 +1338,14 @@
       "openNote": "Open maintenance note",
       "groundingConfirmTitle": "Ground the aircraft?",
       "groundingConfirmMessage": "NOTE: Submitting this action will ground the aircraft until the defect has been repaired or transferred to the Hold Item List. Fleet Manager consultation is required."
+    },
+    "remarks": {
+      "existingSectionTitle": "Remarks",
+      "reportSectionTitle": "Report Remarks",
+      "reportSectionNote": "For minor observations that don't affect airworthiness -- anything more serious belongs in Report Defects above.",
+      "addRemarkRow": "Add remark",
+      "blankDescriptionError": "Remark description can't be empty",
+      "description": "Description"
     }
   },
   "invoicing": {
@@ -1731,6 +1739,8 @@
     },
     "latestFlightsWithIncidents": "Latest Flights with Incidents or Observations",
     "noFlightsWithIncidents": "No flights with incidents or observations.",
+    "latestRemarks": "Latest Remarks",
+    "noRemarks": "No remarks logged.",
     "newFlightsToValidate": "New Flights to Validate",
     "noNewFlights": "No new flights to validate.",
     "newFlightsSince": "{{count}} new flights since {{date}}",

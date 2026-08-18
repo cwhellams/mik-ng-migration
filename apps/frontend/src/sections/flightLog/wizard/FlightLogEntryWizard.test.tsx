@@ -1,5 +1,6 @@
 import { FlightLogStatus, type FlightLog } from '@mik/contracts/flight-log'
 import type { Defect } from '@mik/contracts/defects'
+import type { Remark } from '@mik/contracts/remarks'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -44,8 +45,19 @@ const anExistingDefect = (overrides: Partial<Defect> = {}): Defect =>
     ...overrides,
   }) as unknown as Defect
 
-const wizardApi = (existingDefects: Defect[] = []) => {
-  const state = { writes: [] as Write[], defects: [] as unknown[] }
+const anExistingRemark = (overrides: Partial<Remark> = {}): Remark => ({
+  remarkId: 'remark-existing-1',
+  flightId: 'fi_inst1',
+  description: 'Oil stain noticed on the ramp, wiped off',
+  createdAt: '2025-06-02T09:00:00.000Z',
+  createdBy: 'Matti1',
+  updatedAt: '2025-06-02T09:00:00.000Z',
+  updatedBy: 'Matti1',
+  ...overrides,
+})
+
+const wizardApi = (existingDefects: Defect[] = [], existingRemarks: Remark[] = []) => {
+  const state = { writes: [] as Write[], defects: [] as unknown[], remarks: [] as unknown[] }
 
   server.use(
     http.get(apiUrl('v1/aircrafts'), () => HttpResponse.json(anAircraftListResponse())),
@@ -58,6 +70,14 @@ const wizardApi = (existingDefects: Defect[] = []) => {
     http.get(apiUrl('v1/defects'), () => HttpResponse.json(existingDefects)),
     http.post(apiUrl('v1/defects'), async ({ request }) => {
       state.defects.push(await request.json())
+      return HttpResponse.json({})
+    }),
+    http.get(apiUrl('v1/remarks'), ({ request }) => {
+      const flightId = new URL(request.url).searchParams.get('flightId')
+      return HttpResponse.json(existingRemarks.filter((r) => r.flightId === flightId))
+    }),
+    http.post(apiUrl('v1/remarks'), async ({ request }) => {
+      state.remarks.push(await request.json())
       return HttpResponse.json({})
     }),
     http.post(apiUrl('v1/flight-logs'), async ({ request }) => {
@@ -527,6 +547,62 @@ describe('FlightLogEntryWizard saving', () => {
 
     await screen.findByText('Notes')
     expect(screen.queryByText('Landing light flickers')).not.toBeInTheDocument()
+  })
+
+  it('offers to report remarks on an entry not yet validated', async () => {
+    wizardApi()
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    expect(await screen.findByText('Notes')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add remark/i })).toBeInTheDocument()
+  })
+
+  it('shows a remark already logged against this flight, alongside the ability to add new ones', async () => {
+    wizardApi([], [anExistingRemark()])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    expect(await screen.findByText('Oil stain noticed on the ramp, wiped off')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add remark/i })).toBeInTheDocument()
+  })
+
+  it("does not show another flight's remarks", async () => {
+    wizardApi([], [anExistingRemark({ flightId: 'some-other-flight' })])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await screen.findByText('Notes')
+    expect(screen.queryByText('Oil stain noticed on the ramp, wiped off')).not.toBeInTheDocument()
+  })
+
+  it('withholds remark reporting once the entry has been validated', async () => {
+    wizardApi()
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: aFlightLog({ status: FlightLogStatus.VALIDATED }),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await screen.findByText('Notes')
+    expect(screen.queryByRole('button', { name: /add remark/i })).toBeNull()
   })
 
   it('withholds defect reporting once the entry has been validated', async () => {
