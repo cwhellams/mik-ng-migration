@@ -27,7 +27,7 @@ VALUES (
 
 INSERT INTO flight.defect (
         aircraft_registration, ajlb_seq_no, flight_id, description, flight_mins,
-        blank_rows_after, status, hil_id, created_by, updated_by
+        blank_rows_before, status, hil_id, created_by, updated_by
     )
 VALUES (
         'OH-STL', 1, NULL, 'Cabin heat control very stiff, hard to move in flight', 1100,

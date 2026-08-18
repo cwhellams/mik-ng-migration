@@ -54,7 +54,7 @@ VALUES (
 -- HIL <-> flight log links can be followed both ways for all of them.
 INSERT INTO flight.defect (
         aircraft_registration, ajlb_seq_no, flight_id, description, flight_mins,
-        blank_rows_after, status, hil_id, created_by, updated_by
+        blank_rows_before, status, hil_id, created_by, updated_by
     )
 VALUES (
         'OH-STL', 1, NULL, 'Landing light does not illuminate on pre-flight check', 1200,
@@ -72,7 +72,7 @@ VALUES (
 -- An unaddressed defect: no hold item, no maintenance release, so OH-P28 is grounded
 INSERT INTO flight.defect (
         aircraft_registration, ajlb_seq_no, flight_id, description, flight_mins,
-        blank_rows_after, status, hil_id, created_by, updated_by
+        blank_rows_before, status, hil_id, created_by, updated_by
     )
 VALUES (
         'OH-P28', 4, NULL, 'Oil seepage noticed around the cowling', 900,
