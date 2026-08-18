@@ -99,7 +99,6 @@ const insertNote = async (aircraftRegistration: string): Promise<string> => {
       description: `${TEST_MARKER} note`,
       performedBy: 'AME',
       flightMins: 50,
-      blankRowsBefore: 0,
       createdAt: new Date(),
       createdBy: 'Matti1',
     })
@@ -228,22 +227,6 @@ describe('POST /defects', () => {
     createdDefectIds.push(res.body.defectId)
   })
 
-  it('returns 400 when rows is 0 and blankRowsBefore is non-zero', async () => {
-    const res = await request(app)
-      .post('/defects')
-      .set('Cookie', `accessToken=${ownerToken}`)
-      .send({
-        aircraftRegistration: AIRCRAFT,
-        ajlbSeqNo: AJLB_SEQ_NO,
-        description: `${TEST_MARKER} invalid inline defect`,
-        flightMins: LIVE_FLIGHT_MINS,
-        rows: 0,
-        blankRowsBefore: 1,
-      })
-
-    expect(res.status).toBe(400)
-  })
-
   it('returns 400 when a pre-flight defect is backdated before the last validated flight', async () => {
     // OH-STL/1's last validated flight total is 21301 in the test data.
     const res = await request(app)
@@ -332,43 +315,16 @@ describe('PATCH /defects/:id', () => {
     expect(res.body.description).toBe('edited by owner')
   })
 
-  it('returns 400 for blankRowsBefore alone when the persisted rows is 0', async () => {
-    // The beforeEach POST explicitly sends rows: 0, and this PATCH doesn't touch rows,
-    // so the persisted value must still be checked against the incoming blankRowsBefore.
+  it('lets the owner correct rows on a pre-flight defect', async () => {
+    // The beforeEach POST's defect has no flightId, so it's a pre-flight defect:
+    // rows can be corrected after the fact if the initial entry was wrong.
     const res = await request(app)
       .patch(`/defects/${defectId}`)
       .set('Cookie', `accessToken=${ownerToken}`)
-      .send({ blankRowsBefore: 2 })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('lets the owner correct rows and blankRowsBefore together on a pre-flight defect', async () => {
-    // The beforeEach POST's defect has no flightId, so it's a pre-flight defect: rows
-    // (and blankRowsBefore) can be corrected after the fact if the initial entry was wrong.
-    const res = await request(app)
-      .patch(`/defects/${defectId}`)
-      .set('Cookie', `accessToken=${ownerToken}`)
-      .send({ rows: 1, blankRowsBefore: 2 })
+      .send({ rows: 1 })
 
     expect(res.status).toBe(200)
     expect(res.body.rows).toBe(1)
-    expect(res.body.blankRowsBefore).toBe(2)
-  })
-
-  it('returns 400 when rows is changed to 0 while blankRowsBefore stays non-zero', async () => {
-    const setup = await request(app)
-      .patch(`/defects/${defectId}`)
-      .set('Cookie', `accessToken=${ownerToken}`)
-      .send({ rows: 1, blankRowsBefore: 2 })
-    expect(setup.status).toBe(200)
-
-    const res = await request(app)
-      .patch(`/defects/${defectId}`)
-      .set('Cookie', `accessToken=${ownerToken}`)
-      .send({ rows: 0 })
-
-    expect(res.status).toBe(400)
   })
 
   it('returns 400 when changing rows on an in-flight defect', async () => {

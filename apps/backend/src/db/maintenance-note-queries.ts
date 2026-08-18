@@ -17,7 +17,6 @@ function mapRowToNote(row: DbRow<'flight.maintenanceNote'>): MaintenanceNote {
     performedBy: row.performedBy,
     flightMins: row.flightMins,
     rows: row.rows,
-    blankRowsBefore: row.blankRowsBefore,
     createdAt: row.createdAt.toISOString(),
     createdBy: row.createdBy,
   }
@@ -54,7 +53,6 @@ export async function createMaintenanceNote(
         performedBy: data.performedBy,
         flightMins: data.flightMins,
         rows: data.rows,
-        blankRowsBefore: data.blankRowsBefore,
         ...auditCreate(createdBy, now),
       })
       .returningAll()
@@ -100,7 +98,6 @@ export async function updateMaintenanceNote(
       ...(data.performedBy !== undefined && { performedBy: data.performedBy }),
       ...(data.flightMins !== undefined && { flightMins: data.flightMins }),
       ...(data.rows !== undefined && { rows: data.rows }),
-      ...(data.blankRowsBefore !== undefined && { blankRowsBefore: data.blankRowsBefore }),
       updatedAt: new Date(),
       updatedBy,
     })

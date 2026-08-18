@@ -14,7 +14,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { useForm, Controller, useWatch } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
@@ -85,11 +85,8 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
       flightHours: Math.floor(note.flightMins / 60),
       flightMinutes: note.flightMins % 60,
       rows: note.rows,
-      blankRowsBefore: note.blankRowsBefore,
     },
   })
-
-  const rows = useWatch({ control, name: 'rows' })
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -105,7 +102,6 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
       performedBy: values.performedBy,
       flightMins: values.flightHours * 60 + values.flightMinutes,
       rows: values.rows,
-      blankRowsBefore: values.rows > 0 ? values.blankRowsBefore : 0,
     })
 
     if (error) {
@@ -249,28 +245,6 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                     />
                   )}
                 />
-
-                <Controller
-                  name='blankRowsBefore'
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label={t('flightLog.maintenanceNotes.blankRowsBefore')}
-                      type='number'
-                      disabled={rows === 0}
-                      error={!!errors.blankRowsBefore}
-                      helperText={
-                        errors.blankRowsBefore?.message ??
-                        t('flightLog.maintenanceNotes.blankRowsBeforeHelp')
-                      }
-                      fullWidth
-                      slotProps={{
-                        htmlInput: { min: 0 },
-                      }}
-                    />
-                  )}
-                />
               </Box>
             ) : (
               <Box
@@ -328,20 +302,6 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                   </Typography>
                   <Typography>{note.rows}</Typography>
                 </Box>
-
-                {note.blankRowsBefore > 0 && (
-                  <Box>
-                    <Typography
-                      variant='caption'
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      {t('flightLog.maintenanceNotes.blankRowsBefore')}
-                    </Typography>
-                    <Typography>{note.blankRowsBefore}</Typography>
-                  </Box>
-                )}
 
                 {closedHil.length > 0 && (
                   <Box>

@@ -68,18 +68,6 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Defect>)
     })
   }
 
-  // A partial update (e.g. blankRowsBefore alone) must be checked against the defect's
-  // already-persisted value for whichever field it didn't touch, or it can pass
-  // validation here yet still violate the DB's zero-rows-no-blank check constraint.
-  const effectiveRows = data.rows ?? defect.rows
-  const effectiveBlankRowsBefore = data.blankRowsBefore ?? defect.blankRowsBefore
-  if (effectiveRows === 0 && effectiveBlankRowsBefore > 0) {
-    return problem({
-      status: 400,
-      detail: 'blankRowsBefore must be 0 when rows is 0',
-    })
-  }
-
   if (data.hilId !== undefined) {
     if (!isAdmin) {
       return problem({ status: 403, detail: 'Only admins can link a defect to a hold item' })

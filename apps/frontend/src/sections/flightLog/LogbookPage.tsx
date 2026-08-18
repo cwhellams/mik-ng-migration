@@ -401,7 +401,7 @@ const FlightLogsList = () => {
     ajlb?.seqNo,
   )
 
-  // A note/defect's rows/blankRowsBefore can shift data.pageItemRows (the server's
+  // A note/defect's rows can shift data.pageItemRows (the server's
   // physical-row placement for this page), so any change to either must also
   // refresh the flight-logs list, not just the note/defect list itself.
   const refreshAfterNoteChange = () => {

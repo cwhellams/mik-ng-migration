@@ -1303,8 +1303,6 @@
       "minutes": "Minuter",
       "rows": "Rader",
       "rowsHelp": "Hur många rader detta tar på den fysiska loggbokssidan (0 = visas på flygningens rad)",
-      "blankRowsBefore": "Tomma rader före",
-      "blankRowsBeforeHelp": "Tomma rader som läggs till i den fysiska loggboken före denna anteckning",
       "closeHilItems": "Stäng hold items",
       "closedHil": "Stängda hold items",
       "closeDefects": "Stäng fel",

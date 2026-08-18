@@ -196,7 +196,6 @@ describe('POST /maintenance-notes', () => {
         description: 'Annual inspection',
         performedBy: 'Matti Virtanen',
         flightMins: LIVE_FLIGHT_MINS,
-        blankRowsBefore: 1,
       })
 
     expect(res.status).toBe(201)
@@ -206,7 +205,6 @@ describe('POST /maintenance-notes', () => {
       description: 'Annual inspection',
       performedBy: 'Matti Virtanen',
       flightMins: LIVE_FLIGHT_MINS,
-      blankRowsBefore: 1,
       createdBy: 'Matti1',
       createdAt: expect.any(String),
       noteId: expect.any(String),
@@ -230,26 +228,8 @@ describe('POST /maintenance-notes', () => {
 
     expect(res.status).toBe(201)
     expect(res.body.rows).toBe(0)
-    expect(res.body.blankRowsBefore).toBe(0)
 
     createdNoteId = res.body.noteId
-  })
-
-  it('returns 400 when rows is 0 and blankRowsBefore is non-zero', async () => {
-    const res = await request(app)
-      .post('/maintenance-notes')
-      .set('Cookie', `accessToken=${adminToken}`)
-      .send({
-        aircraftRegistration: AIRCRAFT,
-        ajlbSeqNo: AJLB_SEQ_NO,
-        description: 'Invalid inline note',
-        performedBy: 'Matti Virtanen',
-        flightMins: LIVE_FLIGHT_MINS,
-        rows: 0,
-        blankRowsBefore: 2,
-      })
-
-    expect(res.status).toBe(400)
   })
 
   it('returns 400 when flightMins is before the last validated flight', async () => {
@@ -366,7 +346,6 @@ describe('POST /maintenance-notes with hilIds', () => {
         description: `${TEST_MARKER} nav light`,
         flightMins: 120,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -429,7 +408,6 @@ describe('POST /maintenance-notes with hilIds', () => {
         description: `${TEST_MARKER} other aircraft nav light`,
         flightMins: 90,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -490,7 +468,6 @@ describe('POST /maintenance-notes with defectIds', () => {
         description: `${TEST_MARKER} oil seepage`,
         flightMins: 140,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -503,7 +480,6 @@ describe('POST /maintenance-notes with defectIds', () => {
         description: `${TEST_MARKER} other aircraft`,
         flightMins: 50,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -583,7 +559,6 @@ describe('PATCH /maintenance-notes/:id', () => {
         performedBy: 'Matti Virtanen',
         flightMins: 200,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -680,60 +655,6 @@ describe('PATCH /maintenance-notes/:id', () => {
       .send({ description: 'ghost update' })
 
     expect(res.status).toBe(404)
-  })
-})
-
-describe('PATCH /maintenance-notes/:id rows/blankRowsBefore cross-validation', () => {
-  it('returns 400 for blankRowsBefore alone when the persisted rows is already 0', async () => {
-    const note = await createMaintenanceNote(
-      {
-        aircraftRegistration: AIRCRAFT,
-        ajlbSeqNo: AJLB_SEQ_NO,
-        description: 'Inline note for PATCH cross-validation',
-        performedBy: 'Matti Virtanen',
-        flightMins: 200,
-        rows: 0,
-        blankRowsBefore: 0,
-      },
-      'Matti1',
-    )
-
-    try {
-      const res = await request(app)
-        .patch(`/maintenance-notes/${note.noteId}`)
-        .set('Cookie', `accessToken=${adminToken}`)
-        .send({ blankRowsBefore: 2 })
-
-      expect(res.status).toBe(400)
-    } finally {
-      await deleteMaintenanceNote(note.noteId)
-    }
-  })
-
-  it('returns 400 for rows: 0 alone when the persisted blankRowsBefore is already non-zero', async () => {
-    const note = await createMaintenanceNote(
-      {
-        aircraftRegistration: AIRCRAFT,
-        ajlbSeqNo: AJLB_SEQ_NO,
-        description: 'Note with blankRowsBefore for PATCH cross-validation',
-        performedBy: 'Matti Virtanen',
-        flightMins: 200,
-        rows: 1,
-        blankRowsBefore: 2,
-      },
-      'Matti1',
-    )
-
-    try {
-      const res = await request(app)
-        .patch(`/maintenance-notes/${note.noteId}`)
-        .set('Cookie', `accessToken=${adminToken}`)
-        .send({ rows: 0 })
-
-      expect(res.status).toBe(400)
-    } finally {
-      await deleteMaintenanceNote(note.noteId)
-    }
   })
 })
 

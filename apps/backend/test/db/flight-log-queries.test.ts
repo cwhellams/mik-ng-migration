@@ -336,7 +336,6 @@ describe('Db query FlightLog tests', () => {
         description: 'fills the rest of page 502 plus all of page 504',
         flightMins: 700405 + 60, // anchors to flightA (700465), not flightB
         rows: 9,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -359,12 +358,11 @@ describe('Db query FlightLog tests', () => {
     // OH-STL ajlb_seq_no 3's live region starts right after pob25a03 (cumulative
     // 700405, the last row of page 500). flightA (60 min) becomes the sole flight
     // on page 502 (row 1, absolute row 6). A defect anchored right after it, with
-    // blankRowsBefore: 4 + rows: 2 (6 rows total, absolute rows 7-12), only has 4
-    // rows of room left on page 502 (rows 2-5) -- those are the leading blank
-    // spacer rows, and the item's content row (the first of its own 2) carries
-    // onto page 504, matching flight.vw_ajlb_live_rows' physical-row breakdown
-    // instead of either overflowing page 502 past 5 rows or dropping the
-    // carried-over rows entirely.
+    // rows: 6 (absolute rows 7-12), only has 4 rows of room left on page 502
+    // (rows 2-5) -- its content row (the first of its own 6) lands there, but the
+    // remaining 2 rows must carry onto page 504 as blank continuation, matching
+    // flight.vw_ajlb_live_rows' physical-row breakdown instead of either
+    // overflowing page 502 past 5 rows or dropping the carried-over rows entirely.
     const flightIdA = await insertFlightLog(
       {
         aircraftRegistration: 'OH-STL',
@@ -407,8 +405,7 @@ describe('Db query FlightLog tests', () => {
         flightId: null,
         description: 'spans page 502 into page 504',
         flightMins: 700405 + 60, // anchors right after flightA
-        rows: 2,
-        blankRowsBefore: 4,
+        rows: 6,
       },
       'Matti1',
     )
@@ -421,22 +418,22 @@ describe('Db query FlightLog tests', () => {
       })
       expect(page502.logs).toHaveLength(1)
       expect(page502.pageItemRows).toEqual([
-        { rowNumber: 2, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
+        { rowNumber: 2, itemType: 'defect', itemId: defect.defectId, isContentRow: true },
         { rowNumber: 3, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
         { rowNumber: 4, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
         { rowNumber: 5, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
       ])
 
-      // Page 504 picks up the item's content row (the first of its own 2 rows,
-      // after all 4 leading blank spacer rows landed on page 502) plus its
-      // continuation row.
+      // Page 504 also picks up whatever real fixture flights land on the rows after
+      // the carried-over continuation (rows 3-5) -- irrelevant here, only the
+      // continuation's own row placement (rows 1-2) is under test.
       const page504 = await getFlightLogs({
         aircraftRegistration: 'OH-STL',
         ajlbSeqNo: 3,
         page: 504,
       })
       expect(page504.pageItemRows).toEqual([
-        { rowNumber: 1, itemType: 'defect', itemId: defect.defectId, isContentRow: true },
+        { rowNumber: 1, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
         { rowNumber: 2, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
       ])
     } finally {
@@ -461,7 +458,6 @@ describe('Db query FlightLog tests', () => {
         description: 'found on the ramp before the earliest live flight',
         flightMins: 700000,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )

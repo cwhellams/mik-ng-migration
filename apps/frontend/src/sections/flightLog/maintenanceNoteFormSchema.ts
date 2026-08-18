@@ -6,7 +6,6 @@ export const MaintenanceNoteFormSchema = z.object({
   flightHours: z.coerce.number().int().min(0),
   flightMinutes: z.coerce.number().int().min(0).max(59),
   rows: z.coerce.number().int().min(0),
-  blankRowsBefore: z.coerce.number().int().min(0),
 })
 
 export type MaintenanceNoteFormValues = z.infer<typeof MaintenanceNoteFormSchema>

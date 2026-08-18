@@ -1,24 +1,17 @@
--- Product decision: the "blank rows after" spacer on maintenance notes/defects is
--- replaced by "blank rows before", matching the ajlb_blank_rows_before concept flights
--- already have (V1700). A multi-row item's own rows (rows > 1) already aren't "blank"
--- -- that part is unchanged, only the standalone spacer rows move from after the item's
--- content to before it.
+-- Product decision: maintenance notes/defects don't need any "blank rows"
+-- concept at all -- `rows` (how many physical rows the item's own content
+-- occupies) is already enough, and testers can just raise it to leave extra
+-- space. Only flights keep a "blank rows before" concept, via the existing
+-- ajlb_blank_rows_before column and its logbook UI button -- untouched here.
 --
--- This only changes in-progress (not-yet-validated) pages: flight.vw_ajlb_live_sequence
--- only ever includes notes/defects at or after the last-validated baseline, so any
--- already-printed/validated page is untouched.
+-- Drops blank_rows_after from flight.maintenance_note/flight.defect entirely
+-- (added back in V1220/V1223, extended by V1700). The cross-field
+-- "zero rows means zero blank" constraints and the original >=0 check on the
+-- column itself are dropped automatically with it -- Postgres drops table
+-- constraints that reference only the dropped column. The dependent view
+-- (flight.vw_ajlb_live_sequence) is repointed first so DROP COLUMN doesn't
+-- need CASCADE.
 
-ALTER TABLE flight.maintenance_note
-  RENAME COLUMN blank_rows_after TO blank_rows_before;
-
-ALTER TABLE flight.defect
-  RENAME COLUMN blank_rows_after TO blank_rows_before;
-
--- Re-point of flight.vw_ajlb_live_sequence: same row-count math (rows_consumed is
--- still blank_rows_before + rows for an item), but now also carries where within
--- that block the content row sits (content_row_offset), since it's no longer always
--- the block's first row -- it's the first row of the item's own `rows` portion,
--- after the leading blank_rows_before spacer rows.
 CREATE OR REPLACE VIEW flight.vw_ajlb_live_sequence AS
 
 WITH last_validated AS (
@@ -70,8 +63,7 @@ live_flights AS (
             OVER (PARTITION BY l.aircraft_registration, l.ajlb_seq_no
                   ORDER BY l.off_block_time_epoch, l.flight_id
                   ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ac_total_landings,
-        (l.ajlb_blank_rows_before + 1)::int4 AS rows_consumed,
-        NULL::int4 AS content_row_offset
+        (l.ajlb_blank_rows_before + 1)::int4 AS rows_consumed
     FROM flight.logs AS l
     JOIN baseline AS b
         ON b.aircraft_registration = l.aircraft_registration AND b.ajlb_seq_no = l.ajlb_seq_no
@@ -81,8 +73,7 @@ live_flights AS (
 live_items AS (
     SELECT 'note'::text AS item_type, n.note_id::text AS item_id,
         n.aircraft_registration, n.ajlb_seq_no, n.flight_mins,
-        (n.blank_rows_before + n.rows)::int4 AS rows_consumed,
-        n.blank_rows_before::int4 AS content_row_offset, n.created_at
+        n.rows::int4 AS rows_consumed, n.created_at
     FROM flight.maintenance_note AS n
     JOIN baseline AS b
         ON b.aircraft_registration = n.aircraft_registration AND b.ajlb_seq_no = n.ajlb_seq_no
@@ -92,8 +83,7 @@ live_items AS (
 
     SELECT 'defect'::text AS item_type, d.defect_id::text AS item_id,
         d.aircraft_registration, d.ajlb_seq_no, d.flight_mins,
-        (d.blank_rows_before + d.rows)::int4 AS rows_consumed,
-        d.blank_rows_before::int4 AS content_row_offset, d.created_at
+        d.rows::int4 AS rows_consumed, d.created_at
     FROM flight.defect AS d
     JOIN baseline AS b
         ON b.aircraft_registration = d.aircraft_registration AND b.ajlb_seq_no = d.ajlb_seq_no
@@ -108,7 +98,6 @@ anchored_items AS (
         li.ajlb_seq_no,
         li.flight_mins,
         li.rows_consumed,
-        li.content_row_offset,
         li.created_at,
         b.baseline_mins,
         anchor.flight_id AS anchor_flight_id,
@@ -140,7 +129,6 @@ sequenced AS (
         NULL::int4 AS sort_flight_mins,
         NULL::timestamptz AS sort_created_at,
         rows_consumed,
-        content_row_offset,
         ac_total_flight_mins,
         ac_total_landings,
         NULL::text AS anchor_flight_id
@@ -163,7 +151,6 @@ sequenced AS (
         flight_mins,
         created_at,
         rows_consumed,
-        content_row_offset,
         NULL::int8,
         NULL::int8,
         anchor_flight_id::text
@@ -187,30 +174,14 @@ SELECT
             ORDER BY s.sort_epoch, s.sort_tiebreak, s.sort_type_rank,
                 s.sort_flight_mins, s.sort_created_at, s.item_id
             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-        ) AS ajlb_row_number,
-    -- Appended at the end (CREATE OR REPLACE VIEW may only add trailing
-    -- columns): the offset within the item's rows_consumed block where its
-    -- content row sits, used by vw_ajlb_live_rows below. NULL for flights.
-    s.content_row_offset
+        ) AS ajlb_row_number
 FROM sequenced AS s
 JOIN baseline AS b
     ON b.aircraft_registration = s.aircraft_registration AND b.ajlb_seq_no = s.ajlb_seq_no;
 
 
--- Content row is now the first row of the item's own `rows` portion, i.e. at
--- row_offset = content_row_offset (the number of leading blank_rows_before spacer
--- rows), not always row_offset = 0.
-CREATE OR REPLACE VIEW flight.vw_ajlb_live_rows AS
+ALTER TABLE flight.maintenance_note
+  DROP COLUMN blank_rows_after;
 
-SELECT
-    s.aircraft_registration,
-    s.ajlb_seq_no,
-    s.item_type,
-    s.item_id,
-    gs.row_offset = s.content_row_offset AS is_content_row,
-    1 + MOD(s.ajlb_row_number - s.rows_consumed + gs.row_offset, s.rows_per_page)::int4 AS row_number,
-    s.start_page
-        + 2 * ((s.ajlb_row_number - s.rows_consumed + gs.row_offset) / s.rows_per_page)::int4 AS page_number
-FROM flight.vw_ajlb_live_sequence AS s
-CROSS JOIN LATERAL generate_series(0, s.rows_consumed - 1) AS gs(row_offset)
-WHERE s.item_type != 'flight';
+ALTER TABLE flight.defect
+  DROP COLUMN blank_rows_after;

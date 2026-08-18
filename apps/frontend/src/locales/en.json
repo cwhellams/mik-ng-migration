@@ -1295,8 +1295,6 @@
       "minutes": "Minutes",
       "rows": "Rows",
       "rowsHelp": "How many rows this takes on the physical logbook page (0 = shown inline on the flight's row)",
-      "blankRowsBefore": "Blank rows before",
-      "blankRowsBeforeHelp": "Blank rows added to physical logbook before this note",
       "closeHilItems": "Close hold items",
       "closedHil": "Closed hold items",
       "closeDefects": "Close defects",

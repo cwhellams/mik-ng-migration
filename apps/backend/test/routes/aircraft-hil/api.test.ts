@@ -320,7 +320,6 @@ describe('GET /aircraft-hil/overview', () => {
         description: `${TEST_MARKER} oil leak`,
         flightMins: 100,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -348,7 +347,6 @@ describe('GET /aircraft-hil/overview', () => {
         description: `${TEST_MARKER} flap indicator`,
         flightMins: 250,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -413,7 +411,6 @@ describe('GET /aircraft-hil/overview', () => {
         description: `${TEST_MARKER} release`,
         performedBy: 'AME',
         flightMins: 100,
-        blankRowsBefore: 0,
         createdAt: new Date(),
         createdBy: 'Matti1',
       })
@@ -458,7 +455,6 @@ describe('POST /aircraft-hil', () => {
         description: `${TEST_MARKER} nav light`,
         flightMins: 120,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -773,7 +769,6 @@ describe('PATCH /aircraft-hil/:id', () => {
         description: `${TEST_MARKER} wrong aircraft note`,
         performedBy: 'AME',
         flightMins: 50,
-        blankRowsBefore: 0,
         createdAt: new Date(),
         createdBy: 'Matti1',
       })
@@ -797,7 +792,6 @@ describe('PATCH /aircraft-hil/:id', () => {
         description: `${TEST_MARKER} cascade defect`,
         flightMins: 60,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -815,7 +809,6 @@ describe('PATCH /aircraft-hil/:id', () => {
         description: `${TEST_MARKER} release`,
         performedBy: 'AME',
         flightMins: 65,
-        blankRowsBefore: 0,
         createdAt: new Date(),
         createdBy: 'Matti1',
       })
@@ -853,7 +846,6 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
         description: `${TEST_MARKER} ${description}`,
         flightMins,
         rows: 1,
-        blankRowsBefore: 0,
       },
       'Matti1',
     )
@@ -970,7 +962,6 @@ describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
         description: `${TEST_MARKER} release`,
         performedBy: 'AME',
         flightMins: 380,
-        blankRowsBefore: 0,
         createdAt: new Date(),
         createdBy: 'Matti1',
       })
