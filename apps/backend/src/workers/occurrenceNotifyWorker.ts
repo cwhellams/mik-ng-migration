@@ -1,7 +1,10 @@
 import 'dotenv/config'
 
 import logger from '../lib/logger.ts'
-import { getOccurrences } from '../db/occurrence-queries.ts'
+import {
+  getOccurrencesPendingNotification,
+  markOccurrenceNotified,
+} from '../db/occurrence-queries.ts'
 import { OccurrenceStatus } from '@mik/contracts/occurrences'
 import { sendOccurrenceNotification } from '../templates/occurrenceNotification.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
@@ -36,20 +39,10 @@ async function sendOccurrenceNotifications(sendEmailFn: typeof sendEmail): Promi
     const smsProcessorRoles = await getMemberRolesByPermission(MIKPermissions.SMS_PROCESSOR)
     const smsManagerRoles = await getMemberRolesByPermission(MIKPermissions.SMS_MANAGER)
 
-    // find NEW, ANONYMIZING and ANONYMIZED occurrences
-    const pendingOccurrences = await getOccurrences(
-      {
-        ignoreStatuses: [
-          OccurrenceStatus.RECEIVED,
-          OccurrenceStatus.PROCESSED,
-          OccurrenceStatus.CLOSED,
-          OccurrenceStatus.DELETED,
-        ],
-      },
-      {
-        roles: [...smsProcessorRoles.map((r) => r.roleId), ...smsManagerRoles.map((r) => r.roleId)],
-      },
-    )
+    // find NEW, ANONYMIZING and ANONYMIZED occurrences not yet notified for their current status
+    const pendingOccurrences = await getOccurrencesPendingNotification({
+      roles: [...smsProcessorRoles.map((r) => r.roleId), ...smsManagerRoles.map((r) => r.roleId)],
+    })
 
     if (pendingOccurrences.length === 0) {
       logger.info('No pending occurrences found')
@@ -67,6 +60,7 @@ async function sendOccurrenceNotifications(sendEmailFn: typeof sendEmail): Promi
             : smsManagerRoles.map((r) => r.roleId)
 
         await sendOccurrenceNotification(sendEmailFn, rolesToNotify, occurrence)
+        await markOccurrenceNotified(occurrence.id, occurrence.status)
       } catch (error) {
         logger.error(`Error sending notification for occurrence ${occurrence.id}:`, error)
       }

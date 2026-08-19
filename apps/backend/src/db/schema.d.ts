@@ -1048,6 +1048,8 @@ export interface FlightOccurrences {
   isWeatherRelevant: boolean | null
   linkedReportId: string | null
   location: string
+  notifiedAt: Timestamp | null
+  notifiedStatus: Occurrencestatus | null
   occurrenceDate: Timestamp
   processedDate: Timestamp | null
   registration: string | null

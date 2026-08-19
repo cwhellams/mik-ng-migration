@@ -206,6 +206,58 @@ export async function getOccurrences(
   return results.map((r) => toOccurrence(r, [], []))
 }
 
+/**
+ * Pending occurrences (NEW/ANONYMIZING/ANONYMIZED) that have not yet been
+ * notified for their *current* status. Once notified, a row is skipped on
+ * subsequent runs until its status changes again — otherwise the daily
+ * worker would re-email the same occurrence every day it stays pending.
+ */
+export async function getOccurrencesPendingNotification(limitations: {
+  roles: string[]
+}): Promise<Occurrence[]> {
+  const results = await connection.db
+    .selectFrom('flight.occurrences')
+    .selectAll('flight.occurrences')
+    .innerJoin(
+      'flight.occurrenceAccess',
+      'flight.occurrences.reportId',
+      'flight.occurrenceAccess.reportId',
+    )
+    .where((eb) => hasAccess(eb, limitations))
+    .where('status', 'in', [
+      OccurrenceStatus.NEW,
+      OccurrenceStatus.ANONYMIZING,
+      OccurrenceStatus.ANONYMIZED,
+    ])
+    .where((eb) =>
+      eb.or([eb('notifiedStatus', 'is', null), eb('notifiedStatus', '!=', eb.ref('status'))]),
+    )
+    .distinctOn('flight.occurrences.reportId')
+    .orderBy('flight.occurrences.reportId')
+    .orderBy('reportDate', 'desc')
+    // keep the anonymized report with the same report date ordered first
+    .orderBy('createdAt', 'desc')
+    .execute()
+
+  return results.map((r) => toOccurrence(r, [], []))
+}
+
+/**
+ * Records that an occurrence has been notified for its current status, so
+ * `getOccurrencesPendingNotification` skips it until the status changes.
+ */
+export async function markOccurrenceNotified(
+  reportId: string,
+  status: OccurrenceStatus,
+  executor: Executor = connection.db,
+): Promise<void> {
+  await executor
+    .updateTable('flight.occurrences')
+    .set({ notifiedStatus: status, notifiedAt: new Date() })
+    .where('reportId', '=', reportId)
+    .execute()
+}
+
 export async function createOccurrence(
   occurrence: OccurrenceUpsert & {
     reportDate: string

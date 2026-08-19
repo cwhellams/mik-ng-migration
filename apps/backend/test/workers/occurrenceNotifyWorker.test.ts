@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals'
 import type { ScheduledTask, TaskContext, TaskFn, TaskOptions } from 'node-cron'
 import { sendEmail } from '../../src/lib/sendGmail.ts'
+import { db } from '../../src/db/connection.ts'
 
 describe('Occurrence Notifying Worker', () => {
   let mockSendEmail: jest.Mock & typeof sendEmail
@@ -29,8 +30,18 @@ describe('Occurrence Notifying Worker', () => {
       })
   })
 
+  afterEach(async () => {
+    // The worker marks pending occurrences as notified as a side effect; reset
+    // that so shared test data stays pristine for other tests/re-runs.
+    await db
+      .updateTable('flight.occurrences')
+      .set({ notifiedStatus: null, notifiedAt: null })
+      .where('reportId', 'like', 'SMS%')
+      .execute()
+  })
+
   describe('Worker Initialization', () => {
-    it('should schedule task when worker is enabled', async () => {
+    it('should schedule task when worker is enabled, and not re-send on a later run', async () => {
       const { startOccurrenceNotificationWorker } =
         await import('../../src/workers/occurrenceNotifyWorker.ts')
 
@@ -48,7 +59,19 @@ describe('Occurrence Notifying Worker', () => {
       expect(mockSendEmail).toHaveBeenCalledTimes(5)
 
       worker.stop()
-    }, 15000)
+
+      // A later run (e.g. the next day's cron tick) must not re-send the same
+      // notifications, since none of the occurrences changed status.
+      mockSendEmail.mockClear()
+
+      const laterWorker = startOccurrenceNotificationWorker({
+        sendEmailFn: mockSendEmail,
+        cronSchedule: mockCronSchedule,
+      })
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+      expect(mockSendEmail).not.toHaveBeenCalled()
+      laterWorker.stop()
+    }, 20000)
 
     it('should not schedule task when worker is disabled', async () => {
       process.env.OCCURRENCE_NOTIFICATION_WORKER_ENABLED = 'false'
