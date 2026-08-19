@@ -1,0 +1,28 @@
+# Security headers for frontend static site (served by DO App Platform)
+# These headers apply to the HTML document and built JS/CSS assets.
+# Headers for /api, /auth, /health, /t are set by helmet() in apps/backend/src/app.ts.
+#
+# DO App Platform static sites support Netlify-style _headers files:
+# https://docs.netlify.com/routing/headers/#syntax-for-the-headers-file
+#
+# This file addresses issue #1149 — frontend was missing headers that only the API
+# received from helmet(), and Permissions-Policy was missing everywhere.
+
+/*
+  # Cross-Origin headers (from helmet() defaults, now also on frontend)
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  # Permissions-Policy — locks down unused browser features
+  # Matches backend helmet() configuration
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()
+  # Additional helmet() defaults now applied to frontend
+  X-Permitted-Cross-Domain-Policies: none
+  X-DNS-Prefetch-Control: off
+  Origin-Agent-Cluster: ?1
+  # X-XSS-Protection: 0 per OWASP/MDN (disables deprecated XSS auditor)
+  # Cloudflare edge rule currently sets this to "1; mode=block" (legacy value).
+  # This explicit "0" in _headers may be overridden by the edge rule depending on
+  # header precedence; we document the correct value here regardless.
+  X-XSS-Protection: 0
+  # Note: CSP and HSTS are provided by Cloudflare edge rule (applies to all paths).
+  # We do not duplicate them here.

@@ -76,7 +76,49 @@ app.use(
 )
 
 // Security Middlewares
-app.use(helmet()) // Secure headers
+// helmet() v8.3.0 defaults (see https://github.com/helmetjs/helmet#reference):
+// - contentSecurityPolicy: disabled here to avoid duplication with Cloudflare edge rule
+// - crossOriginOpenerPolicy: { policy: "same-origin" } (COOP)
+// - crossOriginResourcePolicy: { policy: "same-origin" } (CORP)
+// - xDnsPrefetchControl: { allow: false }
+// - xPermittedCrossDomainPolicies: { permittedPolicies: "none" }
+// - originAgentCluster
+// - xXssProtection: 0 (disables legacy XSS auditor per OWASP/MDN guidance)
+//
+// Cloudflare edge rule provides CSP for both API and frontend; HSTS is also via edge rule.
+app.use(
+  helmet({
+    // Disable CSP to avoid duplication with Cloudflare edge rule (see issue #1149)
+    contentSecurityPolicy: false,
+    // Cloudflare edge rule owns HSTS; avoid duplicate Strict-Transport-Security headers.
+    strictTransportSecurity: false,
+  }),
+)
+
+// Permissions-Policy header (manually added as helmet v8 doesn't include it)
+// Locks down unused browser features per issue #1149
+app.use((_req, res, next) => {
+  res.setHeader(
+    'Permissions-Policy',
+    'geolocation=(), camera=(), microphone=(), payment=(), usb=()',
+  )
+  next()
+})
+
+// Fallback CSP for requests that reach this app without going through the
+// Cloudflare edge rule (e.g. CORS_ALLOWED_ORIGINS includes the raw DO
+// app-platform origin, which reaches this service directly). Cloudflare adds
+// a `CF-Ray` header to every request it proxies, so its absence means this
+// response would otherwise leave with no CSP at all. Gating on it also means
+// Cloudflare-proxied responses never end up with two CSP headers.
+const fallbackContentSecurityPolicy = helmet.contentSecurityPolicy()
+app.use((req, res, next) => {
+  if (req.headers['cf-ray']) {
+    next()
+    return
+  }
+  fallbackContentSecurityPolicy(req, res, next)
+})
 
 // Parse CORS allowed origins from comma-separated environment variable.
 // Wildcard ('*') is explicitly rejected — it cannot be used with credentialed requests
