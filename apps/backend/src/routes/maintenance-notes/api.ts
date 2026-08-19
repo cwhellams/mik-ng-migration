@@ -10,6 +10,7 @@ import {
   getMaintenanceNote,
   createMaintenanceNote,
   updateMaintenanceNote,
+  deleteMaintenanceNote,
 } from '../../db/maintenance-note-queries.ts'
 import { getAjlbLiveBaselineFlightMins } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -67,20 +68,6 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Maintena
     }
   }
 
-  // The schema's own refine only validates rows/blankRowsAfter against each
-  // other *within this PATCH body* -- a partial update (e.g. blankRowsAfter
-  // alone) must be checked against the note's already-persisted value for
-  // whichever field it didn't touch, or it can pass validation here yet still
-  // violate the DB's zero-rows-no-blank check constraint.
-  const effectiveRows = data.rows ?? existing.rows
-  const effectiveBlankRowsAfter = data.blankRowsAfter ?? existing.blankRowsAfter
-  if (effectiveRows === 0 && effectiveBlankRowsAfter > 0) {
-    return problem({
-      status: 400,
-      detail: 'blankRowsAfter must be 0 when rows is 0',
-    })
-  }
-
   const updated = await updateMaintenanceNote(
     id,
     data,
@@ -89,6 +76,29 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Maintena
   )
   if (!updated) return problem({ status: 404, detail: 'Maintenance note not found' })
   res.status(200).json(updated)
+})
+
+router.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
+  const { id } = req.params
+  const isAdmin = req.user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN)
+
+  const existing = await getMaintenanceNote(id)
+  if (!existing) return problem({ status: 404, detail: 'Maintenance note not found' })
+
+  const baseline = await getAjlbLiveBaselineFlightMins(
+    existing.aircraftRegistration,
+    existing.ajlbSeqNo,
+  )
+  if (existing.flightMins < baseline) {
+    return problem({
+      status: 400,
+      detail: "This time can't be earlier than the logbook's last validated flight",
+    })
+  }
+
+  const deleted = await deleteMaintenanceNote(id, isAdmin ? undefined : req.user!.memberId!)
+  if (!deleted) return problem({ status: 404, detail: 'Maintenance note not found' })
+  res.status(204).end()
 })
 
 export default router

@@ -11,8 +11,8 @@ interface DefectMarkerProps {
   aircraftRegistration: string
   onChanged: () => void
   highlighted?: boolean
-  /** Anchor flight's date, shown next to the marker when it renders on its own row. */
-  flightDate?: string | null
+  /** Date this defect was recorded, shown next to the marker when it renders on its own row. */
+  recordedDate?: string | null
 }
 
 export const DefectMarker: React.FC<DefectMarkerProps> = ({
@@ -20,7 +20,7 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
   aircraftRegistration,
   onChanged,
   highlighted,
-  flightDate,
+  recordedDate,
 }) => {
   const { t } = useTranslation()
   const { formatDate } = useTimezone()
@@ -44,8 +44,8 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
   return (
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {flightDate && (
-          <Typography sx={{ whiteSpace: 'nowrap' }}>{formatDate(flightDate)}</Typography>
+        {recordedDate && (
+          <Typography sx={{ whiteSpace: 'nowrap' }}>{formatDate(recordedDate)}</Typography>
         )}
         <Tooltip title={tooltip} placement='top'>
           <Chip

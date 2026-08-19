@@ -858,7 +858,6 @@ export interface FlightAircraftNavdata {
 export interface FlightDefect {
   aircraftRegistration: string
   ajlbSeqNo: number
-  blankRowsAfter: Generated<number>
   createdAt: Generated<Timestamp>
   createdBy: string
   defectId: Generated<string>
@@ -980,7 +979,6 @@ export interface FlightLogsAudit {
 export interface FlightMaintenanceNote {
   aircraftRegistration: string
   ajlbSeqNo: number
-  blankRowsAfter: Generated<number>
   createdAt: Generated<Timestamp>
   createdBy: string
   description: string
@@ -1059,6 +1057,26 @@ export interface FlightOccurrences {
   technicalFaults: boolean | null
   updatedAt: Generated<Timestamp>
   updatedBy: string
+}
+
+export interface FlightRemark {
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  description: string
+  flightId: string
+  remarkId: Generated<string>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
+export interface FlightRemarkAudit {
+  auditId: Generated<number>
+  changedAt: Generated<Timestamp>
+  changedBy: string
+  changedData: Json | null
+  newData: Json | null
+  operationType: string
+  remarkId: string
 }
 
 export interface FlightVwAircraftGroundingStatus {
@@ -2239,6 +2257,8 @@ export interface DB {
   'flight.occurrenceAccess': FlightOccurrenceAccess
   'flight.occurrenceAttachments': FlightOccurrenceAttachments
   'flight.occurrences': FlightOccurrences
+  'flight.remark': FlightRemark
+  'flight.remarkAudit': FlightRemarkAudit
   'flight.vwAircraftGroundingStatus': FlightVwAircraftGroundingStatus
   'flight.vwAjlbLiveRows': FlightVwAjlbLiveRows
   'flight.vwAjlbLiveSequence': FlightVwAjlbLiveSequence

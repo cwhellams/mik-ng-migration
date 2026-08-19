@@ -1,9 +1,11 @@
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import { FlightType } from '@mik/contracts/flight-log'
+import type { Defect } from '@mik/contracts/defects'
+import type { Remark } from '@mik/contracts/remarks'
 import { TxtField } from '../../components/TxtField'
-import { ReportDefectsSection } from '../../components/ReportDefectsSection'
+import { DefectsAndRemarksSection } from '../../components/DefectsAndRemarksSection'
 import type { WizardFormProps } from '../types'
 
 interface Props extends WizardFormProps {
@@ -13,6 +15,18 @@ interface Props extends WizardFormProps {
   // backend's own rule (see apps/backend/src/routes/defects/api.ts) -- hidden rather
   // than shown-then-rejected once a flight has been validated.
   canReportDefects: boolean
+  // Defects already tied to this flight (flightId) from a previous save --
+  // shown so editing an existing entry doesn't hide what's already reported.
+  existingDefects: Defect[]
+  aircraftRegistration?: string
+  onExistingDefectsChanged: () => void
+  reportedRemarks: string[]
+  onReportedRemarksChange: (descriptions: string[]) => void
+  // Same editability rule as canReportDefects -- a remark can only be added while
+  // the flight is still unvalidated.
+  canReportRemarks: boolean
+  // Remarks already tied to this flight from a previous save (#1226).
+  existingRemarks: Remark[]
 }
 
 export const NotesStep = ({
@@ -24,6 +38,13 @@ export const NotesStep = ({
   reportedDefects,
   onReportedDefectsChange,
   canReportDefects,
+  existingDefects,
+  aircraftRegistration,
+  onExistingDefectsChanged,
+  reportedRemarks,
+  onReportedRemarksChange,
+  canReportRemarks,
+  existingRemarks,
 }: Props) => {
   const { t } = useTranslation()
   const flightType = watch('flightType')
@@ -46,16 +67,33 @@ export const NotesStep = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <TxtField
-        name='incidentOrObservations'
-        control={control}
-        props={{ multiline: true, rows: 3, fullWidth: true }}
+      <DefectsAndRemarksSection
+        reportedDefects={reportedDefects}
+        onReportedDefectsChange={onReportedDefectsChange}
+        canReportDefects={canReportDefects}
+        existingDefects={existingDefects}
+        aircraftRegistration={aircraftRegistration}
+        onExistingDefectsChanged={onExistingDefectsChanged}
+        reportedRemarks={reportedRemarks}
+        onReportedRemarksChange={onReportedRemarksChange}
+        canReportRemarks={canReportRemarks}
+        existingRemarks={existingRemarks}
       />
-      <TxtField
-        name='personalRemarks'
-        control={control}
-        props={{ multiline: true, rows: 3, fullWidth: true }}
-      />
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+          {t('flightLog.otherNotesTitle')}
+        </Typography>
+        <TxtField
+          name='incidentOrObservations'
+          control={control}
+          props={{ variant: 'standard', multiline: true, rows: 2, fullWidth: true }}
+        />
+        <TxtField
+          name='personalRemarks'
+          control={control}
+          props={{ variant: 'standard', multiline: true, rows: 2, fullWidth: true }}
+        />
+      </Box>
       {hasMandatoryBillingRemarks && (
         <TxtField
           name='billingRemarks'
@@ -68,9 +106,6 @@ export const NotesStep = ({
             helperText: t('flightLog.billingRemarksTestOrFerryInstruction'),
           }}
         />
-      )}
-      {canReportDefects && (
-        <ReportDefectsSection descriptions={reportedDefects} onChange={onReportedDefectsChange} />
       )}
     </Box>
   )

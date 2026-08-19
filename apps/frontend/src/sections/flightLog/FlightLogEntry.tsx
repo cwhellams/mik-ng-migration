@@ -82,9 +82,15 @@ import {
 } from '../dto/dtoApi'
 import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
+import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'
+import { useLongTaxiCheck } from './useLongTaxiCheck'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
-import { ReportDefectsSection } from './components/ReportDefectsSection'
+import { DefectsAndRemarksSection } from './components/DefectsAndRemarksSection'
 import { hasBlankReportedDefect, submitReportedDefects } from './reportDefectsApi'
+import { hasBlankReportedRemark, submitReportedRemarks } from './reportRemarksApi'
+import { useDefects } from '../../hooks/useDefects'
+import { useRemarks } from '../../hooks/useRemarks'
 import { endpoints } from '../../api/endpoints'
 
 // Renders the guided mobile wizard for new entries on phone-width viewports (unless
@@ -256,6 +262,24 @@ const ClassicFlightLogEntry = () => {
     [registration, aircraftData],
   )
 
+  // Defects already reported against this flight (e.g. via the old separate
+  // "Add in-flight defect" button, or a previous save of this same form) --
+  // fetched by aircraft and filtered by flightId here, since GET /defects has
+  // no flightId filter of its own. Only relevant when editing; a new entry
+  // has no flightId yet for any defect to be tied to.
+  const { data: aircraftDefects, mutate: mutateAircraftDefects } = useDefects(
+    isNew ? undefined : registration,
+  )
+  const existingDefects = !isNew
+    ? (aircraftDefects?.filter((d) => d.flightId === flightId) ?? [])
+    : []
+
+  // Remarks already logged against this flight (#1226) -- unlike defects, remarks are
+  // always tied to a flightId, so this can filter server-side instead of fetching by
+  // aircraft and filtering client-side.
+  const { data: existingRemarksData } = useRemarks(isNew ? undefined : flightId)
+  const existingRemarks = existingRemarksData ?? []
+
   const partiallyBillableFlight = watch('partiallyBillableFlight')
   const flightType = watch('flightType')
   const isBillableFlight = watch('isBillableFlight')
@@ -350,6 +374,8 @@ const ClassicFlightLogEntry = () => {
   // Defects found on this flight, reported alongside the entry itself instead of via
   // the old separate "Add in-flight defect" button on the logbook view -- see doSave.
   const [reportedDefects, setReportedDefects] = useState<string[]>([])
+  // Remarks found on this flight (#1226), reported the same way -- see doSave.
+  const [reportedRemarks, setReportedRemarks] = useState<string[]>([])
 
   // DTO syllabus integration
   const billableMemberIdWatched = watch('billableMemberId')
@@ -363,6 +389,15 @@ const ClassicFlightLogEntry = () => {
   const [pendingSubmitData, setPendingSubmitData] = useState<FlightLogUpsertRequest | null>(null)
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(isNew ? undefined : flightId)
+  const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
+  const { withLongTaxiCheck, longLegs, longTaxiDialogProps } = useLongTaxiCheck()
+  const longTaxiMessage = longLegs
+    .map((leg) =>
+      t(leg.leg === 'out' ? 'flightLog.longTaxi.outMessage' : 'flightLog.longTaxi.inMessage', {
+        minutes: leg.minutes,
+      }),
+    )
+    .join(' ')
   // Local-only state for fuel type — not stored in the flight log, used only for expense prefill
   const [fuelUpliftType, setFuelUpliftType] = useState<(typeof FUEL_TYPES)[number] | ''>('')
   const [fuelClaimCreating, setFuelClaimCreating] = useState(false)
@@ -455,6 +490,9 @@ const ClassicFlightLogEntry = () => {
     if (hasBlankReportedDefect(reportedDefects)) {
       return setProblem({ status: 400, detail: t('flightLog.defects.blankDescriptionError') })
     }
+    if (hasBlankReportedRemark(reportedRemarks)) {
+      return setProblem({ status: 400, detail: t('flightLog.remarks.blankDescriptionError') })
+    }
     try {
       const { data: savedFlight, error } = await mutation.trigger(
         isNew ? 'POST' : 'PATCH',
@@ -491,11 +529,18 @@ const ClassicFlightLogEntry = () => {
       }
 
       if (savedFlightId) {
-        await submitReportedDefects(savedFlightId, reportedDefects).catch((err) => {
-          // non-fatal: the flight log itself is already saved; the pilot can still
-          // report a missed defect separately via the standalone pre-flight dialog
-          console.error('Failed to submit reported defects:', err)
-        })
+        // Independent of each other -- run together rather than one after the other.
+        await Promise.all([
+          submitReportedDefects(savedFlightId, reportedDefects).catch((err) => {
+            // non-fatal: the flight log itself is already saved; the pilot can still
+            // report a missed defect separately via the standalone pre-flight dialog
+            console.error('Failed to submit reported defects:', err)
+          }),
+          submitReportedRemarks(savedFlightId, reportedRemarks).catch((err) => {
+            // non-fatal: the flight log itself is already saved
+            console.error('Failed to submit reported remarks:', err)
+          }),
+        ])
       }
 
       navigate(backLink)
@@ -515,7 +560,11 @@ const ClassicFlightLogEntry = () => {
   }
 
   const onSubmit = (data: FlightLogUpsertRequest) =>
-    withOverlapCheck(data, () => continueSubmit(data))
+    withOverlapCheck(data, () =>
+      withLongTaxiCheck(data, () =>
+        withGroundingConfirm(reportedDefects, () => continueSubmit(data)),
+      ),
+    )
 
   // Save current form state without navigating away; used before validate
   const saveChanges = async (): Promise<boolean> => {
@@ -919,9 +968,27 @@ const ClassicFlightLogEntry = () => {
               <OilUplift control={control} disabled={!isEditable} />
             </Grid>
 
-            {/* Notes */}
+            {/* Defects and Remarks */}
             <Grid size={12}>
-              <Typography variant='h6'>{t('flightLog.notes')}</Typography>
+              <DefectsAndRemarksSection
+                reportedDefects={reportedDefects}
+                onReportedDefectsChange={setReportedDefects}
+                canReportDefects={isEditable}
+                existingDefects={existingDefects}
+                aircraftRegistration={registration}
+                onExistingDefectsChanged={mutateAircraftDefects}
+                reportedRemarks={reportedRemarks}
+                onReportedRemarksChange={setReportedRemarks}
+                canReportRemarks={isEditable}
+                existingRemarks={existingRemarks}
+              />
+            </Grid>
+
+            {/* Other notes */}
+            <Grid size={12}>
+              <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+                {t('flightLog.otherNotesTitle')}
+              </Typography>
             </Grid>
 
             <Grid size={12}>
@@ -930,8 +997,9 @@ const ClassicFlightLogEntry = () => {
                 control={control}
                 props={{
                   disabled: !isEditable,
+                  variant: 'standard',
                   multiline: true,
-                  rows: 3,
+                  rows: 2,
                 }}
               />
             </Grid>
@@ -942,21 +1010,12 @@ const ClassicFlightLogEntry = () => {
                 control={control}
                 props={{
                   disabled: isFlightLogAdmin && isInvoiced,
+                  variant: 'standard',
                   multiline: true,
-                  rows: 3,
+                  rows: 2,
                 }}
               />
             </Grid>
-
-            {/* Report Defects */}
-            {isEditable && (
-              <Grid size={12}>
-                <ReportDefectsSection
-                  descriptions={reportedDefects}
-                  onChange={setReportedDefects}
-                />
-              </Grid>
-            )}
 
             {/* Billing Information */}
             <Grid size={12}>
@@ -1312,6 +1371,22 @@ const ClassicFlightLogEntry = () => {
         </DialogActions>
       </Dialog>
       <OverlapWarningDialog {...overlapDialogProps} />
+      <ConfirmDialog
+        {...longTaxiDialogProps}
+        title={t('flightLog.longTaxi.confirmTitle')}
+        message={longTaxiMessage}
+        confirmText={t('flightLog.longTaxi.confirmButton')}
+        cancelText={t('general.cancel')}
+        severity='info'
+      />
+      <ConfirmDialog
+        {...groundingDialogProps}
+        title={t('flightLog.defects.groundingConfirmTitle')}
+        message={t('flightLog.defects.groundingConfirmMessage')}
+        confirmText={t('flightLog.defects.groundingConfirmButton')}
+        cancelText={t('general.cancel')}
+        severity='warning'
+      />
     </RemoteContent>
   )
 }

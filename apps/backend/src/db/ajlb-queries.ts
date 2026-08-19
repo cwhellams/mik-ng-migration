@@ -25,6 +25,7 @@ const mapResultToAjlb = (
         | 'validatedOnBlockTimeUtc'
         | 'verifiedTotalFlightTime'
         | 'unverifiedTotalFlightTime'
+        | 'unverifiedTotalFlightMins'
         | 'validatedTotalLandings'
         | 'totalLandings'
       >
@@ -48,6 +49,7 @@ const mapResultToAjlb = (
     validatedBeforeUTC: row.validatedOnBlockTimeUtc?.toISOString() ?? null,
     verifiedTotalFlightTime: row.verifiedTotalFlightTime ?? '00:00',
     unverifiedTotalFlightTime: row.unverifiedTotalFlightTime ?? '00:00',
+    unverifiedTotalFlightMins: row.unverifiedTotalFlightMins ?? 0,
     validatedFlightsCount: row.sumValidatedFlights ?? 0,
     validatedFlightsTime: row.sumValidatedTime ?? '00:00',
     validatedTotalLandings: row.validatedTotalLandings ?? 0,
@@ -79,6 +81,7 @@ export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBo
       'totals.validatedOnBlockTimeUtc',
       'totals.verifiedTotalFlightTime',
       'totals.unverifiedTotalFlightTime',
+      'totals.unverifiedTotalFlightMins',
       'totals.validatedTotalLandings',
       'totals.totalLandings',
     ])
@@ -131,6 +134,7 @@ export async function getAjlb(
       'totals.validatedOnBlockTimeUtc',
       'totals.verifiedTotalFlightTime',
       'totals.unverifiedTotalFlightTime',
+      'totals.unverifiedTotalFlightMins',
       'totals.validatedTotalLandings',
       'totals.totalLandings',
     ])

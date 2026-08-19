@@ -239,6 +239,15 @@ export const FlightLogTimesSchema = z.object({
 
 type FlightLogTimes = z.infer<typeof FlightLogTimesSchema>
 
+// Taxi legs have no hard cap at the useLongTaxiCheck thresholds (60/30 min) -- a
+// long one due to taxiway congestion is only a client-side confirmation (#1223),
+// not a blocked submission. But leaving them fully unbounded meant a caller that
+// bypasses the UI (or a garbage input, e.g. an off-block epoch of 0) fell through
+// validation entirely and hit a raw DB constraint violation as an unhandled 500
+// instead of a clean 400. This cap is generous enough that no real taxi delay
+// could ever hit it -- it only catches values a legitimate flight never would.
+const TAXI_SANITY_CAP_MINUTES = 24 * 60
+
 export const validateFlightLogTimes = (
   times: Partial<FlightLogTimes>,
   addIssue: (i: z.IssueData) => void,
@@ -246,7 +255,10 @@ export const validateFlightLogTimes = (
   const validate = (
     prevKey: keyof FlightLogTimes,
     nextKey: keyof FlightLogTimes,
-    minutes: number,
+    // Omitted for a leg that has no hard cap -- see the taxi legs below, where a
+    // long duration is only a soft, client-side confirmation (#1223) rather than a
+    // validation error, since taxiway congestion can genuinely make it long.
+    minutes?: number,
   ) => {
     if (times[prevKey] && times[nextKey]) {
       const prev = Number(times[prevKey])
@@ -266,29 +278,32 @@ export const validateFlightLogTimes = (
       }
 
       // check limit how long the block can be
-      const maximum = prev + minutes * 60
-      if (next > maximum) {
-        addIssue({
-          code: 'too_big',
-          maximum,
-          inclusive: true,
-          origin: 'number',
-          input: next,
-          message: maximum.toString(),
-          path: [nextKey],
-        })
+      if (minutes !== undefined) {
+        const maximum = prev + minutes * 60
+        if (next > maximum) {
+          addIssue({
+            code: 'too_big',
+            maximum,
+            inclusive: true,
+            origin: 'number',
+            input: next,
+            message: maximum.toString(),
+            path: [nextKey],
+          })
+        }
       }
     }
   }
 
-  // taxi out is limited to 1 hour
-  validate('offBlockTimeEpoch', 'takeoffTimeEpoch', 60)
+  // Taxi out/in only get the generous sanity cap above -- a long one due to
+  // taxiway congestion is a client-side confirmation (useLongTaxiCheck), not a
+  // blocked submission (#1223). Order is still enforced (next must be after prev).
+  validate('offBlockTimeEpoch', 'takeoffTimeEpoch', TAXI_SANITY_CAP_MINUTES)
 
   // flight max 6 hours
   validate('takeoffTimeEpoch', 'landingTimeEpoch', 360)
 
-  // taxi in is limited to 30 minutes
-  validate('landingTimeEpoch', 'onBlockTimeEpoch', 30)
+  validate('landingTimeEpoch', 'onBlockTimeEpoch', TAXI_SANITY_CAP_MINUTES)
 
   // None of the times may be in the future — the DB has the same constraint, but
   // checking it here surfaces a friendly validation message at entry time instead of
@@ -475,9 +490,8 @@ export const PageItemRowSchema = z.object({
   itemType: z.enum(['note', 'defect']),
   itemId: z.string(),
   // true for the item's own content row (shows its description); false for a
-  // continuation of its own multi-row content or one of its blankRowsAfter spacer
-  // rows -- both render identically (blank), so the caller doesn't need to
-  // distinguish between them.
+  // continuation of its own multi-row content -- both render identically
+  // (blank), so the caller doesn't need to distinguish between them.
   isContentRow: z.boolean(),
 })
 
@@ -515,6 +529,13 @@ export const FlightLogPageForMinsFilterSchema = z.object({
   aircraftRegistration: z.string().min(1),
   ajlbSeqNo: z.coerce.number().int().positive(),
   flightMins: z.coerce.number().int().min(0),
+  // When set, resolves the exact page from the item's own physical-row
+  // placement (flight.vw_ajlb_live_rows) instead of approximating from
+  // flightMins alone, which can't account for how many rows earlier
+  // notes/defects on the page have consumed. Falls back to the flightMins
+  // heuristic for a rows: 0 inline item, which has no row of its own.
+  itemType: z.enum(['note', 'defect']).optional(),
+  itemId: z.string().optional(),
 })
 export type FlightLogPageForMinsFilter = z.infer<typeof FlightLogPageForMinsFilterSchema>
 

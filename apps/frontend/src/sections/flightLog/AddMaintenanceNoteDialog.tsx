@@ -18,7 +18,7 @@ import {
   type SelectChangeEvent,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useForm, Controller, useWatch } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import useApi from '../../hooks/useApi'
 import { useDefects } from '../../hooks/useDefects'
@@ -91,11 +91,8 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
       flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
       flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
       rows: 1,
-      blankRowsAfter: 0,
     },
   })
-
-  const rows = useWatch({ control, name: 'rows' })
 
   useEffect(() => {
     if (open) {
@@ -108,7 +105,6 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
         flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
         flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
         rows: 1,
-        blankRowsAfter: 0,
       })
     }
   }, [open, defaultFlightMins, defaultHilIds, reset])
@@ -121,7 +117,6 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
       performedBy: values.performedBy,
       flightMins: values.flightHours * 60 + values.flightMinutes,
       rows: values.rows,
-      blankRowsAfter: values.rows > 0 ? values.blankRowsAfter : 0,
       ...(selectedHilIds.length ? { hilIds: selectedHilIds } : {}),
       ...(selectedDefectIds.length ? { defectIds: selectedDefectIds } : {}),
     })
@@ -240,28 +235,6 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
                   type='number'
                   error={!!errors.rows}
                   helperText={errors.rows?.message ?? t('flightLog.maintenanceNotes.rowsHelp')}
-                  fullWidth
-                  slotProps={{
-                    htmlInput: { min: 0 },
-                  }}
-                />
-              )}
-            />
-
-            <Controller
-              name='blankRowsAfter'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label={t('flightLog.maintenanceNotes.blankRowsAfter')}
-                  type='number'
-                  disabled={rows === 0}
-                  error={!!errors.blankRowsAfter}
-                  helperText={
-                    errors.blankRowsAfter?.message ??
-                    t('flightLog.maintenanceNotes.blankRowsAfterHelp')
-                  }
                   fullWidth
                   slotProps={{
                     htmlInput: { min: 0 },

@@ -11,15 +11,15 @@ interface MaintenanceNoteMarkerProps {
   note: MaintenanceNote
   onChanged: () => void
   highlighted?: boolean
-  /** Anchor flight's date, shown next to the marker when it renders on its own row. */
-  flightDate?: string | null
+  /** Date this note was recorded, shown next to the marker when it renders on its own row. */
+  recordedDate?: string | null
 }
 
 export const MaintenanceNoteMarker: React.FC<MaintenanceNoteMarkerProps> = ({
   note,
   onChanged,
   highlighted,
-  flightDate,
+  recordedDate,
 }) => {
   const { t } = useTranslation()
   const { formatDate } = useTimezone()
@@ -33,9 +33,9 @@ export const MaintenanceNoteMarker: React.FC<MaintenanceNoteMarkerProps> = ({
   return (
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {flightDate && (
+        {recordedDate && (
           <Typography variant='caption' sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-            {formatDate(flightDate)}
+            {formatDate(recordedDate)}
           </Typography>
         )}
         <Tooltip title={t('flightLog.maintenanceNotes.clickToView')} placement='top'>

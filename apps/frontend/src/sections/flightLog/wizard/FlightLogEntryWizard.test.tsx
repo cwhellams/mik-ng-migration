@@ -1,9 +1,17 @@
 import { FlightLogStatus, type FlightLog } from '@mik/contracts/flight-log'
+import type { Defect } from '@mik/contracts/defects'
+import type { Remark } from '@mik/contracts/remarks'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { aFlightLog, aMemberListResponse, anAircraftListResponse } from '../../../test/fixtures'
+import {
+  aFlightLog,
+  aMemberListEntry,
+  aMemberListResponse,
+  anAircraftListResponse,
+  AIRCRAFT_REGISTRATION,
+} from '../../../test/fixtures'
 import { apiUrl, problemResponse } from '../../../test/msw/handlers'
 import { server } from '../../../test/msw/server'
 import { renderWithProviders } from '../../../test/renderWithProviders'
@@ -19,8 +27,37 @@ const DRAFT_KEY_PREFIX = 'wizardDraft:flightLog:'
 
 type Write = { method: string; body: unknown }
 
-const wizardApi = () => {
-  const state = { writes: [] as Write[], defects: [] as unknown[] }
+const anExistingDefect = (overrides: Partial<Defect> = {}): Defect =>
+  ({
+    defectId: 'def-existing-1',
+    aircraftRegistration: AIRCRAFT_REGISTRATION,
+    description: 'Landing light flickers',
+    status: 'ACTIVE',
+    flightMins: 285_000,
+    rows: 0,
+    flightId: 'fi_inst1',
+    hilId: null,
+    resolvedNoteId: null,
+    createdBy: 'Matti1',
+    createdAt: '2025-06-02T09:00:00.000Z',
+    updatedAt: '2025-06-02T09:00:00.000Z',
+    updatedBy: 'Matti1',
+    ...overrides,
+  }) as unknown as Defect
+
+const anExistingRemark = (overrides: Partial<Remark> = {}): Remark => ({
+  remarkId: 'remark-existing-1',
+  flightId: 'fi_inst1',
+  description: 'Oil stain noticed on the ramp, wiped off',
+  createdAt: '2025-06-02T09:00:00.000Z',
+  createdBy: 'Matti1',
+  updatedAt: '2025-06-02T09:00:00.000Z',
+  updatedBy: 'Matti1',
+  ...overrides,
+})
+
+const wizardApi = (existingDefects: Defect[] = [], existingRemarks: Remark[] = []) => {
+  const state = { writes: [] as Write[], defects: [] as unknown[], remarks: [] as unknown[] }
 
   server.use(
     http.get(apiUrl('v1/aircrafts'), () => HttpResponse.json(anAircraftListResponse())),
@@ -30,8 +67,17 @@ const wizardApi = () => {
     http.get(apiUrl('v1/useful-phone-numbers/flight-plan-centre'), () =>
       HttpResponse.json(null, { status: 404 }),
     ),
+    http.get(apiUrl('v1/defects'), () => HttpResponse.json(existingDefects)),
     http.post(apiUrl('v1/defects'), async ({ request }) => {
       state.defects.push(await request.json())
+      return HttpResponse.json({})
+    }),
+    http.get(apiUrl('v1/remarks'), ({ request }) => {
+      const flightId = new URL(request.url).searchParams.get('flightId')
+      return HttpResponse.json(existingRemarks.filter((r) => r.flightId === flightId))
+    }),
+    http.post(apiUrl('v1/remarks'), async ({ request }) => {
+      state.remarks.push(await request.json())
       return HttpResponse.json({})
     }),
     http.post(apiUrl('v1/flight-logs'), async ({ request }) => {
@@ -443,6 +489,122 @@ describe('FlightLogEntryWizard saving', () => {
     expect(screen.getByRole('button', { name: /defect/i })).toBeInTheDocument()
   })
 
+  it('shows fleet manager contact details next to the defect-reporting note', async () => {
+    wizardApi()
+    server.use(
+      http.get(apiUrl('v1/members'), () =>
+        HttpResponse.json(
+          aMemberListResponse([
+            aMemberListEntry({
+              memberId: 'plane-captain-1',
+              first: 'Pekka',
+              last: 'Kalustovastaava',
+              phoneNumber: '0409998888',
+              roles: ['PLANE_CAPTAIN'],
+            }),
+          ]),
+        ),
+      ),
+    )
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    expect(await screen.findByText('Pekka Kalustovastaava')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '0409998888' })).toHaveAttribute(
+      'href',
+      'tel:0409998888',
+    )
+  })
+
+  it('shows a defect already reported against this flight, alongside the ability to add new ones', async () => {
+    wizardApi([anExistingDefect()])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    expect(await screen.findByText('Landing light flickers')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add defect/i })).toBeInTheDocument()
+  })
+
+  it("does not show another flight's defects", async () => {
+    wizardApi([anExistingDefect({ flightId: 'some-other-flight' })])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await screen.findByText('Notes')
+    expect(screen.queryByText('Landing light flickers')).not.toBeInTheDocument()
+  })
+
+  it('offers to report remarks on an entry not yet validated', async () => {
+    wizardApi()
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    expect(await screen.findByText('Notes')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add remark/i })).toBeInTheDocument()
+  })
+
+  it('shows a remark already logged against this flight, alongside the ability to add new ones', async () => {
+    wizardApi([], [anExistingRemark()])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    expect(await screen.findByText('Oil stain noticed on the ramp, wiped off')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add remark/i })).toBeInTheDocument()
+  })
+
+  it("does not show another flight's remarks", async () => {
+    wizardApi([], [anExistingRemark({ flightId: 'some-other-flight' })])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await screen.findByText('Notes')
+    expect(screen.queryByText('Oil stain noticed on the ramp, wiped off')).not.toBeInTheDocument()
+  })
+
+  it('withholds remark reporting once the entry has been validated', async () => {
+    wizardApi()
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: aFlightLog({ status: FlightLogStatus.VALIDATED }),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await screen.findByText('Notes')
+    expect(screen.queryByRole('button', { name: /add remark/i })).toBeNull()
+  })
+
   it('withholds defect reporting once the entry has been validated', async () => {
     wizardApi()
 
@@ -455,5 +617,197 @@ describe('FlightLogEntryWizard saving', () => {
 
     await screen.findByText('Notes')
     expect(screen.queryByRole('button', { name: /defect/i })).toBeNull()
+  })
+})
+
+describe('FlightLogEntryWizard defect grounding confirmation', () => {
+  const addDefectAndReachReview = async (
+    user: ReturnType<typeof renderWizard>['user'],
+  ): Promise<void> => {
+    await screen.findByText('Notes')
+    await user.click(screen.getByRole('button', { name: /add defect/i }))
+    await user.type(screen.getByLabelText(/description/i), 'Oil stain on the ramp')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+  }
+
+  it('asks for grounding confirmation before saving when a defect was reported', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await addDefectAndReachReview(user)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/will ground the aircraft/)).toBeInTheDocument()
+    expect(state.writes).toHaveLength(0)
+  })
+
+  it('saves once the grounding confirmation is accepted', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await addDefectAndReachReview(user)
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+  })
+
+  it('does not save when the grounding confirmation is cancelled', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'notes',
+      onClose: () => {},
+    })
+
+    await addDefectAndReachReview(user)
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(state.writes).toHaveLength(0)
+  })
+
+  it('saves directly, with no confirmation, when no defect was reported', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(),
+      initialStep: 'review',
+      onClose: () => {},
+    })
+    await screen.findByText('Review')
+
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('FlightLogEntryWizard long taxi confirmation', () => {
+  // 2025-06-02T09:00:00.000Z, 65 minutes before takeoff
+  const longTaxiOutOverrides = {
+    offBlockTimeEpoch: '1748854800',
+    takeoffTimeEpoch: '1748858700',
+  }
+  // 2025-06-02T10:50:00.000Z, 35 minutes before on-block
+  const longTaxiInOverrides = {
+    landingTimeEpoch: '1748861400',
+    onBlockTimeEpoch: '1748863500',
+  }
+
+  it('asks for confirmation on the departure-times step itself, not later on Review', async () => {
+    wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiOutOverrides),
+      initialStep: 'timeDeparture',
+      onClose: () => {},
+    })
+    await screen.findByText('Off-block & takeoff time')
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/65 minutes of taxi-out time/)).toBeInTheDocument()
+    // still on the departure-times step -- the confirmation gates advancing, it
+    // doesn't wait until Review/Accept at the end of the wizard.
+    expect(screen.getByText('Off-block & takeoff time')).toBeInTheDocument()
+  })
+
+  it('advances to the next step once the taxi-out confirmation is accepted', async () => {
+    wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiOutOverrides),
+      initialStep: 'timeDeparture',
+      onClose: () => {},
+    })
+    await screen.findByText('Off-block & takeoff time')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
+
+    expect(await screen.findByText('Landing & on-block time')).toBeInTheDocument()
+  })
+
+  it('stays on the departure-times step when the taxi-out confirmation is cancelled', async () => {
+    wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiOutOverrides),
+      initialStep: 'timeDeparture',
+      onClose: () => {},
+    })
+    await screen.findByText('Off-block & takeoff time')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByText('Off-block & takeoff time')).toBeInTheDocument()
+  })
+
+  it('asks for confirmation on the arrival-times step for a long taxi-in', async () => {
+    wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiInOverrides),
+      initialStep: 'timeArrival',
+      onClose: () => {},
+    })
+    await screen.findByText('Landing & on-block time')
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/35 minutes of taxi-in time/)).toBeInTheDocument()
+    expect(screen.getByText('Landing & on-block time')).toBeInTheDocument()
+  })
+
+  it('does not ask again on Review/Accept for a flight opened straight there with an already-long taxi', async () => {
+    // Editing an existing flight typically opens straight on Review (see the
+    // initialStep doc-comment on FlightLogEntryWizard's Props) rather than
+    // walking back through every step -- a pre-existing long taxi on a flight
+    // that's already saved shouldn't re-prompt on every unrelated edit.
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog(longTaxiOutOverrides),
+      initialStep: 'review',
+      onClose: () => {},
+    })
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

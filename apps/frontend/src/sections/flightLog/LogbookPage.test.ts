@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 import type { FlightLogListEntry, PageItemRow } from '@mik/contracts/flight-log'
 import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import type { Defect } from '@mik/contracts/defects'
-import { buildLogbookRows, buildInlineItems } from './LogbookPage'
+import type { Remark } from '@mik/contracts/remarks'
+import {
+  buildLogbookRows,
+  buildInlineItems,
+  isBlankButUsedRow,
+  groupRemarksByFlightId,
+} from './LogbookPage'
 
 let logCounter = 0
 const makeLog = (overrides: Partial<FlightLogListEntry>): FlightLogListEntry => {
@@ -63,7 +69,6 @@ const makeNote = (overrides: Partial<MaintenanceNote>): MaintenanceNote => {
     performedBy: 'AME',
     flightMins: 0,
     rows: 1,
-    blankRowsAfter: 0,
     createdAt: `2026-01-01T00:00:0${noteCounter}.000Z`,
     createdBy: 'Matti1',
     ...overrides,
@@ -81,13 +86,27 @@ const makeDefect = (overrides: Partial<Defect>): Defect => {
     description: 'Test defect',
     flightMins: 0,
     rows: 1,
-    blankRowsAfter: 0,
     status: 'ACTIVE',
     hilId: null,
     resolvedNoteId: null,
     createdAt: `2026-01-01T00:00:0${defectCounter}.000Z`,
     createdBy: 'Matti1',
     updatedAt: `2026-01-01T00:00:0${defectCounter}.000Z`,
+    updatedBy: 'Matti1',
+    ...overrides,
+  }
+}
+
+let remarkCounter = 0
+const makeRemark = (overrides: Partial<Remark>): Remark => {
+  remarkCounter++
+  return {
+    remarkId: `remark${remarkCounter}`,
+    flightId: `flight${remarkCounter}`,
+    description: 'Test remark',
+    createdAt: `2026-01-01T00:00:0${remarkCounter}.000Z`,
+    createdBy: 'Matti1',
+    updatedAt: `2026-01-01T00:00:0${remarkCounter}.000Z`,
     updatedBy: 'Matti1',
     ...overrides,
   }
@@ -132,6 +151,24 @@ describe('buildInlineItems', () => {
   })
 })
 
+describe('groupRemarksByFlightId', () => {
+  it('groups remarks under their anchor flight', () => {
+    const remarkA = makeRemark({ flightId: 'flightA' })
+    const remarkB = makeRemark({ flightId: 'flightB' })
+    const remarkA2 = makeRemark({ flightId: 'flightA' })
+
+    const grouped = groupRemarksByFlightId([remarkA, remarkB, remarkA2])
+
+    expect(grouped.flightA).toEqual([remarkA, remarkA2])
+    expect(grouped.flightB).toEqual([remarkB])
+  })
+
+  it('returns an empty object for undefined or empty input', () => {
+    expect(groupRemarksByFlightId(undefined)).toEqual({})
+    expect(groupRemarksByFlightId([])).toEqual({})
+  })
+})
+
 describe('buildLogbookRows', () => {
   it('pads an empty page with blank rows when there are no flights or items', () => {
     const rows = buildLogbookRows(undefined, [], [], {}, {}, 5, null)
@@ -163,7 +200,7 @@ describe('buildLogbookRows', () => {
       makeLog({ ajlbRowNo: 1, acTotalFlightMins: 100 }),
       makeLog({ ajlbRowNo: 2, acTotalFlightMins: 200 }),
     ]
-    const defect = makeDefect({ flightMins: 100, rows: 0, blankRowsAfter: 0 })
+    const defect = makeDefect({ flightMins: 100, rows: 0 })
     const inlineItems = buildInlineItems([], [defect])
 
     const rows = buildLogbookRows(logs, [], inlineItems, {}, {}, 5, null)
@@ -195,16 +232,16 @@ describe('buildLogbookRows', () => {
   })
 
   it('renders an item that starts on this page but continues onto the next as content plus blank rows, never overflowing pageSize', () => {
-    // Mirrors the real bug: a defect (rows: 2, blankRowsAfter: 4) anchored right
-    // after the page's last flight only has room for its content row plus 3
-    // continuation/blankRowsAfter rows before the page is full -- the server
-    // (flight.vw_ajlb_live_rows) is the one deciding this split, and this test
-    // just confirms buildLogbookRows renders exactly what it's told, never more.
+    // Mirrors the real bug: a defect (rows: 6) anchored right after the page's
+    // last flight only has room for its content row plus 3 continuation rows
+    // before the page is full -- the server (flight.vw_ajlb_live_rows) is the
+    // one deciding this split, and this test just confirms buildLogbookRows
+    // renders exactly what it's told, never more.
     const logs = [
       makeLog({ ajlbRowNo: 1, acTotalFlightMins: 100 }),
       makeLog({ ajlbRowNo: 2, acTotalFlightMins: 200 }),
     ]
-    const defect = makeDefect({ rows: 2, blankRowsAfter: 4 })
+    const defect = makeDefect({ rows: 6 })
     const pageItemRows = [
       makeItemRow({
         rowNumber: 3,
@@ -235,10 +272,10 @@ describe('buildLogbookRows', () => {
 
   it('renders the continuation of an item that started on the previous page as blank rows at the top', () => {
     // The item's content row already rendered on the previous page -- this
-    // page only gets its remaining continuation/blankRowsAfter rows, still
-    // correctly identified by pageItemRows even with no flight preceding them.
+    // page only gets its remaining continuation rows, still correctly
+    // identified by pageItemRows even with no flight preceding them.
     const logs = [makeLog({ ajlbRowNo: 3, acTotalFlightMins: 300 })]
-    const defect = makeDefect({ rows: 2, blankRowsAfter: 4 })
+    const defect = makeDefect({ rows: 6 })
     const pageItemRows = [
       makeItemRow({
         rowNumber: 1,
@@ -288,11 +325,25 @@ describe('buildLogbookRows', () => {
     expect(rows[4].log).toBeNull()
   })
 
+  it('flags a note/defect continuation row as blank-but-used, unlike a genuinely empty row', () => {
+    const note = makeNote({ rows: 2 })
+    const pageItemRows = [
+      makeItemRow({ rowNumber: 1, itemType: 'note', itemId: note.noteId, isContentRow: true }),
+      makeItemRow({ rowNumber: 2, itemType: 'note', itemId: note.noteId, isContentRow: false }),
+    ]
+
+    const rows = buildLogbookRows([], pageItemRows, [], byId([note], 'noteId'), {}, 4, null)
+
+    expect(isBlankButUsedRow(rows[0])).toBe(false) // the content row itself
+    expect(isBlankButUsedRow(rows[1])).toBe(true) // its continuation row
+    expect(isBlankButUsedRow(rows[2])).toBe(false) // a genuinely empty trailing row
+  })
+
   it('does not re-insert items positioned on an earlier page (pageStartFlightMins bleed guard)', () => {
     const logs = [makeLog({ ajlbRowNo: 1, acTotalFlightMins: 200 })]
     // This item's flightMins falls before this page's starting total, so it
     // belongs to a previous page and must not be inserted here again.
-    const defect = makeDefect({ flightMins: 50, rows: 0, blankRowsAfter: 0 })
+    const defect = makeDefect({ flightMins: 50, rows: 0 })
     const inlineItems = buildInlineItems([], [defect])
 
     const rows = buildLogbookRows(logs, [], inlineItems, {}, {}, 5, 100)
@@ -306,7 +357,7 @@ describe('buildLogbookRows', () => {
       makeLog({ ajlbRowNo: 2, acTotalFlightMins: 200 }),
     ]
     // flightMins is past every flight currently loaded on this page.
-    const defect = makeDefect({ flightMins: 250, rows: 0, blankRowsAfter: 0 })
+    const defect = makeDefect({ flightMins: 250, rows: 0 })
     const inlineItems = buildInlineItems([], [defect])
 
     const rows = buildLogbookRows(logs, [], inlineItems, {}, {}, 5, null)
@@ -316,7 +367,7 @@ describe('buildLogbookRows', () => {
   })
 
   it('renders an inline item with no flight on the page at all as a standalone row instead of dropping it', () => {
-    const defect = makeDefect({ flightMins: 100, rows: 0, blankRowsAfter: 0 })
+    const defect = makeDefect({ flightMins: 100, rows: 0 })
     const inlineItems = buildInlineItems([], [defect])
 
     const rows = buildLogbookRows([], [], inlineItems, {}, {}, 5, null)
@@ -336,7 +387,6 @@ describe('buildLogbookRows', () => {
       flightId: anchorFlight.flightId,
       flightMins: 999,
       rows: 0,
-      blankRowsAfter: 0,
     })
     const inlineItems = buildInlineItems([], [defect])
 

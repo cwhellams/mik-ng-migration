@@ -1,10 +1,10 @@
-import { useRef, useState } from 'react'
 import type {
   FlightLogOverlapConflict,
   FlightLogOverlapResponse,
   FlightLogUpsertRequest,
 } from '@mik/contracts/flight-log'
 import { api } from '../../hooks/useApi'
+import { usePendingConfirm } from './usePendingConfirm'
 
 /**
  * Warns about flight log entries that overlap the times being submitted.
@@ -16,9 +16,8 @@ import { api } from '../../hooks/useApi'
  * @param excludeFlightId the entry being edited, omitted for new entries
  */
 export const useOverlapCheck = (excludeFlightId?: string) => {
-  const [conflicts, setConflicts] = useState<FlightLogOverlapConflict[]>([])
-  const [open, setOpen] = useState(false)
-  const pendingSubmit = useRef<(() => void) | null>(null)
+  const { open, extra, guard, confirm, cancel } = usePendingConfirm<FlightLogOverlapConflict[]>()
+  const conflicts = extra ?? []
 
   const fetchConflicts = async (
     values: FlightLogUpsertRequest,
@@ -47,23 +46,14 @@ export const useOverlapCheck = (excludeFlightId?: string) => {
    */
   const withOverlapCheck = async (values: FlightLogUpsertRequest, onProceed: () => void) => {
     const found = await fetchConflicts(values)
-    if (found.length === 0) {
-      onProceed()
-      return
-    }
-    setConflicts(found)
-    pendingSubmit.current = onProceed
-    setOpen(true)
+    guard(found.length === 0 ? undefined : found, onProceed)
   }
 
   const overlapDialogProps = {
     open,
     conflicts,
-    onCancel: () => setOpen(false),
-    onConfirm: () => {
-      setOpen(false)
-      pendingSubmit.current?.()
-    },
+    onCancel: cancel,
+    onConfirm: confirm,
   }
 
   return { withOverlapCheck, overlapDialogProps }

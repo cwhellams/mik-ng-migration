@@ -1084,8 +1084,8 @@
     "validationRemarks": "Validation Remarks",
     "billingRemarks": "Billing Remarks",
     "billingRemarksTestOrFerryInstruction": "Describe the reason for the flight, who approved it, and whether there were any occurrences such as weather avoidance or technical issues found. If this was a test flight, please add the date the report was sent to kalusto@mik.fi",
-    "notes": "Notes",
-    "incidentOrObservations": "Incidents or Observations",
+    "otherNotesTitle": "Other notes",
+    "incidentOrObservations": "Other flight related incidents or observations",
     "personalRemarks": "Personal Remarks",
     "flightTimeline": "Flight Timeline",
     "taxiOut": "Taxi Out",
@@ -1296,8 +1296,6 @@
       "minutes": "Minutes",
       "rows": "Rows",
       "rowsHelp": "How many rows this takes on the physical logbook page (0 = shown inline on the flight's row)",
-      "blankRowsAfter": "Blank rows after",
-      "blankRowsAfterHelp": "Blank rows added to physical logbook after this note",
       "closeHilItems": "Close hold items",
       "closedHil": "Closed hold items",
       "closeDefects": "Close defects",
@@ -1311,8 +1309,9 @@
       "addPreFlightButton": "Report defect",
       "addPreFlightTitle": "Report Defect (Pre-flight)",
       "addInFlightTitle": "Report Defect (In-flight)",
-      "reportSectionTitle": "Report Defects",
-      "reportSectionNote": "If you found any defects during this flight, describe each one below. Every defect must also be reported directly to the kalustovastaava (fleet manager) by phone — don't rely on this entry alone.",
+      "existingSectionTitle": "Already reported defects",
+      "newSectionTitle": "Defects",
+      "fleetManagersTitle": "Fleet managers",
       "addDefectRow": "Add defect",
       "blankDescriptionError": "Defect description can't be empty",
       "viewTitle": "Defect",
@@ -1336,7 +1335,29 @@
       },
       "openHil": "Open on the Hold Item List",
       "deferToNewHil": "Defer to new HIL entry",
-      "openNote": "Open maintenance note"
+      "openNote": "Open maintenance note",
+      "groundingConfirmTitle": "Ground the aircraft?",
+      "groundingConfirmMessage": "NOTE: Submitting this action will ground the aircraft until the defect has been repaired or transferred to the Hold Item List. Fleet Manager consultation is required.",
+      "groundingConfirmButton": "Confirm & Save"
+    },
+    "remarks": {
+      "existingSectionTitle": "Remarks",
+      "newSectionTitle": "Remarks",
+      "addRemarkRow": "Add remark",
+      "blankDescriptionError": "Remark description can't be empty"
+    },
+    "defectsAndRemarks": {
+      "title": "Aircraft defects and remarks",
+      "intro1": "If you found any aircraft defects during this flight, report each one below. For any minor observations not affecting airworthiness, write a remark instead.",
+      "intro2": "Please note that a reported defect will ground the aircraft until the defect is closed or transferred to HIL. Every aircraft related observation must also be reported directly to the kalustovastaava (fleet manager) by phone — don't rely on this entry alone.",
+      "defectFieldLabel": "Defect description",
+      "remarkFieldLabel": "Remark description"
+    },
+    "longTaxi": {
+      "confirmTitle": "Long taxi time",
+      "outMessage": "You have entered {{minutes}} minutes of taxi-out time, please confirm this is correct.",
+      "inMessage": "You have entered {{minutes}} minutes of taxi-in time, please confirm this is correct.",
+      "confirmButton": "Confirm & Save"
     }
   },
   "invoicing": {
@@ -1728,8 +1749,8 @@
       "accept": "Accept",
       "cancel": "Cancel"
     },
-    "latestFlightsWithIncidents": "Latest Flights with Incidents or Observations",
-    "noFlightsWithIncidents": "No flights with incidents or observations.",
+    "latestFlightsWithIncidents": "Latest Flights with Incidents, Observations & Remarks",
+    "noFlightsWithIncidents": "No flights with incidents, observations or remarks.",
     "newFlightsToValidate": "New Flights to Validate",
     "noNewFlights": "No new flights to validate.",
     "newFlightsSince": "{{count}} new flights since {{date}}",

@@ -151,7 +151,27 @@ export async function getFlightLogPageForMins(
   aircraftRegistration: string,
   ajlbSeqNo: number,
   flightMins: number,
+  item?: { itemType: 'note' | 'defect'; itemId: string },
 ): Promise<number | undefined> {
+  // An own-row (rows > 0) note/defect's exact page can only come from the
+  // same physical-row breakdown the logbook page itself renders from --
+  // approximating via flightMins (below) can't see how many rows earlier
+  // items on the page have consumed, and silently lands on the wrong page
+  // once that overflows the page. A rows: 0 inline item has no row of its
+  // own here, so this falls through to the flightMins heuristic for those.
+  if (item) {
+    const ownRow = await db
+      .selectFrom('flight.vwAjlbLiveRows')
+      .select('pageNumber')
+      .where('aircraftRegistration', '=', aircraftRegistration)
+      .where('ajlbSeqNo', '=', ajlbSeqNo)
+      .where('itemType', '=', item.itemType)
+      .where('itemId', '=', item.itemId)
+      .where('isContentRow', '=', true)
+      .executeTakeFirst()
+    if (ownRow?.pageNumber != null) return ownRow.pageNumber
+  }
+
   const rows = await db
     .selectFrom('flight.logs')
     .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')

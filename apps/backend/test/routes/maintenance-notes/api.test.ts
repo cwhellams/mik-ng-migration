@@ -196,7 +196,6 @@ describe('POST /maintenance-notes', () => {
         description: 'Annual inspection',
         performedBy: 'Matti Virtanen',
         flightMins: LIVE_FLIGHT_MINS,
-        blankRowsAfter: 1,
       })
 
     expect(res.status).toBe(201)
@@ -206,7 +205,6 @@ describe('POST /maintenance-notes', () => {
       description: 'Annual inspection',
       performedBy: 'Matti Virtanen',
       flightMins: LIVE_FLIGHT_MINS,
-      blankRowsAfter: 1,
       createdBy: 'Matti1',
       createdAt: expect.any(String),
       noteId: expect.any(String),
@@ -230,26 +228,8 @@ describe('POST /maintenance-notes', () => {
 
     expect(res.status).toBe(201)
     expect(res.body.rows).toBe(0)
-    expect(res.body.blankRowsAfter).toBe(0)
 
     createdNoteId = res.body.noteId
-  })
-
-  it('returns 400 when rows is 0 and blankRowsAfter is non-zero', async () => {
-    const res = await request(app)
-      .post('/maintenance-notes')
-      .set('Cookie', `accessToken=${adminToken}`)
-      .send({
-        aircraftRegistration: AIRCRAFT,
-        ajlbSeqNo: AJLB_SEQ_NO,
-        description: 'Invalid inline note',
-        performedBy: 'Matti Virtanen',
-        flightMins: LIVE_FLIGHT_MINS,
-        rows: 0,
-        blankRowsAfter: 2,
-      })
-
-    expect(res.status).toBe(400)
   })
 
   it('returns 400 when flightMins is before the last validated flight', async () => {
@@ -366,7 +346,6 @@ describe('POST /maintenance-notes with hilIds', () => {
         description: `${TEST_MARKER} nav light`,
         flightMins: 120,
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -429,7 +408,6 @@ describe('POST /maintenance-notes with hilIds', () => {
         description: `${TEST_MARKER} other aircraft nav light`,
         flightMins: 90,
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -490,7 +468,6 @@ describe('POST /maintenance-notes with defectIds', () => {
         description: `${TEST_MARKER} oil seepage`,
         flightMins: 140,
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -503,7 +480,6 @@ describe('POST /maintenance-notes with defectIds', () => {
         description: `${TEST_MARKER} other aircraft`,
         flightMins: 50,
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -583,7 +559,6 @@ describe('PATCH /maintenance-notes/:id', () => {
         performedBy: 'Matti Virtanen',
         flightMins: 200,
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -683,66 +658,127 @@ describe('PATCH /maintenance-notes/:id', () => {
   })
 })
 
-describe('PATCH /maintenance-notes/:id rows/blankRowsAfter cross-validation', () => {
-  it('returns 400 for blankRowsAfter alone when the persisted rows is already 0', async () => {
-    const note = await createMaintenanceNote(
-      {
-        aircraftRegistration: AIRCRAFT,
-        ajlbSeqNo: AJLB_SEQ_NO,
-        description: 'Inline note for PATCH cross-validation',
-        performedBy: 'Matti Virtanen',
-        flightMins: 200,
-        rows: 0,
-        blankRowsAfter: 0,
-      },
-      'Matti1',
-    )
-
-    try {
-      const res = await request(app)
-        .patch(`/maintenance-notes/${note.noteId}`)
-        .set('Cookie', `accessToken=${adminToken}`)
-        .send({ blankRowsAfter: 2 })
-
-      expect(res.status).toBe(400)
-    } finally {
-      await deleteMaintenanceNote(note.noteId)
-    }
-  })
-
-  it('returns 400 for rows: 0 alone when the persisted blankRowsAfter is already non-zero', async () => {
-    const note = await createMaintenanceNote(
-      {
-        aircraftRegistration: AIRCRAFT,
-        ajlbSeqNo: AJLB_SEQ_NO,
-        description: 'Note with blankRowsAfter for PATCH cross-validation',
-        performedBy: 'Matti Virtanen',
-        flightMins: 200,
-        rows: 1,
-        blankRowsAfter: 2,
-      },
-      'Matti1',
-    )
-
-    try {
-      const res = await request(app)
-        .patch(`/maintenance-notes/${note.noteId}`)
-        .set('Cookie', `accessToken=${adminToken}`)
-        .send({ rows: 0 })
-
-      expect(res.status).toBe(400)
-    } finally {
-      await deleteMaintenanceNote(note.noteId)
-    }
-  })
-})
-
 describe('DELETE /maintenance-notes/:id', () => {
-  it('returns 404 — maintenance notes cannot be deleted', async () => {
+  let noteId: string
+
+  beforeEach(async () => {
+    const note = await createMaintenanceNote(
+      {
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Pre-delete note',
+        performedBy: 'Matti Virtanen',
+        // Past OH-STL/1's last validated flight total (21301, test data) -- see the
+        // baseline-guard tests below for the below-baseline case specifically.
+        flightMins: LIVE_FLIGHT_MINS,
+        rows: 1,
+      },
+      'Matti1',
+    )
+    noteId = note.noteId
+  })
+
+  afterEach(async () => {
+    await deleteMaintenanceNote(noteId)
+  })
+
+  it('returns 401 for invalid JWT', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', 'accessToken=INVALID')
+
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 403 when user lacks permission', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${noAccessToken}`)
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 404 when non-owner tries to delete', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${otherUserToken}`)
+
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 204 when owner deletes their own note', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+
+    expect(res.status).toBe(204)
+
+    const check = await request(app)
+      .get('/maintenance-notes')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .query({ aircraftRegistration: AIRCRAFT, ajlbSeqNo: AJLB_SEQ_NO })
+    expect(check.body.some((n: { noteId: string }) => n.noteId === noteId)).toBe(false)
+  })
+
+  it('returns 204 when admin deletes a note owned by another user', async () => {
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(res.status).toBe(204)
+  })
+
+  it('returns 404 for non-existent note id', async () => {
     const res = await request(app)
       .delete('/maintenance-notes/00000000-0000-0000-0000-000000000000')
       .set('Cookie', `accessToken=${adminToken}`)
 
     expect(res.status).toBe(404)
+  })
+
+  it('returns 400 when the note is before the last validated flight', async () => {
+    // OH-STL/1's last validated flight total is 21301 in the test data -- deleting a
+    // note behind that baseline would silently alter an already-validated logbook page.
+    const belowBaseline = await createMaintenanceNote(
+      {
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Note behind the validated baseline',
+        performedBy: 'Matti Virtanen',
+        flightMins: 21300,
+        rows: 1,
+      },
+      'Matti1',
+    )
+
+    const res = await request(app)
+      .delete(`/maintenance-notes/${belowBaseline.noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(res.status).toBe(400)
+
+    await deleteMaintenanceNote(belowBaseline.noteId)
+  })
+
+  it('returns 204 when the note is exactly at the last validated flight', async () => {
+    // A note isn't tied to a specific flight, so this legitimately matches the
+    // baseline exactly -- mirrors the equivalent POST/PATCH boundary tests.
+    const atBaseline = await createMaintenanceNote(
+      {
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Note exactly at the validated baseline',
+        performedBy: 'Matti Virtanen',
+        flightMins: 21301,
+        rows: 1,
+      },
+      'Matti1',
+    )
+
+    const res = await request(app)
+      .delete(`/maintenance-notes/${atBaseline.noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(res.status).toBe(204)
   })
 })

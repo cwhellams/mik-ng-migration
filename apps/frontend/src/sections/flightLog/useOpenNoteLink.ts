@@ -2,6 +2,6 @@ import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import { useOpenLogbookItemLink } from '../../hooks/useOpenLogbookItemLink'
 
 export const useOpenNoteLink = (aircraftRegistration: string) => {
-  const openLink = useOpenLogbookItemLink(aircraftRegistration, 'highlightNote')
+  const openLink = useOpenLogbookItemLink(aircraftRegistration, 'highlightNote', 'note')
   return (note: MaintenanceNote) => openLink(note, note.noteId)
 }

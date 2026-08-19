@@ -1092,8 +1092,8 @@
     "validationRemarks": "Valideringskommentarer",
     "billingRemarks": "Faktureringskommentarer",
     "billingRemarksTestOrFerryInstruction": "Beskriv orsaken till flygningen, vem som godkände den och om det fanns händelser som väderundvikande eller tekniska problem som upptäcktes. Om det var en testflygning, lägg till datumet då rapporten skickades till kalusto@mik.fi",
-    "notes": "Anteckningar",
-    "incidentOrObservations": "Incidenter eller observationer",
+    "otherNotesTitle": "Övriga anteckningar",
+    "incidentOrObservations": "Övriga flygrelaterade incidenter eller observationer",
     "personalRemarks": "Personliga kommentarer",
     "flightTimeline": "Flygtidslinje",
     "taxiOut": "Taxi ut",
@@ -1304,8 +1304,6 @@
       "minutes": "Minuter",
       "rows": "Rader",
       "rowsHelp": "Hur många rader detta tar på den fysiska loggbokssidan (0 = visas på flygningens rad)",
-      "blankRowsAfter": "Tomma rader efter",
-      "blankRowsAfterHelp": "Tomma rader som läggs till i den fysiska loggboken efter denna anteckning",
       "closeHilItems": "Stäng hold items",
       "closedHil": "Stängda hold items",
       "closeDefects": "Stäng fel",
@@ -1319,8 +1317,9 @@
       "addPreFlightButton": "Rapportera fel",
       "addPreFlightTitle": "Nytt fel (före flygning)",
       "addInFlightTitle": "Nytt fel (under flygning)",
-      "reportSectionTitle": "Rapportera fel",
-      "reportSectionNote": "Om du upptäckte fel under flygningen, beskriv varje fel nedan. Varje fel måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning.",
+      "existingSectionTitle": "Redan rapporterade fel",
+      "newSectionTitle": "Fel",
+      "fleetManagersTitle": "Materialansvariga",
       "addDefectRow": "Lägg till fel",
       "blankDescriptionError": "Felbeskrivningen får inte vara tom",
       "viewTitle": "Fel",
@@ -1344,7 +1343,29 @@
       },
       "openHil": "Öppna på Hold Item List",
       "deferToNewHil": "Skjut upp till ny HIL-post",
-      "openNote": "Öppna underhållsanteckning"
+      "openNote": "Öppna underhållsanteckning",
+      "groundingConfirmTitle": "Sätt flygplanet i flygförbud?",
+      "groundingConfirmMessage": "OBS: Att skicka in detta sätter flygplanet i flygförbud tills felet har åtgärdats eller överförts till Hold Item List (HIL). Samråd med kalustovastaava (materialansvarig) krävs.",
+      "groundingConfirmButton": "Bekräfta och spara"
+    },
+    "remarks": {
+      "existingSectionTitle": "Anmärkningar",
+      "newSectionTitle": "Anmärkningar",
+      "addRemarkRow": "Lägg till anmärkning",
+      "blankDescriptionError": "Anmärkningens beskrivning får inte vara tom"
+    },
+    "defectsAndRemarks": {
+      "title": "Flygplanets fel och anmärkningar",
+      "intro1": "Om du upptäckte några fel på flygplanet under denna flygning, rapportera varje ett nedan. Skriv istället en anmärkning för mindre observationer som inte påverkar lufttjänstdugligheten.",
+      "intro2": "Observera att ett rapporterat fel sätter flygplanet i flygförbud tills felet är åtgärdat eller överfört till Hold Item List (HIL). Varje flygplansrelaterad observation måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning.",
+      "defectFieldLabel": "Felbeskrivning",
+      "remarkFieldLabel": "Anmärkningens beskrivning"
+    },
+    "longTaxi": {
+      "confirmTitle": "Lång taxningstid",
+      "outMessage": "Du har angett {{minutes}} minuter taxningstid ut, bekräfta att detta stämmer.",
+      "inMessage": "Du har angett {{minutes}} minuter taxningstid in, bekräfta att detta stämmer.",
+      "confirmButton": "Bekräfta och spara"
     }
   },
   "invoicing": {
@@ -1736,8 +1757,8 @@
       "accept": "Acceptera",
       "cancel": "Avbryt"
     },
-    "latestFlightsWithIncidents": "Senaste flyg med incidenter eller observationer",
-    "noFlightsWithIncidents": "Inga flyg med incidenter eller observationer.",
+    "latestFlightsWithIncidents": "Senaste flyg med incidenter, observationer eller anmärkningar",
+    "noFlightsWithIncidents": "Inga flyg med incidenter, observationer eller anmärkningar.",
     "newFlightsToValidate": "Nya flyg att validera",
     "noNewFlights": "Inga nya flyg att validera.",
     "newFlightsSince": "{{count}} nya flyg sedan {{date}}",

@@ -4,6 +4,7 @@ import {
   countFlightLogsForExport,
   deleteFlightLog,
   getFlightLog,
+  getFlightLogPageForMins,
   getFlightLogs,
   getFlightLogsForExport,
   getFlightLogTotals,
@@ -336,7 +337,6 @@ describe('Db query FlightLog tests', () => {
         description: 'fills the rest of page 502 plus all of page 504',
         flightMins: 700405 + 60, // anchors to flightA (700465), not flightB
         rows: 9,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -359,12 +359,11 @@ describe('Db query FlightLog tests', () => {
     // OH-STL ajlb_seq_no 3's live region starts right after pob25a03 (cumulative
     // 700405, the last row of page 500). flightA (60 min) becomes the sole flight
     // on page 502 (row 1, absolute row 6). A defect anchored right after it, with
-    // rows: 2 + blankRowsAfter: 4 (6 rows total, absolute rows 7-12), only has 4
-    // rows of room left on page 502 (rows 2-5) -- its content row (the first of
-    // its own 6) lands there, but the remaining 2 rows must carry onto page 504
-    // as blank continuation, matching flight.vw_ajlb_live_rows' physical-row
-    // breakdown instead of either overflowing page 502 past 5 rows or dropping
-    // the carried-over rows entirely.
+    // rows: 6 (absolute rows 7-12), only has 4 rows of room left on page 502
+    // (rows 2-5) -- its content row (the first of its own 6) lands there, but the
+    // remaining 2 rows must carry onto page 504 as blank continuation, matching
+    // flight.vw_ajlb_live_rows' physical-row breakdown instead of either
+    // overflowing page 502 past 5 rows or dropping the carried-over rows entirely.
     const flightIdA = await insertFlightLog(
       {
         aircraftRegistration: 'OH-STL',
@@ -407,8 +406,7 @@ describe('Db query FlightLog tests', () => {
         flightId: null,
         description: 'spans page 502 into page 504',
         flightMins: 700405 + 60, // anchors right after flightA
-        rows: 2,
-        blankRowsAfter: 4,
+        rows: 6,
       },
       'Matti1',
     )
@@ -445,6 +443,109 @@ describe('Db query FlightLog tests', () => {
     }
   })
 
+  it("getFlightLogPageForMins resolves an own-row item to its actual page, not its anchor flight's", async () => {
+    // OH-STL ajlb_seq_no 3's rows_per_page is 5. flightA becomes the sole flight
+    // on page 502 (row 1). A filler defect (rows: 4) anchored right after it
+    // fills the rest of page 502 (rows 2-5) exactly. Neither item is a flight,
+    // so they don't move the running flight-time total -- the flightMins-only
+    // heuristic (no item given) would still match flightA (the last/only flight
+    // whose cumulative total reaches these flightMins) and return its page,
+    // 502. But a further defect anchored after the filler has nowhere left on
+    // page 502 and actually lands on page 504 -- the bug this test guards
+    // against is exactly that mismatch.
+    const flightIdA = await insertFlightLog(
+      {
+        aircraftRegistration: 'OH-STL',
+        picMemberId: 'Liisa1',
+        oilUpliftLitres: 1,
+        fuelUpliftLitres: 20,
+        personsOnBoard: 1,
+        numberOfLandings: 1,
+        numberOfNightLandings: 0,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFHK',
+        flightType: FlightType.SCHOOL,
+        billingRemarks: null,
+        personalRemarks: 'page-for-mins overflow test',
+        picRole: 'PIC' as const,
+        crew2MemberId: null,
+        crew2Role: null,
+        crew3MemberId: null,
+        crew3Role: null,
+        crew4MemberId: null,
+        crew4Role: null,
+        fuelRemainingLitres: 20,
+        incidentOrObservations: null,
+        totalTimeInService: 1,
+        instrumentFlyingMins: 0,
+        nightFlyingMins: 0,
+        partiallyBillableFlight: false,
+        offBlockTimeEpoch: '1784282400', // 2026-07-17T10:00:00Z
+        takeoffTimeEpoch: '1784282700',
+        landingTimeEpoch: '1784286300', // 60 min flight
+        onBlockTimeEpoch: '1784286600',
+      } as FlightLogMemberRequest,
+      { memberId: 'Matti1', permissions: [MIKPermissions.FLIGHTLOG_USER] },
+    )
+
+    const filler = await createDefect(
+      {
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        flightId: null,
+        description: 'fills the rest of page 502',
+        flightMins: 700405 + 60, // anchors to flightA, same as its own total
+        rows: 4,
+      },
+      'Matti1',
+    )
+
+    const overflow = await createDefect(
+      {
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        flightId: null,
+        description: 'has nowhere left on page 502',
+        flightMins: 700405 + 60,
+        rows: 1,
+      },
+      'Matti1',
+    )
+
+    try {
+      const heuristicOnly = await getFlightLogPageForMins('OH-STL', 3, overflow.flightMins)
+      expect(heuristicOnly).toBe(502) // the anchor flight's page -- known-wrong for this item
+
+      const resolved = await getFlightLogPageForMins('OH-STL', 3, overflow.flightMins, {
+        itemType: 'defect',
+        itemId: overflow.defectId,
+      })
+      expect(resolved).toBe(504) // where it actually landed
+
+      const page502 = await getFlightLogs({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        page: 502,
+      })
+      expect(page502.pageItemRows?.some((row) => row.itemId === overflow.defectId)).toBe(false)
+
+      const page504 = await getFlightLogs({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        page: 504,
+      })
+      expect(page504.pageItemRows).toEqual([
+        { rowNumber: 1, itemType: 'defect', itemId: overflow.defectId, isContentRow: true },
+      ])
+    } finally {
+      await db
+        .deleteFrom('flight.defect')
+        .where('defectId', 'in', [filler.defectId, overflow.defectId])
+        .execute()
+      await deleteFlightLog(flightIdA)
+    }
+  })
+
   it('sorts an item recorded exactly at the baseline before the next live flight, not after', async () => {
     // Mirrors the real bug: a pre-flight defect recorded with flightMins exactly
     // equal to the baseline (i.e. found before any new flight has flown since the
@@ -461,7 +562,6 @@ describe('Db query FlightLog tests', () => {
         description: 'found on the ramp before the earliest live flight',
         flightMins: 700000,
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )

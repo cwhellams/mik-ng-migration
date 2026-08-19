@@ -1,0 +1,96 @@
+import { auditCreate, mapAudit } from './audit.ts'
+import * as connection from './connection.ts'
+import type { DbRow } from './connection.ts'
+import type { Remark, CreateRemarkRequest, RecentRemark } from '@mik/contracts/remarks'
+import type { FlightLogStatus } from '@mik/contracts/flight-log'
+
+function mapRowToRemark(row: DbRow<'flight.remark'>): Remark {
+  return {
+    remarkId: row.remarkId,
+    flightId: row.flightId,
+    description: row.description,
+    ...mapAudit(row),
+  }
+}
+
+export async function getRemarksByFlightId(flightId: string): Promise<Remark[]> {
+  const rows = await connection.db
+    .selectFrom('flight.remark')
+    .selectAll()
+    .where('flightId', '=', flightId)
+    .orderBy('createdAt', 'asc')
+    .execute()
+
+  return rows.map(mapRowToRemark)
+}
+
+// LogbookPage's inline markers: every remark for a whole logbook page (aircraft, and
+// optionally one specific ajlbSeqNo), joined through flight.logs since flight.remark
+// has no aircraft/seqNo column of its own -- mirrors getDefects's scoping.
+export async function getRemarksByAircraft(
+  aircraftRegistration: string,
+  ajlbSeqNo?: number,
+): Promise<Remark[]> {
+  const rows = await connection.db
+    .selectFrom('flight.remark')
+    .innerJoin('flight.logs', 'flight.logs.flightId', 'flight.remark.flightId')
+    .selectAll('flight.remark')
+    .where('flight.logs.aircraftRegistration', '=', aircraftRegistration)
+    .$if(ajlbSeqNo !== undefined, (qb) => qb.where('flight.logs.ajlbSeqNo', '=', ajlbSeqNo!))
+    .orderBy('flight.remark.createdAt', 'asc')
+    .execute()
+
+  return rows.map(mapRowToRemark)
+}
+
+export async function createRemark(data: CreateRemarkRequest, createdBy: string): Promise<Remark> {
+  const row = await connection.db
+    .insertInto('flight.remark')
+    .values({
+      flightId: data.flightId,
+      description: data.description,
+      ...auditCreate(createdBy),
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow()
+
+  return mapRowToRemark(row)
+}
+
+// The flight log admin dashboard's "recent remarks" list -- joined with flight.logs
+// for the aircraft registration and takeoff time a dashboard link needs, same as the
+// existing "flights with incidents" list next to it. status mirrors that sibling
+// list's own status filter so the two share the same flight-validation scoping
+// when both feed into the same combined dashboard widget.
+export async function getRecentRemarks(
+  limit: number,
+  status?: FlightLogStatus,
+): Promise<RecentRemark[]> {
+  const rows = await connection.db
+    .selectFrom('flight.remark')
+    .innerJoin('flight.logs', 'flight.logs.flightId', 'flight.remark.flightId')
+    .select([
+      'flight.remark.remarkId',
+      'flight.remark.flightId',
+      'flight.remark.description',
+      'flight.remark.createdAt',
+      'flight.remark.createdBy',
+      'flight.remark.updatedAt',
+      'flight.remark.updatedBy',
+      'flight.logs.aircraftRegistration',
+      'flight.logs.takeoffTimeUtc',
+    ])
+    .$if(status !== undefined, (qb) => qb.where('flight.logs.status', '=', status!))
+    .orderBy('flight.remark.createdAt', 'desc')
+    .limit(limit)
+    .execute()
+
+  return rows.map((row) => ({
+    remarkId: row.remarkId,
+    flightId: row.flightId,
+    description: row.description,
+    aircraftRegistration: row.aircraftRegistration,
+    takeoffTimeUtc: new Date(row.takeoffTimeUtc).toISOString(),
+    ...mapAudit(row),
+  }))
+}

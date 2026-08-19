@@ -22,6 +22,8 @@ import {
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { MemberListResponse } from '@mik/contracts/members'
 import useApi from '../../../hooks/useApi'
+import { useDefects } from '../../../hooks/useDefects'
+import { useRemarks } from '../../../hooks/useRemarks'
 import { useMe } from '../../../hooks/useMe'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
@@ -51,7 +53,11 @@ import { ReviewStep } from './steps/ReviewStep'
 import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
 import { useOverlapCheck } from '../useOverlapCheck'
 import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
+import { useDefectGroundingConfirm } from '../useDefectGroundingConfirm'
+import { useLongTaxiCheck } from '../useLongTaxiCheck'
+import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { hasBlankReportedDefect, submitReportedDefects } from '../reportDefectsApi'
+import { hasBlankReportedRemark, submitReportedRemarks } from '../reportRemarksApi'
 import { endpoints } from '../../../api/endpoints'
 
 interface Props {
@@ -76,6 +82,7 @@ interface FlightLogWizardDraft {
   refueled: boolean | null
   oilAdded: boolean | null
   reportedDefects: string[]
+  reportedRemarks: string[]
 }
 
 const FIELDS_TO_VALIDATE_PER_STEP: Partial<Record<WizardStep, (keyof FlightLogUpsertRequest)[]>> = {
@@ -355,11 +362,26 @@ const FlightLogEntryWizardInner = ({
   // Mirrors the backend's own rule that an in-flight defect's flight must still be
   // unvalidated -- hidden rather than shown-then-rejected once already validated.
   const canReportDefects = !isEditing || initialData?.status === FlightLogStatus.NEW
+  // Remarks found on this flight (#1226) -- same "reported alongside the entry,
+  // submitted once the flightId exists" shape as reportedDefects.
+  const [reportedRemarks, setReportedRemarks] = useState<string[]>(
+    () => persistedDraft?.reportedRemarks ?? [],
+  )
+  const canReportRemarks = canReportDefects
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(flightId)
+  const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
+  const { withLongTaxiCheck, longLegs, longTaxiDialogProps } = useLongTaxiCheck()
+  const longTaxiMessage = longLegs
+    .map((leg) =>
+      t(leg.leg === 'out' ? 'flightLog.longTaxi.outMessage' : 'flightLog.longTaxi.inMessage', {
+        minutes: leg.minutes,
+      }),
+    )
+    .join(' ')
 
   // Set the instant the draft is intentionally cleared (discard, or a successful
   // save) so the debounced autosave below can never resurrect it. Clearing storage
@@ -393,6 +415,7 @@ const FlightLogEntryWizardInner = ({
         refueled,
         oilAdded,
         reportedDefects,
+        reportedRemarks,
       })
     }
     snapshot()
@@ -419,12 +442,31 @@ const FlightLogEntryWizardInner = ({
     refueled,
     oilAdded,
     reportedDefects,
+    reportedRemarks,
     watch,
     getValues,
   ])
 
   const registration = watch('aircraftRegistration')
   const aircraft = aircraftData?.aircrafts.find((a) => a.registration === registration)
+
+  // Defects already reported against this flight (e.g. via the old separate
+  // "Add in-flight defect" button, or a previous save of this same wizard) --
+  // fetched by aircraft and filtered by flightId here, since GET /defects has
+  // no flightId filter of its own. Only relevant when editing; a new entry
+  // has no flightId yet for any defect to be tied to.
+  const { data: aircraftDefects, mutate: mutateAircraftDefects } = useDefects(
+    isEditing ? registration : undefined,
+  )
+  const existingDefects = flightId
+    ? (aircraftDefects?.filter((d) => d.flightId === flightId) ?? [])
+    : []
+
+  // Remarks already logged against this flight (#1226) -- unlike defects, remarks are
+  // always tied to a flightId, so this can filter server-side instead of fetching by
+  // aircraft and filtering client-side.
+  const { data: existingRemarksData } = useRemarks(flightId)
+  const existingRemarks = existingRemarksData ?? []
 
   const canGoNext = (): boolean => {
     switch (currentStep) {
@@ -461,7 +503,34 @@ const FlightLogEntryWizardInner = ({
       const valid = await trigger(fields)
       if (!valid) return
     }
-    setStepIndex((i) => Math.min(i + 1, WIZARD_STEPS.length - 1))
+
+    const advance = () => setStepIndex((i) => Math.min(i + 1, WIZARD_STEPS.length - 1))
+
+    // Checked right on the step that collected the times, rather than only at the
+    // very end on Review -- by then the pilot has moved well past the page that
+    // caused it (#1223 follow-up).
+    if (currentStep === 'timeDeparture') {
+      withLongTaxiCheck(
+        {
+          offBlockTimeEpoch: watch('offBlockTimeEpoch'),
+          takeoffTimeEpoch: watch('takeoffTimeEpoch'),
+        },
+        advance,
+      )
+      return
+    }
+    if (currentStep === 'timeArrival') {
+      withLongTaxiCheck(
+        {
+          landingTimeEpoch: watch('landingTimeEpoch'),
+          onBlockTimeEpoch: watch('onBlockTimeEpoch'),
+        },
+        advance,
+      )
+      return
+    }
+
+    advance()
   }
 
   const handleBack = () => setStepIndex((i) => Math.max(i - 1, 0))
@@ -469,6 +538,10 @@ const FlightLogEntryWizardInner = ({
   const doSave = async (data: FlightLogUpsertRequest) => {
     if (hasBlankReportedDefect(reportedDefects)) {
       setProblem({ status: 400, detail: t('flightLog.defects.blankDescriptionError') })
+      return
+    }
+    if (hasBlankReportedRemark(reportedRemarks)) {
+      setProblem({ status: 400, detail: t('flightLog.remarks.blankDescriptionError') })
       return
     }
     setSubmitting(true)
@@ -489,11 +562,18 @@ const FlightLogEntryWizardInner = ({
 
       const savedFlightId = isEditing ? flightId : saved?.flightId
       if (savedFlightId) {
-        await submitReportedDefects(savedFlightId, reportedDefects).catch((err) => {
-          // non-fatal: the flight log itself is already saved; the pilot can still
-          // report a missed defect separately via the standalone pre-flight dialog
-          console.error('Failed to submit reported defects:', err)
-        })
+        // Independent of each other -- run together rather than one after the other.
+        await Promise.all([
+          submitReportedDefects(savedFlightId, reportedDefects).catch((err) => {
+            // non-fatal: the flight log itself is already saved; the pilot can still
+            // report a missed defect separately via the standalone pre-flight dialog
+            console.error('Failed to submit reported defects:', err)
+          }),
+          submitReportedRemarks(savedFlightId, reportedRemarks).catch((err) => {
+            // non-fatal: the flight log itself is already saved
+            console.error('Failed to submit reported remarks:', err)
+          }),
+        ])
       }
 
       discardDraft()
@@ -507,7 +587,9 @@ const FlightLogEntryWizardInner = ({
     }
   }
 
-  const handleAccept = handleSubmit((data) => withOverlapCheck(data, () => void doSave(data)))
+  const handleAccept = handleSubmit((data) =>
+    withOverlapCheck(data, () => withGroundingConfirm(reportedDefects, () => void doSave(data))),
+  )
 
   const timeEpochFor = (field: keyof FlightLogUpsertRequest): string | null => {
     const value = getValues(field)
@@ -635,6 +717,13 @@ const FlightLogEntryWizardInner = ({
           reportedDefects={reportedDefects}
           onReportedDefectsChange={setReportedDefects}
           canReportDefects={canReportDefects}
+          existingDefects={existingDefects}
+          aircraftRegistration={registration}
+          onExistingDefectsChanged={mutateAircraftDefects}
+          reportedRemarks={reportedRemarks}
+          onReportedRemarksChange={setReportedRemarks}
+          canReportRemarks={canReportRemarks}
+          existingRemarks={existingRemarks}
         />
       )}
       {currentStep === 'review' && (
@@ -671,6 +760,22 @@ const FlightLogEntryWizardInner = ({
       </Dialog>
 
       <OverlapWarningDialog {...overlapDialogProps} />
+      <ConfirmDialog
+        {...longTaxiDialogProps}
+        title={t('flightLog.longTaxi.confirmTitle')}
+        message={longTaxiMessage}
+        confirmText={t('flightLog.longTaxi.confirmButton')}
+        cancelText={t('general.cancel')}
+        severity='info'
+      />
+      <ConfirmDialog
+        {...groundingDialogProps}
+        title={t('flightLog.defects.groundingConfirmTitle')}
+        message={t('flightLog.defects.groundingConfirmMessage')}
+        confirmText={t('flightLog.defects.groundingConfirmButton')}
+        cancelText={t('general.cancel')}
+        severity='warning'
+      />
     </WizardShell>
   )
 }

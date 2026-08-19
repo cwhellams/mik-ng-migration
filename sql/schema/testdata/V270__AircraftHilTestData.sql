@@ -52,29 +52,36 @@ VALUES (
 
 -- The logbook defects deferred to each of the three hold items above, so the
 -- HIL <-> flight log links can be followed both ways for all of them.
+--
+-- No blank_rows_after column here: V1870 (this branch) drops it from
+-- flight.defect entirely, and testdata always applies against the fully
+-- migrated schema, so this file can no longer reference it. (Their
+-- flight_mins are bumped to sit above each aircraft/ajlb's live baseline in
+-- V290 instead of here, since that part isn't schema-forced -- see V290's
+-- comment.)
 INSERT INTO flight.defect (
         aircraft_registration, ajlb_seq_no, flight_id, description, flight_mins,
-        blank_rows_after, status, hil_id, created_by, updated_by
+        status, hil_id, created_by, updated_by
     )
 VALUES (
         'OH-STL', 1, NULL, 'Landing light does not illuminate on pre-flight check', 1200,
-        0, 'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000001', 'Matti1', 'Matti1'
+        'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000001', 'Matti1', 'Matti1'
     ),
     (
         'OH-STL', 1, NULL, 'ADF fails to lock onto any station', 1150,
-        0, 'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000002', 'Matti1', 'Matti1'
+        'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000002', 'Matti1', 'Matti1'
     ),
     (
         'OH-IHQ', 2, NULL, 'Right main tyre worn close to limit on walkaround', 800,
-        0, 'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000003', 'Liisa1', 'Liisa1'
+        'MOVED_TO_HIL', '0195c1a0-0000-4000-8000-000000000003', 'Liisa1', 'Liisa1'
     );
 
 -- An unaddressed defect: no hold item, no maintenance release, so OH-P28 is grounded
 INSERT INTO flight.defect (
         aircraft_registration, ajlb_seq_no, flight_id, description, flight_mins,
-        blank_rows_after, status, hil_id, created_by, updated_by
+        status, hil_id, created_by, updated_by
     )
 VALUES (
         'OH-P28', 4, NULL, 'Oil seepage noticed around the cowling', 900,
-        0, 'ACTIVE', NULL, 'Liisa1', 'Liisa1'
+        'ACTIVE', NULL, 'Liisa1', 'Liisa1'
     );

@@ -17,7 +17,6 @@ function mapRowToNote(row: DbRow<'flight.maintenanceNote'>): MaintenanceNote {
     performedBy: row.performedBy,
     flightMins: row.flightMins,
     rows: row.rows,
-    blankRowsAfter: row.blankRowsAfter,
     createdAt: row.createdAt.toISOString(),
     createdBy: row.createdBy,
   }
@@ -54,7 +53,6 @@ export async function createMaintenanceNote(
         performedBy: data.performedBy,
         flightMins: data.flightMins,
         rows: data.rows,
-        blankRowsAfter: data.blankRowsAfter,
         ...auditCreate(createdBy, now),
       })
       .returningAll()
@@ -100,7 +98,6 @@ export async function updateMaintenanceNote(
       ...(data.performedBy !== undefined && { performedBy: data.performedBy }),
       ...(data.flightMins !== undefined && { flightMins: data.flightMins }),
       ...(data.rows !== undefined && { rows: data.rows }),
-      ...(data.blankRowsAfter !== undefined && { blankRowsAfter: data.blankRowsAfter }),
       updatedAt: new Date(),
       updatedBy,
     })
@@ -112,8 +109,16 @@ export async function updateMaintenanceNote(
   return row ? mapRowToNote(row) : undefined
 }
 
-export async function deleteMaintenanceNote(noteId: string): Promise<void> {
-  await connection.db.deleteFrom('flight.maintenanceNote').where('noteId', '=', noteId).execute()
+export async function deleteMaintenanceNote(
+  noteId: string,
+  createdByFilter?: string,
+): Promise<MaintenanceNote | undefined> {
+  let query = connection.db.deleteFrom('flight.maintenanceNote').where('noteId', '=', noteId)
+  if (createdByFilter !== undefined) {
+    query = query.where('createdBy', '=', createdByFilter)
+  }
+  const row = await query.returningAll().executeTakeFirst()
+  return row ? mapRowToNote(row) : undefined
 }
 
 export async function getMaintenanceNote(noteId: string): Promise<MaintenanceNote | undefined> {

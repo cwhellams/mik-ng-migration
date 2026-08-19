@@ -33,7 +33,6 @@ describe('flight.vw_ajlb_live_sequence pagination reflow', () => {
         performedBy: 'Mechanic',
         flightMins: 700300, // anchors after the 4th flight (700240 < 700300 <= 700360)
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -75,7 +74,6 @@ describe('flight.vw_ajlb_live_sequence pagination reflow', () => {
         description: 'Inline reflow test defect',
         flightMins: 700300,
         rows: 0,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -102,7 +100,6 @@ describe('flight.vw_ajlb_live_sequence pagination reflow', () => {
         performedBy: 'Mechanic',
         flightMins: 700310,
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )
@@ -114,7 +111,6 @@ describe('flight.vw_ajlb_live_sequence pagination reflow', () => {
         performedBy: 'Mechanic',
         flightMins: 700300,
         rows: 1,
-        blankRowsAfter: 0,
       },
       'Matti1',
     )

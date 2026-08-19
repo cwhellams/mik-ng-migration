@@ -30,7 +30,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import { AircraftJourneyLogBook } from '@mik/contracts/ajlb'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { EditButton } from '../../components/EditButton'
 import { Problem } from '@mik/contracts/problem'
 import { StatusButton } from './components/StatusButton'
@@ -48,12 +48,15 @@ import { useTimezone } from '../../hooks/useTimezone'
 import { Icon } from '@iconify/react'
 import { useMaintenanceNotes } from '../../hooks/useMaintenanceNotes'
 import { useDefects } from '../../hooks/useDefects'
+import { useRemarksForAircraft } from '../../hooks/useRemarks'
 import { MaintenanceNoteMarker } from './MaintenanceNoteMarker'
 import { AddMaintenanceNoteDialog } from './AddMaintenanceNoteDialog'
 import { DefectMarker } from './DefectMarker'
 import { AddDefectDialog } from './AddDefectDialog'
+import { RemarkMarker } from './RemarkMarker'
 import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import type { Defect } from '@mik/contracts/defects'
+import type { Remark } from '@mik/contracts/remarks'
 import { MIKPermissions } from '@mik/contracts/members'
 
 // A maintenance note / defect that renders inline as a chip on its anchor
@@ -93,6 +96,17 @@ export const buildInlineItems = (
       })),
   ].sort((a, b) => a.flightMins - b.flightMins || a.sortKey.localeCompare(b.sortKey))
 
+// Remarks (#1226 follow-up) are always tied to a flightId -- unlike notes/defects
+// there is no pre-flight/position-based case, so unlike buildInlineItems they need
+// no flightMins-based bucketing, just a straight lookup by their anchor flight's id.
+export const groupRemarksByFlightId = (remarks: Remark[] | undefined): Record<string, Remark[]> => {
+  const byFlightId: Record<string, Remark[]> = {}
+  ;(remarks ?? []).forEach((remark) => {
+    byFlightId[remark.flightId] = [...(byFlightId[remark.flightId] ?? []), remark]
+  })
+  return byFlightId
+}
+
 type LogbookTableRow = {
   log: FlightLogListEntry | null
   isEmptyRow: boolean
@@ -105,6 +119,12 @@ type LogbookTableRow = {
   isDefectBlankRow: boolean
   inlineItems: LogbookInsertItem[]
 }
+
+// A blank continuation/spacer row is still consumed by the note/defect above or
+// below it -- distinguishing it from a genuinely empty row (isEmptyRow but not
+// this) is what tells the reader it isn't available for a new flight.
+export const isBlankButUsedRow = (row: LogbookTableRow): boolean =>
+  row.isNoteBlankRow || row.isDefectBlankRow
 
 const rowDefaults = {
   note: undefined as MaintenanceNote | undefined,
@@ -395,7 +415,12 @@ const FlightLogsList = () => {
     ajlb?.seqNo,
   )
 
-  // A note/defect's rows/blankRowsAfter can shift data.pageItemRows (the server's
+  // Remarks (#1226 follow-up) shown inline on their flight's row, same as an
+  // in-flight defect chip, but purely informational -- see RemarkMarker.
+  const { data: remarks } = useRemarksForAircraft(ajlb?.aircraftRegistration, ajlb?.seqNo)
+  const remarksByFlightId = useMemo(() => groupRemarksByFlightId(remarks), [remarks])
+
+  // A note/defect's rows can shift data.pageItemRows (the server's
   // physical-row placement for this page), so any change to either must also
   // refresh the flight-logs list, not just the note/defect list itself.
   const refreshAfterNoteChange = () => {
@@ -557,18 +582,39 @@ const FlightLogsList = () => {
   // row (the traditional in-flight-defect chip, now unified for both kinds).
   // Own-row (rows > 0) items are placed directly from data.pageItemRows, the
   // server's exact physical-row breakdown for this page -- see buildLogbookRows.
-  const inlineItems = buildInlineItems(maintenanceNotes, defects)
-  const notesById = Object.fromEntries((maintenanceNotes ?? []).map((note) => [note.noteId, note]))
-  const defectsById = Object.fromEntries((defects ?? []).map((defect) => [defect.defectId, defect]))
+  const inlineItems = useMemo(
+    () => buildInlineItems(maintenanceNotes, defects),
+    [maintenanceNotes, defects],
+  )
+  const notesById = useMemo(
+    () => Object.fromEntries((maintenanceNotes ?? []).map((note) => [note.noteId, note])),
+    [maintenanceNotes],
+  )
+  const defectsById = useMemo(
+    () => Object.fromEntries((defects ?? []).map((defect) => [defect.defectId, defect])),
+    [defects],
+  )
 
-  const mergedRows = buildLogbookRows(
-    data?.logs,
-    data?.pageItemRows ?? [],
-    inlineItems,
-    notesById,
-    defectsById,
-    ajlb?.rowsPerPage ?? 0,
-    data?.pageStartFlightMins ?? null,
+  const mergedRows = useMemo(
+    () =>
+      buildLogbookRows(
+        data?.logs,
+        data?.pageItemRows ?? [],
+        inlineItems,
+        notesById,
+        defectsById,
+        ajlb?.rowsPerPage ?? 0,
+        data?.pageStartFlightMins ?? null,
+      ),
+    [
+      data?.logs,
+      data?.pageItemRows,
+      inlineItems,
+      notesById,
+      defectsById,
+      ajlb?.rowsPerPage,
+      data?.pageStartFlightMins,
+    ],
   )
 
   return (
@@ -604,9 +650,7 @@ const FlightLogsList = () => {
               startIcon={<Icon icon='mdi:alert-circle-outline' />}
               onClick={() => {
                 setAddDefectFlightId(null)
-                setAddDefectFlightMins(
-                  data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined,
-                )
+                setAddDefectFlightMins(ajlb?.view?.unverifiedTotalFlightMins)
                 setAddDefectOpen(true)
               }}
               size='small'
@@ -642,8 +686,9 @@ const FlightLogsList = () => {
           }
           notFoundMsg={t('flightLog.noLogs')}
           rows={mergedRows}
-          rowProps={() => ({
+          rowProps={(row) => ({
             minHeight: rowHeight,
+            ...(isBlankButUsedRow(row) && { bgcolor: 'action.hover' }),
           })}
           row={({
             log,
@@ -664,7 +709,7 @@ const FlightLogsList = () => {
                     note={note}
                     onChanged={refreshAfterNoteChange}
                     highlighted={note.noteId === highlightNoteId}
-                    flightDate={log?.offBlockTimeUtc}
+                    recordedDate={note.createdAt}
                   />
                 </Box>
               )
@@ -682,7 +727,7 @@ const FlightLogsList = () => {
                     aircraftRegistration={ajlb.aircraftRegistration}
                     onChanged={refreshAfterDefectChange}
                     highlighted={defect.defectId === highlightDefectId}
-                    flightDate={log?.offBlockTimeUtc}
+                    recordedDate={defect.createdAt}
                   />
                 </Box>
               )
@@ -795,30 +840,35 @@ const FlightLogsList = () => {
                       <Actions log={log} />
                     </Grid>
 
-                    {inlineItems.length > 0 && ajlb && (
-                      <Grid size={12} sx={{ pt: 0, pb: 0.5 }}>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {inlineItems.map((item) =>
-                            item.kind === 'defect' ? (
-                              <DefectMarker
-                                key={item.defect.defectId}
-                                defect={item.defect}
-                                aircraftRegistration={ajlb.aircraftRegistration}
-                                onChanged={refreshAfterDefectChange}
-                                highlighted={item.defect.defectId === highlightDefectId}
-                              />
-                            ) : (
-                              <MaintenanceNoteMarker
-                                key={item.note.noteId}
-                                note={item.note}
-                                onChanged={refreshAfterNoteChange}
-                                highlighted={item.note.noteId === highlightNoteId}
-                              />
-                            ),
-                          )}
-                        </Box>
-                      </Grid>
-                    )}
+                    {(inlineItems.length > 0 ||
+                      (remarksByFlightId[log.flightId]?.length ?? 0) > 0) &&
+                      ajlb && (
+                        <Grid size={12} sx={{ pt: 0, pb: 0.5 }}>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {inlineItems.map((item) =>
+                              item.kind === 'defect' ? (
+                                <DefectMarker
+                                  key={item.defect.defectId}
+                                  defect={item.defect}
+                                  aircraftRegistration={ajlb.aircraftRegistration}
+                                  onChanged={refreshAfterDefectChange}
+                                  highlighted={item.defect.defectId === highlightDefectId}
+                                />
+                              ) : (
+                                <MaintenanceNoteMarker
+                                  key={item.note.noteId}
+                                  note={item.note}
+                                  onChanged={refreshAfterNoteChange}
+                                  highlighted={item.note.noteId === highlightNoteId}
+                                />
+                              ),
+                            )}
+                            {(remarksByFlightId[log.flightId] ?? []).map((remark) => (
+                              <RemarkMarker key={remark.remarkId} remark={remark} />
+                            ))}
+                          </Box>
+                        </Grid>
+                      )}
                   </>
                 ) : (
                   <>
@@ -851,30 +901,35 @@ const FlightLogsList = () => {
                       />
                     </Grid>
 
-                    {inlineItems.length > 0 && ajlb && (
-                      <Grid size={12} sx={{ pt: 0, pb: 0.5 }}>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {inlineItems.map((item) =>
-                            item.kind === 'defect' ? (
-                              <DefectMarker
-                                key={item.defect.defectId}
-                                defect={item.defect}
-                                aircraftRegistration={ajlb.aircraftRegistration}
-                                onChanged={refreshAfterDefectChange}
-                                highlighted={item.defect.defectId === highlightDefectId}
-                              />
-                            ) : (
-                              <MaintenanceNoteMarker
-                                key={item.note.noteId}
-                                note={item.note}
-                                onChanged={refreshAfterNoteChange}
-                                highlighted={item.note.noteId === highlightNoteId}
-                              />
-                            ),
-                          )}
-                        </Box>
-                      </Grid>
-                    )}
+                    {(inlineItems.length > 0 ||
+                      (remarksByFlightId[log.flightId]?.length ?? 0) > 0) &&
+                      ajlb && (
+                        <Grid size={12} sx={{ pt: 0, pb: 0.5 }}>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {inlineItems.map((item) =>
+                              item.kind === 'defect' ? (
+                                <DefectMarker
+                                  key={item.defect.defectId}
+                                  defect={item.defect}
+                                  aircraftRegistration={ajlb.aircraftRegistration}
+                                  onChanged={refreshAfterDefectChange}
+                                  highlighted={item.defect.defectId === highlightDefectId}
+                                />
+                              ) : (
+                                <MaintenanceNoteMarker
+                                  key={item.note.noteId}
+                                  note={item.note}
+                                  onChanged={refreshAfterNoteChange}
+                                  highlighted={item.note.noteId === highlightNoteId}
+                                />
+                              ),
+                            )}
+                            {(remarksByFlightId[log.flightId] ?? []).map((remark) => (
+                              <RemarkMarker key={remark.remarkId} remark={remark} />
+                            ))}
+                          </Box>
+                        </Grid>
+                      )}
                   </>
                 )}
               </>
@@ -930,7 +985,7 @@ const FlightLogsList = () => {
           }}
           aircraftRegistration={ajlb.aircraftRegistration}
           ajlbSeqNo={ajlb.seqNo}
-          defaultFlightMins={data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined}
+          defaultFlightMins={ajlb.view?.unverifiedTotalFlightMins}
           defaultHilIds={closeHilId ? [closeHilId] : undefined}
         />
       )}

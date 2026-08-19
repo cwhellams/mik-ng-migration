@@ -14,7 +14,6 @@ export const DefectSchema = z.object({
   // anchor flight's row (the traditional in-flight-defect chip), 1..n gives it
   // its own row(s). Create-only, like flightId/flightMins.
   rows: z.number().int().min(0),
-  blankRowsAfter: z.number().int().min(0),
   status: DefectStatusSchema,
   hilId: z.string().guid().nullable(),
   resolvedNoteId: z.string().guid().nullable(),
@@ -40,16 +39,11 @@ export const CreateDefectSchema = z
     // null) and 0 (inline chip) for in-flight defects (flightId set), matching
     // today's rendering; the frontend always sends an explicit rows value.
     rows: z.number().int().min(0).optional(),
-    blankRowsAfter: z.number().int().min(0).default(0),
   })
   .transform((data) => ({
     ...data,
     rows: data.rows ?? (data.flightId == null ? 1 : 0),
   }))
-  .refine((data) => data.rows > 0 || data.blankRowsAfter === 0, {
-    message: 'blankRowsAfter must be 0 when rows is 0',
-    path: ['blankRowsAfter'],
-  })
 
 export type CreateDefectRequest = z.infer<typeof CreateDefectSchema>
 
@@ -59,7 +53,6 @@ export const UpdateDefectSchema = z
     // Only for a pre-flight defect (flightId null) -- an in-flight defect is always an
     // inline chip (rows: 0) and can't be converted into a standalone row, see api.ts.
     rows: z.number().int().min(0).optional(),
-    blankRowsAfter: z.number().int().min(0).optional(),
     hilId: z.string().guid().nullable().optional(),
     resolvedNoteId: z.string().guid().nullable().optional(),
   })

@@ -22,6 +22,12 @@ export const FlightTimeTotalsViewSchema = z.object({
   validatedBeforeUTC: z.string().datetime().readonly().nullable(),
   verifiedTotalFlightTime: z.string().readonly(),
   unverifiedTotalFlightTime: z.string().readonly(),
+  // The aircraft's current running total in minutes, i.e. "now" -- unlike
+  // unverifiedTotalFlightTime's formatted string, this is what a new
+  // maintenance note/defect's default time should use, since neither is tied
+  // to a specific flight and both describe the present moment, not whichever
+  // page the admin happens to have open.
+  unverifiedTotalFlightMins: z.number().int().readonly(),
   validatedTotalLandings: z.number().int().readonly(),
   totalLandings: z.number().int().readonly(),
 })

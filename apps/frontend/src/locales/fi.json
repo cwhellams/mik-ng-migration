@@ -1091,8 +1091,8 @@
     "validationRemarks": "Vahvistushuomautukset",
     "billingRemarks": "Laskutushuomautukset",
     "billingRemarksTestOrFerryInstruction": "Kuvaile lennon syy, kuka hyväksyi lennon ja oliko lennolla poikkeamia kuten sääväistöjä tai havaittuja teknisiä vikoja. Jos kyseessä oli koelento, lisää tähän päivämäärä jolloin raportti lähetettiin osoitteeseen kalusto@mik.fi",
-    "notes": "Muistiinpanot",
-    "incidentOrObservations": "Havainnot tai poikkeamat",
+    "otherNotesTitle": "Muut merkinnät",
+    "incidentOrObservations": "Muut lentoon liittyvät havainnot tai poikkeamat",
     "personalRemarks": "Omat muistiinpanot",
     "flightTimeline": "Lennon aikajana",
     "taxiOut": "Rullaus lentoonlähtöön",
@@ -1303,8 +1303,6 @@
       "minutes": "Minuutit",
       "rows": "Rivejä",
       "rowsHelp": "Kuinka monta riviä tämä vie fyysisellä matkapäiväkirjan sivulla (0 = näytetään lennon rivillä)",
-      "blankRowsAfter": "Tyhjiä rivejä jälkeen",
-      "blankRowsAfterHelp": "Fyysiseen matkapäiväkirjaan lisättävät tyhjät rivit merkinnän jälkeen",
       "closeHilItems": "Sulje siirrettyjä vikoja",
       "closedHil": "Suljetut siirretyt viat",
       "closeDefects": "Sulje vikoja",
@@ -1318,8 +1316,9 @@
       "addPreFlightButton": "Kirjaa vika",
       "addPreFlightTitle": "Uusi vikamerkintä (ennen lentoa)",
       "addInFlightTitle": "Uusi vikamerkintä (lennon aikainen)",
-      "reportSectionTitle": "Ilmoita viat",
-      "reportSectionNote": "Jos havaitsit lennon aikana vikoja, kuvaile jokainen alla. Jokaisesta viasta on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
+      "existingSectionTitle": "Jo ilmoitetut viat",
+      "newSectionTitle": "Viat",
+      "fleetManagersTitle": "Kalustovastaavat",
       "addDefectRow": "Lisää vika",
       "blankDescriptionError": "Vian kuvaus ei voi olla tyhjä",
       "viewTitle": "Vikamerkintä",
@@ -1343,7 +1342,29 @@
       },
       "openHil": "Avaa siirretyt viat -listalta",
       "deferToNewHil": "Siirrä uuteen HIL-merkintään",
-      "openNote": "Avaa huoltomerkintä"
+      "openNote": "Avaa huoltomerkintä",
+      "groundingConfirmTitle": "Asetetaanko lentokone lentokieltoon?",
+      "groundingConfirmMessage": "HUOM: Tämän lähettäminen asettaa lentokoneen lentokieltoon, kunnes vika on korjattu tai siirretty siirrettyjen vikojen listalle (HIL). Asiasta on neuvoteltava kalustovastaavan kanssa.",
+      "groundingConfirmButton": "Vahvista ja tallenna"
+    },
+    "remarks": {
+      "existingSectionTitle": "Huomiot",
+      "newSectionTitle": "Huomiot",
+      "addRemarkRow": "Lisää huomio",
+      "blankDescriptionError": "Huomion kuvaus ei voi olla tyhjä"
+    },
+    "defectsAndRemarks": {
+      "title": "Ilma-aluksen viat ja huomiot",
+      "intro1": "Jos havaitsit tällä lennolla ilma-aluksen vikoja, ilmoita jokainen alla. Merkitse pienet, lentokelpoisuuteen vaikuttamattomat havainnot sen sijaan huomiona.",
+      "intro2": "Huomaa, että ilmoitettu vika asettaa lentokoneen lentokieltoon, kunnes vika on korjattu tai siirretty siirrettyjen vikojen listalle (HIL). Jokainen ilma-alukseen liittyvä havainto on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
+      "defectFieldLabel": "Vian kuvaus",
+      "remarkFieldLabel": "Huomion kuvaus"
+    },
+    "longTaxi": {
+      "confirmTitle": "Pitkä rullausaika",
+      "outMessage": "Olet syöttänyt {{minutes}} minuuttia rullausaikaa lähtöön, vahvista että tämä on oikein.",
+      "inMessage": "Olet syöttänyt {{minutes}} minuuttia rullausaikaa saapumisen jälkeen, vahvista että tämä on oikein.",
+      "confirmButton": "Vahvista ja tallenna"
     }
   },
   "invoicing": {
@@ -1735,8 +1756,8 @@
       "accept": "Hyväksy",
       "cancel": "Peruuta"
     },
-    "latestFlightsWithIncidents": "Viimeisimmät lennot poikkeamien tai havaintojen kanssa",
-    "noFlightsWithIncidents": "Ei lentoja poikkeamien tai havaintojen kanssa.",
+    "latestFlightsWithIncidents": "Viimeisimmät lennot poikkeamien, havaintojen tai huomioiden kanssa",
+    "noFlightsWithIncidents": "Ei lentoja poikkeamien, havaintojen tai huomioiden kanssa.",
     "newFlightsToValidate": "Uudet lennot vahvistettavaksi",
     "noNewFlights": "Ei uusia lentoja vahvistettavaksi.",
     "newFlightsSince": "{{count}} uutta lentoa sitten {{date}}",
