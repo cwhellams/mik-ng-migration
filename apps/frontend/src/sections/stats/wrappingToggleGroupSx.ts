@@ -38,9 +38,10 @@ export const wrappingToggleGroupSx: SxProps<Theme> = {
     flex: '1 1 auto',
     width: 'auto',
   },
-  [`& .${toggleButtonGroupClasses.grouped}.Mui-selected + .${toggleButtonGroupClasses.grouped}.Mui-selected`]: {
-    borderLeft: '1px solid',
-    borderColor: 'divider',
-    marginLeft: 0,
-  },
+  [`& .${toggleButtonGroupClasses.grouped}.Mui-selected + .${toggleButtonGroupClasses.grouped}.Mui-selected`]:
+    {
+      borderLeft: '1px solid',
+      borderColor: 'divider',
+      marginLeft: 0,
+    },
 }

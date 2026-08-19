@@ -1178,6 +1178,7 @@
       "title": "Billing Status",
       "new": "Waiting for validation",
       "validated": "Flight times validated and synchronized",
+      "queuedForInvoicing": "Queued for invoicing",
       "invoiced": "Invoice sent",
       "paid": "Invoice paid",
       "unvalidate": "Unvalidate",

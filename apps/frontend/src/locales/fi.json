@@ -1185,6 +1185,7 @@
       "title": "Laskutuksen tila",
       "new": "Odottaa tarkastusta",
       "validated": "Lentoajat täsmäytetty",
+      "queuedForInvoicing": "Jonossa laskutusta varten",
       "invoiced": "Lasku lähetetty",
       "paid": "Lasku maksettu",
       "unvalidate": "Kumoa vahvistus",

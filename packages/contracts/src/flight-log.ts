@@ -480,6 +480,52 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
 
 export type FlightLogListEntry = z.infer<typeof FlightLogListEntrySchema>
 
+// Verification-state statuses reflect crew-visible progress (has this flight been
+// checked?), not billing state, so they are safe to show to any member on a shared
+// logbook page. This is an allow-list on purpose: a status not listed here is treated
+// as billing-sensitive by default, so a future status added to `FlightLogStatus`
+// without updating this list stays hidden from other members rather than leaking.
+const FLIGHT_LOG_STATUSES_VISIBLE_TO_OTHER_MEMBERS: readonly FlightLogStatus[] = [
+  FlightLogStatus.NEW,
+  FlightLogStatus.VALIDATED,
+]
+
+export const isFlightLogStatusVisibleToOtherMembers = (status: FlightLogStatus): boolean =>
+  FLIGHT_LOG_STATUSES_VISIBLE_TO_OTHER_MEMBERS.includes(status)
+
+type FlightLogBillingSensitiveFields = Pick<
+  FlightLogListEntry,
+  | 'billableMemberId'
+  | 'status'
+  | 'invoiceNumber'
+  | 'isBilled'
+  | 'minBillableExceptionReason'
+  | 'minBillableExceptionApprovedByMemberId'
+>
+
+/**
+ * Redacts billing-sensitive fields on a flight log entry when viewed by a member other
+ * than the one it's billed to, for shared logbook-page views. Leaves the entry untouched
+ * for the billable member themselves, and for any status that is safe to expose (see
+ * `isFlightLogStatusVisibleToOtherMembers`).
+ */
+export function redactFlightLogForOtherMember<T extends FlightLogBillingSensitiveFields>(
+  log: T,
+  viewerMemberId: string,
+): T {
+  if (log.billableMemberId === viewerMemberId) return log
+  if (isFlightLogStatusVisibleToOtherMembers(log.status)) return log
+
+  return {
+    ...log,
+    status: FlightLogStatus.VALIDATED,
+    invoiceNumber: null,
+    isBilled: false,
+    minBillableExceptionReason: null,
+    minBillableExceptionApprovedByMemberId: null,
+  }
+}
+
 // Exact physical-row placement of one own-row (rows > 0) note/defect on the requested
 // ajlb page, from flight.vw_ajlb_live_rows -- lets the frontend place these rows
 // directly instead of reconstructing page/row layout from flightMins comparisons,

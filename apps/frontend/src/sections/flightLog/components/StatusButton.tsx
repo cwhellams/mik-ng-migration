@@ -40,6 +40,12 @@ export const StatusButton = ({ log, update }: Props) => {
           <Icon icon='mdi:check' color='green' width={28} />
         </Tooltip>
       )
+    case 'QUEUED_FOR_INVOICING':
+      return (
+        <Tooltip title={t('flightLog.status.queuedForInvoicing')}>
+          <Icon icon='mdi:clock-outline' color='blue' width={28} />
+        </Tooltip>
+      )
     case 'INVOICED':
       return canDownloadInvoice() ? (
         <Tooltip title={`${t('flightLog.status.invoiced')} - ${t('aircraft.document.download')}`}>

@@ -88,6 +88,25 @@ export const StatusDisplay = ({
           </Stack>
         )}
 
+        {log.status === FlightLogStatus.QUEUED_FOR_INVOICING && (
+          <Box
+            component='span'
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <Icon
+              icon='mdi:clock-outline'
+              color='blue'
+              width={28}
+              height={28}
+              style={{ marginRight: theme.spacing(1) }}
+            />
+            {t('flightLog.status.queuedForInvoicing')}
+          </Box>
+        )}
+
         {log.status === FlightLogStatus.INVOICED && (
           <Button
             onClick={handleDownloadPDF}

@@ -1186,6 +1186,7 @@
       "title": "Faktureringsstatus",
       "new": "Väntar på validering",
       "validated": "Flygtider validerade och synkroniserade",
+      "queuedForInvoicing": "Köad för fakturering",
       "invoiced": "Faktura skickad",
       "paid": "Faktura betald",
       "unvalidate": "Avvalidera",

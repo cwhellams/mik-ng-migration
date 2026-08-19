@@ -20,6 +20,7 @@ import assert from 'node:assert/strict'
 
 const test_member_id = 'Matti1'
 const test_member_id2 = 'Sanna1'
+const jukka_member_id = 'Jukka1'
 const admin_member_id = 'Matti1'
 
 // Create an instance of the Express app
@@ -39,7 +40,7 @@ const mattiToken = generateAccessToken({
 })
 
 const jukkaToken = generateAccessToken({
-  memberId: 'Jukka1',
+  memberId: jukka_member_id,
   lastName: 'Virtanen',
   email: 'jonny.depp@mik.fi',
   roles: [],
@@ -211,6 +212,89 @@ describe('GET /flight-log', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
     expect(response.status).toBe(404)
     expect(response.body.detail).toMatch(/Flight log not found/)
+  })
+
+  it('should preserve NEW status for other members flights (non-admin)', async () => {
+    // Non-admin user (Jukka) viewing logbook page 10 of OH-STL seq 2, which contains
+    // Matti's NEW flight 'mikify'. The NEW status should NOT be clamped to VALIDATED
+    // since verification state should be visible.
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${jukkaToken}`)
+      .query({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 2,
+        page: 10,
+      })
+
+    expect(response.status).toBe(200)
+    const mikifyFlight = response.body.logs.find(
+      (log: { flightId: string }) => log.flightId === 'mikify',
+    )
+    expect(mikifyFlight).toBeDefined()
+    expect(mikifyFlight.billableMemberId).toBe(test_member_id)
+    expect(mikifyFlight.status).toBe(FlightLogStatus.NEW)
+  })
+
+  it('should clamp billing-sensitive statuses to VALIDATED for other members flights (non-admin)', async () => {
+    // Non-admin user (Matti) viewing logbook page 81 of OH-IHQ seq 2, which contains
+    // Jukka's INVOICED flight 'efnu4evr'. The INVOICED status should be clamped to
+    // VALIDATED to hide billing details.
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .query({
+        aircraftRegistration: 'OH-IHQ',
+        ajlbSeqNo: 2,
+        page: 81,
+      })
+
+    expect(response.status).toBe(200)
+    const jukkaFlight = response.body.logs.find(
+      (log: { flightId: string }) => log.flightId === 'efnu4evr',
+    )
+    expect(jukkaFlight).toBeDefined()
+    expect(jukkaFlight.billableMemberId).toBe(jukka_member_id)
+    expect(jukkaFlight.status).toBe(FlightLogStatus.VALIDATED)
+    // Invoice number and other billing-sensitive fields should be hidden
+    expect(jukkaFlight.invoiceNumber).toBeNull()
+    expect(jukkaFlight.isBilled).toBe(false)
+
+    // When Jukka views the same page, they should see their actual INVOICED status
+    const jukkaResponse = await request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${jukkaToken}`)
+      .query({
+        aircraftRegistration: 'OH-IHQ',
+        ajlbSeqNo: 2,
+        page: 81,
+      })
+
+    expect(jukkaResponse.status).toBe(200)
+    const ownFlight = jukkaResponse.body.logs.find(
+      (log: { flightId: string }) => log.flightId === 'efnu4evr',
+    )
+    expect(ownFlight).toBeDefined()
+    expect(ownFlight.status).toBe(FlightLogStatus.INVOICED)
+    expect(ownFlight.invoiceNumber).toBe('INV002')
+
+    // Admin viewing the same page sees the real billing status regardless of ownership
+    const adminResponse = await request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .query({
+        aircraftRegistration: 'OH-IHQ',
+        ajlbSeqNo: 2,
+        page: 81,
+      })
+
+    expect(adminResponse.status).toBe(200)
+    const adminViewOfJukkaFlight = adminResponse.body.logs.find(
+      (log: { flightId: string }) => log.flightId === 'efnu4evr',
+    )
+    expect(adminViewOfJukkaFlight).toBeDefined()
+    expect(adminViewOfJukkaFlight.status).toBe(FlightLogStatus.INVOICED)
+    expect(adminViewOfJukkaFlight.invoiceNumber).toBe('INV002')
   })
 
   it('should return 403 when non-admin requests flights for another member via anyCrewMemberId', async () => {

@@ -25,6 +25,7 @@ import {
   FlightLogOverlapQuerySchema,
   type FlightLogOverlapResponse,
   FlightLogPageForMinsFilterSchema,
+  redactFlightLogForOtherMember,
 } from '@mik/contracts/flight-log'
 import {
   deleteFlightLog,
@@ -141,14 +142,11 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
 
   const logs = await getFlightLogs(filters)
 
-  // For non-admin users, clamp billing status to VALIDATED for other members' flights
+  // For non-admin users, redact billing-sensitive fields for other members' flights.
+  // Keep NEW and VALIDATED statuses as-is since they reflect verification state, not billing state
   if (!isAdmin) {
     const userMemberId = req.user!.memberId
-    logs.logs = logs.logs.map((log) => ({
-      ...log,
-      status: log.billableMemberId === userMemberId ? log.status : FlightLogStatus.VALIDATED,
-      invoiceNumber: log.billableMemberId === userMemberId ? log.invoiceNumber : null,
-    }))
+    logs.logs = logs.logs.map((log) => redactFlightLogForOtherMember(log, userMemberId))
   }
 
   // Compute estimated costs only for the member's own self-service view
