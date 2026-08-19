@@ -120,6 +120,14 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   const isAdmin = isFlightLogAdmin(req.user)
   const isMemberSelfView = !isAdmin && data.ajlbSeqNo == undefined
 
+  // Non-admins cannot request other members' crew flights explicitly
+  if (!isAdmin && data.anyCrewMemberId && data.anyCrewMemberId !== req.user!.memberId) {
+    return problem({
+      status: 403,
+      detail: "Insufficient permissions to view other members' flights",
+    })
+  }
+
   // FlightLog admin can see logs of all members, normal users only through logbooks
   const filters: FlightLogFilters = {
     ...data,

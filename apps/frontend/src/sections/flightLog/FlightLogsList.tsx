@@ -43,6 +43,7 @@ const FlightLogsList = () => {
     limit: 10,
     page: searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
     aircraftRegistration: searchParams.get('aircraftRegistration') ?? undefined,
+    anyCrewMemberId: searchParams.get('anyCrewMemberId') ?? undefined,
   })
 
   const [exportOpen, setExportOpen] = useState(false)
@@ -50,11 +51,13 @@ const FlightLogsList = () => {
   useEffect(() => {
     const aircraftRegistration = searchParams.get('aircraftRegistration') ?? undefined
     const page = searchParams.get('page') ? Number(searchParams.get('page')) : undefined
+    const anyCrewMemberId = searchParams.get('anyCrewMemberId') ?? undefined
 
     setFilters((old) => ({
       ...old,
       aircraftRegistration,
       page,
+      anyCrewMemberId,
     }))
   }, [searchParams])
 

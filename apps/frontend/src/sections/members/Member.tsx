@@ -1236,42 +1236,54 @@ const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
               {t('member.adminFlights.noFlights')}
             </Typography>
           ) : (
-            <Table size='small'>
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('member.adminFlights.date')}</TableCell>
-                  <TableCell>{t('member.adminFlights.aircraft')}</TableCell>
-                  <TableCell>{t('member.adminFlights.route')}</TableCell>
-                  <TableCell align='right'>{t('flightLog.offBlock', 'Off-block')}</TableCell>
-                  <TableCell align='right'>{t('flightLog.onBlock', 'On-block')}</TableCell>
-                  <TableCell>{t('member.adminFlights.duration')}</TableCell>
-                  <TableCell>{t('member.adminFlights.type')}</TableCell>
-                  <TableCell>{t('member.adminFlights.status')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.logs.map((log) => (
-                  <TableRow key={log.flightId}>
-                    <TableCell>
-                      <Link to={`/logs/flights/${log.flightId}`}>
-                        {formatDate(log.offBlockTimeUtc)}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{log.aircraftRegistration}</TableCell>
-                    <TableCell>
-                      {log.departureAirport} → {log.arrivalAirport}
-                    </TableCell>
-                    <TableCell align='right'>{formatTime(log.offBlockTimeUtc)}</TableCell>
-                    <TableCell align='right'>{formatTime(log.onBlockTimeUtc)}</TableCell>
-                    <TableCell>{log.flightTime}</TableCell>
-                    <TableCell>
-                      {t(`flightLog.flightTypes.${log.flightType}`, log.flightType)}
-                    </TableCell>
-                    <TableCell>{t(`flightLog.status.${log.status}`, log.status)}</TableCell>
+            <>
+              <Table size='small'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>{t('member.adminFlights.date')}</TableCell>
+                    <TableCell>{t('member.adminFlights.aircraft')}</TableCell>
+                    <TableCell>{t('member.adminFlights.route')}</TableCell>
+                    <TableCell align='right'>{t('flightLog.offBlock', 'Off-block')}</TableCell>
+                    <TableCell align='right'>{t('flightLog.onBlock', 'On-block')}</TableCell>
+                    <TableCell>{t('member.adminFlights.duration')}</TableCell>
+                    <TableCell>{t('member.adminFlights.type')}</TableCell>
+                    <TableCell>{t('member.adminFlights.status')}</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {data.logs.map((log) => (
+                    <TableRow key={log.flightId}>
+                      <TableCell>
+                        <Link to={`/logs/flights/${log.flightId}`}>
+                          {formatDate(log.offBlockTimeUtc)}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{log.aircraftRegistration}</TableCell>
+                      <TableCell>
+                        {log.departureAirport} → {log.arrivalAirport}
+                      </TableCell>
+                      <TableCell align='right'>{formatTime(log.offBlockTimeUtc)}</TableCell>
+                      <TableCell align='right'>{formatTime(log.onBlockTimeUtc)}</TableCell>
+                      <TableCell>{log.flightTime}</TableCell>
+                      <TableCell>
+                        {t(`flightLog.flightTypes.${log.flightType}`, log.flightType)}
+                      </TableCell>
+                      <TableCell>{t(`flightLog.status.${log.status}`, log.status)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                <Button
+                  component={Link}
+                  to={`/logs?${new URLSearchParams({ anyCrewMemberId: memberId }).toString()}`}
+                  variant='outlined'
+                  startIcon={<Icon icon='mdi:airplane' />}
+                >
+                  {t('member.adminFlights.viewAll')}
+                </Button>
+              </Box>
+            </>
           )}
         </RemoteContent>
       </CardContent>

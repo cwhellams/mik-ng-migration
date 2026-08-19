@@ -212,6 +212,34 @@ describe('GET /flight-log', () => {
     expect(response.status).toBe(404)
     expect(response.body.detail).toMatch(/Flight log not found/)
   })
+
+  it('should return 403 when non-admin requests flights for another member via anyCrewMemberId', async () => {
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .query({ anyCrewMemberId: 'Sanna1' })
+
+    expect(response.status).toBe(403)
+    expect(response.body.detail).toMatch(/Insufficient permissions/)
+  })
+
+  it('should allow non-admin to request their own flights via anyCrewMemberId', async () => {
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .query({ anyCrewMemberId: test_member_id })
+
+    expect(response.status).toBe(200)
+  })
+
+  it('should allow admin to request any member flights via anyCrewMemberId', async () => {
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .query({ anyCrewMemberId: 'Sanna1' })
+
+    expect(response.status).toBe(200)
+  })
 })
 
 describe('GET /flight-log/overlap-check', () => {

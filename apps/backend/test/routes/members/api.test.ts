@@ -2265,4 +2265,22 @@ describe('GET /members/:memberId/flights', () => {
     expect(logs.length).toBeGreaterThan(0)
     expect(logs.length).toBeLessThanOrEqual(10)
   })
+
+  it('should return flights in descending order (latest first)', async () => {
+    const response = await request(app)
+      .get('/members/Matti1/flights')
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(response.status).toBe(200)
+
+    const { logs } = response.body
+    // Verify we have at least 2 flights to compare
+    expect(logs.length).toBeGreaterThan(1)
+
+    // Check that flights are in descending chronological order (latest first)
+    for (let i = 0; i < logs.length - 1; i++) {
+      const currentDate = new Date(logs[i].offBlockTimeUtc)
+      const nextDate = new Date(logs[i + 1].offBlockTimeUtc)
+      expect(currentDate.getTime()).toBeGreaterThanOrEqual(nextDate.getTime())
+    }
+  })
 })

@@ -449,7 +449,8 @@
       "route": "Reitti",
       "duration": "Kesto",
       "type": "Tyyppi",
-      "status": "Tila"
+      "status": "Tila",
+      "viewAll": "Näytä kaikki lennot"
     },
     "adminBookings": {
       "title": "Tulevat varaukset",

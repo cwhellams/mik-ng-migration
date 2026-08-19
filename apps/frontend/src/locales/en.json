@@ -450,7 +450,8 @@
       "route": "Route",
       "duration": "Duration",
       "type": "Type",
-      "status": "Status"
+      "status": "Status",
+      "viewAll": "View all flights"
     },
     "adminBookings": {
       "title": "Upcoming Reservations",

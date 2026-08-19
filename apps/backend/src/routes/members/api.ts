@@ -685,6 +685,7 @@ router.get(
       anyCrewMemberId: memberId,
       limit: 10,
       orderLatestFirst: true,
+      page: 1,
     })
     res.status(200).json(result)
   },

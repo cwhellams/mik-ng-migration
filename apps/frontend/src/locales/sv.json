@@ -450,7 +450,8 @@
       "route": "Rutt",
       "duration": "Varaktighet",
       "type": "Typ",
-      "status": "Status"
+      "status": "Status",
+      "viewAll": "Visa alla flygningar"
     },
     "adminBookings": {
       "title": "Kommande reservationer",
