@@ -1,5 +1,12 @@
 import { z } from 'zod'
-import { AuditableSchema, BigintAsString, BooleanSchema, UpsertSchema } from './schema.ts'
+import {
+  AuditableSchema,
+  BigintAsString,
+  BooleanSchema,
+  nullableTrimmedString,
+  optionalTrimmedString,
+  UpsertSchema,
+} from './schema.ts'
 
 export enum BookingType {
   MAINTENANCE = 'MAINTENANCE',
@@ -52,12 +59,12 @@ export const BookingSchema = AuditableSchema.extend({
   startTime: z.string().datetime(),
   endTimeEpoch: BigintAsString,
   endTime: z.string().datetime(),
-  description: z.string().optional(),
+  description: optionalTrimmedString(z.string().max(500)),
   calendarSequence: z.number().int().default(0),
   cancelledBy: z.string().nullable().nullish(),
   cancelledAt: z.string().datetime().nullish(),
   cancellationReason: z.nativeEnum(CancellationReason).nullable().nullish(),
-  cancellationNote: z.string().max(500).nullable().nullish(),
+  cancellationNote: nullableTrimmedString(z.string().max(500)).nullish(),
   createdByName: z.string().nullish(),
   updatedByName: z.string().nullish(),
   cancelledByName: z.string().nullish(),

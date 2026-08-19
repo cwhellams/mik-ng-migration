@@ -8,7 +8,9 @@ import {
   DateRangeSchema,
   LimitOffsetSchema,
   LocalisedSchema,
+  nullableTrimmedString,
   OptionalLimitOffsetSchema,
+  optionalTrimmedString,
   PaginationSchema,
   UpsertSchema,
   withDateRangeCheck,
@@ -196,5 +198,71 @@ describe('OptionalLimitOffsetSchema', () => {
   it('still caps the limit when one is given', () => {
     expect(() => OptionalLimitOffset.parse({ limit: 1001 })).toThrow()
     expect(OptionalLimitOffset.parse({ limit: 10 })).toEqual({ limit: 10 })
+  })
+})
+
+describe('nullableTrimmedString', () => {
+  it('trims leading and trailing whitespace from a string', () => {
+    const schema = nullableTrimmedString()
+    expect(schema.parse('  hello  ')).toBe('hello')
+    expect(schema.parse('\t\nworld\n\t')).toBe('world')
+  })
+
+  it('converts whitespace-only strings to null', () => {
+    const schema = nullableTrimmedString()
+    expect(schema.parse('   ')).toBeNull()
+    expect(schema.parse('\t\n')).toBeNull()
+    expect(schema.parse('')).toBeNull()
+  })
+
+  it('preserves null and undefined values', () => {
+    const schema = nullableTrimmedString()
+    expect(schema.parse(null)).toBeNull()
+    expect(schema.parse(undefined)).toBeNull()
+  })
+
+  it('respects max length constraint after trimming', () => {
+    const schema = nullableTrimmedString(z.string().max(5))
+    expect(schema.parse('  hi  ')).toBe('hi') // trims to 2 chars, under limit
+    expect(() => schema.parse('  toolong  ')).toThrow() // trims to 7 chars, over limit
+  })
+
+  it('allows passing a pre-built zod string schema', () => {
+    const schema = nullableTrimmedString(z.string().min(2).max(10))
+    expect(schema.parse('  ok  ')).toBe('ok')
+    expect(() => schema.parse('  a  ')).toThrow() // trimmed value 'a' is too short
+  })
+})
+
+describe('optionalTrimmedString', () => {
+  it('trims leading and trailing whitespace from a string', () => {
+    const schema = optionalTrimmedString()
+    expect(schema.parse('  hello  ')).toBe('hello')
+    expect(schema.parse('\t\nworld\n\t')).toBe('world')
+  })
+
+  it('converts whitespace-only strings to undefined', () => {
+    const schema = optionalTrimmedString()
+    expect(schema.parse('   ')).toBeUndefined()
+    expect(schema.parse('\t\n')).toBeUndefined()
+    expect(schema.parse('')).toBeUndefined()
+  })
+
+  it('preserves null and undefined values as undefined', () => {
+    const schema = optionalTrimmedString()
+    expect(schema.parse(null)).toBeUndefined()
+    expect(schema.parse(undefined)).toBeUndefined()
+  })
+
+  it('respects max length constraint after trimming', () => {
+    const schema = optionalTrimmedString(z.string().max(5))
+    expect(schema.parse('  hi  ')).toBe('hi') // trims to 2 chars, under limit
+    expect(() => schema.parse('  toolong  ')).toThrow() // trims to 7 chars, over limit
+  })
+
+  it('allows passing a pre-built zod string schema', () => {
+    const schema = optionalTrimmedString(z.string().min(2).max(10))
+    expect(schema.parse('  ok  ')).toBe('ok')
+    expect(() => schema.parse('  a  ')).toThrow() // trimmed value 'a' is too short
   })
 })

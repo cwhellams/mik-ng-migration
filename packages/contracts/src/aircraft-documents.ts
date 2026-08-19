@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { AuditableSchema, LimitOffsetSchema } from './schema.ts'
+import {
+  AuditableSchema,
+  LimitOffsetSchema,
+  nullableTrimmedString,
+  optionalTrimmedString,
+} from './schema.ts'
 
 // Aircraft document type enum
 export const AircraftDocumentType = z.enum([
@@ -25,8 +30,8 @@ export const AircraftDocumentSchema = z.object({
   documentId: z.number().optional(),
   aircraftRegistration: z.string().min(1),
   documentType: AircraftDocumentType,
-  title: z.string().min(1),
-  description: z.string().nullable().optional(),
+  title: z.string().trim().min(1).max(200),
+  description: nullableTrimmedString(z.string().max(1000)).optional(),
   documentUrl: z.string().url().optional(),
   validFrom: z.string().nullable().optional(), // ISO date string
   validTo: z.string().nullable().optional(), // ISO date string
@@ -68,8 +73,8 @@ export interface AircraftDocumentListResponse {
 export const AircraftDocumentUploadSchema = z.object({
   aircraftRegistration: z.string().min(1),
   documentType: AircraftDocumentType,
-  title: z.string().min(1),
-  description: z.string().optional(),
+  title: z.string().trim().min(1).max(200),
+  description: optionalTrimmedString(z.string().max(1000)),
   validFrom: z.string().nullable().optional(),
   validTo: z.string().nullable().optional(),
   isActive: z.coerce.boolean().default(true),

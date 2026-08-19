@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AuditableSchema, LocalisedSchema, UpsertSchema } from './schema.ts'
+import { AuditableSchema, LocalisedSchema, nullableTrimmedString, UpsertSchema } from './schema.ts'
 
 // Upper bound for stock quantities / thresholds / deltas. Keeps values well
 // inside PostgreSQL's 32-bit INTEGER range so an oversized input is rejected as
@@ -54,14 +54,14 @@ export const InventoryItemSchema = AuditableSchema.extend({
   quantity: z.number().int().nonnegative().max(MAX_QUANTITY).default(0),
   lowStockThreshold: z.number().int().nonnegative().max(MAX_QUANTITY).nullable().optional(),
   condition: ItemConditionEnum.default('UNKNOWN'),
-  serialNumber: z.string().nullable().optional(),
+  serialNumber: nullableTrimmedString(z.string().max(100)).optional(),
   imageUrl: z
     .string()
     .url()
     .refine((u) => /^https?:\/\//i.test(u), { message: 'Image URL must use http(s)' })
     .nullable()
     .optional(),
-  notes: z.string().nullable().optional(),
+  notes: nullableTrimmedString(z.string().max(2000)).optional(),
   tags: z.array(z.string()).default([]),
   isActive: z.boolean().default(true),
   category: InventoryCategorySchema.optional(),
@@ -102,7 +102,7 @@ export const InventoryAuditLogEntrySchema = z.object({
   changeType: z.string(),
   oldValue: z.record(z.string(), z.unknown()).nullable().optional(),
   newValue: z.record(z.string(), z.unknown()).nullable().optional(),
-  notes: z.string().nullable().optional(),
+  notes: nullableTrimmedString(z.string().max(2000)).optional(),
   createdAt: z.string().datetime(),
 })
 export type InventoryAuditLogEntry = z.infer<typeof InventoryAuditLogEntrySchema>
@@ -110,6 +110,6 @@ export type InventoryAuditLogEntry = z.infer<typeof InventoryAuditLogEntrySchema
 // ── Quantity adjustment ───────────────────────────────────────────────────────
 export const QuantityAdjustmentSchema = z.object({
   delta: z.number().int().min(-MAX_QUANTITY).max(MAX_QUANTITY),
-  notes: z.string().nullable().optional(),
+  notes: nullableTrimmedString(z.string().max(2000)).optional(),
 })
 export type QuantityAdjustment = z.infer<typeof QuantityAdjustmentSchema>

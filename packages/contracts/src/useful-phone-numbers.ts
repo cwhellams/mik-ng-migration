@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 export const UsefulPhoneNumberSchema = z.object({
-  label: z.string().min(1).max(200),
-  phoneNumber: z.string().min(1).max(50),
+  label: z.string().trim().min(1).max(200),
+  phoneNumber: z.string().trim().min(1).max(50),
   sortOrder: z.number().int(),
 })
 

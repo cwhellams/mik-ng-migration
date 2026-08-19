@@ -56,8 +56,33 @@ export const BooleanSchema = z
 
 export const BigintAsString = z.string().regex(/^\d+$/)
 
+// Shared by nullableTrimmedString/optionalTrimmedString: trims a string value,
+// folding whitespace-only input into `empty`. Non-string, non-null input passes
+// through unchanged so the wrapped schema's own type check rejects it, rather
+// than this preprocessing step silently coercing it to `empty`.
+const trimToEmpty = <T>(v: unknown, empty: T) => {
+  if (v == null) return empty
+  if (typeof v !== 'string') return v
+  const trimmed = v.trim()
+  return trimmed === '' ? empty : trimmed
+}
+
+// Trims free text on parse. For a field whose "no content" state is already null,
+// a whitespace-only submission folds into null instead of storing padding or an
+// empty string that a NOT NULL / truthiness check downstream would treat as content.
+export const nullableTrimmedString = (schema: z.ZodString = z.string()) =>
+  z.preprocess((v) => trimToEmpty(v, null), schema.nullable())
+
+// Same, but folds into undefined for fields declared .optional() instead of .nullable().
+export const optionalTrimmedString = (schema: z.ZodString = z.string()) =>
+  z.preprocess((v) => trimToEmpty(v, undefined), schema.optional())
+
 // {en, fi, sv} text, used everywhere a field is translated rather than free text
-export const LocalisedSchema = z.object({ en: z.string(), fi: z.string(), sv: z.string() })
+export const LocalisedSchema = z.object({
+  en: z.string().trim(),
+  fi: z.string().trim(),
+  sv: z.string().trim(),
+})
 export type Localised = z.infer<typeof LocalisedSchema>
 
 // YYYY-MM-DD that is also a real calendar date (rejects e.g. 2024-02-30)

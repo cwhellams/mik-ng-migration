@@ -363,6 +363,7 @@ const expected = {
       at: expect.any(String),
       by: 'Author',
       status: 'NEW',
+      comment: null,
     },
   ],
   handling: {},
@@ -412,6 +413,7 @@ describe('POST /occurrences', () => {
           at: expect.any(String),
           by: 'Lahtinen',
           status: 'DELETED',
+          comment: null,
         },
       ],
     })
@@ -579,6 +581,7 @@ describe('POST /occurrences/status', () => {
           at: expect.any(String),
           by: 'Lahtinen',
           status: 'ANONYMIZING',
+          comment: null,
         },
       ],
       createdBy: '-',
@@ -618,6 +621,7 @@ describe('POST /occurrences/status', () => {
           at: expect.any(String),
           by: 'Lahtinen',
           status: 'RECEIVED',
+          comment: null,
         },
       ],
     }
@@ -649,6 +653,7 @@ describe('POST /occurrences/status', () => {
           at: expect.any(String),
           by: 'Lahtinen',
           status: 'ANONYMIZED',
+          comment: null,
         },
       ],
     }
@@ -675,6 +680,7 @@ describe('POST /occurrences/status', () => {
           at: expect.any(String),
           by: 'Virtanen',
           status: 'PROCESSED',
+          comment: null,
         },
       ],
       handling: {
@@ -714,6 +720,7 @@ describe('POST /occurrences/status', () => {
           at: expect.any(String),
           by: 'Virtanen',
           status: 'CLOSED',
+          comment: null,
         },
       ],
       handling: {

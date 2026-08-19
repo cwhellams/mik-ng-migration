@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { ApplicationDataSchema, MemberProfileSchema, MIKLang, MIKMemberTypes } from './members.ts'
+import { optionalTrimmedString } from './schema.ts'
 
 // Calculate age in full years from a YYYY-MM-DD date string.
 // Returns NaN if the date string is invalid (wrong format, out-of-range components, or non-existent calendar date).
@@ -125,18 +126,9 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
   applicationData: ApplicationDataSchema.optional(),
 
   // Address fields are optional at schema level; conditionally required below for non-EXTERNAL types
-  streetAddress: z.preprocess(
-    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
-    z.string().optional(),
-  ),
-  postcode: z.preprocess(
-    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
-    z.string().optional(),
-  ),
-  townCity: z.preprocess(
-    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
-    z.string().optional(),
-  ),
+  streetAddress: optionalTrimmedString(),
+  postcode: optionalTrimmedString(),
+  townCity: optionalTrimmedString(),
   country: z
     .string()
     .regex(/^[A-Z]{2}$/, 'member.countryInvalid')

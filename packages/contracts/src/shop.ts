@@ -1,5 +1,11 @@
 import { z } from 'zod'
-import { AuditableSchema, LocalisedSchema, UpsertSchema } from './schema.ts'
+import {
+  AuditableSchema,
+  LocalisedSchema,
+  nullableTrimmedString,
+  optionalTrimmedString,
+  UpsertSchema,
+} from './schema.ts'
 
 // ── Category ──────────────────────────────────────────────────────────────────
 export const CategorySchema = AuditableSchema.extend({
@@ -99,8 +105,8 @@ export type PropertyUpsert = z.infer<typeof PropertyUpsertSchema>
 // ── Discount code ─────────────────────────────────────────────────────────────
 export const DiscountCodeSchema = AuditableSchema.extend({
   codeId: z.number().int(),
-  code: z.string().max(50),
-  description: z.string().nullable().optional(),
+  code: z.string().trim().min(1).max(50),
+  description: nullableTrimmedString(z.string().max(500)).optional(),
   categoryIds: z.array(z.string().max(9)).default([]),
   discountType: z.enum(['percent', 'fixed']),
   discountValue: z.number().positive(),
@@ -195,7 +201,7 @@ export const OrderSchema = AuditableSchema.extend({
   discountCodeId: z.number().int().nullable().optional(),
   discountAmount: z.number().nonnegative().nullable().optional(),
   invoiceId: z.string().nullable().optional(),
-  notes: z.string().nullable().optional(),
+  notes: nullableTrimmedString(z.string().max(2000)).optional(),
   member: OrderMemberSchema.optional(),
   items: z.array(OrderItemSchema).optional(),
 })
@@ -203,7 +209,7 @@ export type Order = z.infer<typeof OrderSchema>
 
 export const OrderCreateSchema = z.object({
   discountCode: z.string().max(50).optional(),
-  notes: z.string().optional(),
+  notes: optionalTrimmedString(z.string().max(2000)),
 })
 export type OrderCreate = z.infer<typeof OrderCreateSchema>
 

@@ -8,8 +8,8 @@ export type SecretClass = z.infer<typeof SecretClassEnum>
 // Secrets (Access Codes) schema and types
 export const SecretSchema = AuditableSchema.extend({
   id: z.number(),
-  secretKey: z.string().min(1).max(100),
-  secretValue: z.string().min(1).max(500),
+  secretKey: z.string().trim().min(1).max(100),
+  secretValue: z.string().trim().min(1).max(500),
   secretClass: SecretClassEnum,
 })
 

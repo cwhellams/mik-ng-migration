@@ -264,6 +264,10 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     )
     .$if(!!filters.status, (qb) => qb.where('status', '=', filters.status!))
     .$if(!!filters.incidentsOrObservations, (qb) =>
+      // Backfilled to NULL for legacy whitespace-only rows (V1870); new writes
+      // already collapse whitespace-only text to NULL via nullableTrimmedString,
+      // so a plain not-null check stays indexable instead of evaluating trim()
+      // per row.
       qb.where('incidentOrObservations', 'is not', null),
     )
     .$if(ajlbPaging, (qb) =>

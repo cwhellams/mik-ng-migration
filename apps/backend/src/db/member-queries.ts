@@ -3,6 +3,7 @@ import { sql } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 import { camelCaseNestedRows, db, type DbRow } from './connection.ts'
+import logger from '../lib/logger.ts'
 import type { RegisterRequest } from '@mik/contracts/auth'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
@@ -117,7 +118,17 @@ function toMember(member: DbRow<'member.register'>, roles: MemberRole[]): Member
     applicationData: (() => {
       if (!member.applicationData) return undefined
       const result = ApplicationDataSchema.safeParse(member.applicationData)
-      return result.success ? result.data : undefined
+      if (!result.success) {
+        // A stored applicationData that no longer satisfies the schema (e.g. a legacy
+        // whitespace-only coverLetter/voluntaryWork) must not vanish from the API
+        // response with no trace — log it so the underlying row can be found and fixed.
+        logger.warn('applicationData failed to parse for member, omitting from response', {
+          memberId: member.memberId,
+          issues: result.error.issues,
+        })
+        return undefined
+      }
+      return result.data
     })(),
     roles: roles,
   }

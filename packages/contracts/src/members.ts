@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { AuditableSchema, BooleanSchema, LocalisedSchema } from './schema.ts'
+import { AuditableSchema, BooleanSchema, LocalisedSchema, optionalTrimmedString } from './schema.ts'
 
 export enum MIKPermissions {
   // can see other club members and their public roles
@@ -259,20 +259,20 @@ export enum AircraftRating {
 export const ApplicationDataSchema = z
   .object({
     totalFlightHours: z.number().min(0).max(99999).optional(),
-    aircraftTypesFlown: z.string().max(500).optional(),
+    aircraftTypesFlown: optionalTrimmedString(z.string().max(500)),
     pilotLicenceType: z.nativeEnum(PilotLicenceType).optional(),
-    pilotLicenceTypeOther: z.string().max(200).optional(),
+    pilotLicenceTypeOther: optionalTrimmedString(z.string().max(200)),
     ratings: z.array(z.nativeEnum(AircraftRating)).optional(),
-    ratingsOther: z.string().max(200).optional(),
+    ratingsOther: optionalTrimmedString(z.string().max(200)),
     primaryMotivation: z.nativeEnum(PrimaryMotivation),
-    motivationOther: z.string().max(500).optional(),
-    coverLetter: z.string().min(1).max(2000),
-    voluntaryWork: z.string().min(1).max(1000),
-    otherAviationClubs: z.string().max(500).optional(),
+    motivationOther: optionalTrimmedString(z.string().max(500)),
+    coverLetter: z.string().trim().min(1).max(2000),
+    voluntaryWork: z.string().trim().min(1).max(1000),
+    otherAviationClubs: optionalTrimmedString(z.string().max(500)),
     accidentHistory: z.boolean(),
-    accidentHistoryDetails: z.string().max(1000).optional(),
+    accidentHistoryDetails: optionalTrimmedString(z.string().max(1000)),
     criminalRecord: z.boolean(),
-    criminalRecordDetails: z.string().max(1000).optional(),
+    criminalRecordDetails: optionalTrimmedString(z.string().max(1000)),
     gdprAccepted: z.literal(true, { error: () => 'GDPR acceptance is required' }),
   })
   .superRefine((data, ctx) => {

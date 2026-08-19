@@ -220,6 +220,7 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response<Occu
           at: now.toISOString(),
           by: 'Author',
           status: OccurrenceStatus.NEW,
+          comment: null,
         },
       ],
     },
@@ -470,6 +471,7 @@ router.post(
       at: new Date().toISOString(),
       by: req.user!.lastName,
       status,
+      comment: null,
     }
 
     const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'manage')

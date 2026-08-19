@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { nullableTrimmedString, optionalTrimmedString } from './schema.ts'
 
 // Aircraft Pricing Schemas
 export const AircraftPricingSchema = z.object({
@@ -10,7 +11,7 @@ export const AircraftPricingSchema = z.object({
   created_by: z.string().max(9).nullable(),
   updated_at: z.string().datetime().nullable(),
   updated_by: z.string().max(9).nullable(),
-  notes: z.string().nullable(),
+  notes: nullableTrimmedString(z.string().max(500)),
 })
 
 export type AircraftPricing = z.infer<typeof AircraftPricingSchema>
@@ -21,7 +22,7 @@ export const CreateAircraftPricingSchema = z.object({
   valid_to: z.string().date().nullable().optional(),
   price_per_min: z.number().positive(),
   created_by: z.string().max(9).optional(),
-  notes: z.string().optional(),
+  notes: optionalTrimmedString(z.string().max(500)),
 })
 
 export type CreateAircraftPricing = z.infer<typeof CreateAircraftPricingSchema>
@@ -30,7 +31,7 @@ export const UpdateAircraftPricingSchema = z.object({
   valid_to: z.string().date().nullable().optional(),
   price_per_min: z.number().positive().optional(),
   updated_by: z.string().max(9).optional(),
-  notes: z.string().nullish(),
+  notes: nullableTrimmedString(z.string().max(500)).nullish(),
 })
 
 export type UpdateAircraftPricing = z.infer<typeof UpdateAircraftPricingSchema>

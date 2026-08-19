@@ -1,6 +1,12 @@
 import { z, ZodObject } from 'zod'
 
-import { AuditableSchema, BigintAsString, BooleanSchema, UpsertSchema } from './schema.ts'
+import {
+  AuditableSchema,
+  BigintAsString,
+  BooleanSchema,
+  nullableTrimmedString,
+  UpsertSchema,
+} from './schema.ts'
 
 export const CrewRoleEnum = z.enum(['FE', 'FI', 'OBS', 'PIC', 'STU'])
 export const PrivOrComFlightEnum = z.enum(['P', 'C'])
@@ -85,7 +91,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   ajlbTotalLandings: z.number().int().nullable().readonly(),
   arrivalAirport: z.string().min(1),
   billableMemberId: z.string().min(1),
-  billingRemarks: z.string().nullable(),
+  billingRemarks: nullableTrimmedString(),
   blockMins: z.number().readonly(),
   blockTime: z.string().readonly(),
   crew2LastName: z.string().nullable().readonly(),
@@ -104,7 +110,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   flightType: z.nativeEnum(FlightType),
   fuelRemainingLitres: z.number().positive(),
   fuelUpliftLitres: z.number().min(0).nullable(),
-  incidentOrObservations: z.string().nullable(),
+  incidentOrObservations: nullableTrimmedString(),
   instrumentFlyingMins: z.number().int().min(0),
   invoiceNumber: z.string().nullable(),
   isBillableFlight: z.boolean(),
@@ -115,10 +121,10 @@ export const FlightLogSchema = AuditableSchema.extend({
   entryErrorFeeAppliedByMemberId: z.string().nullable(),
   nightFlyingMins: z.number().int().min(0),
   nonBillingApprovedByMemberId: z.string().nullable(),
-  nonBillingReason: z.string().nullable(),
-  minBillableExceptionReason: z.string().nullable(),
+  nonBillingReason: nullableTrimmedString(),
+  minBillableExceptionReason: nullableTrimmedString(),
   minBillableExceptionApprovedByMemberId: z.string().nullable(),
-  validationRemarks: z.string().nullable(),
+  validationRemarks: nullableTrimmedString(),
   numberOfLandings: z.number().int().min(1),
   numberOfNightLandings: z.number().int().min(0),
   oilUpliftLitres: z.number().min(0).nullable(),
@@ -130,7 +136,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   landingTimeUtc: z.string().datetime().readonly(),
   onBlockTimeEpoch: BigintAsString,
   onBlockTimeUtc: z.string().datetime().readonly(),
-  personalRemarks: z.string().nullable(),
+  personalRemarks: nullableTrimmedString(),
   personsOnBoard: z.number().int().min(1).max(4),
   picLastName: z.string().readonly(),
   picMemberId: z.string(),
@@ -629,7 +635,7 @@ export const InvoicableFlightSchema = FlightLogSchema.pick({
   partiallyBillableFlight: z.boolean().nullable(),
   entryErrorFee: z.boolean().nullable(),
   creditedMins: z.number().int().nullable(),
-  creditedNote: z.string().nullable(),
+  creditedNote: nullableTrimmedString(),
 })
 
 export type InvoicableFlight = z.infer<typeof InvoicableFlightSchema>
@@ -637,7 +643,7 @@ export type InvoicableFlight = z.infer<typeof InvoicableFlightSchema>
 export const FlightCreditSchema = z.object({
   flightId: z.string(),
   creditedMins: z.number().int().min(1),
-  note: z.string().nullable().optional(),
+  note: nullableTrimmedString().optional(),
 })
 
 export type FlightCredit = z.infer<typeof FlightCreditSchema>

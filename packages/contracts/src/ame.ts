@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PaginationSchema } from './schema.ts'
+import { nullableTrimmedString, PaginationSchema } from './schema.ts'
 
 export enum AmeStatus {
   SUBMITTED = 'SUBMITTED',
@@ -18,18 +18,18 @@ export const AME_MEDICAL_TYPES = ['EASA_CLASS_1', 'EASA_CLASS_2', 'LAPL', 'FAA']
 export type AmeMedicalType = (typeof AME_MEDICAL_TYPES)[number]
 
 export const CreateAmeEntrySchema = z.object({
-  name: z.string().min(1).max(200),
-  medicalCentre: z.string().min(1).max(200),
-  location: z.string().min(1).max(200),
+  name: z.string().trim().min(1).max(200),
+  medicalCentre: z.string().trim().min(1).max(200),
+  location: z.string().trim().min(1).max(200),
   price: z.number().positive().nullable().optional(),
   medicalTypes: z.array(z.enum(AME_MEDICAL_TYPES)).min(1),
-  notes: z.string().max(2000).nullable().optional(),
+  notes: nullableTrimmedString(z.string().max(2000)).optional(),
   reportDate: z.string().date(),
 })
 export type CreateAmeEntry = z.infer<typeof CreateAmeEntrySchema>
 
 export const RejectAmeEntrySchema = z.object({
-  reason: z.string().min(1).max(1000),
+  reason: z.string().trim().min(1).max(1000),
 })
 
 export const RateAmeEntrySchema = z.object({
@@ -38,18 +38,18 @@ export const RateAmeEntrySchema = z.object({
 export type RateAmeEntry = z.infer<typeof RateAmeEntrySchema>
 
 export const SuggestAmeEditSchema = z.object({
-  name: z.string().min(1).max(200),
-  medicalCentre: z.string().min(1).max(200),
-  location: z.string().min(1).max(200),
+  name: z.string().trim().min(1).max(200),
+  medicalCentre: z.string().trim().min(1).max(200),
+  location: z.string().trim().min(1).max(200),
   price: z.number().positive().nullable().optional(),
   medicalTypes: z.array(z.enum(AME_MEDICAL_TYPES)).min(1),
-  notes: z.string().max(2000).nullable().optional(),
+  notes: nullableTrimmedString(z.string().max(2000)).optional(),
   reportDate: z.string().date(),
 })
 export type SuggestAmeEdit = z.infer<typeof SuggestAmeEditSchema>
 
 export const RequestAmeRemovalSchema = z.object({
-  reason: z.string().min(1).max(1000),
+  reason: z.string().trim().min(1).max(1000),
 })
 export type RequestAmeRemoval = z.infer<typeof RequestAmeRemovalSchema>
 
@@ -62,14 +62,14 @@ export const AmeEntrySchema = z.object({
   location: z.string(),
   price: z.number().nullable().optional(),
   medicalTypes: z.array(z.string()),
-  notes: z.string().nullable().optional(),
+  notes: nullableTrimmedString(z.string().max(2000)).optional(),
   reportDate: z.string(),
   status: z.nativeEnum(AmeStatus),
   approvedAt: z.string().nullable().optional(),
   approvedBy: z.string().nullable().optional(),
   rejectedAt: z.string().nullable().optional(),
   rejectedBy: z.string().nullable().optional(),
-  rejectionReason: z.string().nullable().optional(),
+  rejectionReason: nullableTrimmedString(z.string().max(1000)).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   averageRating: z.number().nullable().optional(),
@@ -88,12 +88,12 @@ export const AmeEditSuggestionSchema = z.object({
   location: z.string(),
   price: z.number().nullable().optional(),
   medicalTypes: z.array(z.string()),
-  notes: z.string().nullable().optional(),
+  notes: nullableTrimmedString(z.string().max(2000)).optional(),
   reportDate: z.string(),
   status: z.nativeEnum(AmeReviewStatus),
   reviewedAt: z.string().nullable().optional(),
   reviewedBy: z.string().nullable().optional(),
-  rejectionReason: z.string().nullable().optional(),
+  rejectionReason: nullableTrimmedString(z.string().max(1000)).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   // current ame_list values for the same fields, so admins can diff proposed vs live
@@ -102,7 +102,7 @@ export const AmeEditSuggestionSchema = z.object({
   currentLocation: z.string().optional(),
   currentPrice: z.number().nullable().optional(),
   currentMedicalTypes: z.array(z.string()).optional(),
-  currentNotes: z.string().nullable().optional(),
+  currentNotes: nullableTrimmedString(z.string().max(2000)).optional(),
   currentReportDate: z.string().optional(),
 })
 export type AmeEditSuggestion = z.infer<typeof AmeEditSuggestionSchema>
@@ -113,11 +113,11 @@ export const AmeRemovalRequestSchema = z.object({
   ameName: z.string().optional(),
   submittedBy: z.string(),
   submittedByName: z.string().nullable().optional(),
-  reason: z.string(),
+  reason: z.string().trim().min(1).max(1000),
   status: z.nativeEnum(AmeReviewStatus),
   reviewedAt: z.string().nullable().optional(),
   reviewedBy: z.string().nullable().optional(),
-  rejectionReason: z.string().nullable().optional(),
+  rejectionReason: nullableTrimmedString(z.string().max(1000)).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 })

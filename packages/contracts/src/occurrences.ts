@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AuditableSchema } from './schema.ts'
+import { AuditableSchema, nullableTrimmedString } from './schema.ts'
 
 export enum OccurrenceStatus {
   // only the independent SMS processor can see the reports with
@@ -92,7 +92,7 @@ export const OccurrenceCommentSchema = z.object({
   at: z.string().datetime(),
   by: z.string(),
   status: z.nativeEnum(OccurrenceStatus).nullable(),
-  comment: z.string().nullish(),
+  comment: nullableTrimmedString(z.string().max(2000)),
 })
 
 export type OccurrenceComment = z.infer<typeof OccurrenceCommentSchema>
@@ -107,7 +107,7 @@ export type OccurrenceProcessedPayload = z.infer<typeof OccurrenceProcessedPaylo
 export const OccurrenceClosedPayloadSchema = z.object({
   adversity: z.number().min(1).max(5),
   probability: z.number().min(1).max(5),
-  mitigatingAction: z.string().nullable(),
+  mitigatingAction: nullableTrimmedString(z.string().max(2000)),
 })
 export type OccurrenceClosedPayload = z.infer<typeof OccurrenceClosedPayloadSchema>
 
@@ -161,11 +161,11 @@ export const OccurrenceSchema = AuditableSchema.extend({
   deadLine: z.string().datetime().optional().readonly(),
   processedDate: z.string().datetime().optional().readonly(),
 
-  headline: z.string(),
-  location: z.string(),
+  headline: z.string().trim().min(1).max(255),
+  location: z.string().trim().min(1).max(255),
 
   // description of the event
-  description: z.string(),
+  description: z.string().trim().min(1).max(5000),
   categories: z.array(z.nativeEnum(OccurrenceCategory)).min(1),
 
   // was weather relevant

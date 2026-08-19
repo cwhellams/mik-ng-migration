@@ -1,10 +1,11 @@
 import { z } from 'zod'
+import { nullableTrimmedString } from './schema.ts'
 
 // English lives on the event's base title/description columns and is always
 // present. This table only ever holds the optional Finnish/Swedish overrides.
 const EventTranslationSchema = z.object({
-  title: z.string(),
-  description: z.string().nullable(),
+  title: z.string().trim().min(1).max(200),
+  description: nullableTrimmedString(z.string().max(2000)),
 })
 
 export type EventTranslation = z.infer<typeof EventTranslationSchema>
@@ -20,11 +21,11 @@ export type EventTranslations = z.infer<typeof EventTranslationsSchema>
 
 export const EventSchema = z.object({
   eventId: z.string().guid(),
-  title: z.string().min(1).max(200),
-  description: z.string().nullable(),
-  location: z.string().nullable(),
+  title: z.string().trim().min(1).max(200),
+  description: nullableTrimmedString(z.string().max(2000)),
+  location: nullableTrimmedString(z.string().max(200)),
   imageUrl: z.string().nullable(),
-  performer: z.string().nullable(),
+  performer: nullableTrimmedString(z.string().max(200)),
   translations: EventTranslationsSchema,
   startTime: z.string().datetime({ offset: true }),
   endTime: z.string().datetime({ offset: true }),
@@ -40,8 +41,8 @@ export type ClubEvent = z.infer<typeof EventSchema>
 const EventDateTimeSchema = z.string().datetime({ offset: true })
 
 const EventTranslationWriteSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().nullable().optional(),
+  title: z.string().trim().min(1).max(200),
+  description: nullableTrimmedString(z.string().max(2000)).optional(),
 })
 
 // A present language key upserts that translation; `null` deletes it; an
@@ -54,10 +55,10 @@ const EventTranslationsWriteSchema = z.object({
 export type EventTranslationsWrite = z.infer<typeof EventTranslationsWriteSchema>
 
 const EventWriteSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().nullable().optional(),
-  location: z.string().nullable().optional(),
-  performer: z.string().max(200).nullable().optional(),
+  title: z.string().trim().min(1).max(200),
+  description: nullableTrimmedString(z.string().max(2000)).optional(),
+  location: nullableTrimmedString(z.string().max(200)).optional(),
+  performer: nullableTrimmedString(z.string().max(200)).optional(),
   translations: EventTranslationsWriteSchema.optional(),
   startTime: EventDateTimeSchema,
   endTime: EventDateTimeSchema,

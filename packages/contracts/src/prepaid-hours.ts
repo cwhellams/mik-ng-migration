@@ -1,15 +1,15 @@
 import { z } from 'zod'
-import { AuditableSchema } from './schema.ts'
+import { AuditableSchema, nullableTrimmedString, optionalTrimmedString } from './schema.ts'
 
 // ── Package definition ────────────────────────────────────────────────────────
 export const PrepaidPackageSchema = AuditableSchema.extend({
   productId: z.string().max(9),
-  nameEn: z.string().optional(),
-  nameFi: z.string().optional(),
-  nameSv: z.string().optional(),
-  descriptionEn: z.string().optional(),
-  descriptionFi: z.string().optional(),
-  descriptionSv: z.string().optional(),
+  nameEn: z.string().trim().min(1).max(200).optional(),
+  nameFi: z.string().trim().min(1).max(200).optional(),
+  nameSv: z.string().trim().min(1).max(200).optional(),
+  descriptionEn: optionalTrimmedString(z.string().max(2000)),
+  descriptionFi: optionalTrimmedString(z.string().max(2000)),
+  descriptionSv: optionalTrimmedString(z.string().max(2000)),
   aircraftRegistration: z.string().max(9),
   minutesPerPackage: z.number().int().positive(),
   perMinRate: z.number().nonnegative(),
@@ -35,12 +35,12 @@ export const PrepaidPackageUpsertSchema = PrepaidPackageSchema.omit({
   updatedBy: true,
 }).extend({
   packageId: z.string().max(9).optional(),
-  nameEn: z.string().min(1).max(200),
-  nameFi: z.string().min(1).max(200),
-  nameSv: z.string().min(1).max(200),
-  descriptionEn: z.string().max(2000).optional(),
-  descriptionFi: z.string().max(2000).optional(),
-  descriptionSv: z.string().max(2000).optional(),
+  nameEn: z.string().trim().min(1).max(200),
+  nameFi: z.string().trim().min(1).max(200),
+  nameSv: z.string().trim().min(1).max(200),
+  descriptionEn: optionalTrimmedString(z.string().max(2000)),
+  descriptionFi: optionalTrimmedString(z.string().max(2000)),
+  descriptionSv: optionalTrimmedString(z.string().max(2000)),
   vatPercent: z.number().nonnegative().default(0),
   lowStockThreshold: z.number().int().nonnegative().nullable().optional(),
 })
@@ -81,7 +81,7 @@ export const UsageLogSchema = z.object({
   flightId: z.string().max(9).nullable().optional(),
   minutesUsed: z.number().int().positive(),
   appliedAt: z.string().datetime(),
-  note: z.string().nullable().optional(),
+  note: nullableTrimmedString(z.string().max(500)).optional(),
 })
 export type UsageLog = z.infer<typeof UsageLogSchema>
 

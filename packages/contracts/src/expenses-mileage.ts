@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { optionalTrimmedString } from './schema.ts'
 
 export const MileageAllowanceSchema = z.object({
   id: z.number().int(),
@@ -56,7 +57,7 @@ const MileageLegBaseSchema = z.object({
   distanceKm: z.number().positive(),
   /** Server-computed start->end distance with no waypoints, for comparison against distanceKm */
   directDistanceKm: z.number().positive().optional(),
-  justificationNote: z.string().max(1000).optional(),
+  justificationNote: optionalTrimmedString(z.string().max(1000)),
   boardApproved: z.boolean().default(false),
   ratePerKm: z.number().positive().optional(),
 })

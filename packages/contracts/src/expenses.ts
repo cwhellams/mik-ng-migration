@@ -1,6 +1,12 @@
 import { z } from 'zod'
 import { createMileageLegSchema, MileageLegSchema } from './expenses-mileage.ts'
-import { DateRangeSchema, PaginationSchema, withDateRangeCheck } from './schema.ts'
+import {
+  DateRangeSchema,
+  nullableTrimmedString,
+  optionalTrimmedString,
+  PaginationSchema,
+  withDateRangeCheck,
+} from './schema.ts'
 export { MileageLegSchema, CreateMileageLegSchema } from './expenses-mileage.ts'
 
 export enum ExpenseClaimStatus {
@@ -68,7 +74,7 @@ export const ExpenseLineItemSchema = z.object({
   // Not required at the schema level (a saved-but-not-yet-submitted draft may still
   // have an untouched placeholder line item) — enforced instead at submit time,
   // alongside the other submit-only checks in POST /expenses/:id/submit.
-  description: z.string().max(500),
+  description: z.string().trim().max(500),
   date: z.string().date().nullable().optional(),
   quantity: z.number().positive(),
   unit: z.enum(['pcs', 'km', 'l', 'h']).default('pcs'),
@@ -119,7 +125,7 @@ export const ExpenseClaimMessageSchema = z.object({
   claimId: z.string().guid(),
   senderId: z.string(),
   messageType: z.nativeEnum(ExpenseMessageType),
-  body: z.string(),
+  body: z.string().trim().min(1).max(5000),
   sentAt: z.string(),
 })
 export type ExpenseClaimMessage = z.infer<typeof ExpenseClaimMessageSchema>
@@ -132,8 +138,8 @@ export const createExpenseClaimSchema = (maxMileageKm?: number) =>
     categoryId: z.number().int().positive(),
     aircraftId: z.string().optional(),
     flightLogId: z.string().optional(),
-    title: z.string().min(1).max(200),
-    description: z.string().max(2000).optional(),
+    title: z.string().trim().min(1).max(200),
+    description: optionalTrimmedString(z.string().max(2000)),
     expenseDate: z.string().date().optional(),
     fuelLitres: z.number().positive().optional(),
     fuelType: z.enum(FUEL_TYPES).optional(),
@@ -180,8 +186,8 @@ export const ExpenseClaimSchema = z.object({
   categoryCode: z.string().optional(),
   aircraftId: z.string().nullable().optional(),
   flightLogId: z.string().nullable().optional(),
-  title: z.string(),
-  description: z.string().nullable().optional(),
+  title: z.string().trim().min(1).max(200),
+  description: nullableTrimmedString(z.string().max(2000)).optional(),
   status: z.nativeEnum(ExpenseClaimStatus),
   fuelLitres: z.number().nullable().optional(),
   fuelType: z.string().nullable().optional(),
@@ -197,7 +203,7 @@ export const ExpenseClaimSchema = z.object({
   approvedBy: z.string().nullable().optional(),
   rejectedAt: z.string().nullable().optional(),
   rejectedBy: z.string().nullable().optional(),
-  rejectionReason: z.string().nullable().optional(),
+  rejectionReason: nullableTrimmedString(z.string().max(1000)).optional(),
   simplbooksPurchaseId: z.number().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -233,11 +239,11 @@ export const ExpenseClaimFiltersSchema = z
 export type ExpenseClaimFilters = z.infer<typeof ExpenseClaimFiltersSchema>
 
 export const RejectExpenseClaimSchema = z.object({
-  reason: z.string().min(1).max(1000),
+  reason: z.string().trim().min(1).max(1000),
 })
 
 export const RequestInfoSchema = z.object({
-  message: z.string().min(1).max(2000),
+  message: z.string().trim().min(1).max(2000),
 })
 
 export const OverrideFuelPriceSchema = z.object({

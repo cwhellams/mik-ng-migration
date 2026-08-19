@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { AuditableSchema, LimitOffsetSchema } from './schema.ts'
+import { AuditableSchema, LimitOffsetSchema, nullableTrimmedString } from './schema.ts'
 
 // Aircraft card schema
 export const AircraftCardSchema = z.object({
   cardId: z.number().optional(),
   aircraftRegistration: z.string().min(1).max(10),
-  name: z.string().min(1).max(255),
-  description: z.string().nullable().optional(),
+  name: z.string().trim().min(1).max(255),
+  description: nullableTrimmedString(z.string().max(1000)).optional(),
   validFrom: z.string().date().nullable().optional(),
   validTo: z.string().date().nullable().optional(),
 })
@@ -15,8 +15,8 @@ export type AircraftCard = z.infer<typeof AircraftCardSchema>
 
 // Schema for PATCH requests — only mutable fields; cardId and aircraftRegistration are not updatable
 export const AircraftCardPatchSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  description: z.string().nullable().optional(),
+  name: z.string().trim().min(1).max(255).optional(),
+  description: nullableTrimmedString(z.string().max(1000)).optional(),
   validFrom: z.string().date().nullable().optional(),
   validTo: z.string().date().nullable().optional(),
 })

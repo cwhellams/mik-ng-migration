@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { nullableTrimmedString } from './schema.ts'
 
 // Aircraft pricing for public display
 export const PublicAircraftPricingSchema = z.object({
@@ -15,7 +16,7 @@ export const PublicMembershipFeeSchema = z.object({
   code: z.string(),
   name: z.string(),
   price: z.number(),
-  description: z.string().nullable().optional(),
+  description: nullableTrimmedString(z.string().max(500)).optional(),
 })
 
 export type PublicMembershipFee = z.infer<typeof PublicMembershipFeeSchema>
@@ -25,7 +26,7 @@ export const PublicEquipmentFeeSchema = z.object({
   code: z.string(),
   name: z.string(),
   price: z.number(),
-  description: z.string().nullable().optional(),
+  description: nullableTrimmedString(z.string().max(500)).optional(),
 })
 
 export type PublicEquipmentFee = z.infer<typeof PublicEquipmentFeeSchema>
