@@ -17,6 +17,7 @@ import { RemoteContent } from '../../../components/RemoteContent'
 import type { PilotStatistics as PilotStatisticsType } from '@mik/contracts/stats'
 import { useTranslation } from 'react-i18next'
 import { dayjs } from '../../../utils/date'
+import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
 
 type DatePreset = 'currentYear' | 'previousYear' | 'last12months' | 'custom'
 type Timezone = 'local' | 'utc'
@@ -158,6 +159,7 @@ export const PilotStatistics = () => {
                 if (value) setPreset(value as DatePreset)
               }}
               size='small'
+              sx={wrappingToggleGroupSx}
             >
               <ToggleButton value='currentYear'>
                 {t('stats.pilots.presets.currentYear')}

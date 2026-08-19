@@ -13,6 +13,7 @@ import { ResponsiveBar } from '@nivo/bar'
 import useApi from '../../../hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '../../../components/RemoteContent'
+import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
 import type {
   AirfieldEfficiencyByYr,
   AirfieldEfficiencyByYrMth,
@@ -284,7 +285,7 @@ export const AirfieldEfficiency = () => {
                 exclusive
                 onChange={(_, v) => v && setGroupBy(v)}
                 size='small'
-                fullWidth
+                sx={wrappingToggleGroupSx}
               >
                 <ToggleButton value='overall'>Overall</ToggleButton>
                 <ToggleButton value='aircraft'>Aircraft</ToggleButton>
@@ -299,7 +300,7 @@ export const AirfieldEfficiency = () => {
                 exclusive
                 onChange={(_, v) => v && setPeriod(v)}
                 size='small'
-                fullWidth
+                sx={wrappingToggleGroupSx}
               >
                 <ToggleButton value='year'>By Year</ToggleButton>
                 <ToggleButton value='month'>By Month (Last 12)</ToggleButton>

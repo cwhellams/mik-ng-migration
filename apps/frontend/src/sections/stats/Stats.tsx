@@ -62,6 +62,7 @@ import { AirfieldEfficiency as AirfieldEfficiencyView } from './components/Airfi
 import { AogStatistics as AogStatisticsView } from './components/AogStatistics'
 import { SafetyStatistics as SafetyStatisticsView } from './components/SafetyStatistics'
 import { MyStatistics as MyStatisticsView } from './components/MyStatistics'
+import { wrappingToggleGroupSx } from './wrappingToggleGroupSx'
 
 const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
   <Box
@@ -722,8 +723,8 @@ export const Stats = () => {
                 value={viewMode}
                 exclusive
                 onChange={(_, newMode) => newMode && setViewMode(newMode)}
-                fullWidth
                 size='small'
+                sx={wrappingToggleGroupSx}
               >
                 <ToggleButton value='my'>{t('stats.my.viewMode')}</ToggleButton>
                 <ToggleButton value='aircraft'>Aircraft</ToggleButton>

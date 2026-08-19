@@ -19,6 +19,7 @@ import { RemoteContent } from '../../../components/RemoteContent'
 import type { TotalFlightTimeByAcYrMth } from '@mik/contracts/stats'
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { endpoints } from '../../../api/endpoints'
+import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
 
 const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
 
@@ -159,7 +160,7 @@ export const YearOnYearReport = () => {
                 value={selectedTypes}
                 onChange={handleTypeToggle}
                 size='small'
-                sx={{ flexWrap: 'wrap', gap: 0.5 }}
+                sx={wrappingToggleGroupSx}
               >
                 {availableTypes.map((ft) => (
                   <ToggleButton key={ft} value={ft} sx={{ fontSize: '0.7rem', px: 1 }}>

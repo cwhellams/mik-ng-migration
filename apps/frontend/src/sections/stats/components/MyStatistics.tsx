@@ -23,6 +23,7 @@ import { useNivoTheme } from '../useNivoTheme'
 import type { MyStatistics as MyStatisticsType } from '@mik/contracts/stats'
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { endpoints } from '../../../api/endpoints'
+import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
 
 type RangeMode = 'ytd' | 'all'
 
@@ -152,6 +153,7 @@ export const MyStatistics = () => {
                 if (value) setRange(value as RangeMode)
               }}
               size='small'
+              sx={wrappingToggleGroupSx}
             >
               <ToggleButton value='ytd'>{t('stats.my.range.ytd')}</ToggleButton>
               <ToggleButton value='all'>{t('stats.my.range.allTime')}</ToggleButton>
