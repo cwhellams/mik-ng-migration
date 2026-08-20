@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { BookingStatus, BookingType, CancellationReason } from '@mik/contracts/bookings'
 import type {
@@ -86,6 +86,8 @@ const renderReport = () =>
   )
 
 describe('MemberEfficiencyReport', () => {
+  afterEach(() => vi.useRealTimers())
+
   it('should put the member figure next to the club figure so they can be compared', async () => {
     mockReport(aResponse([anEntry()]))
 
@@ -204,6 +206,9 @@ describe('MemberEfficiencyReport', () => {
   })
 
   it('should ask for the last twelve months by default', async () => {
+    // `shouldAdvanceTime` keeps SWR's and waitFor's timers ticking while the starting
+    // point is pinned — a fully frozen clock never resolves the fetch.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.setSystemTime(new Date('2026-08-20T12:00:00.000Z'))
     const seen: URL[] = []
     mockReport(aResponse([anEntry()]), (url) => seen.push(url))
@@ -211,9 +216,10 @@ describe('MemberEfficiencyReport', () => {
     renderReport()
 
     await waitFor(() => expect(seen).toHaveLength(1))
-    expect(seen[0]!.searchParams.get('from')).toContain('2025-08-19')
-    expect(seen[0]!.searchParams.get('to')).toContain('2026-08-20')
-    vi.useRealTimers()
+    // The window is a whole local day either end, and the harness pins the timezone to
+    // Europe/Helsinki, so midnight on the 20th is 21:00 UTC the evening before.
+    expect(seen[0]!.searchParams.get('from')).toBe('2025-08-19T21:00:00.000Z')
+    expect(seen[0]!.searchParams.get('to')).toBe('2026-08-20T20:59:59.999Z')
   })
 
   it('should refuse a period that runs backwards rather than asking the API for it', async () => {
