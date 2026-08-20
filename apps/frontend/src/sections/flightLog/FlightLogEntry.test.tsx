@@ -193,13 +193,20 @@ describe('FlightLogEntry (classic form) already-logged remarks', () => {
   })
 })
 
+// The defect description is typed three characters at a time on purpose. This form runs
+// react-hook-form in `onChange` mode behind a resolver that validates the whole schema, so
+// every keystroke costs a full re-render plus a full validation pass: the 21-character
+// string these tests used to type accounted for ~6.5s of each one's ~7s runtime, and under
+// CI's two-worker contention that pushed all three over the shared 20s testTimeout
+// (reproduced on main, e.g. run 32305258268). Nothing here asserts on the text itself --
+// only that a defect was reported -- so the shortest non-empty value does the same job.
 describe('FlightLogEntry (classic form) defect grounding confirmation', () => {
   it('asks for grounding confirmation before saving when a defect was reported', async () => {
     const state = classicFormApi()
     const { user } = renderClassicForm()
 
     await user.click(await screen.findByRole('button', { name: /add defect/i }))
-    await user.type(screen.getByLabelText(/description/i), 'Oil stain on the ramp')
+    await user.type(screen.getByLabelText(/description/i), 'Oil')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     const dialog = await screen.findByRole('dialog')
@@ -212,7 +219,7 @@ describe('FlightLogEntry (classic form) defect grounding confirmation', () => {
     const { user } = renderClassicForm()
 
     await user.click(await screen.findByRole('button', { name: /add defect/i }))
-    await user.type(screen.getByLabelText(/description/i), 'Oil stain on the ramp')
+    await user.type(screen.getByLabelText(/description/i), 'Oil')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     const dialog = await screen.findByRole('dialog')
@@ -226,7 +233,7 @@ describe('FlightLogEntry (classic form) defect grounding confirmation', () => {
     const { user } = renderClassicForm()
 
     await user.click(await screen.findByRole('button', { name: /add defect/i }))
-    await user.type(screen.getByLabelText(/description/i), 'Oil stain on the ramp')
+    await user.type(screen.getByLabelText(/description/i), 'Oil')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     const dialog = await screen.findByRole('dialog')
