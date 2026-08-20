@@ -35,7 +35,7 @@ import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Icon } from '@iconify/react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, type DefaultValues } from 'react-hook-form'
 import {
   FlightLog,
   FlightLogUpsertSchema,
@@ -92,6 +92,7 @@ import { hasBlankReportedRemark, submitReportedRemarks } from './reportRemarksAp
 import { useDefects } from '../../hooks/useDefects'
 import { useRemarks } from '../../hooks/useRemarks'
 import { endpoints } from '../../api/endpoints'
+import { readWizardDraft, clearWizardDraft } from '../../utils/wizardDraft'
 
 // Renders the guided mobile wizard for new entries on phone-width viewports (unless
 // the user opted into the classic form via the wizard's "Use full form instead" link);
@@ -112,10 +113,20 @@ const FlightLogEntry = () => {
     return <MobileFlightLogView onSwitchToClassicForm={() => setForceClassicForm(true)} />
   }
 
-  return <ClassicFlightLogEntry />
+  return <ClassicFlightLogEntry forceClassicForm={forceClassicForm} />
 }
 
-const ClassicFlightLogEntry = () => {
+interface FlightLogWizardDraft {
+  values: FlightLogUpsertRequest
+  stepIndex: number
+  flightDateIso: string
+  nightOrIfr: boolean | null
+  refueled: boolean | null
+  oilAdded: boolean | null
+  reportedDefects: string[]
+}
+
+const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?: boolean }) => {
   const { t } = useTranslation()
   const { showSnackbar } = useSnackbar()
   const theme = useTheme()
@@ -180,24 +191,28 @@ const ClassicFlightLogEntry = () => {
     [memberList, t, isNew],
   )
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    formState: { errors, isSubmitting, isSubmitted },
-    clearErrors,
-    setError,
-    setValue,
-    getValues,
-    reset,
-    trigger,
-  } = useForm<FlightLogUpsertRequest>({
-    mode: 'onChange',
-    resolver: formResolver,
+  // Read wizard draft if switching from wizard to classic form.
+  // This draft persists values entered in the wizard so they can be transferred
+  // when the user clicks "Use full form instead". Reading is a pure lookup so it
+  // stays in useMemo; clearing is a side effect and must not run during render
+  // (React StrictMode's throwaway mount would otherwise consume it before the
+  // real mount ever sees it), so it happens in the effect below instead.
+  const wizardDraft = useMemo(() => {
+    if (isNew && forceClassicForm) {
+      const draftKey = `flightLog:${flightId ?? 'new'}`
+      return readWizardDraft<FlightLogWizardDraft>(draftKey)
+    }
+    return null
+  }, [isNew, forceClassicForm, flightId])
 
-    // defaults for new flights
-    defaultValues: {
+  useEffect(() => {
+    if (isNew && forceClassicForm && wizardDraft) {
+      clearWizardDraft(`flightLog:${flightId ?? 'new'}`)
+    }
+  }, [isNew, forceClassicForm, flightId, wizardDraft])
+
+  const baseDefaultValues: DefaultValues<FlightLogUpsertRequest> = useMemo(
+    () => ({
       aircraftRegistration: '',
       flightType: FlightType.PRIVATE,
 
@@ -228,17 +243,42 @@ const ClassicFlightLogEntry = () => {
       nonBillingApprovedByMemberId: null,
       validationRemarks: null,
 
-      // Billing admin fields - null by default, filled during billing process
       minBillableExceptionReason: null,
       minBillableExceptionApprovedByMemberId: null,
 
-      // admin defaults, will be overwritten by the server
-      ajlbSeqNo: 1, // ignored by backend on INSERT; required by schema validation
+      ajlbSeqNo: 1,
       ajlbBlankRowsBefore: 0,
       billableMemberId: me?.memberId ?? '',
       isBillableFlight: true,
       nonBillingReason: null,
-    },
+    }),
+    [me?.memberId],
+  )
+
+  const defaultValues: DefaultValues<FlightLogUpsertRequest> = useMemo(() => {
+    // If we have wizard draft values, merge them over the base defaults
+    if (wizardDraft?.values) {
+      return { ...baseDefaultValues, ...wizardDraft.values }
+    }
+    return baseDefaultValues
+  }, [baseDefaultValues, wizardDraft])
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors, isSubmitting, isSubmitted },
+    clearErrors,
+    setError,
+    setValue,
+    getValues,
+    reset,
+    trigger,
+  } = useForm<FlightLogUpsertRequest>({
+    mode: 'onChange',
+    resolver: formResolver,
+    defaultValues,
   })
 
   useEffect(() => {

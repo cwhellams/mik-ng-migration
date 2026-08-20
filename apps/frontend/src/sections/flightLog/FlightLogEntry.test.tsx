@@ -3,18 +3,151 @@ import type { Defect } from '@mik/contracts/defects'
 import type { Remark } from '@mik/contracts/remarks'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   aFlightLog,
   aMemberListEntry,
   aMemberListResponse,
+  anAircraftListResponse,
   AIRCRAFT_REGISTRATION,
 } from '../../test/fixtures'
 import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import { renderWithProviders } from '../../test/renderWithProviders'
 import FlightLogEntry from './FlightLogEntry'
+
+/**
+ * Tests for the FlightLogEntry component, specifically the transfer of wizard
+ * draft values to the classic form when switching via "Use full form instead".
+ * Fixes #1227 - Wizard and full form should share entered values.
+ */
+
+const WIZARD_DRAFT_KEY_PREFIX = 'wizardDraft:'
+
+/** Writes a wizard draft straight into storage under this tab's own key, matching
+ * the shape FlightLogEntryWizard itself writes (values plus the wizard-only bits). */
+const seedWizardDraft = (
+  logicalKey: string,
+  values: Record<string, unknown>,
+  savedAt = Date.now(),
+) => {
+  const tabId = sessionStorage.getItem('wizardDraft:tabId')
+  const draftKey = `${WIZARD_DRAFT_KEY_PREFIX}${logicalKey}:${tabId}`
+  const draft = {
+    values,
+    stepIndex: 3,
+    flightDateIso: new Date().toISOString(),
+    nightOrIfr: null,
+    refueled: null,
+    oilAdded: null,
+    reportedDefects: [],
+  }
+  localStorage.setItem(draftKey, JSON.stringify({ savedAt, value: draft }))
+}
+
+/** Checks if a wizard draft exists in storage. */
+const hasDraft = (logicalKey: string): boolean => {
+  const tabId = sessionStorage.getItem('wizardDraft:tabId')
+  const draftKey = `${WIZARD_DRAFT_KEY_PREFIX}${logicalKey}:${tabId}`
+  return localStorage.getItem(draftKey) !== null
+}
+
+/** matchMedia stub answering every query with `matches`, matching the shape the
+ * jsdom test harness expects. */
+const stubMatchMedia = (matches: boolean) =>
+  ((query: string) => ({
+    matches,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+    addListener: () => {},
+    removeListener: () => {},
+  })) as typeof window.matchMedia
+
+const wizardToClassicApi = () => {
+  server.use(
+    http.get(apiUrl('v1/aircrafts'), () => HttpResponse.json(anAircraftListResponse())),
+    http.get(apiUrl('v1/members'), () => HttpResponse.json(aMemberListResponse())),
+    http.get(apiUrl('v1/flight-logs/overlap-check'), () => HttpResponse.json({ conflicts: [] })),
+    http.get(apiUrl('v1/useful-phone-numbers/flight-plan-centre'), () =>
+      HttpResponse.json(null, { status: 404 }),
+    ),
+    http.get(apiUrl('v1/defects'), () => HttpResponse.json([])),
+    http.get(apiUrl('v1/remarks'), () => HttpResponse.json([])),
+  )
+}
+
+describe('FlightLogEntry wizard-to-classic-form draft transfer', () => {
+  // Captured per-test (not once at describe-body time) so it reflects whatever the
+  // module-level override below has set matchMedia to by the time tests actually
+  // run -- restoring an earlier, stale value here would leave the classic-form-only
+  // suites further down this file without the `isSmUp: true` override they need.
+  let originalMatchMedia: typeof window.matchMedia
+
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+    originalMatchMedia = window.matchMedia
+    // Show the mobile wizard for a new entry (isSmUp false), unlike the file-wide
+    // override below that the classic-form-only suites need.
+    window.matchMedia = stubMatchMedia(false)
+  })
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia
+  })
+
+  it('prefills the classic form from the wizard draft when switching via "Use full form instead", and clears the draft', async () => {
+    wizardToClassicApi()
+    seedWizardDraft('flightLog:new', {
+      aircraftRegistration: AIRCRAFT_REGISTRATION,
+      personalRemarks: 'Test flight from wizard',
+    })
+
+    const { user } = renderWithProviders(<FlightLogEntry />, {
+      route: '/logs/new',
+      path: '/logs/:flightId',
+    })
+
+    // Wizard is shown first, pre-populated from the same draft it reads on mount.
+    const switchButton = await screen.findByRole('button', { name: 'Use full form instead' })
+    await user.click(switchButton)
+
+    // Switching renders the classic form with the draft's values merged into its
+    // own defaultValues.
+    expect(await screen.findByLabelText(/personal remarks/i)).toHaveValue('Test flight from wizard')
+    expect(document.getElementById('mui-component-select-aircraftRegistration')).toHaveTextContent(
+      AIRCRAFT_REGISTRATION,
+    )
+
+    // The draft was consumed, so it must not still be sitting in storage for
+    // some future mount to pick back up.
+    await waitFor(() => expect(hasDraft('flightLog:new')).toBe(false))
+  })
+
+  it('does not read the draft when the classic form loads directly (not via a wizard switch)', async () => {
+    wizardToClassicApi()
+    seedWizardDraft('flightLog:new', {
+      aircraftRegistration: AIRCRAFT_REGISTRATION,
+      personalRemarks: 'Should not appear in direct classic form load',
+    })
+    // Large viewport: FlightLogEntry renders the classic form directly, with
+    // forceClassicForm left at its default (false).
+    window.matchMedia = stubMatchMedia(true)
+
+    renderWithProviders(<FlightLogEntry />, {
+      route: '/logs/new',
+      path: '/logs/:flightId',
+    })
+
+    expect(await screen.findByLabelText(/personal remarks/i)).toHaveValue('')
+    // Never read, so still sitting in storage afterwards.
+    expect(hasDraft('flightLog:new')).toBe(true)
+  })
+})
 
 /**
  * The desktop-width classic form (the wizard's alternative, used on wide
