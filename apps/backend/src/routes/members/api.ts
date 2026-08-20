@@ -53,8 +53,14 @@ import {
 } from '../../db/member-queries.ts'
 import { getInvoices } from '../../db/invoicing-queries.ts'
 import { getFlightLogs } from '../../db/flight-log-queries.ts'
+import { getMemberReservationEfficiency } from '../../db/member-efficiency-queries.ts'
 import type { InvoiceListResponse } from '@mik/contracts/invoicing'
 import type { FlightLogListResponse } from '@mik/contracts/flight-log'
+import {
+  DEFAULT_PERIOD_MONTHS,
+  MemberEfficiencyFiltersSchema,
+  type MemberEfficiencyResponse,
+} from '@mik/contracts/member-efficiency'
 import { cancelAllFutureBookingsForMember } from '../../db/booking-queries.ts'
 import {
   getGdprFlightLogs,
@@ -690,6 +696,47 @@ router.get(
       page: 1,
     })
     res.status(200).json(result)
+  },
+)
+
+router.get(
+  '/:memberId/reservation-efficiency',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<MemberEfficiencyResponse>) => {
+    const { memberId } = req.params
+
+    const parsed = MemberEfficiencyFiltersSchema.safeParse(req.query)
+    if (!parsed.success) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'from and to must be ISO 8601 date-times.',
+      })
+    }
+
+    const member = await getMemberById(memberId)
+    if (!member) {
+      return problem({ status: HttpStatusCode.NotFound })
+    }
+
+    const to = parsed.data.to ? dayjs(parsed.data.to) : dayjs()
+    const from = parsed.data.from
+      ? dayjs(parsed.data.from)
+      : to.subtract(DEFAULT_PERIOD_MONTHS, 'month')
+
+    if (from.isAfter(to)) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'from cannot be after to.',
+      })
+    }
+
+    const result = await getMemberReservationEfficiency(
+      memberId,
+      from.toISOString(),
+      to.toISOString(),
+    )
+
+    res.status(HttpStatusCode.Ok).json(result)
   },
 )
 

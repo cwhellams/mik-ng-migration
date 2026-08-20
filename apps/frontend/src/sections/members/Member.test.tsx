@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { MIKMemberTypes, MIKPermissions } from '@mik/contracts/members'
 import { renderAs } from '../../test/auth'
-import { aMember, aRoleWithPermissions } from '../../test/fixtures'
+import { aMember, aRoleWithPermissions, FIXTURE_TIMESTAMP } from '../../test/fixtures'
 import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import MemberProfile from './Member'
@@ -32,6 +32,24 @@ const mockMemberEndpoints = () => {
     ),
     http.get(apiUrl(`v1/members/${removedMember.memberId}/flights`), () =>
       HttpResponse.json({ logs: [] }),
+    ),
+    http.get(apiUrl(`v1/members/${removedMember.memberId}/reservation-efficiency`), () =>
+      HttpResponse.json({
+        memberId: removedMember.memberId,
+        from: FIXTURE_TIMESTAMP,
+        to: FIXTURE_TIMESTAMP,
+        summary: {
+          bookingCount: 0,
+          cancelledCount: 0,
+          underusedCount: 0,
+          noShowCount: 0,
+          totalReservedMins: 0,
+          totalFlightMins: 0,
+          memberEfficiencyPct: 0,
+          clubEfficiencyPct: 0,
+        },
+        entries: [],
+      }),
     ),
   )
 }

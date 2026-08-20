@@ -63,6 +63,7 @@ export const endpoints = {
     passkeys: (memberId: string) => `v1/members/${memberId}/passkeys`,
     invoices: (memberId: string) => `v1/members/${memberId}/invoices`,
     flights: (memberId: string) => `v1/members/${memberId}/flights`,
+    reservationEfficiency: (memberId: string) => `v1/members/${memberId}/reservation-efficiency`,
     restore: (memberId: string) => `v1/members/${memberId}/restore`,
     deactivate: (memberId: string) => `v1/members/${memberId}/deactivate`,
     sendRenewalReminder: (memberId: string) => `v1/members/${memberId}/send-renewal-reminder`,

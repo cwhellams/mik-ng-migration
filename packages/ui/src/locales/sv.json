@@ -465,6 +465,63 @@
       "type": "Typ",
       "instructor": "Instruktör / FE"
     },
+    "efficiency": {
+      "title": "Bokningarnas nyttjandegrad",
+      "description": "Hur stor del av varje bokning som faktiskt flögs.",
+      "descriptionFor": "Hur stor del av {{name}}s bokningar som faktiskt flögs, och hur det står sig mot klubben som helhet.",
+      "backToProfile": "Tillbaka till profilen",
+      "noBookings": "Inga bokningar under perioden",
+      "noReasonGiven": "Ingen orsak angiven",
+      "cancelledNotice": "{{hours}} h i förväg",
+      "cancelledAfterStart": "Avbokad efter att bokningen hade börjat",
+      "underusedExplanation": "Flygplanet stod stilla {{head}} före första flygningen och {{tail}} efter den sista. Markeras vid mer än {{headLimit}} min i början eller {{tailLimit}} min i slutet.",
+      "pickMember": "Sök en enskild medlem",
+      "pickMemberHelp": "Tabellen ovan är anonymiserad. En medlemsadministratör kan öppna hela bokningshistoriken för en namngiven medlem.",
+      "memberField": "Medlem",
+      "errors": {
+        "required": "Båda datumen krävs",
+        "startAfterEnd": "Startdatumet kan inte vara efter slutdatumet"
+      },
+      "filters": {
+        "from": "Från",
+        "to": "Till"
+      },
+      "summary": {
+        "memberEfficiency": "Medlemmens nyttjandegrad",
+        "clubEfficiency": "Klubbens medel",
+        "bookings": "Bokningar",
+        "cancelled": "Avbokningar",
+        "underused": "Underutnyttjade",
+        "noShow": "Uteblivna",
+        "flownOfReserved": "{{flown}} flugna av {{reserved}} bokade",
+        "samePeriod": "Samma period",
+        "inPeriod": "Under perioden"
+      },
+      "state": {
+        "flown": "Flugen",
+        "underused": "Underutnyttjad",
+        "noFlight": "Inte flugen",
+        "cancelled": "Avbokad"
+      },
+      "table": {
+        "date": "Datum",
+        "aircraft": "Flygplan",
+        "reserved": "Bokning",
+        "reservedTime": "Längd",
+        "flightTime": "Flygtid",
+        "efficiency": "Nyttjandegrad",
+        "status": "Status",
+        "notes": "Anmärkningar"
+      },
+      "card": {
+        "title": "Bokningarnas nyttjandegrad",
+        "subtitle": "Senaste {{months}} månaderna",
+        "vsClub": "Klubbens medel {{pct}}",
+        "flags": "{{cancelled}} avbokade · {{underused}} underutnyttjade · {{noShow}} inte flugna",
+        "viewReport": "Visa hela rapporten",
+        "noBookings": "Inga bokningar de senaste {{months}} månaderna"
+      }
+    },
     "applicationData": {
       "title": "Medlemsansökan",
       "coverLetter": "Om sökanden",

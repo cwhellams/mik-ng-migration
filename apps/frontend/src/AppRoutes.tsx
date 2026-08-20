@@ -40,6 +40,7 @@ import MainLayout from './layouts/MainLayout'
 import MassBalance from './sections/massBalance/MassBalance'
 import MeetingPage from './sections/meetings/MeetingPage'
 import Member from './sections/members/Member'
+import MemberEfficiencyReport from './sections/members/MemberEfficiencyReport'
 import Members from './sections/members/Members'
 import MyExamHistoryPage from './sections/exams/MyExamHistoryPage'
 import MyFlightPackagesPage from './sections/shop/MyFlightPackagesPage'
@@ -50,6 +51,7 @@ import OrdersPage from './sections/shop/OrdersPage'
 import ProductPage from './sections/shop/ProductPage'
 import Register from './sections/login/Register'
 import RegistrationVerify from './sections/login/RegistrationVerify'
+import RequirePermission from './components/RequirePermission'
 import Schedule from './sections/schedule/Schedule'
 import ShopPage from './sections/shop/ShopPage'
 import { AccessCodes } from './sections/accessCodes/AccessCodes'
@@ -107,6 +109,20 @@ export default function AppRoutes() {
           <Route path='members/roles' element={<AdminAppRedirect />} />
           <Route path='members/trash' element={<AdminAppRedirect />} />
           <Route path='members/changelog' element={<AdminAppRedirect />} />
+          {/* The one route-level gate left in this app after #1233 moved the
+              rest to apps/admin. It stays here because both ways in did: the
+              summary card on the member's own page, and the drill-down from
+              the club-wide efficiency report in Stats. `RequirePermission`
+              rather than an ungated page because every word on it is
+              members-admin content — see AppRoutes.permissions.test.tsx. */}
+          <Route
+            path='members/:memberId/efficiency'
+            element={
+              <RequirePermission permissions={[MIKPermissions.MEMBER_ADMIN]}>
+                <MemberEfficiencyReport />
+              </RequirePermission>
+            }
+          />
           <Route path='members/:memberId' element={<Member />} />
           <Route path='instructor-status' element={<InstructorStatus />} />
           <Route path='billing' element={<Billing />} />

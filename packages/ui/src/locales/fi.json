@@ -464,6 +464,63 @@
       "type": "Tyyppi",
       "instructor": "Kouluttaja / tutkija"
     },
+    "efficiency": {
+      "title": "Varausten käyttöaste",
+      "description": "Kuinka suuri osa kustakin varauksesta todella lennettiin.",
+      "descriptionFor": "Kuinka suuri osa jäsenen {{name}} varauksista todella lennettiin ja miten se vertautuu koko kerhoon.",
+      "backToProfile": "Takaisin profiiliin",
+      "noBookings": "Ei varauksia tällä ajanjaksolla",
+      "noReasonGiven": "Syytä ei ilmoitettu",
+      "cancelledNotice": "{{hours}} h etukäteen",
+      "cancelledAfterStart": "Peruttu vasta varauksen alettua",
+      "underusedExplanation": "Kone seisoi {{head}} ennen ensimmäistä lentoa ja {{tail}} viimeisen jälkeen. Merkitään, kun alussa on yli {{headLimit}} min tai lopussa yli {{tailLimit}} min.",
+      "pickMember": "Hae yksittäinen jäsen",
+      "pickMemberHelp": "Yllä oleva taulukko on anonymisoitu. Jäsenylläpitäjä voi avata yhden nimetyn jäsenen koko varaushistorian.",
+      "memberField": "Jäsen",
+      "errors": {
+        "required": "Molemmat päivämäärät vaaditaan",
+        "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen"
+      },
+      "filters": {
+        "from": "Alkaen",
+        "to": "Päättyen"
+      },
+      "summary": {
+        "memberEfficiency": "Jäsenen käyttöaste",
+        "clubEfficiency": "Kerhon keskiarvo",
+        "bookings": "Varauksia",
+        "cancelled": "Peruutuksia",
+        "underused": "Vajaakäyttömerkintöjä",
+        "noShow": "Saapumatta jääneitä",
+        "flownOfReserved": "Lennetty {{flown}} / varattu {{reserved}}",
+        "samePeriod": "Sama ajanjakso",
+        "inPeriod": "Tällä ajanjaksolla"
+      },
+      "state": {
+        "flown": "Lennetty",
+        "underused": "Vajaakäyttö",
+        "noFlight": "Lentämättä",
+        "cancelled": "Peruttu"
+      },
+      "table": {
+        "date": "Päivä",
+        "aircraft": "Kone",
+        "reserved": "Varaus",
+        "reservedTime": "Kesto",
+        "flightTime": "Lentoaika",
+        "efficiency": "Käyttöaste",
+        "status": "Tila",
+        "notes": "Huomiot"
+      },
+      "card": {
+        "title": "Varausten käyttöaste",
+        "subtitle": "Viimeiset {{months}} kuukautta",
+        "vsClub": "Kerhon keskiarvo {{pct}}",
+        "flags": "{{cancelled}} peruttua · {{underused}} vajaakäyttöä · {{noShow}} lentämättä",
+        "viewReport": "Näytä koko raportti",
+        "noBookings": "Ei varauksia viimeisen {{months}} kuukauden aikana"
+      }
+    },
     "applicationData": {
       "title": "Jäsenhakemus",
       "coverLetter": "Tietoa hakijasta",

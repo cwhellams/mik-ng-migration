@@ -49,23 +49,28 @@ describe('route table', () => {
     expect(new Set(ROUTES.map((route) => route.path)).size).toBe(ROUTES.length)
   })
 
-  it('has no route-level permission gates left at all', () => {
+  it('has one route-level permission gate left', () => {
     // The headline number of the split, and the reason the four signed-in runs
-    // of this matrix now assert only that every page renders for everyone.
+    // of this matrix now assert that almost every page renders for everyone.
     //
-    // 93 routes / 37 gated on main. #1233 moved the 21 /admin/* pages, then the
-    // 14 /accounting/* pages and the three admin-only member screens, to
-    // apps/admin — whose own matrix gates all 38 of them. Every gate this app
-    // had went with them.
+    // 93 routes / 37 gated on main before #1233, which moved the 21 /admin/*
+    // pages, then the 14 /accounting/* pages and the three admin-only member
+    // screens, to apps/admin — whose own matrix gates all 38 of them. Every
+    // gate this app had went with them.
     //
-    // That is the intended end state for the member app, not an oversight: what
-    // is left is for any signed-in member, and `RequirePermission` stays in the
-    // tree (with its own tests) for the day a member-facing route needs a gate
-    // again. If one is added, add its row to routeMatrix.tsx and this
-    // expectation changes with it — `covers every gate in AppRoutes.tsx` above
-    // is what forces that.
-    expect(ROUTES).toHaveLength(59)
-    expect(GATED_ROUTES).toHaveLength(0)
+    // #1174 then added the one below: the per-member reservation efficiency
+    // report, whose two ways in (the card on the member's own page and the
+    // drill-down from the club-wide report in Stats) both live in this app, so
+    // the page it opens does too. It is the case the comment this replaced
+    // anticipated — a route that needs a gate again — and `RequirePermission`
+    // being still in the tree is what made adding it a one-liner.
+    //
+    // The rest is for any signed-in member by design, not by oversight. If
+    // another gate is added, add its row to routeMatrix.tsx and change these
+    // numbers with it — `covers every gate in AppRoutes.tsx` above is what
+    // forces that.
+    expect(ROUTES).toHaveLength(60)
+    expect(GATED_ROUTES).toHaveLength(1)
     expect(UNGATED_ROUTES).toHaveLength(59)
   })
 
@@ -102,10 +107,11 @@ describe('route table', () => {
     }
   })
 
-  // The next three range over `GATED_ROUTES`, which is currently empty (see
-  // above), so they pass vacuously. They are kept rather than deleted because
-  // they encode the rules a *new* member-app gate would have to satisfy, and
-  // the count assertion above is what stops the emptiness going unnoticed.
+  // The next three range over `GATED_ROUTES`, which #1233 emptied and #1174
+  // refilled with exactly one entry (see above). They encode the rules any
+  // member-app gate has to satisfy, so they keep earning their place whatever
+  // that count is; the count assertion above is what stops them going vacuous
+  // again unnoticed.
   it('demands an admin permission on every gated route', () => {
     // This is what makes "the ordinary member sees Forbidden" a real assertion
     // rather than a restatement of the rule under test.
@@ -143,13 +149,18 @@ describe('route table', () => {
     }
   })
 
-  it('would gate on admin mode as well as a permission', () => {
-    // /club/members/changelog used to be the lone gate without `adminModeOnly`;
-    // it has moved to apps/admin, so every remaining gate — of which there are
-    // none — must set it.
+  it('does not gate the members-admin report on admin mode as well', () => {
+    // The one gate left is the exception rather than the rule that /club/members
+    // /changelog used to be: an admin reaches it without switching admin mode on,
+    // because `hasAccess` is not sudo-downgraded — only the `isXAdmin` flags are.
+    // Its own API call passes `alwaysSudo`, so the page works the same either way,
+    // and requiring the toggle would only make the Stats drill-down dead-end for
+    // an admin who had not thought to flip it.
     const withoutAdminMode = GATED_ROUTES.filter((route) => !route.adminModeOnly)
 
-    expect(withoutAdminMode.map((route) => route.path)).toEqual([])
+    expect(withoutAdminMode.map((route) => route.path)).toEqual([
+      '/club/members/:memberId/efficiency',
+    ])
   })
 })
 

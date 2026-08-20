@@ -37,6 +37,10 @@ import {
 import { InvoiceListResponse } from '@mik/contracts/invoicing'
 import { FlightLogListResponse } from '@mik/contracts/flight-log'
 import { BookingListResponse, BookingFilters } from '@mik/contracts/bookings'
+import {
+  DEFAULT_PERIOD_MONTHS,
+  type MemberEfficiencyResponse,
+} from '@mik/contracts/member-efficiency'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState, useEffect, useMemo } from 'react'
@@ -49,6 +53,7 @@ import { InstructorQualificationsCard } from './components/InstructorQualificati
 import { InvoicePdfLink } from '@mik/ui/components/InvoicePdfLink'
 
 import { formatPhoneNumber } from '@mik/ui/utils/format'
+import { efficiencyColor, formatEfficiency } from '../../utils/efficiency'
 import { langFlagIcon } from '../../utils/lang'
 import { COUNTRIES } from '../../data/countries'
 import { FormTitle } from '@mik/ui/components/FormTitle'
@@ -918,6 +923,8 @@ const MemberProfile = () => {
 
           {isAdmin && roles.isBookingAdmin && memberId && <AdminBookingsCard memberId={memberId} />}
 
+          {isAdmin && memberId && <AdminEfficiencyCard memberId={memberId} />}
+
           <Grid>
             {isAdmin && data && !isRemoved && (
               <>
@@ -1323,6 +1330,72 @@ const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
               </Box>
             </>
           )}
+        </RemoteContent>
+      </CardContent>
+    </Card>
+  )
+}
+
+const AdminEfficiencyCard = ({ memberId }: { memberId: string }) => {
+  const { t } = useTranslation()
+  const params = useMemo(
+    () => ({
+      from: dayjs().subtract(DEFAULT_PERIOD_MONTHS, 'month').startOf('day').toISOString(),
+      to: dayjs().endOf('day').toISOString(),
+    }),
+    [],
+  )
+  const { data, isLoading, error } = useApi<MemberEfficiencyResponse>({
+    url: endpoints.members.reservationEfficiency(memberId),
+    params,
+    alwaysSudo: true,
+  })
+
+  const summary = data?.summary
+
+  return (
+    <Card>
+      <CardContent>
+        <FormTitle title={t('member.efficiency.card.title')} icon='mdi:chart-donut' />
+        <RemoteContent isLoading={isLoading} error={error}>
+          {!summary?.bookingCount ? (
+            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+              {t('member.efficiency.card.noBookings', { months: DEFAULT_PERIOD_MONTHS })}
+            </Typography>
+          ) : (
+            <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
+              <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                <Chip
+                  label={formatEfficiency(summary.memberEfficiencyPct)}
+                  color={efficiencyColor(summary.memberEfficiencyPct)}
+                />
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  {t('member.efficiency.card.vsClub', {
+                    pct: formatEfficiency(summary.clubEfficiencyPct),
+                  })}
+                  {' · '}
+                  {t('member.efficiency.card.subtitle', { months: DEFAULT_PERIOD_MONTHS })}
+                </Typography>
+              </Stack>
+              <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                {t('member.efficiency.card.flags', {
+                  cancelled: summary.cancelledCount,
+                  underused: summary.underusedCount,
+                  noShow: summary.noShowCount,
+                })}
+              </Typography>
+            </Stack>
+          )}
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Button
+              component={Link}
+              to={`/club/members/${memberId}/efficiency`}
+              variant='outlined'
+              startIcon={<Icon icon='mdi:chart-donut' />}
+            >
+              {t('member.efficiency.card.viewReport')}
+            </Button>
+          </Box>
         </RemoteContent>
       </CardContent>
     </Card>
