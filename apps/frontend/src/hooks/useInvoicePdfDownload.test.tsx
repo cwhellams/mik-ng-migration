@@ -14,12 +14,18 @@ import { useInvoicePdfDownload } from './useInvoicePdfDownload'
 const PDF_BASE64 = btoa('%PDF-1.4')
 
 const renderDownload = (
-  options: { invoiceNumber?: string | null; billableMemberId?: string | null; sudo?: boolean } = {},
+  options: {
+    invoiceNumber?: string | null
+    billableMemberId?: string | null
+    sudo?: boolean
+    alwaysSudo?: boolean
+  } = {},
 ) => {
-  const { invoiceNumber = '1234', billableMemberId = MEMBER_ID, sudo = false } = options
-  return renderHookWithProviders(() => useInvoicePdfDownload({ invoiceNumber, billableMemberId }), {
-    sudo,
-  })
+  const { invoiceNumber = '1234', billableMemberId = MEMBER_ID, sudo = false, alwaysSudo } = options
+  return renderHookWithProviders(
+    () => useInvoicePdfDownload({ invoiceNumber, billableMemberId, alwaysSudo }),
+    { sudo },
+  )
 }
 
 /** Waits for useRoles to settle so canDownloadInvoice sees the real permissions. */
@@ -70,6 +76,24 @@ describe('canDownloadInvoice', () => {
     await settled(renderDownload({ billableMemberId: 'Anna1', sudo: false }), false)
   })
 
+  it('lets an invoicing admin download with sudo off when alwaysSudo is set', async () => {
+    signInWithPermissions(MIKPermissions.INVOICING_ADMIN)
+
+    await settled(
+      renderDownload({ billableMemberId: 'Anna1', sudo: false, alwaysSudo: true }),
+      true,
+    )
+  })
+
+  it('still refuses a non-invoicing-admin with alwaysSudo set', async () => {
+    signInAs(aMember())
+
+    await settled(
+      renderDownload({ billableMemberId: 'Anna1', sudo: false, alwaysSudo: true }),
+      false,
+    )
+  })
+
   it.each([
     ['a missing invoice number', null],
     ['an empty invoice number', ''],
@@ -102,6 +126,27 @@ describe('handleDownloadPDF', () => {
     await act(() => result.current.handleDownloadPDF())
 
     expect(paths).toEqual(['/api/v1/invoices/1234/pdf'])
+    expect(clicks).toEqual(['invoice-1234.pdf'])
+  })
+
+  it('sends x-sudo: true when alwaysSudo is set even with the toggle off', async () => {
+    signInWithPermissions(MIKPermissions.INVOICING_ADMIN)
+    const sudoHeaders: string[] = []
+    server.use(
+      http.get(apiUrl('v1/invoices/1234/pdf'), ({ request }) => {
+        sudoHeaders.push(request.headers.get('x-sudo') ?? '')
+        return HttpResponse.json(PDF_BASE64)
+      }),
+    )
+
+    const { result } = await settled(
+      renderDownload({ billableMemberId: 'Anna1', sudo: false, alwaysSudo: true }),
+      true,
+    )
+
+    await act(() => result.current.handleDownloadPDF())
+
+    expect(sudoHeaders).toEqual(['true'])
     expect(clicks).toEqual(['invoice-1234.pdf'])
   })
 

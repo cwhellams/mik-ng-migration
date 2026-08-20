@@ -19,6 +19,7 @@ import { MIKInvoiceType } from '@mik/contracts/invoicing'
 import { FlightLogStatus } from '@mik/contracts/flight-log'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { db, type DbRow } from './connection.ts'
+import { sql } from 'kysely'
 import {
   HALF_YEAR_DISCOUNT_PERCENT,
   isAfterEquipmentFeeDiscountDate,
@@ -83,7 +84,7 @@ export async function getInvoices(
     query = query.where('dueAt', '<', overdueInvoiceCutoff()).where('isPaid', '=', false)
   }
 
-  const rows = await query.orderBy('sentAt', 'desc').execute()
+  const rows = await query.orderBy(sql`sent_at desc nulls last`).execute()
   return rows.map(toInvoice)
 }
 

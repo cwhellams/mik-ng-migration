@@ -7,6 +7,15 @@ import { MIKPermissions } from '@mik/contracts/members'
 interface UseInvoicePdfDownloadOptions {
   invoiceNumber: string | null | undefined
   billableMemberId: string | null | undefined
+  /**
+   * Skip the admin-mode toggle for the INVOICING_ADMIN check and always send
+   * `x-sudo: true` for the download request. For contexts that are already
+   * behind their own admin gate (e.g. a member's admin profile page, whose
+   * invoice list is itself fetched with `alwaysSudo`) and would otherwise
+   * hide the download link whenever the viewer happens to have the sudo
+   * toggle off.
+   */
+  alwaysSudo?: boolean
 }
 
 /**
@@ -16,10 +25,11 @@ interface UseInvoicePdfDownloadOptions {
 export function useInvoicePdfDownload({
   invoiceNumber,
   billableMemberId,
+  alwaysSudo,
 }: UseInvoicePdfDownloadOptions) {
-  const { me, hasSudoAccess } = useRoles()
+  const { me, hasAccess, hasSudoAccess } = useRoles()
   const [loading, setLoading] = useState(false)
-  const { mutation } = useApi({ url: 'v1/invoices', skipFetch: true })
+  const { mutation } = useApi({ url: 'v1/invoices', skipFetch: true, alwaysSudo })
 
   /**
    * Returns true when the current user may download the invoice PDF.
@@ -29,7 +39,10 @@ export function useInvoicePdfDownload({
   const canDownloadInvoice = (): boolean => {
     const id = Number(invoiceNumber)
     if (!invoiceNumber || !Number.isInteger(id) || id <= 0) return false
-    if (hasSudoAccess(MIKPermissions.INVOICING_ADMIN)) return true
+    const isInvoicingAdmin = alwaysSudo
+      ? hasAccess(MIKPermissions.INVOICING_ADMIN)
+      : hasSudoAccess(MIKPermissions.INVOICING_ADMIN)
+    if (isInvoicingAdmin) return true
     return me?.memberId === billableMemberId
   }
 

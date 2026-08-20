@@ -1,18 +1,21 @@
 import { CircularProgress, IconButton, Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { useInvoicePdfDownload } from '../../../hooks/useInvoicePdfDownload'
+import { useInvoicePdfDownload } from '../hooks/useInvoicePdfDownload'
 
 type Props = {
   invoiceId: string
   billableMemberId: string
+  /** See `useInvoicePdfDownload`'s option of the same name. */
+  alwaysSudo?: boolean
 }
 
-export const OverdueInvoiceLink = ({ invoiceId, billableMemberId }: Props) => {
+export const InvoicePdfLink = ({ invoiceId, billableMemberId, alwaysSudo }: Props) => {
   const { t } = useTranslation()
   const { canDownloadInvoice, handleDownloadPDF, loading } = useInvoicePdfDownload({
     invoiceNumber: invoiceId,
     billableMemberId,
+    alwaysSudo,
   })
 
   if (!canDownloadInvoice()) {

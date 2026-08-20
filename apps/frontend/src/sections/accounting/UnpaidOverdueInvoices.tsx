@@ -6,7 +6,7 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
-import { OverdueInvoiceLink } from './components/OverdueInvoiceLink'
+import { InvoicePdfLink } from '../../components/InvoicePdfLink'
 import type { UnpaidOverdueInvoiceListResponse } from '@mik/contracts/invoicing'
 
 export const UnpaidOverdueInvoices = () => {
@@ -115,7 +115,7 @@ export const UnpaidOverdueInvoices = () => {
                   textAlign: 'center',
                 }}
               >
-                <OverdueInvoiceLink invoiceId={invoice.id} billableMemberId={invoice.member_id} />
+                <InvoicePdfLink invoiceId={invoice.id} billableMemberId={invoice.member_id} />
               </Grid>
             </>
           )}

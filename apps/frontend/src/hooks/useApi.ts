@@ -253,7 +253,7 @@ export default function useApi<
       // globally allow admin permissions with sudo mode
       headers: {
         ...request.headers,
-        'x-sudo': sudo ? 'true' : 'false',
+        'x-sudo': sudo || request.alwaysSudo ? 'true' : 'false',
       },
       method: arg.method,
       data: arg.payload,

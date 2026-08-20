@@ -40,6 +40,7 @@ import { EditButton } from '../../components/EditButton'
 import { FormField } from '../../components/FormField'
 import { AuditFormField } from '../../components/AuditFormField'
 import { InstructorQualificationsCard } from './components/InstructorQualificationsCard'
+import { InvoicePdfLink } from '../../components/InvoicePdfLink'
 
 import { formatPhoneNumber } from '../../utils/format'
 import { langFlagIcon } from '../../utils/lang'
@@ -1099,35 +1100,6 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
     alwaysSudo: true,
   })
 
-  const { mutation: pdfMutation } = useApi<never>({
-    url: `v1/invoices`,
-    skipFetch: true,
-    alwaysSudo: true,
-  })
-
-  const handleDownloadPdf = async (invoiceId: string) => {
-    try {
-      const response = await pdfMutation.trigger<undefined, string>(
-        'GET',
-        undefined,
-        `${invoiceId}/pdf`,
-      )
-      if (!response.data) return
-      const byteCharacters = atob(response.data)
-      const byteNumbers = Array.from(byteCharacters).map((char) => char.charCodeAt(0))
-      const byteArray = new Uint8Array(byteNumbers)
-      const blob = new Blob([byteArray], { type: 'application/pdf' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `invoice-${invoiceId}.pdf`
-      link.click()
-      URL.revokeObjectURL(url)
-    } catch {
-      // silently fail — PDF download is best-effort in this context
-    }
-  }
-
   return (
     <Card>
       <CardContent>
@@ -1151,6 +1123,7 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
                   <TableCell>{t('member.adminInvoices.description')}</TableCell>
                   <TableCell align='right'>{t('member.adminInvoices.total')}</TableCell>
                   <TableCell align='center'>{t('member.adminInvoices.status')}</TableCell>
+                  <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -1167,9 +1140,7 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          cursor: 'pointer',
                         }}
-                        onClick={() => handleDownloadPdf(invoice.id)}
                       >
                         {invoice.description || '—'}
                       </TableCell>
@@ -1200,6 +1171,13 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
                             />
                           </Tooltip>
                         )}
+                      </TableCell>
+                      <TableCell align='center'>
+                        <InvoicePdfLink
+                          invoiceId={invoice.id}
+                          billableMemberId={memberId}
+                          alwaysSudo
+                        />
                       </TableCell>
                     </TableRow>
                   )

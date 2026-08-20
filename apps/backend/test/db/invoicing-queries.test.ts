@@ -146,6 +146,65 @@ describe('Invoicing Queries', () => {
         expect(invoice.is_paid).toBe(false)
       })
     })
+
+    it('should sort invoices with null sent_at after sent invoices', async () => {
+      const maxIdResult = await db
+        .selectFrom('accts.invoice')
+        .select(db.fn.max('id').as('maxId'))
+        .executeTakeFirst()
+
+      const baseId = maxIdResult?.maxId ? Number(maxIdResult.maxId) + 1 : 1
+      const sentId = String(baseId)
+      const nullId = String(baseId + 1)
+
+      try {
+        await db
+          .insertInto('accts.invoice')
+          .values({
+            id: sentId,
+            memberId: testMemberId,
+            invoiceType: MIKInvoiceType.EQUIPMENT_FEE,
+            description: 'Test sent invoice',
+            pmtRef: 'TEST-SENT',
+            paidAt: null,
+            dueAt: new Date().toISOString(),
+            sentAt: new Date('2025-01-01T12:00:00.000Z').toISOString(),
+            currency: 'EUR',
+            totalSum: '0.00',
+            createdBy: adminMemberId,
+            updatedBy: adminMemberId,
+          })
+          .execute()
+
+        await db
+          .insertInto('accts.invoice')
+          .values({
+            id: nullId,
+            memberId: testMemberId,
+            invoiceType: MIKInvoiceType.EQUIPMENT_FEE,
+            description: 'Test unsent invoice',
+            pmtRef: 'TEST-UNSENT',
+            paidAt: null,
+            dueAt: new Date().toISOString(),
+            sentAt: null,
+            currency: 'EUR',
+            totalSum: '0.00',
+            createdBy: adminMemberId,
+            updatedBy: adminMemberId,
+          })
+          .execute()
+
+        const invoices = await getInvoices(adminMemberId, true)
+        const sentIndex = invoices.findIndex((inv) => inv.id === sentId)
+        const nullIndex = invoices.findIndex((inv) => inv.id === nullId)
+
+        expect(sentIndex).toBeGreaterThanOrEqual(0)
+        expect(nullIndex).toBeGreaterThanOrEqual(0)
+        expect(sentIndex).toBeLessThan(nullIndex)
+      } finally {
+        await db.deleteFrom('accts.invoice').where('id', 'in', [sentId, nullId]).execute()
+      }
+    })
   })
 
   describe('getInvoiceItems', () => {
