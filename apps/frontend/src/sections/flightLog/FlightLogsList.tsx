@@ -2,7 +2,10 @@ import {
   Box,
   Grid,
   Button,
+  Chip,
+  FormControlLabel,
   IconButton,
+  Switch,
   useMediaQuery,
   useTheme,
   Pagination,
@@ -27,9 +30,19 @@ import { Title } from '../../components/Title'
 import { FlightLogBanner, FlightLogDate, FlightLogTimeline } from './components/FlightListEntry'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { FlightLogExportDialog } from './components/FlightLogExportDialog'
+import { canOpenFlightRow } from './utils/crew'
 
 const formatEur = (value: number) =>
   new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' }).format(value)
+
+/**
+ * The crew-flights toggle lives in the URL so the list survives a reload and a shared
+ * link, alongside `aircraftRegistration` and `page`. It is stored as the opt-*out*
+ * `includeCrew=0` because the toggle defaults to on (#1019 Q1) — an absent param has to
+ * mean "on", or every existing link into the flight log would land with it off.
+ */
+const CREW_PARAM = 'includeCrew'
+const crewFlightsIncluded = (params: URLSearchParams) => params.get(CREW_PARAM) !== '0'
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
@@ -44,6 +57,7 @@ const FlightLogsList = () => {
     page: searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
     aircraftRegistration: searchParams.get('aircraftRegistration') ?? undefined,
     anyCrewMemberId: searchParams.get('anyCrewMemberId') ?? undefined,
+    includeCrewFlights: crewFlightsIncluded(searchParams),
   })
 
   const [exportOpen, setExportOpen] = useState(false)
@@ -58,8 +72,27 @@ const FlightLogsList = () => {
       aircraftRegistration,
       page,
       anyCrewMemberId,
+      includeCrewFlights: crewFlightsIncluded(searchParams),
     }))
   }, [searchParams])
+
+  const includeCrewFlights = crewFlightsIncluded(searchParams)
+
+  // Both filters are written together because changing either invalidates the current
+  // page number: the result set is a different size, so page 4 of the old list is not
+  // page 4 of the new one.
+  const setListParams = (next: { aircraftRegistration?: string; includeCrew?: boolean }) => {
+    const params = new URLSearchParams()
+    const registration = next.aircraftRegistration ?? filters.aircraftRegistration ?? ''
+    if (registration) params.set('aircraftRegistration', registration)
+    if (!(next.includeCrew ?? includeCrewFlights)) params.set(CREW_PARAM, '0')
+    // Carried over rather than rebuilt: this is the member-admin "view all flights" deep
+    // link from Member.tsx (#1236), and dropping it would silently switch the list back
+    // to the admin's own flights on the first filter change.
+    const anyCrewMemberId = searchParams.get('anyCrewMemberId')
+    if (anyCrewMemberId) params.set('anyCrewMemberId', anyCrewMemberId)
+    setSearchParams(params)
+  }
 
   const { data, isLoading, error } = useApi<FlightLogListResponse, FlightLog>(
     {
@@ -94,14 +127,34 @@ const FlightLogsList = () => {
           mb: 3,
         }}
       >
-        <FlightLogQuery
-          registration={filters.aircraftRegistration}
-          setFilters={(filters: FlightLogFilters) => {
-            setSearchParams({
-              aircraftRegistration: filters.aircraftRegistration ?? '',
-            })
-          }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+          <FlightLogQuery
+            registration={filters.aircraftRegistration}
+            setFilters={(next: FlightLogFilters) =>
+              setListParams({ aircraftRegistration: next.aircraftRegistration ?? '' })
+            }
+          />
+          {!isFlightLogAdmin && (
+            <FormControlLabel
+              control={
+                <Switch
+                  size='small'
+                  checked={includeCrewFlights}
+                  onChange={({ target }) => setListParams({ includeCrew: target.checked })}
+                />
+              }
+              // The tooltip goes on the label text, not around the FormControlLabel:
+              // wrapping the whole control puts the tooltip's aria-label on the <label>,
+              // which then becomes the switch's accessible name in place of the short one.
+              label={
+                <Tooltip title={t('flightLog.includeCrewFlightsTooltip')}>
+                  <span>{t('flightLog.includeCrewFlights')}</span>
+                </Tooltip>
+              }
+              slotProps={{ typography: { variant: 'body2' } }}
+            />
+          )}
+        </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Tooltip title={t('flightLog.export.button')}>
             <IconButton
@@ -149,7 +202,11 @@ const FlightLogsList = () => {
             pt: 1.5,
           })}
           row={(log) => {
-            const canOpen = isFlightLogAdmin || log.billableMemberId == me?.memberId
+            // A flight the member flew as crew opens too, read-only unless they are an
+            // instructor and it is still unvalidated — the backend decides that, the row
+            // only has to stop pretending the entry is unreachable (#1019).
+            const canOpen = canOpenFlightRow(log, me?.memberId, isFlightLogAdmin)
+            const crewOnly = !log.isOwnFlight && log.myCrewRole != null
 
             return (
               <Grid size={12}>
@@ -223,6 +280,22 @@ const FlightLogsList = () => {
                         {log.numberOfLandings}{' '}
                         <Icon icon='mdi:airplane-landing' style={{ verticalAlign: 'middle' }} />
                       </Box>
+                      {crewOnly && (
+                        <Tooltip
+                          title={t('flightLog.crewFlightTooltip', {
+                            role: t(`flightLog.crewRoles.${log.myCrewRole}`),
+                          })}
+                        >
+                          <Chip
+                            size='small'
+                            variant='outlined'
+                            color='info'
+                            label={t(`flightLog.crewRoles.${log.myCrewRole}`)}
+                          />
+                        </Tooltip>
+                      )}
+                      {/* No price on a flight someone else is being invoiced for: the
+                          server leaves estimatedCost null for those rows (#1019 Q1). */}
                       {!isFlightLogAdmin && (
                         <Box>
                           {log.estimatedCost != null ? `~${formatEur(log.estimatedCost)}` : '—'}

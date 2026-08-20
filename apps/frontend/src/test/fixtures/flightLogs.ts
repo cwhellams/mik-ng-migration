@@ -154,6 +154,10 @@ export const aFlightLogListEntry = (
     creditedMins: log.blockMins,
     estimatedCost: 380,
     isTrainingProgramPilot: true,
+    // The default row is the viewer's own flight, flown as PIC — override `isOwnFlight`
+    // to build the crew-only case (someone else is billed) that #1019 introduced.
+    myCrewRole: log.picRole,
+    isOwnFlight: true,
     ...overrides,
   }
 }

@@ -4,6 +4,7 @@ import {
   countFlightLogsForExport,
   deleteFlightLog,
   getFlightLog,
+  getFlightLogAuditTrail,
   getFlightLogPageForMins,
   getFlightLogs,
   getFlightLogsForExport,
@@ -1243,65 +1244,335 @@ describe('Db Flight statistics', () => {
     ])
   })
 
+  // Jukka1 is the test data's flight instructor: 17 of the flights they flew are billed
+  // to the student they flew with (see V190/V210/V215 -- mikify, fi_inst2 and the dto*
+  // and *nr* series). Those count towards their own landings and hours, which is what
+  // #1019 Q2 asked for -- always, not behind the list's toggle.
+  //
+  // The rolling windows are expect.any(Number) because part of that flying is recent
+  // enough to fall inside them, so the values move with the calendar.
+  const rollingWindows = {
+    landings12month: expect.any(Number),
+    landings1month: expect.any(Number),
+    landings3month: expect.any(Number),
+    landings6month: expect.any(Number),
+    time12month: expect.any(Number),
+    time1month: expect.any(Number),
+    time3month: expect.any(Number),
+    time6month: expect.any(Number),
+  }
+
   it('get flights statistics with multiple planes including inactive planes', async () => {
     const result = await getFlightStats('Jukka1', false)
     expect(result).toEqual([
       {
         aircraftRegistration: 'OH-P28',
-        landings12month: 0,
-        landings1month: 0,
-        landings3month: 0,
-        landings6month: 0,
-        lastFlightId: 'fi_inst3',
-        lastTakeoffTimeUtc: '2025-05-05T09:10:00.000Z',
-        time12month: 0,
-        time1month: 0,
-        time3month: 0,
-        time6month: 0,
-        totalFlightMins: 255,
-        totalFlights: 3,
-        totalLandings: 5,
+        ...rollingWindows,
+        // 3 flights billed to Jukka1 plus the 16 they instructed on this aircraft.
+        lastFlightId: 'te1nr01a',
+        lastTakeoffTimeUtc: '2026-04-03T21:10:00.000Z',
+        totalFlightMins: 2175,
+        totalFlights: 19,
+        totalLandings: 40,
       },
       {
         aircraftRegistration: 'OH-IHQ',
-        landings12month: 0,
-        landings1month: 0,
-        landings3month: 0,
-        landings6month: 0,
+        ...rollingWindows,
         lastFlightId: 'efnu4evr',
         lastTakeoffTimeUtc: '2025-03-02T09:20:00.000Z',
-        time12month: 0,
-        time1month: 0,
-        time3month: 0,
-        time6month: 0,
         totalFlightMins: 120,
         totalFlights: 1,
         totalLandings: 2,
       },
+      {
+        // Not billed to Jukka1 at all: mikify is Matti1's flight, flown with Jukka1 as FI.
+        aircraftRegistration: 'OH-STL',
+        ...rollingWindows,
+        lastFlightId: 'mikify',
+        lastTakeoffTimeUtc: '2025-03-01T08:15:00.000Z',
+        totalFlightMins: 105,
+        totalFlights: 1,
+        totalLandings: 1,
+      },
     ])
-    expect(result.map((item) => item.aircraftRegistration)).toEqual(['OH-P28', 'OH-IHQ'])
+    expect(result.map((item) => item.aircraftRegistration)).toEqual(['OH-P28', 'OH-IHQ', 'OH-STL'])
   })
 
-  it('get flights statistics with multiple planes where only one is active', async () => {
+  it('get flights statistics excludes inactive planes but keeps instructed flights', async () => {
     const result = await getFlightStats('Jukka1', true)
+    // OH-P28 is inactive, so it drops out; OH-STL stays even though every OH-STL flight
+    // of Jukka1's is billed to someone else.
     expect(result).toEqual([
       {
         aircraftRegistration: 'OH-IHQ',
-        landings12month: expect.any(Number),
-        landings1month: expect.any(Number),
-        landings3month: expect.any(Number),
-        landings6month: expect.any(Number),
+        ...rollingWindows,
         lastFlightId: 'efnu4evr',
         lastTakeoffTimeUtc: '2025-03-02T09:20:00.000Z',
-        time12month: expect.any(Number),
-        time1month: expect.any(Number),
-        time3month: expect.any(Number),
-        time6month: expect.any(Number),
         totalFlightMins: 120,
         totalFlights: 1,
         totalLandings: 2,
       },
+      {
+        aircraftRegistration: 'OH-STL',
+        ...rollingWindows,
+        lastFlightId: 'mikify',
+        lastTakeoffTimeUtc: '2025-03-01T08:15:00.000Z',
+        totalFlightMins: 105,
+        totalFlights: 1,
+        totalLandings: 1,
+      },
     ])
+  })
+
+  it('get flights statistics counts an observer seat as not flown', async () => {
+    // An OBS slot means the member was carried, so the flight is not theirs (#1019 Q6).
+    // Liisa1 is STU on mikify, which is billed to Matti1 -- demoting that slot to OBS
+    // must take the flight out of Liisa1's statistics entirely.
+    const before = await getFlightStats('Liisa1', false)
+    expect(before.flatMap((row) => row.lastFlightId)).toContain('mikify')
+
+    await db
+      .updateTable('flight.logs')
+      .set({ picRole: 'OBS' })
+      .where('flightId', '=', 'mikify')
+      .execute()
+    try {
+      const after = await getFlightStats('Liisa1', false)
+      expect(after.flatMap((row) => row.lastFlightId)).not.toContain('mikify')
+    } finally {
+      await db
+        .updateTable('flight.logs')
+        .set({ picRole: 'STU' })
+        .where('flightId', '=', 'mikify')
+        .execute()
+    }
+  })
+
+  it('groups statistics by aircraft alone, not by who was billed', async () => {
+    // The GROUP BY used to include billable_member_id, which was invisible while the
+    // WHERE pinned it to one value. Now that a group mixes the member's own flights with
+    // ones billed to their students, an aircraft must still appear exactly once.
+    const result = await getFlightStats('Jukka1', false)
+    const registrations = result.map((row) => row.aircraftRegistration)
+    expect(registrations).toEqual([...new Set(registrations)])
+  })
+})
+
+describe('Db query FlightLog on-board crew filter', () => {
+  // Jukka1 instructs Liisa1 on mikify, which is billed to Matti1 (V50__FlightLogData).
+  const CREW_FLIGHT = 'mikify'
+
+  it('onBoardMemberId returns flights the member flew as crew but is not billed for', async () => {
+    const result = await getFlightLogs({
+      onBoardMemberId: 'Jukka1',
+      aircraftRegistration: 'OH-STL',
+    })
+
+    expect(result.logs.map((log) => log.flightId)).toContain(CREW_FLIGHT)
+    // ...and it really is someone else's flight
+    const crewFlight = result.logs.find((log) => log.flightId === CREW_FLIGHT)
+    expect(crewFlight?.billableMemberId).toEqual('Matti1')
+  })
+
+  it('billableMemberId alone does not return them — the gap #1019 closes', async () => {
+    const result = await getFlightLogs({
+      billableMemberId: 'Jukka1',
+      aircraftRegistration: 'OH-STL',
+    })
+    expect(result.logs.map((log) => log.flightId)).not.toContain(CREW_FLIGHT)
+  })
+
+  it('onBoardMemberId still returns the flights billed to the member', async () => {
+    const ihq = { aircraftRegistration: 'OH-IHQ', limit: 200 }
+    const billed = await getFlightLogs({ ...ihq, billableMemberId: 'Matti1' })
+    const onBoard = await getFlightLogs({ ...ihq, onBoardMemberId: 'Matti1' })
+    const onBoardIds = onBoard.logs.map((row) => row.flightId)
+
+    expect(billed.logs.length).toBeGreaterThan(0)
+    // Widening the filter may only ever add rows: turning the toggle on must not hide a
+    // flight the member is being invoiced for.
+    for (const log of billed.logs) {
+      expect(onBoardIds).toContain(log.flightId)
+    }
+  })
+
+  it.each([
+    ['PIC', true],
+    ['FI', true],
+    ['FE', true],
+    ['STU', true],
+    ['OBS', false],
+  ])('a %s crew slot counts as on board: %s', async (role, expected) => {
+    // Liisa1 sits in slot 1 of mikify, which is billed to Matti1, so the only reason the
+    // flight can appear in Liisa1's log is the crew slot — exactly what the role filter
+    // decides (#1019 Q6).
+    await db
+      .updateTable('flight.logs')
+      .set({ picRole: role as 'PIC' })
+      .where('flightId', '=', CREW_FLIGHT)
+      .execute()
+    try {
+      const result = await getFlightLogs({ onBoardMemberId: 'Liisa1', flightId: CREW_FLIGHT })
+      expect(result.rows === 1).toEqual(expected)
+    } finally {
+      await db
+        .updateTable('flight.logs')
+        .set({ picRole: 'STU' })
+        .where('flightId', '=', CREW_FLIGHT)
+        .execute()
+    }
+  })
+
+  it('derives myCrewRole and isOwnFlight from the viewer, without leaking crew ids', async () => {
+    const asInstructor = await getFlightLogs({ flightId: CREW_FLIGHT }, 'Jukka1')
+    expect(asInstructor.logs[0].myCrewRole).toEqual('FI')
+    expect(asInstructor.logs[0].isOwnFlight).toEqual(false)
+
+    const asBilledMember = await getFlightLogs({ flightId: CREW_FLIGHT }, 'Matti1')
+    // Matti1 pays for this flight but is in no crew slot on it
+    expect(asBilledMember.logs[0].myCrewRole).toBeNull()
+    expect(asBilledMember.logs[0].isOwnFlight).toEqual(true)
+
+    const asStranger = await getFlightLogs({ flightId: CREW_FLIGHT }, 'Sanna1')
+    expect(asStranger.logs[0].myCrewRole).toBeNull()
+    expect(asStranger.logs[0].isOwnFlight).toEqual(false)
+
+    // The crew slots are selected to derive the two fields above and must not survive
+    // into the row: they are other members' ids.
+    expect(asStranger.logs[0]).not.toHaveProperty('picMemberId')
+    expect(asStranger.logs[0]).not.toHaveProperty('crew2MemberId')
+  })
+
+  it('reports no crew role for a viewer who was only carried as an observer', async () => {
+    // Also covers the row an OBS viewer reaches without the on-board filter — an aircraft
+    // logbook page. Marking it with a role would make the list offer a link the detail
+    // endpoint then refuses.
+    await db
+      .updateTable('flight.logs')
+      .set({ crew2Role: 'OBS' })
+      .where('flightId', '=', CREW_FLIGHT)
+      .execute()
+    try {
+      const result = await getFlightLogs({ flightId: CREW_FLIGHT }, 'Jukka1')
+      expect(result.logs[0].myCrewRole).toBeNull()
+      expect(result.logs[0].isOwnFlight).toEqual(false)
+    } finally {
+      await db
+        .updateTable('flight.logs')
+        .set({ crew2Role: 'FI' })
+        .where('flightId', '=', CREW_FLIGHT)
+        .execute()
+    }
+  })
+
+  it('leaves both derived fields inert when no viewer is given', async () => {
+    const result = await getFlightLogs({ flightId: CREW_FLIGHT })
+    expect(result.logs[0].myCrewRole).toBeNull()
+    expect(result.logs[0].isOwnFlight).toEqual(false)
+  })
+
+  it('viewerMemberId does not filter anything', async () => {
+    const withViewer = await getFlightLogs({ aircraftRegistration: 'OH-STL' }, 'Sanna1')
+    const withoutViewer = await getFlightLogs({ aircraftRegistration: 'OH-STL' })
+    expect(withViewer.rows).toEqual(withoutViewer.rows)
+  })
+
+  it('anyCrewMemberId keeps its role-agnostic meaning for the members admin view', async () => {
+    // The members-admin "recent flights" widget answers "was this member involved at
+    // all", so an observer seat still counts there.
+    await db
+      .updateTable('flight.logs')
+      .set({ picRole: 'OBS' })
+      .where('flightId', '=', CREW_FLIGHT)
+      .execute()
+    try {
+      const anyCrew = await getFlightLogs({ anyCrewMemberId: 'Liisa1', flightId: CREW_FLIGHT })
+      const onBoard = await getFlightLogs({ onBoardMemberId: 'Liisa1', flightId: CREW_FLIGHT })
+      expect(anyCrew.rows).toEqual(1)
+      expect(onBoard.rows).toEqual(0)
+    } finally {
+      await db
+        .updateTable('flight.logs')
+        .set({ picRole: 'STU' })
+        .where('flightId', '=', CREW_FLIGHT)
+        .execute()
+    }
+  })
+})
+
+describe('Db FlightLog audit trail', () => {
+  // The trail is written by the V160 trigger on every write, so exercising it means
+  // actually updating a flight and putting it back.
+  const auditUser = {
+    memberId: 'Liisa1',
+    lastName: 'Test',
+    email: '',
+    roles: [],
+    permissions: [MIKPermissions.FLIGHTLOG_USER],
+    canMakeReservations: false,
+  }
+  const FLIGHT = 'bLwnAstr0'
+
+  /** Applies a patch, reads the newest trail entry, then puts the flight back. */
+  const auditFor = async (patch: Partial<FlightLog>, hiddenFields?: string[]) => {
+    const before = await getFlightLog(FLIGHT)
+    const restore = Object.fromEntries(
+      Object.keys(patch).map((key) => [key, before![key as keyof FlightLog]]),
+    ) as Partial<FlightLog>
+    await updateFlightLog(FLIGHT, patch, { ...auditUser })
+    try {
+      const entries = await getFlightLogAuditTrail(FLIGHT, hiddenFields)
+      return { before: before!, entries }
+    } finally {
+      await updateFlightLog(FLIGHT, restore, { ...auditUser, memberId: before!.updatedBy })
+    }
+  }
+
+  it('reports the fields an update changed, newest first', async () => {
+    const { before, entries } = await auditFor({ numberOfLandings: 7 })
+
+    expect(entries[0].operationType).toEqual('UPDATE')
+    expect(entries[0].changedBy).toEqual('Liisa1')
+    expect(entries[0].changedAt).toEqual(expect.any(String))
+    expect(entries[0].changes).toEqual([
+      { field: 'numberOfLandings', before: String(before.numberOfLandings), after: '7' },
+    ])
+  })
+
+  it('leaves out the audit columns and the values derived from the flight times', async () => {
+    const { entries } = await auditFor({ totalTimeInService: 12 })
+    const fields = entries[0].changes.map((change) => change.field)
+
+    expect(fields).toContain('totalTimeInService')
+    // updatedAt/updatedBy change on every update and are the trail's own columns
+    expect(fields).not.toContain('updatedAt')
+    expect(fields).not.toContain('updatedBy')
+    // block/flight durations are generated from the epochs, not edited
+    expect(fields).not.toContain('blockMins')
+    expect(fields).not.toContain('flightTime')
+  })
+
+  it('reports the crew slot a change moved, using contract field names', async () => {
+    const { entries } = await auditFor({ crew3MemberId: 'Sanna1', crew3Role: 'OBS' })
+    const fields = entries[0].changes.map((change) => change.field)
+
+    // camelCase, not the crew3_member_id spelling the JSONB snapshot actually holds
+    expect(fields).toContain('crew3MemberId')
+    expect(fields).toContain('crew3Role')
+    // the denormalised last-name copy moves with the id and is not reported separately
+    expect(fields).not.toContain('crew3LastName')
+  })
+
+  it('hides the fields the caller may not see', async () => {
+    const visible = await auditFor({ billingRemarks: 'audit trail test' })
+    expect(visible.entries[0].changes.map((change) => change.field)).toContain('billingRemarks')
+
+    const hidden = await auditFor({ billingRemarks: 'audit trail test' }, ['billingRemarks'])
+    expect(hidden.entries[0].changes.map((change) => change.field)).not.toContain('billingRemarks')
+  })
+
+  it('returns no entries for an unknown flight', async () => {
+    expect(await getFlightLogAuditTrail('nosuchid')).toEqual([])
   })
 })
 

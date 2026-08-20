@@ -11,6 +11,7 @@ import {
   FlightType,
   FlightLogStatus,
   type FlightLogUpsertRequest,
+  type FlightLogListEntry,
 } from '@mik/contracts/flight-log'
 import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
@@ -155,8 +156,22 @@ describe('GET /flight-log', () => {
       })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(17)
+    // 17 flights billed to Matti1 plus fi_inst1, which is billed to their instructor but
+    // which Matti1 flew as STU — crew flights are in a member's own log by default since
+    // #1019, so this count is one higher than it was.
+    expect(response.body.logs).toHaveLength(18)
     expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
+  })
+
+  it('should drop the crew flight again when includeCrewFlights is false', async () => {
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .query({ startDate: '2025-03-01T00:00:00Z', includeCrewFlights: 'false' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.logs).toHaveLength(17)
+    expect(response.body.logs.map((log: FlightLog) => log.flightId)).not.toContain('fi_inst1')
   })
 
   it('should return 400 for invalid startDate timezone', async () => {
@@ -1260,5 +1275,428 @@ describe('GET /flight-log/stats', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(deleteResponse.status).toBe(204)
+  })
+})
+
+// ─── #1019: flights the member flew as crew but is not billed for ─────────────
+//
+// The fixtures already contain the shape the issue describes:
+//   mikify    OH-STL  billed Matti1, Liisa1 STU (slot 1), Jukka1 FI (crew2), NEW
+//   da40tndra OH-P28  billed Jukka1, Pekka1 FI (crew2), VALIDATED, invoice INV003
+// so Jukka1 and Liisa1 are crew on a flight someone else pays for, and Pekka1 is crew on
+// one that has already been validated and invoiced.
+describe('crew flights in a member own flight log', () => {
+  const crewMemberToken = (memberId: string, permissions = [MIKPermissions.FLIGHTLOG_USER]) =>
+    generateAccessToken({
+      memberId,
+      lastName: 'Test',
+      email: 'test@mik.fi',
+      roles: [],
+      permissions,
+      canMakeReservations: false,
+    })
+
+  const instructorToken = crewMemberToken('Jukka1', [
+    MIKPermissions.FLIGHTLOG_USER,
+    MIKPermissions.DTO_INSTRUCTOR,
+  ])
+  const pekkaToken = crewMemberToken('Pekka1')
+  const pekkaInstructorToken = crewMemberToken('Pekka1', [
+    MIKPermissions.FLIGHTLOG_USER,
+    MIKPermissions.DTO_INSTRUCTOR,
+  ])
+  const strangerToken = crewMemberToken('Iceman99')
+
+  // Editing tests here write to fixtures that snapshot tests elsewhere in this file also
+  // assert on — including `updated_by`, which every accepted PATCH rewrites even when the
+  // member-level schema strips the patch down to nothing. Restore the whole row rather
+  // than PATCHing values back, which would just stamp a different member on it.
+  const FIXTURES = ['mikify', 'da40tndra'] as const
+  let originals: {
+    flightId: string
+    incidentOrObservations: string | null
+    billingRemarks: string | null
+    updatedBy: string
+  }[]
+
+  beforeAll(async () => {
+    originals = await db
+      .selectFrom('flight.logs')
+      .select(['flightId', 'incidentOrObservations', 'billingRemarks', 'updatedBy'])
+      .where('flightId', 'in', FIXTURES)
+      .execute()
+  })
+
+  afterAll(async () => {
+    for (const original of originals) {
+      await db
+        .updateTable('flight.logs')
+        .set({
+          incidentOrObservations: original.incidentOrObservations,
+          billingRemarks: original.billingRemarks,
+          updatedBy: original.updatedBy,
+        })
+        .where('flightId', '=', original.flightId)
+        .execute()
+    }
+  })
+
+  const listOhStl = (token: string, query: Record<string, string> = {}) =>
+    request(app)
+      .get('/flight-log')
+      .set('Cookie', `accessToken=${token}`)
+      .query({ aircraftRegistration: 'OH-STL', ...query })
+
+  describe('GET /flight-log', () => {
+    it('includes flights the member flew as crew by default', async () => {
+      // Jukka1 is billed for no OH-STL flight at all, so every row here is one they only
+      // reach through a crew slot.
+      const response = await listOhStl(jukkaToken)
+
+      expect(response.status).toBe(200)
+      expect(response.body.logs.map((log: FlightLog) => log.flightId)).toEqual(['mikify'])
+    })
+
+    it('narrows to own billable flights when the toggle is turned off', async () => {
+      const response = await listOhStl(jukkaToken, { includeCrewFlights: 'false' })
+
+      expect(response.status).toBe(200)
+      expect(response.body.logs).toEqual([])
+    })
+
+    it('marks each row with the viewer own crew role and whether they are billed', async () => {
+      const asInstructor = await listOhStl(jukkaToken)
+      expect(asInstructor.body.logs[0]).toMatchObject({
+        flightId: 'mikify',
+        myCrewRole: 'FI',
+        isOwnFlight: false,
+      })
+
+      const asBilledMember = await listOhStl(mattiToken)
+      const mikify = asBilledMember.body.logs.find((log: FlightLog) => log.flightId === 'mikify')
+      // Matti1 pays for the flight but sat in no crew slot on it
+      expect(mikify).toMatchObject({ myCrewRole: null, isOwnFlight: true })
+    })
+
+    it('never sends another member crew ids in a list row', async () => {
+      const response = await listOhStl(jukkaToken)
+
+      expect(response.body.logs[0]).not.toHaveProperty('picMemberId')
+      expect(response.body.logs[0]).not.toHaveProperty('crew2MemberId')
+      expect(response.body.logs[0]).not.toHaveProperty('crew3MemberId')
+      expect(response.body.logs[0]).not.toHaveProperty('crew4MemberId')
+    })
+
+    it('shows no price for a flight another member is invoiced for', async () => {
+      const response = await listOhStl(jukkaToken)
+
+      expect(response.body.logs[0].estimatedCost).toBeNull()
+      expect(response.body.logs[0].invoiceNumber).toBeNull()
+    })
+
+    it('leaves the unbilled estimate unchanged by the toggle', async () => {
+      const withCrew = await listOhStl(jukkaToken)
+      const withoutCrew = await listOhStl(jukkaToken, { includeCrewFlights: 'false' })
+
+      // The estimate is keyed on the member's own unbilled billable flights, so a
+      // crew-only row cannot move it either way (#1019 Q1).
+      expect(withCrew.body.unbilledEstimatedTotal).toEqual(withoutCrew.body.unbilledEstimatedTotal)
+    })
+
+    it('reports the true status of a flight the viewer was crew on', async () => {
+      // mikify is NEW and stays NEW for its crew. It used to be clamped to VALIDATED for
+      // everyone but the billable member, which showed the crew a status that was simply
+      // not true (#1019 Q4).
+      const response = await listOhStl(jukkaToken)
+      expect(response.body.logs[0].status).toEqual(FlightLogStatus.NEW)
+    })
+
+    it('leaves #1222 redaction to do the work on a flight the viewer had no part in', async () => {
+      // An aircraft logbook page is not the member's own log: it lists everyone's flights.
+      // #1222 draws the line by status rather than by reader — NEW and VALIDATED describe
+      // verification and are safe to show, the billing statuses are clamped — which is
+      // also what #1019 Q4 wanted for crew, so there is nothing extra here for them.
+      const response = await request(app)
+        .get('/flight-log')
+        .set('Cookie', `accessToken=${strangerToken}`)
+        .query({ aircraftRegistration: 'OH-STL', ajlbSeqNo: 1, page: 1 })
+
+      expect(response.status).toBe(200)
+      const others = response.body.logs.filter(
+        (log: FlightLogListEntry) => !log.isOwnFlight && log.myCrewRole == null,
+      )
+      expect(others.length).toBeGreaterThan(0)
+      for (const log of others) {
+        expect([FlightLogStatus.NEW, FlightLogStatus.VALIDATED]).toContain(log.status)
+        if (log.status === FlightLogStatus.VALIDATED) {
+          expect(log.invoiceNumber).toBeNull()
+          expect(log.isBilled).toBe(false)
+        }
+      }
+    })
+
+    it('refuses a request for another member crew flights, whichever filter names them', async () => {
+      // #1222 added this guard for anyCrewMemberId; onBoardMemberId is the same question
+      // asked of a narrower set of crew roles, so it is held to the same rule rather than
+      // being quietly overridden.
+      for (const filter of ['anyCrewMemberId', 'onBoardMemberId']) {
+        const response = await listOhStl(jukkaToken, { [filter]: 'Matti1' })
+        expect(response.status).toBe(403)
+      }
+    })
+
+    it('allows the crew filter when it names the requesting member', async () => {
+      for (const filter of ['anyCrewMemberId', 'onBoardMemberId']) {
+        const response = await listOhStl(jukkaToken, { [filter]: 'Jukka1' })
+        expect(response.status).toBe(200)
+        expect(response.body.logs.map((log: FlightLog) => log.flightId)).toEqual(['mikify'])
+      }
+    })
+
+    it('still ignores a client-supplied billable member filter for a non-admin', async () => {
+      // Not covered by the guard above, and it must not be: the member's own view always
+      // takes its member id from the JWT, so asking for someone else's billable flights
+      // returns the requester's own log rather than an error.
+      const response = await listOhStl(jukkaToken, { billableMemberId: 'Matti1' })
+
+      expect(response.status).toBe(200)
+      expect(response.body.logs.map((log: FlightLog) => log.flightId)).toEqual(['mikify'])
+    })
+  })
+
+  describe('GET /flight-log/:id', () => {
+    it('lets a crew member open the flight, without the billing side of it', async () => {
+      const response = await request(app)
+        .get('/flight-log/da40tndra')
+        .set('Cookie', `accessToken=${pekkaToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body).toMatchObject({
+        flightId: 'da40tndra',
+        // the operational entry is there in full
+        aircraftRegistration: 'OH-P28',
+        // ...and the billable member's money is not
+        invoiceNumber: null,
+        billingRemarks: null,
+        personalRemarks: null,
+        validationRemarks: null,
+        nonBillingReason: null,
+        nonBillingApprovedByMemberId: null,
+        minBillableExceptionReason: null,
+        entryErrorFee: false,
+        entryErrorFeeAppliedByMemberId: null,
+        isBilled: false,
+        // the status is the flight's real one, as it is for every other crew member
+        status: FlightLogStatus.VALIDATED,
+      })
+    })
+
+    it('gives an instructor the billable member view while the entry is still editable', async () => {
+      const response = await request(app)
+        .get('/flight-log/mikify')
+        .set('Cookie', `accessToken=${instructorToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body).toMatchObject({
+        flightId: 'mikify',
+        status: FlightLogStatus.NEW,
+        billingRemarks: 'N/A',
+        personalRemarks: 'Smooth flight',
+      })
+    })
+
+    it('redacts for an instructor once the flight is no longer theirs to edit', async () => {
+      // Pekka1 is FI on da40tndra, which is already VALIDATED and invoiced: the edit
+      // window has closed, so there is no longer a reason to show them the student's
+      // invoice number.
+      const response = await request(app)
+        .get('/flight-log/da40tndra')
+        .set('Cookie', `accessToken=${pekkaInstructorToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.invoiceNumber).toBeNull()
+      expect(response.body.personalRemarks).toBeNull()
+    })
+
+    it('returns 403 for a member who was in no crew slot', async () => {
+      const response = await request(app)
+        .get('/flight-log/mikify')
+        .set('Cookie', `accessToken=${strangerToken}`)
+
+      expect(response.status).toBe(403)
+    })
+
+    it('returns 403 for a member who was only carried as an observer', async () => {
+      await db
+        .updateTable('flight.logs')
+        .set({ crew2Role: 'OBS' })
+        .where('flightId', '=', 'mikify')
+        .execute()
+      try {
+        const response = await request(app)
+          .get('/flight-log/mikify')
+          .set('Cookie', `accessToken=${jukkaToken}`)
+
+        expect(response.status).toBe(403)
+      } finally {
+        await db
+          .updateTable('flight.logs')
+          .set({ crew2Role: 'FI' })
+          .where('flightId', '=', 'mikify')
+          .execute()
+      }
+    })
+  })
+
+  describe('PATCH and DELETE /flight-log/:id', () => {
+    it('refuses an edit from a crew member without instructor rights', async () => {
+      const response = await request(app)
+        .patch('/flight-log/mikify')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+        .send({ numberOfLandings: 9 })
+
+      expect(response.body).toEqual({
+        status: 403,
+        title: 'Forbidden',
+        detail: 'Flight log not owned by user or user has no admin rights',
+        instance: '/flight-log/mikify',
+        timestamp: expect.any(String),
+      })
+    })
+
+    it('lets an instructor correct a still-new flight, and records who did it', async () => {
+      const before = await request(app)
+        .get('/flight-log/mikify')
+        .set('Cookie', `accessToken=${mattiToken}`)
+
+      const response = await request(app)
+        .patch('/flight-log/mikify')
+        .set('Cookie', `accessToken=${instructorToken}`)
+        .send({ incidentOrObservations: 'Corrected by instructor' })
+
+      expect(response.status).toBe(200)
+      expect(response.body.incidentOrObservations).toEqual('Corrected by instructor')
+
+      // ...and the change is on the record with the instructor's name against it
+      const audit = await request(app)
+        .get('/flight-log/mikify/audit')
+        .set('Cookie', `accessToken=${mattiToken}`)
+
+      expect(audit.status).toBe(200)
+      expect(audit.body.entries[0]).toMatchObject({
+        operationType: 'UPDATE',
+        changedBy: 'Jukka1',
+        changes: [
+          {
+            field: 'incidentOrObservations',
+            before: before.body.incidentOrObservations,
+            after: 'Corrected by instructor',
+          },
+        ],
+      })
+    })
+
+    it('refuses an instructor edit to admin-only fields', async () => {
+      const response = await request(app)
+        .patch('/flight-log/mikify')
+        .set('Cookie', `accessToken=${instructorToken}`)
+        .send({ isBillableFlight: false, nonBillingReason: 'instructor should not set this' })
+
+      // The member-level schema strips admin fields, so this is accepted and ignored
+      // rather than rejected -- the point is that nothing changed.
+      expect(response.status).toBe(200)
+      expect(response.body.isBillableFlight).toBe(true)
+      expect(response.body.nonBillingReason).toBeNull()
+    })
+
+    it('refuses an instructor edit once the flight is validated', async () => {
+      const response = await request(app)
+        .patch('/flight-log/da40tndra')
+        .set('Cookie', `accessToken=${pekkaInstructorToken}`)
+        .send({ personalRemarks: 'too late' })
+
+      expect(response.body).toEqual({
+        status: 403,
+        title: 'Forbidden',
+        detail: 'Flight log in status VALIDATED can no longer be edited by an instructor',
+        instance: '/flight-log/da40tndra',
+        timestamp: expect.any(String),
+      })
+    })
+
+    it('never lets a crew member delete the flight, instructor or not', async () => {
+      for (const token of [jukkaToken, instructorToken]) {
+        const response = await request(app)
+          .delete('/flight-log/mikify')
+          .set('Cookie', `accessToken=${token}`)
+
+        expect(response.status).toBe(403)
+      }
+
+      // the flight is still there
+      const check = await request(app)
+        .get('/flight-log/mikify')
+        .set('Cookie', `accessToken=${mattiToken}`)
+      expect(check.status).toBe(200)
+    })
+
+    it('refuses to validate for a crew member, instructor or not', async () => {
+      for (const token of [jukkaToken, instructorToken]) {
+        const response = await request(app)
+          .post('/flight-log/mikify/validate')
+          .set('Cookie', `accessToken=${token}`)
+          .send()
+
+        expect(response.status).toBe(403)
+      }
+    })
+  })
+
+  describe('GET /flight-log/:id/audit', () => {
+    it('shows the billable member the whole trail', async () => {
+      const response = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+
+      expect(response.status).toBe(200)
+      expect(Array.isArray(response.body.entries)).toBe(true)
+    })
+
+    it('hides the billing fields from a crew reader', async () => {
+      // Give the trail something billing-shaped to hide.
+      await request(app)
+        .patch('/flight-log/da40tndra')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ billingRemarks: 'audit visibility test' })
+
+      const asOwner = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+      const asCrew = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${pekkaToken}`)
+
+      const fieldsOf = (body: { entries: { changes: { field: string }[] }[] }) =>
+        body.entries.flatMap((entry) => entry.changes.map((change) => change.field))
+
+      expect(fieldsOf(asOwner.body)).toContain('billingRemarks')
+      expect(fieldsOf(asCrew.body)).not.toContain('billingRemarks')
+    })
+
+    it('returns 403 to a member with no part in the flight', async () => {
+      const response = await request(app)
+        .get('/flight-log/mikify/audit')
+        .set('Cookie', `accessToken=${strangerToken}`)
+
+      expect(response.status).toBe(403)
+    })
+
+    it('returns 404 for an unknown flight', async () => {
+      const response = await request(app)
+        .get('/flight-log/noup/audit')
+        .set('Cookie', `accessToken=${mattiToken}`)
+
+      expect(response.status).toBe(404)
+    })
   })
 })

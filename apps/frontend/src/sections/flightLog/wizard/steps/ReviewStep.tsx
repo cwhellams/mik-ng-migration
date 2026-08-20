@@ -12,7 +12,12 @@ interface Props extends WizardFormProps {
   memberList: MemberList[]
   aircraft: Aircraft | undefined
   flightDate: dayjs.Dayjs
-  onEditSection: (step: WizardStep) => void
+  /**
+   * Omitted when the card is showing a flight the viewer may read but not change — a
+   * crew member on someone else's entry (#1019). The per-section edit affordance then
+   * renders disabled rather than leading into a wizard whose save would be refused.
+   */
+  onEditSection?: (step: WizardStep) => void
   // When editing an existing entry, the aircraft's running total as it stood right
   // after this flight (stored on the entry itself) — used instead of the aircraft's
   // live present-day total, which has no relation to this specific historical flight.
@@ -42,13 +47,13 @@ const ReviewSection = ({
   children,
 }: {
   title: string
-  onEdit: () => void
+  onEdit?: () => void
   children: React.ReactNode
 }) => (
   <Paper variant='outlined' sx={{ p: 2 }}>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
       <Typography variant='subtitle2'>{title}</Typography>
-      <EditButton title={title} onClick={onEdit} width={18} />
+      <EditButton title={title} onClick={onEdit} width={18} viewOnly={onEdit === undefined} />
     </Box>
     {children}
   </Paper>
@@ -393,7 +398,7 @@ export const ReviewStep = ({
       {(incidentOrObservations || personalRemarks || billingRemarks) && (
         <ReviewSection
           title={t('flightLog.wizard.step.notes')}
-          onEdit={() => onEditSection('notes')}
+          onEdit={onEditSection && (() => onEditSection('notes'))}
         >
           {incidentOrObservations && (
             <Typography variant='body2'>{incidentOrObservations}</Typography>

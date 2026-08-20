@@ -23,6 +23,10 @@ import {
   type FlightLogOverlapConflict,
   type FlightLogOverlapQuery,
   type PageItemRow,
+  type CrewRole,
+  type FlightLogAuditChange,
+  type FlightLogAuditEntry,
+  ON_BOARD_CREW_ROLES,
 } from '@mik/contracts/flight-log'
 import type { MIKPermissions } from '@mik/contracts/members'
 import { generateShortId } from '../util/nanoId.ts'
@@ -250,7 +254,87 @@ export async function getAjlbPageItemRows(
   }))
 }
 
-export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLogListResponse> {
+/** The four crew slots, as (member id, role) column pairs in slot order. */
+const CREW_SLOTS = [
+  ['picMemberId', 'picRole'],
+  ['crew2MemberId', 'crew2Role'],
+  ['crew3MemberId', 'crew3Role'],
+  ['crew4MemberId', 'crew4Role'],
+] as const satisfies readonly (readonly [
+  StringReference<DB, 'flight.logs'>,
+  StringReference<DB, 'flight.logs'>,
+])[]
+
+/**
+ * `memberId` sat in one of the four crew slots holding an operating role — i.e. the
+ * flight belongs in their logbook. The role has to be part of the predicate, not just
+ * the slot: an OBS slot means the member was carried, not that they flew (#1019 Q6).
+ *
+ * Note there is no index on the crew member id columns, so this is a sequential scan
+ * over flight.logs. That is the same cost the export has paid since #1068; if the
+ * member's own list starts to feel slow, an index is the follow-up.
+ */
+const onBoardAsCrew = (eb: ExpressionBuilder<DB, 'flight.logs'>, memberId: string) =>
+  eb.or(
+    CREW_SLOTS.map(([memberIdColumn, roleColumn]) =>
+      eb.and([eb(memberIdColumn, '=', memberId), eb(roleColumn, 'in', ON_BOARD_CREW_ROLES)]),
+    ),
+  )
+
+/**
+ * Every flight in `memberId`'s own logbook: the ones billed to them, plus the ones they
+ * were on board as operating crew for. An instructor's flight with a student is billed
+ * to the student, so the billable half alone is not the member's flying (#1019).
+ */
+const onBoard = (eb: ExpressionBuilder<DB, 'flight.logs'>, memberId: string) =>
+  eb.or([eb('billableMemberId', '=', memberId), onBoardAsCrew(eb, memberId)])
+
+/**
+ * The viewer's own role on a row, from whichever crew slot they occupied — null unless
+ * that role put them on board as operating crew.
+ *
+ * The role filter matters even though `onBoard` has already applied it to the query: this
+ * also runs over rows no member filter selected (an aircraft logbook page), and over rows
+ * selected because the viewer is the billable member while sitting in an OBS slot. Letting
+ * OBS through here would have the list mark those rows openable and the detail endpoint —
+ * which applies the same rule in `flightAccess.ts` — refuse them.
+ */
+const myCrewRoleOf = (
+  row: {
+    picMemberId: string | null
+    picRole: string | null
+    crew2MemberId: string | null
+    crew2Role: string | null
+    crew3MemberId: string | null
+    crew3Role: string | null
+    crew4MemberId: string | null
+    crew4Role: string | null
+  },
+  viewerMemberId: string | undefined,
+): CrewRole | null => {
+  if (!viewerMemberId) return null
+  const slots: [string | null, string | null][] = [
+    [row.picMemberId, row.picRole],
+    [row.crew2MemberId, row.crew2Role],
+    [row.crew3MemberId, row.crew3Role],
+    [row.crew4MemberId, row.crew4Role],
+  ]
+  const mine = slots.find(([memberId]) => memberId === viewerMemberId)
+  const role = mine?.[1] as CrewRole | null | undefined
+  return role && (ON_BOARD_CREW_ROLES as readonly CrewRole[]).includes(role) ? role : null
+}
+
+/**
+ * `viewerMemberId` is only ever read by the row mapper, to derive `myCrewRole` /
+ * `isOwnFlight` — it does not filter anything, so passing it never changes which rows
+ * come back. Filtering to one member's flights is `billableMemberId` or
+ * `onBoardMemberId`. Keeping the two apart is what lets the aircraft logbook (AJLB)
+ * view mark the rows the viewer happens to have flown without narrowing the page.
+ */
+export async function getFlightLogs(
+  filters: FlightLogFilters,
+  viewerMemberId?: string,
+): Promise<FlightLogListResponse> {
   const ajlbPaging = !!filters.ajlbSeqNo && filters.page !== undefined
 
   const query = db
@@ -269,6 +353,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
           .or('crew4MemberId', '=', filters.anyCrewMemberId!),
       ),
     )
+    .$if(!!filters.onBoardMemberId, (qb) => qb.where((eb) => onBoard(eb, filters.onBoardMemberId!)))
     .$if(!!filters.pic, (qb) => qb.where('picMemberId', '=', filters.pic!))
     .$if(!!filters.crew2, (qb) => qb.where('crew2MemberId', '=', filters.crew2!))
     .$if(!!filters.crew3, (qb) => qb.where('crew3MemberId', '=', filters.crew3!))
@@ -356,6 +441,17 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.status',
       'flight.logs.totalTimeInService',
       'flight.logs.ajlbTotalFlightMins',
+      // Crew slots are selected for the row mapper's benefit only: it turns them into
+      // the viewer's own myCrewRole and drops them, so no other member's crew member id
+      // reaches the response.
+      'flight.logs.picMemberId',
+      'flight.logs.picRole',
+      'flight.logs.crew2MemberId',
+      'flight.logs.crew2Role',
+      'flight.logs.crew3MemberId',
+      'flight.logs.crew3Role',
+      'flight.logs.crew4MemberId',
+      'flight.logs.crew4Role',
     ])
     .select([
       'totals.acTotalFlightTime',
@@ -453,6 +549,8 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         status: row.status as FlightLogStatus,
         totalTimeInService: row.totalTimeInService,
         acTotalFlightMins: row.ajlbTotalFlightMins ?? row.acTotalFlightMins ?? null,
+        myCrewRole: myCrewRoleOf(row, viewerMemberId),
+        isOwnFlight: !!viewerMemberId && row.billableMemberId === viewerMemberId,
       }
       return res
     }),
@@ -463,6 +561,134 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     pageStartFlightMins,
     pageItemRows,
   }
+}
+
+/**
+ * Columns left out of a flight log's reported change history, and why each is noise
+ * rather than a change someone made:
+ *
+ *  - the audit quadruple is already the trail's own `changedBy` / `changedAt`;
+ *  - the `*_epoch` times are the storage form of the four `*_utc` twins, which are
+ *    reported instead because a human can read them;
+ *  - block/flight durations and the AJLB running totals are recomputed from the times
+ *    and the logbook sequence, so they restate an edit rather than being one;
+ *  - the `*_last_name` columns are denormalised copies of the crew member rows, and
+ *    always move together with the crew member id reported next to them.
+ */
+const AUDIT_IGNORED_COLUMNS = new Set([
+  'flight_id',
+  'created_at',
+  'created_by',
+  'updated_at',
+  'updated_by',
+  'off_block_time_epoch',
+  'takeoff_time_epoch',
+  'landing_time_epoch',
+  'on_block_time_epoch',
+  'block_mins',
+  'block_time',
+  'flight_mins',
+  'flight_time',
+  'ajlb_total_flight_mins',
+  'ajlb_total_flight_time',
+  'ajlb_total_landings',
+  'ajlb_page_number',
+  'ajlb_row_number',
+  'pic_last_name',
+  'crew2_last_name',
+  'crew3_last_name',
+  'crew4_last_name',
+])
+
+/**
+ * The audit snapshots are `to_jsonb(OLD)` / `to_jsonb(NEW)` row dumps, so their keys are
+ * the database's own snake_case and stay that way through the camelCase plugin -- which
+ * only renames identifiers and, with `maintainNestedObjectKeys`, deliberately leaves the
+ * inside of a JSONB value alone (DATA_LAYER.md). Converting here is what puts contract
+ * field names in the response.
+ */
+const columnToField = (column: string): string =>
+  column.replace(/_([a-z0-9])/g, (_, char: string) => char.toUpperCase())
+
+/** One snapshot value as the single string the UI will print. */
+const renderAuditValue = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return JSON.stringify(value)
+}
+
+type AuditSnapshot = Record<string, unknown> | null
+
+/**
+ * A flight log's change history, newest first, as field-level diffs.
+ *
+ * `hiddenFields` are contract field names (camelCase) to leave out entirely — the route
+ * passes the same list it strips from the detail response, so a crew member reading the
+ * trail of someone else's flight cannot recover through the history what the flight
+ * itself withheld (#1019).
+ */
+export async function getFlightLogAuditTrail(
+  flightId: string,
+  hiddenFields: readonly string[] = [],
+): Promise<FlightLogAuditEntry[]> {
+  const hidden = new Set(hiddenFields)
+
+  const rows = await db
+    .selectFrom('flight.logsAudit as a')
+    .leftJoin('member.register as cb', 'cb.memberId', 'a.changedBy')
+    .select([
+      'a.auditId',
+      'a.operationType',
+      'a.changedAt',
+      'a.changedBy',
+      'a.changedData',
+      'a.newData',
+      'cb.firstName as changedByFirstName',
+      'cb.lastName as changedByLastName',
+    ])
+    .where('a.flightId', '=', flightId)
+    // Ordered by the serial key, not by changed_at. That column is a bare `timestamp`
+    // defaulted to CURRENT_TIMESTAMP, so its value depends on the TimeZone of whichever
+    // session wrote the row -- Flyway's Helsinki-local seed rows and the app's UTC ones
+    // are three hours apart on the same clock reading, and sorting by it puts them in the
+    // wrong order. audit_id is assigned in insertion order and cannot disagree with it.
+    .orderBy('a.auditId', 'desc')
+    .execute()
+
+  return rows.map((row) => {
+    const before = row.changedData as AuditSnapshot
+    const after = row.newData as AuditSnapshot
+
+    // Only an UPDATE has two snapshots to compare. An INSERT is the flight being
+    // created and a DELETE its removal: listing every column as "changed" there would
+    // bury the updates that are the point of the trail.
+    const changes: FlightLogAuditChange[] =
+      before && after
+        ? [...new Set([...Object.keys(before), ...Object.keys(after)])]
+            .filter((column) => !AUDIT_IGNORED_COLUMNS.has(column))
+            .filter((column) => !hidden.has(columnToField(column)))
+            .filter((column) => JSON.stringify(before[column]) !== JSON.stringify(after[column]))
+            .sort()
+            .map((column) => ({
+              field: columnToField(column),
+              before: renderAuditValue(before[column]),
+              after: renderAuditValue(after[column]),
+            }))
+        : []
+
+    return {
+      auditId: row.auditId,
+      operationType: row.operationType as FlightLogAuditEntry['operationType'],
+      changedBy: row.changedBy,
+      changedByName:
+        row.changedByFirstName && row.changedByLastName
+          ? `${row.changedByFirstName} ${row.changedByLastName}`
+          : null,
+      changedAt: row.changedAt.toISOString(),
+      changes,
+    }
+  })
 }
 
 export async function getUnbilledFlightsForEstimation(
@@ -528,8 +754,16 @@ const sumIfMonths = (
     'integer',
   )
 
+/**
+ * A member's recency and totals per aircraft, for the dashboard currency widget.
+ *
+ * Scoped to the flights in the member's own logbook, not the flights billed to them:
+ * an instructor's time with a student counts towards their landings and hours like any
+ * other flying, and a student billed for a flight they flew as STU still flew it
+ * (#1019 Q2 — always included, not behind the list's toggle).
+ */
 export async function getFlightStats(
-  billableMemberId: string,
+  memberId: string,
   activeOnly: boolean,
 ): Promise<FlightLogStats[]> {
   const res = await db
@@ -537,14 +771,14 @@ export async function getFlightStats(
     .select((eb) => [
       'flight.logs.aircraftRegistration as aircraftRegistration',
       eb.fn.max<Date>('flight.logs.takeoffTimeUtc').as('lastTakeoffTimeUtc'),
-      eb
-        .selectFrom('flight.logs as lastFlight')
-        .select('flightId')
-        .whereRef('flight.logs.aircraftRegistration', '=', 'lastFlight.aircraftRegistration')
-        .where('lastFlight.billableMemberId', '=', billableMemberId)
-        .orderBy('lastFlight.takeoffTimeUtc', 'desc')
-        .limit(1)
-        .as('lastFlightId'),
+      // The latest flight of the group, as an aggregate rather than the correlated
+      // subquery this replaces: the subquery had to repeat the outer WHERE to stay in
+      // step with it, and would have silently drifted the moment the two spellings of
+      // "the member's flights" diverged. Raw SQL, so the column names are the
+      // database's own snake_case -- only the result key is camelCased (DATA_LAYER.md).
+      sql<string>`(array_agg("flight"."logs"."flight_id" ORDER BY "flight"."logs"."takeoff_time_utc" DESC))[1]`.as(
+        'lastFlightId',
+      ),
       eb.cast<number>(eb.fn.count<number>('flight.logs.flightId'), 'integer').as('totalFlights'),
       eb.cast<number>(eb.fn.sum('flight.logs.flightMins'), 'integer').as('totalFlightMins'),
       eb.cast<number>(eb.fn.sum('flight.logs.numberOfLandings'), 'integer').as('totalLandings'),
@@ -559,7 +793,7 @@ export async function getFlightStats(
       sumIfMonths(eb, 6, 'flight.logs.numberOfLandings').as('landings6month'),
       sumIfMonths(eb, 12, 'flight.logs.numberOfLandings').as('landings12month'),
     ])
-    .where('billableMemberId', '=', billableMemberId)
+    .where((eb) => onBoard(eb, memberId))
     .$if(activeOnly === true, (qb) =>
       qb.where((eb) =>
         eb(
@@ -572,7 +806,11 @@ export async function getFlightStats(
         ),
       ),
     )
-    .groupBy(['flight.logs.aircraftRegistration', 'flight.logs.billableMemberId'])
+    // Grouped by aircraft alone. billableMemberId used to be in here too, which was a
+    // no-op while the WHERE pinned it to one value -- now that a group can mix the
+    // member's own flights with ones billed to a student, keeping it would split each
+    // aircraft into one row per payer.
+    .groupBy('flight.logs.aircraftRegistration')
     .orderBy('lastTakeoffTimeUtc', 'desc')
     .execute()
 
@@ -1209,15 +1447,12 @@ function buildExportBaseQuery(filters: FlightLogExportFilters, memberId?: string
         'flight.aircraft.registration',
       )
       // A pilot log must contain the flights the member actually flew, in whichever
-      // crew slot they occupied — not the flights they happened to be billed for.
-      .$if(!!memberId, (qb) =>
-        qb.where((eb) =>
-          eb('picMemberId', '=', memberId!)
-            .or('crew2MemberId', '=', memberId!)
-            .or('crew3MemberId', '=', memberId!)
-            .or('crew4MemberId', '=', memberId!),
-        ),
-      )
+      // crew slot they occupied — not the flights they happened to be billed for. The
+      // role filter inside onBoardAsCrew also keeps flights the member was merely
+      // carried on (OBS) out of the EASA totals, where they would otherwise have added
+      // their whole block time to the "total time" column with no role time to match
+      // (#1019 Q6).
+      .$if(!!memberId, (qb) => qb.where((eb) => onBoardAsCrew(eb, memberId!)))
       .$if(!!filters.aircraftRegistration, (qb) =>
         qb.where('aircraftRegistration', '=', filters.aircraftRegistration!),
       )
@@ -1347,6 +1582,8 @@ export async function getFlightLogsForExport(
       status: row.status as FlightLogStatus,
       totalTimeInService: row.totalTimeInService,
       acTotalFlightMins: null,
+      myCrewRole: myCrewRoleOf(row, memberId),
+      isOwnFlight: !!memberId && row.billableMemberId === memberId,
     }
     return {
       ...listEntry,

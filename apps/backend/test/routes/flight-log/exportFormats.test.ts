@@ -54,6 +54,8 @@ function dualFlight(overrides: Partial<FlightLogExportEntry> = {}): FlightLogExp
     picLastName: 'Virtanen',
     picRole: 'STU',
     ownRole: 'FI',
+    myCrewRole: 'FI',
+    isOwnFlight: false,
     actingPicLastName: 'Nieminen',
     status: FlightLogStatus.NEW,
     totalTimeInService: 0,

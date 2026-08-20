@@ -135,7 +135,11 @@ export default defineConfig({
         // and the extracted icsDownload under test (54.5% -> 62.9% statements for
         // the directory). Raised in the PR that earned it, per the rule above.
         'src/utils/**': { statements: 61, branches: 55, functions: 76 },
-        'src/sections/**': { statements: 40, branches: 34, functions: 26 },
+        // 40/34/26 -> 43/38/28: #1019 brought the flight-log list, the crew-role helper,
+        // the change-history dialog and the crew/instructor gating on the entry form under
+        // test (43.98/39.24/29.71 measured). Raised in the PR that earned it, per the rule
+        // above.
+        'src/sections/**': { statements: 43, branches: 38, functions: 28 },
       },
     },
   },

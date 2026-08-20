@@ -58,6 +58,7 @@ import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import type { Defect } from '@mik/contracts/defects'
 import type { Remark } from '@mik/contracts/remarks'
 import { MIKPermissions } from '@mik/contracts/members'
+import { canOpenFlightRow } from './utils/crew'
 
 // A maintenance note / defect that renders inline as a chip on its anchor
 // flight's row instead of consuming a row of its own (rows: 0 -- an in-flight
@@ -771,7 +772,10 @@ const FlightLogsList = () => {
                   <ViewFlightDate
                     flightId={log.flightId}
                     date={log.offBlockTimeUtc}
-                    link={isFlightLogAdmin || log.billableMemberId == me?.memberId}
+                    // A flight the member flew as crew opens from the aircraft logbook
+                    // too, not just from their own flight log — the same rows, and the
+                    // backend grants a crew member read access to both (#1019).
+                    link={canOpenFlightRow(log, me?.memberId, isFlightLogAdmin)}
                     state={`/books/${log.aircraftRegistration}/${log.ajlbSeqNo}?page=${page}`}
                     ref={location.hash == `#${log.flightId}` ? scrollToRef : undefined}
                   />

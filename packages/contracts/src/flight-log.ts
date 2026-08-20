@@ -9,6 +9,15 @@ import {
 } from './schema.ts'
 
 export const CrewRoleEnum = z.enum(['FE', 'FI', 'OBS', 'PIC', 'STU'])
+export type CrewRole = z.infer<typeof CrewRoleEnum>
+
+/**
+ * The crew roles that put a member *on board as operating crew*, and so make the
+ * flight part of their own logbook. An observer is a passenger: they were carried,
+ * they did not fly, and counting an OBS row would inflate the total time in an EASA
+ * logbook export. Decided in #1019 (Q6).
+ */
+export const ON_BOARD_CREW_ROLES = ['PIC', 'FI', 'FE', 'STU'] as const satisfies readonly CrewRole[]
 export const PrivOrComFlightEnum = z.enum(['P', 'C'])
 export type PrivOrComFlight = z.infer<typeof PrivOrComFlightEnum>
 
@@ -60,7 +69,17 @@ export const FlightLogFiltersSchema = z
   .object({
     flightId: z.string().optional(),
     billableMemberId: z.string().optional(),
+    // "was involved in this flight at all": billable member or any crew slot,
+    // whatever role. Used by the members-admin view of a member's recent flights.
     anyCrewMemberId: z.string().optional(),
+    // "is this flight in my own logbook": billable member, or a crew slot holding one
+    // of ON_BOARD_CREW_ROLES. Narrower than anyCrewMemberId, which also matches an
+    // observer -- see #1019.
+    onBoardMemberId: z.string().optional(),
+    // Whether the member's own flight-log view includes flights they were crew on but
+    // are not billed for. Absent means included: the toggle defaults to on (#1019 Q1),
+    // so only an explicit `false` narrows the list to own billable flights.
+    includeCrewFlights: BooleanSchema.optional(),
     aircraftRegistration: z.string().optional(),
     ajlbSeqNo: z.coerce.number().int().optional(),
     pic: z.string().optional(),
@@ -476,6 +495,17 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
   creditedMins: z.number().int().nullable(),
   estimatedCost: z.number().nullable(),
   isTrainingProgramPilot: z.boolean().nullable(),
+  // The two fields below are derived per request from the viewer's identity, which is
+  // why they are not columns: they let the UI mark and gate a row without the response
+  // ever carrying another member's crew member ids (#1019).
+  /**
+   * The role the viewer flew on this flight, from whichever crew slot they occupied, or
+   * null when they were not on board as crew. Always null for a request not scoped to a
+   * single viewer, e.g. an admin listing an aircraft's logbook.
+   */
+  myCrewRole: CrewRoleEnum.nullable(),
+  /** Whether the viewer is the member this flight is billed to. */
+  isOwnFlight: z.boolean(),
 })
 
 export type FlightLogListEntry = z.infer<typeof FlightLogListEntrySchema>
@@ -807,7 +837,13 @@ export type FlightLogExportEntry = FlightLogListEntry & {
   flightMins: number
   /** Role recorded in crew slot 1 (the `pic_*` columns) — not necessarily the exporting pilot. */
   picRole: string | null
-  /** Role the pilot this export is generated for actually flew in, from any crew slot. */
+  /**
+   * Role the pilot this export is generated for actually flew in, from any crew slot.
+   *
+   * Not the same as the inherited `myCrewRole`, which is null for anyone who was not on
+   * board as operating crew: this one falls back to crew slot 1 for an export that is not
+   * scoped to a member at all, so the CSV columns still have a role to work from.
+   */
   ownRole: string | null
   /** Last name of the crew member who acted as pilot in command on this flight. */
   actingPicLastName: string
@@ -817,3 +853,43 @@ export type FlightLogExportEntry = FlightLogListEntry & {
 
 export const FlightLogExportCountResponseSchema = z.object({ count: z.number().int() })
 export type FlightLogExportCountResponse = z.infer<typeof FlightLogExportCountResponseSchema>
+
+/**
+ * One field-level change from a flight log's audit trail.
+ *
+ * The trail itself is the `flight.logs_audit` table, whose rows are whole `to_jsonb(OLD)`
+ * / `to_jsonb(NEW)` snapshots written by a database trigger. Those snapshots are diffed
+ * on the server rather than shipped to the client: a crew member editing someone else's
+ * flight (#1019) must be accountable for what they changed without the trail handing
+ * every reader the billing columns the detail endpoint takes care to withhold.
+ *
+ * `before` and `after` are already-rendered strings, since a snapshot value can be a
+ * number, a boolean, an epoch string or null, and the UI only ever prints them.
+ */
+export const FlightLogAuditChangeSchema = z.object({
+  /** camelCase field name, matching the contract rather than the database column. */
+  field: z.string(),
+  before: z.string().nullable(),
+  after: z.string().nullable(),
+})
+
+export type FlightLogAuditChange = z.infer<typeof FlightLogAuditChangeSchema>
+
+export const FlightLogAuditEntrySchema = z.object({
+  auditId: z.number().int(),
+  operationType: z.enum(['INSERT', 'UPDATE', 'DELETE']),
+  changedBy: z.string(),
+  /** Resolved display name of the acting member; null when the id no longer resolves. */
+  changedByName: z.string().nullable(),
+  changedAt: z.string().datetime(),
+  /** Empty for an INSERT, and for an UPDATE that touched nothing worth reporting. */
+  changes: z.array(FlightLogAuditChangeSchema),
+})
+
+export type FlightLogAuditEntry = z.infer<typeof FlightLogAuditEntrySchema>
+
+export const FlightLogAuditResponseSchema = z.object({
+  entries: z.array(FlightLogAuditEntrySchema),
+})
+
+export type FlightLogAuditResponse = z.infer<typeof FlightLogAuditResponseSchema>

@@ -26,6 +26,7 @@ import {
   type FlightLogOverlapResponse,
   FlightLogPageForMinsFilterSchema,
   redactFlightLogForOtherMember,
+  type FlightLogAuditResponse,
 } from '@mik/contracts/flight-log'
 import {
   deleteFlightLog,
@@ -41,14 +42,24 @@ import {
   getFlightLogsForExport,
   getOverlappingFlightLogs,
   getFlightLogPageForMins,
+  getFlightLogAuditTrail,
 } from '../../db/flight-log-queries.ts'
 import { estimateFlightCosts } from '../../services/accounting/flightCostEstimator.ts'
 import { generateCsv, generateEasaPdf, getFilename, type PdfMemberInfo } from './exportFormats.ts'
 import { invalidateApprovedAttempt } from '../../db/dto-queries.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '@mik/contracts/members'
+import {
+  canReadFlight,
+  canSeeBillingFields,
+  canWriteFlight,
+  FLIGHT_LOG_BILLING_FIELDS,
+  FlightAccess,
+  isFlightLogAdmin,
+  redactBillingFields,
+  resolveFlightAccess,
+} from './flightAccess.ts'
 import { problem } from '../response.ts'
 import { getMemberById } from '../../db/member-queries.ts'
 import { getAirfields } from '../../db/airfields-queries.ts'
@@ -58,9 +69,6 @@ import type { z } from 'zod'
 // all flight log routes are protected by flightlog permissions
 const router = Router()
 router.use(validateUser(MIKPermissions.FLIGHTLOG_USER, MIKPermissions.FLIGHTLOG_ADMIN))
-
-const isFlightLogAdmin = (user?: JWTUser): boolean =>
-  user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN) ?? false
 
 // Get flight log total times by registraion
 router.get('/airfields', async (req: Request<Record<string, string>>, res: Response) => {
@@ -122,36 +130,56 @@ router.get('/page-for-mins', async (req: Request, res: Response<{ page: number |
 router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogListResponse>) => {
   const data = FlightLogFiltersSchema.parse(req.query)
   const isAdmin = isFlightLogAdmin(req.user)
+  const memberId = req.user!.memberId
+  // A member asking for an ajlbSeqNo is browsing an aircraft's logbook, not their own
+  // log, so that view is not scoped to them. Everything else a non-admin asks for is
+  // their own flight log.
   const isMemberSelfView = !isAdmin && data.ajlbSeqNo == undefined
+  // Default on: the flights a member flew as crew belong in their log whether or not
+  // they are billed for them (#1019 Q1). Only an explicit `false` narrows the list back
+  // to "the flights I will be invoiced for".
+  const includeCrewFlights = data.includeCrewFlights !== false
 
-  // Non-admins cannot request other members' crew flights explicitly
-  if (!isAdmin && data.anyCrewMemberId && data.anyCrewMemberId !== req.user!.memberId) {
+  // Non-admins cannot request other members' crew flights explicitly. onBoardMemberId is
+  // held to the same rule as anyCrewMemberId: it is the same question asked of a narrower
+  // set of crew roles, so letting it through would reopen what that check closes.
+  const requestedCrewMember = data.anyCrewMemberId ?? data.onBoardMemberId
+  if (!isAdmin && requestedCrewMember && requestedCrewMember !== memberId) {
     return problem({
       status: 403,
       detail: "Insufficient permissions to view other members' flights",
     })
   }
 
-  // FlightLog admin can see logs of all members, normal users only through logbooks
+  // FlightLog admin can see logs of all members, normal users only through logbooks.
+  // The member id always comes from the JWT.
   const filters: FlightLogFilters = {
     ...data,
     ...(isMemberSelfView
-      ? { billableMemberId: req.user!.memberId, anyCrewMemberId: undefined }
+      ? includeCrewFlights
+        ? { onBoardMemberId: memberId, billableMemberId: undefined, anyCrewMemberId: undefined }
+        : { billableMemberId: memberId, onBoardMemberId: undefined, anyCrewMemberId: undefined }
       : {}),
   }
 
-  const logs = await getFlightLogs(filters)
+  const logs = await getFlightLogs(filters, memberId)
 
   // For non-admin users, redact billing-sensitive fields for other members' flights.
-  // Keep NEW and VALIDATED statuses as-is since they reflect verification state, not billing state
+  // Keep NEW and VALIDATED statuses as-is since they reflect verification state, not billing state.
+  //
+  // #1222's allow-list is also what #1019 Q4 asked for — a crew member seeing the true
+  // state of a flight they flew — so a member's own crew rows need nothing extra here: a
+  // student's NEW flight reads NEW to their instructor. What stays redacted for them is
+  // the billing half, which is the payer's business whoever else was on board.
   if (!isAdmin) {
-    const userMemberId = req.user!.memberId
-    logs.logs = logs.logs.map((log) => redactFlightLogForOtherMember(log, userMemberId))
+    logs.logs = logs.logs.map((log) => redactFlightLogForOtherMember(log, memberId))
   }
 
-  // Compute estimated costs only for the member's own self-service view
+  // Compute estimated costs only for the member's own self-service view. Keyed on the
+  // member's own unbilled billable flights, so a crew-only row is left with
+  // estimatedCost: null and the unbilled total is unchanged by the toggle — a member is
+  // never shown a price for a flight someone else is paying for (#1019 Q1).
   if (isMemberSelfView) {
-    const memberId = req.user!.memberId
     const allUnbilled = await getUnbilledFlightsForEstimation(memberId)
     const allCosts = await estimateFlightCosts(allUnbilled, memberId)
 
@@ -294,30 +322,61 @@ router.get(
   },
 )
 
+// A flight log's change history, newest first.
+//
+// Every write to flight.logs is recorded by a database trigger (V160), so the trail
+// already existed; this exposes it because a flight can now be edited by an instructor
+// who is not the member being billed, and that has to be visible to the member whose
+// flight it is (#1019 Q5).
+//
+// Declared before '/:id' so the two-segment path is matched as itself.
+router.get(
+  '/:id/audit',
+  async (req: Request<Record<string, string>>, res: Response<FlightLogAuditResponse>) => {
+    const { flight, access } = await getReadableFlight(req.params.id, req)
+    const hiddenFields = canSeeBillingFields(access, flight.status)
+      ? []
+      : [...FLIGHT_LOG_BILLING_FIELDS, 'status']
+    const entries = await getFlightLogAuditTrail(flight.flightId, hiddenFields)
+    res.status(200).json({ entries })
+  },
+)
+
 // Get a flight log by ID
 // Caution - KEEP THIS LAST in Get endpoints so that other paths are used first
 router.get('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const { id } = req.params
 
-  const flight = await getReadableFlight(id, req)
-  res.status(200).json(flight)
+  const { flight, access } = await getReadableFlight(id, req)
+  res
+    .status(200)
+    .json(canSeeBillingFields(access, flight.status) ? flight : redactBillingFields(flight))
 })
 
-const getReadableFlight = async (flightId: string, req: Request): Promise<FlightLog | never> => {
+/**
+ * The flight, plus how the requester is related to it. Used by every route that acts on a
+ * single flight: reading is enough to get past this helper, and each caller then decides
+ * for itself whether that access level may also write — `getReadableFlight` on its own
+ * grants nothing but a read.
+ */
+const getReadableFlight = async (
+  flightId: string,
+  req: Request,
+): Promise<{ flight: FlightLog; access: FlightAccess } | never> => {
   const flight = await getFlightLog(flightId)
   if (!flight) {
     return problem({ status: 404, detail: 'Flight log not found' })
   }
 
-  // Check if the flight is owned by the user or the user is not an flightlog admin
-  if (flight.billableMemberId !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
+  const access = resolveFlightAccess(flight, req.user)
+  if (!canReadFlight(access)) {
     return problem({
       status: 403,
       detail: 'Flight log not owned by user or user has no admin rights',
     })
   }
 
-  return flight
+  return { flight, access }
 }
 
 const getAjlb = async (registration: string) => {
@@ -378,7 +437,19 @@ const getValidPatchForUpdate = async (
 router.patch('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const flightId = req.params.id
 
-  const flight = await getReadableFlight(flightId, req)
+  const { flight, access } = await getReadableFlight(flightId, req)
+  // Reading a flight you were crew on does not imply editing it: only the billable
+  // member, an admin, or an instructor working on a still-new entry may write (#1019 Q5).
+  if (!canWriteFlight(access, flight.status)) {
+    return problem({
+      status: 403,
+      detail:
+        access === FlightAccess.INSTRUCTOR_CREW
+          ? `Flight log in status ${flight.status} can no longer be edited by an instructor`
+          : 'Flight log not owned by user or user has no admin rights',
+    })
+  }
+
   const patch = await getValidPatchForUpdate(flight, req)
 
   const mergedState = { ...flight, ...patch }
@@ -412,7 +483,7 @@ router.post(
 
     const { revert } = FlightLogValidationRequestSchema.parse(req.body ?? {})
 
-    const flight = await getReadableFlight(flightId, req)
+    const { flight } = await getReadableFlight(flightId, req)
 
     // all previous flights must be validated
 
@@ -474,7 +545,17 @@ router.post(
 router.delete('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const flightId = req.params.id
 
-  const flight = await getReadableFlight(flightId, req)
+  const { flight, access } = await getReadableFlight(flightId, req)
+  // Deliberately stricter than PATCH: an instructor may correct a student's entry, but
+  // removing it is the billable member's or an admin's call, so crew access — instructor
+  // or not — stops here.
+  if (access !== FlightAccess.OWNER && access !== FlightAccess.ADMIN) {
+    return problem({
+      status: 403,
+      detail: 'Flight log not owned by user or user has no admin rights',
+    })
+  }
+
   if (flight.status !== FlightLogStatus.NEW) {
     return problem({
       status: 400,
