@@ -58,6 +58,7 @@ import {
   QUESTIONS_DROPPABLE_ID,
   choicesDroppableId,
   commitReorder,
+  nextSortOrder,
   reorderIntentFromDrop,
 } from './reorder'
 
@@ -472,7 +473,7 @@ function QuestionCard({
         <ChoiceEditor
           questionId={question.questionId}
           choice={editingChoice === 'new' ? null : editingChoice}
-          nextSortOrder={question.choices.length}
+          nextSortOrder={nextSortOrder(question.choices)}
           languages={languages}
           onClose={() => setEditingChoice(null)}
           onSaved={() => {
@@ -599,7 +600,7 @@ export default function ExamVersionEditorPage() {
   const handleAddQuestion = async () => {
     if (!versionId) return
     await adminUpsertQuestion(versionId, {
-      sortOrder: version?.questions.length ?? 0,
+      sortOrder: nextSortOrder(version?.questions ?? []),
       translations: Object.fromEntries(versionLanguages.map((l) => [l, { prompt: '' }])) as Record<
         string,
         { prompt: string }

@@ -243,7 +243,11 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
     .selectFrom('exam.questions')
     .selectAll()
     .where('versionId', '=', versionId)
+    // Rows imported or hand-numbered before ordering was a drag can share a
+    // sort_order; the id breaks the tie so the editor shows the same order twice
+    // running, and so a reorder starts from what the author actually saw.
     .orderBy('sortOrder')
+    .orderBy('questionId')
     .execute()
 
   if (qRows.length === 0) {
@@ -265,6 +269,7 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
     .selectAll()
     .where('questionId', 'in', questionIds)
     .orderBy('sortOrder')
+    .orderBy('choiceId')
     .execute()
 
   // Batch: all choice_translations for fetched choices (skip if no choices)
@@ -716,6 +721,24 @@ export async function deleteQuestion(questionId: string): Promise<void> {
 }
 
 /**
+ * Checks that `ids` is a permutation of `existingIds` — same members, no repeats.
+ *
+ * Counting alone is not enough: `[A, A, B]` against `{A, B, C}` has the right
+ * length and no unknown members, but would leave C's `sort_order` untouched and
+ * silently produce an order the caller never asked for. The route's Zod schema
+ * rejects duplicates too, but these helpers are exported and must hold their own
+ * stated contract.
+ */
+function isCompleteReorder(ids: string[], existingIds: ReadonlySet<string>): boolean {
+  const unique = new Set(ids)
+  return (
+    unique.size === ids.length &&
+    unique.size === existingIds.size &&
+    ids.every((id) => existingIds.has(id))
+  )
+}
+
+/**
  * Rewrites `sort_order` for every question of a version so it matches the position
  * of its id in `questionIds`. The caller sends the complete list, which is what
  * makes this idempotent and lets a drag-and-drop reorder be one atomic write
@@ -729,7 +752,7 @@ export async function reorderQuestions(versionId: string, questionIds: string[])
     .execute()
   const existingIds = new Set(existing.map((q) => q.questionId))
 
-  if (questionIds.length !== existingIds.size || questionIds.some((id) => !existingIds.has(id))) {
+  if (!isCompleteReorder(questionIds, existingIds)) {
     return problem({
       status: 400,
       detail: "Reorder must list every question of this version's pool exactly once",
@@ -834,7 +857,7 @@ export async function reorderChoices(questionId: string, choiceIds: string[]): P
     .execute()
   const existingIds = new Set(existing.map((c) => c.choiceId))
 
-  if (choiceIds.length !== existingIds.size || choiceIds.some((id) => !existingIds.has(id))) {
+  if (!isCompleteReorder(choiceIds, existingIds)) {
     return problem({
       status: 400,
       detail: 'Reorder must list every choice of this question exactly once',
@@ -1070,6 +1093,7 @@ export async function getAttemptVersionDetail(
     .selectAll()
     .where('questionId', 'in', questionIds)
     .orderBy('sortOrder')
+    .orderBy('choiceId')
     .execute()
 
   const choiceIds = cRows.map((c) => c.choiceId)

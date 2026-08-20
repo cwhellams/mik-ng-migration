@@ -12,6 +12,7 @@ import {
   choicesDroppableId,
   commitReorder,
   moveItem,
+  nextSortOrder,
   reorderIntentFromDrop,
 } from './reorder'
 
@@ -70,6 +71,26 @@ describe('moveItem', () => {
     const original = ['a', 'b', 'c']
     moveItem(original, 0, 2)
     expect(original).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('nextSortOrder', () => {
+  it('starts a first item at zero', () => {
+    expect(nextSortOrder([])).toBe(0)
+  })
+
+  it('goes one past the highest, not one past the count', () => {
+    // Hand-typed legacy values with a gap: a count-derived 3 would collide with
+    // the existing 3 and land the new item in an arbitrary place.
+    expect(nextSortOrder([{ sortOrder: 0 }, { sortOrder: 2 }, { sortOrder: 3 }])).toBe(4)
+  })
+
+  it('does not assume the list is sorted', () => {
+    expect(nextSortOrder([{ sortOrder: 7 }, { sortOrder: 1 }])).toBe(8)
+  })
+
+  it('copes with duplicated legacy values', () => {
+    expect(nextSortOrder([{ sortOrder: 2 }, { sortOrder: 2 }])).toBe(3)
   })
 })
 

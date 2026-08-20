@@ -60,13 +60,20 @@ const aVersion = (overrides: Partial<ExamVersionDetail> = {}) =>
   }) as ExamVersionDetail
 
 const editorApi = (version: ExamVersionDetail = aVersion()) => {
-  const state = { versionUpdates: [] as unknown[] }
+  const state = {
+    versionUpdates: [] as unknown[],
+    choiceUpserts: [] as { sortOrder?: number }[],
+  }
 
   server.use(
     http.get(apiUrl(`v1/exams/admin/versions/${VERSION_ID}`), () => HttpResponse.json(version)),
     http.put(apiUrl(`v1/exams/admin/versions/${VERSION_ID}`), async ({ request }) => {
       state.versionUpdates.push(await request.json())
       return HttpResponse.json(version)
+    }),
+    http.put(apiUrl('v1/exams/admin/questions/:questionId/choices'), async ({ request }) => {
+      state.choiceUpserts.push((await request.json()) as { sortOrder?: number })
+      return HttpResponse.json({})
     }),
   )
 
@@ -193,6 +200,22 @@ describe('ExamVersionEditorPage — reordering affordances', () => {
   // resolves to, and which endpoint they are sent to, are both in reorder.test.ts.
   it.todo('reorders questions by dragging one card past another')
   it.todo('restores the server order and explains itself when a reorder is rejected')
+
+  it('puts a new choice past the highest sort order, not past the count', async () => {
+    // Legacy hand-typed values with a gap: a count-derived 2 would collide with
+    // the existing 2 and the new choice would land somewhere in the middle.
+    const gapped = aVersion()
+    gapped.questions[0].choices[0].sortOrder = 0
+    gapped.questions[0].choices[1].sortOrder = 2
+    const { user, state } = renderEditor(gapped)
+
+    await user.click((await screen.findAllByRole('button', { name: 'Add Choice' }))[0])
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(state.choiceUpserts).toHaveLength(1))
+    expect(state.choiceUpserts[0]).toMatchObject({ sortOrder: 3 })
+  })
 
   it('no longer asks the editor to type a sort order when editing a choice', async () => {
     const { user } = renderEditor()

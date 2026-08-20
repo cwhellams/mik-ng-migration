@@ -92,3 +92,17 @@ export async function commitReorder(intent: ReorderIntent, versionId: string): P
     intent.choices.map((c) => c.choiceId),
   )
 }
+
+/**
+ * Where a newly added question or choice should sit: after everything already
+ * there.
+ *
+ * Not `items.length` — `sort_order` was a hand-typed number before this editor
+ * dragged things, so existing rows can have gaps ([0, 2, 3]) and a length-derived
+ * value then collides with one of them. Two rows sharing a sort_order have no
+ * defined order between them beyond the id tie-break, so the new row would appear
+ * in an arbitrary place rather than at the end.
+ */
+export function nextSortOrder(items: readonly { sortOrder: number }[]): number {
+  return items.reduce((max, item) => Math.max(max, item.sortOrder), -1) + 1
+}

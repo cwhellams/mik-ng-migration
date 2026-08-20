@@ -631,6 +631,21 @@ describe('Question ordering', () => {
     expect(await currentQuestionOrder()).toEqual(questionIds)
   })
 
+  it('reorderQuestions rejects a duplicated id, which would drop a question silently', async () => {
+    // Right length, no unknown ids — only the repeat gives it away, and the
+    // question it displaces would keep whatever sort_order it had.
+    const duplicated = [
+      questionIds[0],
+      questionIds[0],
+      questionIds[1],
+      questionIds[2],
+      questionIds[3],
+    ]
+    await expect(reorderQuestions(ordVersionId, duplicated)).rejects.toThrow()
+
+    expect(await currentQuestionOrder()).toEqual(questionIds)
+  })
+
   it('reorderChoices rewrites sort_order within one question', async () => {
     const reversed = [...choiceIds].reverse()
     await reorderChoices(questionIds[0], reversed)
@@ -638,6 +653,40 @@ describe('Question ordering', () => {
     const detail = await getVersionDetail(ordVersionId)
     const question = detail!.questions.find((q) => q.questionId === questionIds[0])
     expect(question!.choices.map((c) => c.choiceId)).toEqual(reversed)
+  })
+
+  it('reorderChoices rejects a duplicated id', async () => {
+    await expect(
+      reorderChoices(questionIds[0], [choiceIds[0], choiceIds[0], choiceIds[1]]),
+    ).rejects.toThrow()
+
+    const detail = await getVersionDetail(ordVersionId)
+    const question = detail!.questions.find((q) => q.questionId === questionIds[0])
+    expect(question!.choices.map((c) => c.choiceId)).toEqual(choiceIds)
+  })
+
+  it('orders questions and choices deterministically when sort_order ties', async () => {
+    // Legacy rows: sort_order was a hand-typed number before it was a drag.
+    await db
+      .updateTable('exam.questions')
+      .set({ sortOrder: 0 })
+      .where('versionId', '=', ordVersionId)
+      .execute()
+    await db
+      .updateTable('exam.choices')
+      .set({ sortOrder: 0 })
+      .where('questionId', '=', questionIds[0])
+      .execute()
+
+    const first = await getVersionDetail(ordVersionId)
+    const second = await getVersionDetail(ordVersionId)
+
+    expect(first!.questions.map((q) => q.questionId)).toEqual(
+      second!.questions.map((q) => q.questionId),
+    )
+    expect(first!.questions[0].choices.map((c) => c.choiceId)).toEqual(
+      second!.questions[0].choices.map((c) => c.choiceId),
+    )
   })
 
   it('reorderChoices rejects a choice belonging to another question', async () => {
