@@ -1705,6 +1705,12 @@
       "PRIVATE": "Yksityinen",
       "TRAINING": "Koululento"
     },
+    "typeHints": {
+      "PRIVATE": "Kaikki, mikä ei ole koulutus- tai huoltolentoa.",
+      "TRAINING": "Mikä tahansa lento, jossa miehistössä on lennonopettaja tai tarkastuslentäjä — koskee sekä koulutusohjelman lentoja että kertauslentoja.",
+      "MAINTENANCE": "Lentokone on poissa käytöstä huoltotoimenpiteiden tai aktiivisen vian vuoksi."
+    },
+    "typeHintAriaLabel": "Mitä varaustyypit tarkoittavat?",
     "status": "Tila",
     "statuses": {
       "CONFIRMED": "Vahvistettu",

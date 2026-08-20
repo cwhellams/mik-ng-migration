@@ -1698,6 +1698,12 @@
       "PRIVATE": "Private",
       "TRAINING": "Training"
     },
+    "typeHints": {
+      "PRIVATE": "Anything that isn't a training or maintenance flight.",
+      "TRAINING": "Any flight with a flight instructor or examiner as crew — training-program or refresher flights alike.",
+      "MAINTENANCE": "The aircraft is out of service for maintenance work or an active defect."
+    },
+    "typeHintAriaLabel": "What do the reservation types mean?",
     "status": "Status",
     "statuses": {
       "CONFIRMED": "Confirmed",

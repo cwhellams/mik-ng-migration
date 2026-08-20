@@ -1706,6 +1706,12 @@
       "PRIVATE": "Privat",
       "TRAINING": "Träning"
     },
+    "typeHints": {
+      "PRIVATE": "Allt som inte är en skol- eller underhållsflygning.",
+      "TRAINING": "Vilken flygning som helst med en flyginstruktör eller flygexaminator som besättningsmedlem — gäller både flygningar i utbildningsprogrammet och repetitionsflygningar.",
+      "MAINTENANCE": "Flygplanet är taget ur bruk för underhållsarbete eller ett aktivt fel."
+    },
+    "typeHintAriaLabel": "Vad betyder bokningstyperna?",
     "status": "Status",
     "statuses": {
       "CONFIRMED": "Bekräftad",

@@ -18,7 +18,10 @@ import {
   FormHelperText,
   Alert,
   Typography,
+  Tooltip,
+  IconButton,
 } from '@mui/material'
+import { Icon } from '@iconify/react'
 import useApi, { MutateMethods } from '../../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
@@ -61,6 +64,14 @@ import { generateGoogleCalendarLink } from '@mik/contracts/calendar'
 import { downloadIcs } from '../../../utils/calendarEvent'
 import { SelectMember } from '../../../components/SelectMember'
 import { endpoints } from '../../../api/endpoints'
+
+// Matches the display order of the Type <Select>'s <MenuItem>s below, which is
+// deliberately not the BookingType enum's declaration order.
+const BOOKING_TYPE_DISPLAY_ORDER = [
+  BookingType.PRIVATE,
+  BookingType.TRAINING,
+  BookingType.MAINTENANCE,
+]
 
 export type BookingFlags = {
   isNewBooking: boolean
@@ -471,35 +482,53 @@ export const BookingEditor = ({
             </FormControl>
           )}
 
-          <FormControl fullWidth>
-            <InputLabel id='type-label'>{t('schedule.type')}</InputLabel>
+          <Stack direction='row' spacing={1} sx={{ alignItems: 'flex-start' }}>
+            <FormControl fullWidth>
+              <InputLabel id='type-label'>{t('schedule.type')}</InputLabel>
 
-            <Select
-              labelId='type-label'
-              disabled={isReadonly}
-              value={formData.type ?? ''}
-              label={t('schedule.type')}
-              onChange={({ target }) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  type: target.value as BookingType,
-                  // clear instructor when leaving training so we don't persist
-                  // a stale instructor on non-training bookings
-                  ...(target.value !== BookingType.TRAINING ? { instructorMemberId: null } : {}),
-                }))
+              <Select
+                labelId='type-label'
+                disabled={isReadonly}
+                value={formData.type ?? ''}
+                label={t('schedule.type')}
+                onChange={({ target }) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    type: target.value as BookingType,
+                    // clear instructor when leaving training so we don't persist
+                    // a stale instructor on non-training bookings
+                    ...(target.value !== BookingType.TRAINING ? { instructorMemberId: null } : {}),
+                  }))
+                }
+              >
+                <MenuItem value={BookingType.PRIVATE}>
+                  {t(`schedule.types.${BookingType.PRIVATE}`)}
+                </MenuItem>
+                <MenuItem value={BookingType.TRAINING}>
+                  {t(`schedule.types.${BookingType.TRAINING}`)}
+                </MenuItem>
+                <MenuItem value={BookingType.MAINTENANCE}>
+                  {t(`schedule.types.${BookingType.MAINTENANCE}`)}
+                </MenuItem>
+              </Select>
+            </FormControl>
+
+            <Tooltip
+              title={
+                <Stack spacing={0.5}>
+                  {BOOKING_TYPE_DISPLAY_ORDER.map((type) => (
+                    <span key={type}>
+                      <b>{t(`schedule.types.${type}`)}</b> — {t(`schedule.typeHints.${type}`)}
+                    </span>
+                  ))}
+                </Stack>
               }
             >
-              <MenuItem value={BookingType.PRIVATE}>
-                {t(`schedule.types.${BookingType.PRIVATE}`)}
-              </MenuItem>
-              <MenuItem value={BookingType.TRAINING}>
-                {t(`schedule.types.${BookingType.TRAINING}`)}
-              </MenuItem>
-              <MenuItem value={BookingType.MAINTENANCE}>
-                {t(`schedule.types.${BookingType.MAINTENANCE}`)}
-              </MenuItem>
-            </Select>
-          </FormControl>
+              <IconButton size='small' aria-label={t('schedule.typeHintAriaLabel')} sx={{ mt: 1 }}>
+                <Icon icon='mdi:information-outline' width={16} />
+              </IconButton>
+            </Tooltip>
+          </Stack>
 
           {isTraining && (
             <Autocomplete
