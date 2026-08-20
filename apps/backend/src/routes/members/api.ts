@@ -20,6 +20,7 @@ import {
   MemberChangeLogFiltersSchema,
   MemberChangeType,
   type MemberChangeLogResponse,
+  type RestoreMemberResponse,
 } from '@mik/contracts/members'
 import {
   getMemberById,
@@ -40,6 +41,7 @@ import {
   getMemberRolesByMemberId,
   deactivateMember,
   restoreMember,
+  wasMemberFeeCredited,
   getUnpaidMembershipFeesForYear,
   hasMemberFlownBillableFlightInYear,
   getMembersWithNoOrUnpaidAnnualFee,
@@ -829,7 +831,7 @@ router.delete(
 router.post(
   '/:memberId/restore',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ memberId: string }>, res: Response<Member>) => {
+  async (req: Request<{ memberId: string }>, res: Response<RestoreMemberResponse>) => {
     const memberId = req.params.memberId
 
     const member = await getMemberById(memberId)
@@ -841,9 +843,15 @@ router.post(
       return problem({ status: 400, detail: 'Member is not in removed state' })
     }
 
+    // Check if the member's current-year fee was credited when they were removed
+    const hadCreditedFee = await wasMemberFeeCredited(memberId)
+
     const restored = await restoreMember(memberId, req.user!.memberId)
 
-    res.status(200).json(restored)
+    res.status(200).json({
+      member: restored,
+      hadCreditedFee,
+    })
   },
 )
 

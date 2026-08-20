@@ -820,6 +820,18 @@ export async function canMemberBeDeleted(memberId: string): Promise<MemberDeleta
 }
 
 /**
+ * The subset of member.register restored verbatim by `restoreMember`, snapshotted
+ * by `deactivateMember` into the single `pre_removal_snapshot` jsonb column rather
+ * than one `*_before_removal` column per field.
+ */
+type PreRemovalSnapshot = {
+  memberType: MIKMemberTypes
+  canMakeReservations: boolean
+  autoRenewAnnualMembership: boolean | null
+  autoRenewEquipmentFee: boolean | null
+}
+
+/**
  * Deactivate a member by setting their status to REMOVED
  * This removes all permissions, sets status to REMOVED, and records removal info
  */
@@ -829,6 +841,18 @@ export async function deactivateMember(
   reason?: string,
 ): Promise<void> {
   await db.transaction().execute(async (txn) => {
+    // Fetch current member state to snapshot before removal
+    const currentMember = await txn
+      .selectFrom('member.register')
+      .select([
+        'memberType',
+        'canMakeReservations',
+        'autoRenewAnnualMembership',
+        'autoRenewEquipmentFee',
+      ])
+      .where('memberId', '=', memberId)
+      .executeTakeFirst()
+
     // Remove all roles/permissions
     await txn.deleteFrom('member.memberToRoles').where('memberId', '=', memberId).execute()
 
@@ -838,6 +862,16 @@ export async function deactivateMember(
     await txn.deleteFrom('member.pushSubscriptions').where('memberId', '=', memberId).execute()
 
     const now = new Date()
+
+    // Snapshot pre-removal state as a single JSON blob so it can be accurately restored
+    const preRemovalSnapshot: PreRemovalSnapshot | null = currentMember
+      ? {
+          memberType: currentMember.memberType as MIKMemberTypes,
+          canMakeReservations: currentMember.canMakeReservations,
+          autoRenewAnnualMembership: currentMember.autoRenewAnnualMembership,
+          autoRenewEquipmentFee: currentMember.autoRenewEquipmentFee,
+        }
+      : null
 
     // Update member status to REMOVED and revoke permissions
     await txn
@@ -854,6 +888,7 @@ export async function deactivateMember(
         removedAt: now,
         removedBy: removedBy,
         removalReason: reason ?? null,
+        preRemovalSnapshot,
         ...auditUpdate(removedBy, now),
       })
       .where('memberId', '=', memberId)
@@ -863,25 +898,80 @@ export async function deactivateMember(
 
 /**
  * Restore a member from REMOVED status
- * This changes their status back but does not restore roles (must be done separately)
+ * Restores member_type, permissions, and auto-renew flags from pre-removal snapshot
+ * Roles are NOT restored and must be re-assigned manually
  */
 export async function restoreMember(memberId: string, restoredBy: string): Promise<Member> {
   const now = new Date()
 
-  const member = await db
-    .updateTable('member.register')
-    .set({
-      memberType: MIKMemberTypes.FLYING, // Default to FLYING, admin can change later
-      removedAt: null,
-      removedBy: null,
-      removalReason: null,
-      ...auditUpdate(restoredBy, now),
-    })
-    .where('memberId', '=', memberId)
-    .returningAll()
-    .executeTakeFirstOrThrow()
+  const member = await db.transaction().execute(async (txn) => {
+    // First, fetch the snapshot to restore
+    const row = await txn
+      .selectFrom('member.register')
+      .select(['preRemovalSnapshot'])
+      .where('memberId', '=', memberId)
+      .forUpdate()
+      .executeTakeFirst()
+
+    const snapshot = row?.preRemovalSnapshot as PreRemovalSnapshot | null
+
+    return await txn
+      .updateTable('member.register')
+      .set({
+        // Restore member type from snapshot, or default to FLYING if no snapshot exists (legacy data)
+        memberType: snapshot?.memberType ?? MIKMemberTypes.FLYING,
+        // Restore permissions and flags from snapshot, defaulting to true/true/false if no snapshot
+        canMakeReservations: snapshot?.canMakeReservations ?? true,
+        autoRenewAnnualMembership: snapshot?.autoRenewAnnualMembership ?? true,
+        autoRenewEquipmentFee: snapshot?.autoRenewEquipmentFee ?? false,
+        // Clear removal tracking fields
+        removedAt: null,
+        removedBy: null,
+        removalReason: null,
+        // Clear the snapshot now that it's been applied
+        preRemovalSnapshot: null,
+        ...auditUpdate(restoredBy, now),
+      })
+      .where('memberId', '=', memberId)
+      .returningAll()
+      .executeTakeFirstOrThrow()
+  })
 
   return toMember(member, [])
+}
+
+/**
+ * Check if a member had their current-year fee credited when they were removed.
+ * Returns true if there's a SYNCED CREDIT_NOTE outbox event for the member's
+ * current-year annual or joining fee invoice.
+ */
+export async function wasMemberFeeCredited(memberId: string): Promise<boolean> {
+  const currentYear = new Date().getFullYear()
+
+  // Get the member's current-year fee invoice ID (annual or joining fee)
+  const feeInvoice = await db
+    .selectFrom('member.annualFees')
+    .select('member.annualFees.invoiceId')
+    .where('member.annualFees.memberId', '=', memberId)
+    .where('member.annualFees.year', '=', currentYear)
+    .where('member.annualFees.feeType', '=', 'annual_fee')
+    .orderBy('member.annualFees.createdAt', 'desc')
+    .executeTakeFirst()
+
+  if (!feeInvoice) {
+    return false
+  }
+
+  // Check if there's a SYNCED credit note for this invoice
+  const creditNote = await db
+    .selectFrom('accts.outboxSimplbooks')
+    .select('accts.outboxSimplbooks.id')
+    .where('accts.outboxSimplbooks.eventType', '=', 'creditNote')
+    .where('accts.outboxSimplbooks.status', '=', 'SYNCED')
+    .where(sql`accts.outbox_simplbooks.payload->>'invoiceId'`, '=', String(feeInvoice.invoiceId))
+    .executeTakeFirst()
+
+  return creditNote !== undefined
 }
 
 /**

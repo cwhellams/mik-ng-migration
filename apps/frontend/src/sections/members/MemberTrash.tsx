@@ -1,7 +1,7 @@
 import { Box, TextField, InputAdornment, Stack, Chip, Button } from '@mui/material'
 import { Link } from 'react-router'
 import useApi from '../../hooks/useApi'
-import { Member, MemberListResponse } from '@mik/contracts/members'
+import { Member, MemberListResponse, RestoreMemberResponse } from '@mik/contracts/members'
 import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'
 import { t } from 'i18next'
@@ -36,18 +36,33 @@ const MemberTrash = () => {
       return
     }
 
-    const { error } = await mutation.trigger(
-      'POST',
-      {},
-      absolute(endpoints.members.restore(memberId)),
-    )
+    const { error, data: restoreResponse } = await mutation.trigger<
+      Record<string, never>,
+      RestoreMemberResponse
+    >('POST', {}, absolute(endpoints.members.restore(memberId)))
     if (error) {
       return setProblem(error)
     }
 
+    // Build success message with warnings
+    let successMessage = t('member.restoredSuccessMessage')
+
+    if (restoreResponse?.hadCreditedFee) {
+      successMessage +=
+        '\n\n' +
+        t(
+          'member.restoreCreditNoteWarning',
+          "⚠️ This member's annual/joining fee was credited when they were removed. You may need to invoice them again for the current year.",
+        )
+    }
+
+    successMessage +=
+      '\n\n' +
+      t('member.restoreRolesWarning', '⚠️ Roles were cleared and must be re-assigned manually.')
+
     setProblem({
       status: 200,
-      detail: t('member.restoredSuccessMessage'),
+      detail: successMessage,
     })
 
     // Refresh the list

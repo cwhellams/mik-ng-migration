@@ -294,6 +294,8 @@
     "restore": "Palauta",
     "restoreConfirmMessage": "Haluatko varmasti palauttaa tämän jäsenen?",
     "restoredSuccessMessage": "Jäsen on palautettu onnistuneesti",
+    "restoreCreditNoteWarning": "⚠️ Tämän jäsenen vuosi-/liittymismaksu hyvitettiin poiston yhteydessä. Jäsen saattaa tarvita uuden laskun kuluvalle vuodelle.",
+    "restoreRolesWarning": "⚠️ Roolit tyhjennettiin ja ne on asetettava uudelleen manuaalisesti.",
     "deactivate": "Poista jäsenyys",
     "deactivateConfirmMessage": "Haluatko varmasti poistaa jäsenen {{name}}?",
     "deactivatedSuccessMessage": "Jäsenyys on poistettu onnistuneesti",

@@ -27,7 +27,13 @@ import {
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import dayjs from 'dayjs'
-import { Member, MemberListResponse, MIKLang, MIKMemberTypes } from '@mik/contracts/members'
+import {
+  Member,
+  MemberListResponse,
+  MIKLang,
+  MIKMemberTypes,
+  RestoreMemberResponse,
+} from '@mik/contracts/members'
 import { InvoiceListResponse } from '@mik/contracts/invoicing'
 import { FlightLogListResponse } from '@mik/contracts/flight-log'
 import { BookingListResponse, BookingFilters } from '@mik/contracts/bookings'
@@ -172,6 +178,45 @@ const MemberProfile = () => {
     })
 
     navigate('/club/')
+  }
+
+  const handleRestore = async () => {
+    const confirmMessage = t('member.restoreConfirmMessage')
+
+    if (!globalThis.confirm(confirmMessage)) {
+      return
+    }
+
+    const { error, data: restoreResponse } = await mutation.trigger<
+      undefined,
+      RestoreMemberResponse
+    >('POST', undefined, 'restore')
+    if (error) {
+      return setProblem(error)
+    }
+
+    // Build success message with warnings
+    let successMessage = t('member.restoredSuccessMessage')
+
+    if (restoreResponse?.hadCreditedFee) {
+      successMessage +=
+        '\n\n' +
+        t(
+          'member.restoreCreditNoteWarning',
+          "⚠️ This member's annual/joining fee was credited when they were removed. You may need to invoice them again for the current year.",
+        )
+    }
+
+    successMessage +=
+      '\n\n' +
+      t('member.restoreRolesWarning', '⚠️ Roles were cleared and must be re-assigned manually.')
+
+    setProblem({
+      status: 200,
+      detail: successMessage,
+    })
+
+    mutate((key) => Array.isArray(key) && key[0] == endpoints.members.byId(memberId))
   }
 
   const handleCancelMembership = async () => {
@@ -886,6 +931,21 @@ const MemberProfile = () => {
                   sx={{ mr: 2 }}
                 >
                   {t('member.deactivate', 'Deactivate Member')}
+                </Button>
+              </>
+            )}
+            {isAdmin && data && isRemoved && (
+              <>
+                <Button
+                  color='success'
+                  variant='outlined'
+                  onClick={() => handleRestore()}
+                  loadingPosition='start'
+                  loading={mutation.isMutating}
+                  startIcon={<Icon icon='mdi:account-reactivate' />}
+                  sx={{ mr: 2 }}
+                >
+                  {t('member.restore', 'Restore Member')}
                 </Button>
               </>
             )}

@@ -295,6 +295,8 @@
     "restore": "Restore",
     "restoreConfirmMessage": "Are you sure you want to restore this member?",
     "restoredSuccessMessage": "Member has been successfully restored",
+    "restoreCreditNoteWarning": "⚠️ This member's annual/joining fee was credited when they were removed. You may need to invoice them again for the current year.",
+    "restoreRolesWarning": "⚠️ Roles were cleared and must be re-assigned manually.",
     "deactivate": "Deactivate Member",
     "deactivateConfirmMessage": "Are you sure you want to deactivate {{name}}?",
     "deactivatedSuccessMessage": "Member has been successfully deactivated",

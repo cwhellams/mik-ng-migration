@@ -21,6 +21,7 @@ import {
   restoreMember,
   hasMemberFlownBillableFlightInYear,
   getUnpaidMembershipFeesForYear,
+  wasMemberFeeCredited,
 } from '../../src/db/member-queries.ts'
 import { db } from '../../src/db/connection.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
@@ -28,6 +29,8 @@ import { MIKLang, MIKMemberTypes, MIKPermissions, type MemberRole } from '@mik/c
 import type { Upsert } from '@mik/contracts/schema'
 import { deleteSimplbooksOutbox } from './__helpers__/simplbooksDbHelpers.ts'
 import { MIKInvoiceType } from '@mik/contracts/invoicing'
+import { randomUUID } from 'crypto'
+import { SimplbooksEventType } from '../../src/services/simplbooks/models.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
@@ -582,9 +585,149 @@ describe('Deactivate and Restore Member Tests', () => {
     const deactivatedMember = await getMemberById(memberId)
     expect(deactivatedMember?.memberType).toBe(MIKMemberTypes.REMOVED)
 
-    // Then restore - note: canMakeReservations is not automatically restored
+    // Then restore - should restore to original type (FLYING) and the exact
+    // pre-removal flags, not defaults. canMakeReservations defaults to false
+    // for a newly added member until an admin enables it.
     const restored = await restoreMember(memberId, jwt.memberId)
     expect(restored.memberType).toBe(MIKMemberTypes.FLYING)
+    expect(restored.canMakeReservations).toBe(false)
+    expect(restored.autoRenewAnnualMembership).toBe(true)
+    expect(restored.autoRenewEquipmentFee).toBe(false)
+
+    await removeMember(memberId)
+  })
+
+  it('should restore JUNIOR member to JUNIOR type, not FLYING', async () => {
+    const email = `${new Date().getTime()}@restore-junior.com`
+    const memberId = await addMember({
+      memberType: MIKMemberTypes.JUNIOR,
+      email,
+      firstName: 'Junior',
+      lastName: 'Test',
+      lang: MIKLang.EN,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+    })
+
+    // Verify initial type
+    const beforeMember = await getMemberById(memberId)
+    expect(beforeMember?.memberType).toBe(MIKMemberTypes.JUNIOR)
+
+    // Deactivate
+    await deactivateMember(memberId, jwt.memberId)
+    const deactivatedMember = await getMemberById(memberId)
+    expect(deactivatedMember?.memberType).toBe(MIKMemberTypes.REMOVED)
+
+    // Restore - should return to JUNIOR, not FLYING
+    const restored = await restoreMember(memberId, jwt.memberId)
+    expect(restored.memberType).toBe(MIKMemberTypes.JUNIOR)
+
+    await removeMember(memberId)
+  })
+
+  it('should restore HONORARY member to HONORARY type, not FLYING', async () => {
+    const email = `${new Date().getTime()}@restore-honorary.com`
+    const memberId = await addMember({
+      memberType: MIKMemberTypes.HONORARY,
+      email,
+      firstName: 'Honorary',
+      lastName: 'Test',
+      lang: MIKLang.SV,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+    })
+
+    // Verify initial type
+    const beforeMember = await getMemberById(memberId)
+    expect(beforeMember?.memberType).toBe(MIKMemberTypes.HONORARY)
+
+    // Deactivate
+    await deactivateMember(memberId, jwt.memberId)
+    const deactivatedMember = await getMemberById(memberId)
+    expect(deactivatedMember?.memberType).toBe(MIKMemberTypes.REMOVED)
+
+    // Restore - should return to HONORARY, not FLYING
+    const restored = await restoreMember(memberId, jwt.memberId)
+    expect(restored.memberType).toBe(MIKMemberTypes.HONORARY)
+
+    await removeMember(memberId)
+  })
+
+  it('should restore member with auto-renew flags preserved', async () => {
+    const email = `${new Date().getTime()}@restore-autorenew.com`
+    const memberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email,
+      firstName: 'AutoRenew',
+      lastName: 'Test',
+      lang: MIKLang.EN,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+    })
+
+    // Set auto-renew flags
+    await updateMember(
+      memberId,
+      {
+        autoRenewAnnualMembership: false,
+        autoRenewEquipmentFee: true,
+      },
+      jwt,
+    )
+
+    const beforeMember = await getMemberById(memberId)
+    expect(beforeMember?.autoRenewAnnualMembership).toBe(false)
+    expect(beforeMember?.autoRenewEquipmentFee).toBe(true)
+
+    // Deactivate and restore
+    await deactivateMember(memberId, jwt.memberId)
+    const restored = await restoreMember(memberId, jwt.memberId)
+
+    // Flags should be restored
+    expect(restored.autoRenewAnnualMembership).toBe(false)
+    expect(restored.autoRenewEquipmentFee).toBe(true)
+
+    await removeMember(memberId)
+  })
+
+  it('should restore member with can_make_reservations flag preserved', async () => {
+    const email = `${new Date().getTime()}@restore-reservations.com`
+    const memberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email,
+      firstName: 'Reservations',
+      lastName: 'Test',
+      lang: MIKLang.EN,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+    })
+
+    // Disable reservations
+    await updateMember(
+      memberId,
+      {
+        canMakeReservations: false,
+      },
+      jwt,
+    )
+
+    const beforeMember = await getMemberById(memberId)
+    expect(beforeMember?.canMakeReservations).toBe(false)
+
+    // Deactivate and restore
+    await deactivateMember(memberId, jwt.memberId)
+    const restored = await restoreMember(memberId, jwt.memberId)
+
+    // Flag should be restored
+    expect(restored.canMakeReservations).toBe(false)
 
     await removeMember(memberId)
   })
@@ -769,5 +912,109 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
 
     await db.deleteFrom('member.annualFees').where('invoiceId', '=', INV_EQUIP).execute()
     await db.deleteFrom('accts.invoice').where('id', '=', String(INV_EQUIP)).execute()
+  })
+})
+
+describe('wasMemberFeeCredited Tests', () => {
+  const currentYear = new Date().getFullYear()
+  let testMemberId: string
+  let invoiceId: string
+
+  beforeAll(async () => {
+    testMemberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email: `${Date.now()}@creditnote.test`,
+      firstName: 'CreditNote',
+      lastName: 'Test',
+      lang: MIKLang.EN,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+    })
+  })
+
+  afterAll(async () => {
+    await deleteSimplbooksOutbox()
+    await db.deleteFrom('member.annualFees').where('memberId', '=', testMemberId).execute()
+    await db.deleteFrom('accts.invoice').where('memberId', '=', testMemberId).execute()
+    await removeMember(testMemberId)
+  })
+
+  it('should return false when member has no current-year fee invoice', async () => {
+    const result = await wasMemberFeeCredited(testMemberId)
+    expect(result).toBe(false)
+  })
+
+  it('should return false when member has current-year fee but no credit note', async () => {
+    // Create invoice and annual_fees record
+    const invoiceResult = await db
+      .insertInto('accts.invoice')
+      .values({
+        id: '999999',
+        memberId: testMemberId,
+        invoiceType: MIKInvoiceType.ANNUAL_FEE,
+        pmtRef: 'TEST-999999',
+        dueAt: `${currentYear}-12-31`,
+        createdBy: jwt.memberId,
+        updatedBy: jwt.memberId,
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+
+    invoiceId = String(invoiceResult.id)
+
+    await db
+      .insertInto('member.annualFees')
+      .values({
+        memberId: testMemberId,
+        year: currentYear,
+        feeType: 'annual_fee',
+        invoiceId: Number(invoiceId),
+        createdBy: jwt.memberId,
+        updatedBy: jwt.memberId,
+      })
+      .execute()
+
+    const result = await wasMemberFeeCredited(testMemberId)
+    expect(result).toBe(false)
+  })
+
+  it('should return false when credit note is PENDING, not SYNCED', async () => {
+    // Create a PENDING credit note outbox row
+    await db
+      .insertInto('accts.outboxSimplbooks')
+      .values({
+        id: randomUUID(),
+        eventType: SimplbooksEventType.CREDIT_NOTE,
+        payload: JSON.stringify({ invoiceId }),
+        createdAtUtc: new Date(),
+        updatedAtUtc: new Date(),
+        status: 'PENDING',
+      })
+      .execute()
+
+    const result = await wasMemberFeeCredited(testMemberId)
+    expect(result).toBe(false)
+
+    await deleteSimplbooksOutbox()
+  })
+
+  it('should return true when member has SYNCED credit note for current-year fee', async () => {
+    // Create a SYNCED credit note outbox row
+    await db
+      .insertInto('accts.outboxSimplbooks')
+      .values({
+        id: randomUUID(),
+        eventType: SimplbooksEventType.CREDIT_NOTE,
+        payload: JSON.stringify({ invoiceId }),
+        createdAtUtc: new Date(),
+        updatedAtUtc: new Date(),
+        status: 'SYNCED',
+      })
+      .execute()
+
+    const result = await wasMemberFeeCredited(testMemberId)
+    expect(result).toBe(true)
   })
 })

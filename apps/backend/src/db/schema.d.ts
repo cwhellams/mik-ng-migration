@@ -1525,6 +1525,10 @@ export interface MemberRegister {
   phoneCountry: Generated<string>
   phoneNumber: string | null
   postcode: string | null
+  /**
+   * JSON snapshot of member state (memberType, canMakeReservations, autoRenewAnnualMembership, autoRenewEquipmentFee) taken before deactivation, used to accurately restore the member. Cleared on restore.
+   */
+  preRemovalSnapshot: Json | null
   removalReason: string | null
   removedAt: Timestamp | null
   removedBy: string | null

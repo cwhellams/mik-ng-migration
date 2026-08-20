@@ -1686,6 +1686,47 @@ describe('POST /members/:memberId/restore', () => {
       .set('Cookie', `accessToken=${memberToken}`)
     expect(response.status).toBe(HttpStatusCode.Forbidden)
   })
+
+  it('should return RestoreMemberResponse with member and hadCreditedFee flag', async () => {
+    // Create a member and deactivate them
+    const email = `restore-test-${Date.now()}@test.com`
+    const memberId = await addMember({
+      memberType: MIKMemberTypes.JUNIOR,
+      email,
+      firstName: 'RestoreTest',
+      lastName: 'Member',
+      lang: MIKLang.EN,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+    })
+
+    // Deactivate the member
+    await request(app)
+      .post(`/members/${memberId}/deactivate`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ reason: 'Test deactivation' })
+
+    // Restore the member
+    const response = await request(app)
+      .post(`/members/${memberId}/restore`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('member')
+    expect(response.body).toHaveProperty('hadCreditedFee')
+    expect(response.body.member.memberId).toBe(memberId)
+    expect(response.body.member.memberType).toBe(MIKMemberTypes.JUNIOR)
+    expect(response.body.hadCreditedFee).toBe(false)
+
+    // Clean up. The deactivate call above fires a best-effort, non-awaited
+    // insert into member.nonRenewalActions after responding (see
+    // POST /:memberId/deactivate), so delete that row first or the register
+    // delete trips its FK constraint.
+    await db.deleteFrom('member.nonRenewalActions').where('memberId', '=', memberId).execute()
+    await db.deleteFrom('member.register').where('memberId', '=', memberId).execute()
+  })
 })
 
 describe('POST /members/:memberId/deactivate', () => {

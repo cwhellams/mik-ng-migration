@@ -295,6 +295,8 @@
     "restore": "Återställ",
     "restoreConfirmMessage": "Är du säker på att du vill återställa denna medlem?",
     "restoredSuccessMessage": "Medlemmen har återställts framgångsrikt",
+    "restoreCreditNoteWarning": "⚠️ Denna medlems års-/anslutningsavgift krediterades när de togs bort. Du kan behöva fakturera dem igen för innevarande år.",
+    "restoreRolesWarning": "⚠️ Roller rensades och måste tilldelas manuellt.",
     "deactivate": "Inaktivera medlem",
     "deactivateConfirmMessage": "Är du säker på att du vill inaktivera {{name}}?",
     "deactivatedSuccessMessage": "Medlemmen har inaktiverats framgångsrikt",

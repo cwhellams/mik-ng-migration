@@ -639,3 +639,10 @@ export const MemberDeletabilitySchema = z.object({
 })
 
 export type MemberDeletability = z.infer<typeof MemberDeletabilitySchema>
+
+export const RestoreMemberResponseSchema = z.object({
+  member: MemberSchema,
+  hadCreditedFee: z.boolean(),
+})
+
+export type RestoreMemberResponse = z.infer<typeof RestoreMemberResponseSchema>
