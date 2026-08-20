@@ -24,6 +24,13 @@ import { Icon } from '@iconify/react'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router'
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  type DraggableProvided,
+  type DropResult,
+} from '@hello-pangea/dnd'
 import { Title } from '../../../components/Title'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
@@ -45,6 +52,14 @@ import {
   getPreferredExamLanguage,
   type ExamLanguage,
 } from '../../exams/language'
+import {
+  CHOICE_DRAG_TYPE,
+  QUESTION_DRAG_TYPE,
+  QUESTIONS_DROPPABLE_ID,
+  choicesDroppableId,
+  commitReorder,
+  reorderIntentFromDrop,
+} from './reorder'
 
 interface LangFieldsProps {
   label: string
@@ -103,6 +118,8 @@ function LangFields({ label, languages, values, multiline, onChange }: Readonly<
 interface ChoiceEditorProps {
   questionId: string
   choice: ChoiceDetail | null
+  /** Where a brand-new choice lands: the end of the question's current list. */
+  nextSortOrder: number
   languages: ExamLanguage[]
   onClose: () => void
   onSaved: () => void
@@ -111,6 +128,7 @@ interface ChoiceEditorProps {
 function ChoiceEditor({
   questionId,
   choice,
+  nextSortOrder,
   languages,
   onClose,
   onSaved,
@@ -123,7 +141,6 @@ function ChoiceEditor({
     >,
   )
   const [isCorrect, setIsCorrect] = useState(choice?.isCorrect ?? false)
-  const [sortOrder, setSortOrder] = useState(choice?.sortOrder ?? 0)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -134,7 +151,9 @@ function ChoiceEditor({
       await adminUpsertChoice(questionId, {
         choiceId: choice?.choiceId,
         isCorrect,
-        sortOrder,
+        // Order is set by dragging the list, never typed here, so an edit keeps the
+        // position the choice already has.
+        sortOrder: choice?.sortOrder ?? nextSortOrder,
         translations: Object.fromEntries(languages.map((l) => [l, { text: text[l] }])) as Record<
           string,
           { text: string }
@@ -163,22 +182,10 @@ function ChoiceEditor({
           values={text}
           onChange={(l, v) => setText((prev) => ({ ...prev, [l]: v }))}
         />
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <FormControlLabel
-            control={
-              <Switch checked={isCorrect} onChange={(e) => setIsCorrect(e.target.checked)} />
-            }
-            label={t('exams.admin.isCorrect')}
-          />
-          <TextField
-            label={t('exams.admin.sortOrder')}
-            type='number'
-            size='small'
-            value={sortOrder}
-            onChange={(e) => setSortOrder(Number(e.target.value))}
-            sx={{ width: 120 }}
-          />
-        </Box>
+        <FormControlLabel
+          control={<Switch checked={isCorrect} onChange={(e) => setIsCorrect(e.target.checked)} />}
+          label={t('exams.admin.isCorrect')}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('common.cancel')}</Button>
@@ -190,11 +197,65 @@ function ChoiceEditor({
   )
 }
 
+interface ChoiceRowProps {
+  choice: ChoiceDetail
+  languages: ExamLanguage[]
+  dragHandle?: DraggableProvided['dragHandleProps']
+  dragLabel: string
+  onEdit: () => void
+  onDelete: () => void
+}
+
+function ChoiceRow({
+  choice,
+  languages,
+  dragHandle,
+  dragLabel,
+  onEdit,
+  onDelete,
+}: Readonly<ChoiceRowProps>) {
+  const choiceLanguage = getPreferredExamLanguage(
+    'en',
+    { supportedLanguages: languages, defaultLanguage: languages[0] },
+    Object.keys(choice.translations),
+  )
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+      {dragHandle && (
+        <Box {...dragHandle} aria-label={dragLabel} sx={{ display: 'flex', cursor: 'grab' }}>
+          <Icon icon='mdi:drag' />
+        </Box>
+      )}
+      {choice.isCorrect ? (
+        <Icon icon='mdi:check-circle' color='green' />
+      ) : (
+        <Icon icon='mdi:circle-outline' />
+      )}
+      <Typography variant='body2' sx={{ flex: 1 }}>
+        {choiceLanguage ? (choice.translations[choiceLanguage]?.text ?? '') : ''}
+      </Typography>
+      <IconButton size='small' onClick={onEdit}>
+        <Icon icon='mdi:pencil' />
+      </IconButton>
+      <IconButton size='small' color='error' onClick={onDelete}>
+        <Icon icon='mdi:delete' />
+      </IconButton>
+    </Box>
+  )
+}
+
 interface QuestionCardProps {
   versionId: string
   question: QuestionDetail
   index: number
   languages: ExamLanguage[]
+  /**
+   * Present only on a DRAFT, where the card sits inside the page's
+   * `DragDropContext` — which is also the only place its choices may be a
+   * `Droppable`. Published versions get neither: the backend rejects the edit.
+   */
+  drag?: DraggableProvided
   onChanged: () => void
 }
 
@@ -203,6 +264,7 @@ function QuestionCard({
   question,
   index,
   languages,
+  drag,
   onChanged,
 }: Readonly<QuestionCardProps>) {
   const { t } = useTranslation()
@@ -267,14 +329,28 @@ function QuestionCard({
     }
   }
 
+  const choiceRow = (choice: ChoiceDetail, dragHandle?: DraggableProvided['dragHandleProps']) => (
+    <ChoiceRow
+      choice={choice}
+      languages={languages}
+      dragHandle={dragHandle}
+      dragLabel={t('exams.admin.reorderChoice')}
+      onEdit={() => setEditingChoice(choice)}
+      onDelete={() => handleDeleteChoice(choice.choiceId)}
+    />
+  )
+
   return (
     <Box
+      ref={drag?.innerRef}
+      {...drag?.draggableProps}
       sx={{
         border: '1px solid',
         borderColor: 'divider',
         borderRadius: 1,
         p: 2,
         mb: 2,
+        bgcolor: 'background.paper',
       }}
     >
       <Box
@@ -285,14 +361,25 @@ function QuestionCard({
           mb: 1,
         }}
       >
-        <Typography
-          variant='subtitle1'
-          sx={{
-            fontWeight: 'bold',
-          }}
-        >
-          {t('exams.questionNumber', { n: index + 1 })}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {drag && (
+            <Box
+              {...drag.dragHandleProps}
+              aria-label={t('exams.admin.reorderQuestion', { n: index + 1 })}
+              sx={{ display: 'flex', cursor: 'grab' }}
+            >
+              <Icon icon='mdi:drag' />
+            </Box>
+          )}
+          <Typography
+            variant='subtitle1'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
+            {t('exams.questionNumber', { n: index + 1 })}
+          </Typography>
+        </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <IconButton size='small' onClick={() => setEditingQuestion(!editingQuestion)}>
             <Icon icon='mdi:pencil' />
@@ -353,40 +440,25 @@ function QuestionCard({
       >
         {t('exams.admin.choices')}
       </Typography>
-      {question.choices.map((choice) =>
-        (() => {
-          const choiceLanguage = getPreferredExamLanguage(
-            'en',
-            { supportedLanguages: languages, defaultLanguage: languages[0] },
-            Object.keys(choice.translations),
-          )
-
-          return (
-            <Box
-              key={choice.choiceId}
-              sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}
-            >
-              {choice.isCorrect ? (
-                <Icon icon='mdi:check-circle' color='green' />
-              ) : (
-                <Icon icon='mdi:circle-outline' />
-              )}
-              <Typography variant='body2' sx={{ flex: 1 }}>
-                {choiceLanguage ? (choice.translations[choiceLanguage]?.text ?? '') : ''}
-              </Typography>
-              <IconButton size='small' onClick={() => setEditingChoice(choice)}>
-                <Icon icon='mdi:pencil' />
-              </IconButton>
-              <IconButton
-                size='small'
-                color='error'
-                onClick={() => handleDeleteChoice(choice.choiceId)}
-              >
-                <Icon icon='mdi:delete' />
-              </IconButton>
+      {drag ? (
+        <Droppable droppableId={choicesDroppableId(question.questionId)} type={CHOICE_DRAG_TYPE}>
+          {(dropProvided) => (
+            <Box ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
+              {question.choices.map((choice, choiceIndex) => (
+                <Draggable key={choice.choiceId} draggableId={choice.choiceId} index={choiceIndex}>
+                  {(dragProvided) => (
+                    <Box ref={dragProvided.innerRef} {...dragProvided.draggableProps}>
+                      {choiceRow(choice, dragProvided.dragHandleProps)}
+                    </Box>
+                  )}
+                </Draggable>
+              ))}
+              {dropProvided.placeholder}
             </Box>
-          )
-        })(),
+          )}
+        </Droppable>
+      ) : (
+        question.choices.map((choice) => <Box key={choice.choiceId}>{choiceRow(choice)}</Box>)
       )}
       <Button
         startIcon={<Icon icon='mdi:plus' />}
@@ -400,6 +472,7 @@ function QuestionCard({
         <ChoiceEditor
           questionId={question.questionId}
           choice={editingChoice === 'new' ? null : editingChoice}
+          nextSortOrder={question.choices.length}
           languages={languages}
           onClose={() => setEditingChoice(null)}
           onSaved={() => {
@@ -438,12 +511,19 @@ export default function ExamVersionEditorPage() {
     supportedLanguages: ExamLanguage[]
     passPercent: number
     questionCount: number | null
+    randomizeQuestionOrder: boolean
   } | null>(null)
   const [savingVersionSettings, setSavingVersionSettings] = useState(false)
   const [versionSettingsError, setVersionSettingsError] = useState<string | null>(null)
+  // Holds the dragged-to order while the reorder request is in flight, so the list
+  // doesn't snap back to the server's order for the duration of the round trip.
+  const [pendingQuestions, setPendingQuestions] = useState<QuestionDetail[] | null>(null)
+  const [reorderError, setReorderError] = useState<string | null>(null)
   const versionLanguages = version
     ? getConfiguredExamLanguages(version, Object.keys(version.translations))
     : []
+  const isDraft = version?.status === 'DRAFT'
+  const questions = pendingQuestions ?? version?.questions ?? []
 
   useEffect(() => {
     if (!version) return
@@ -469,6 +549,7 @@ export default function ExamVersionEditorPage() {
       supportedLanguages,
       passPercent: version.passPercent,
       questionCount: version.questionCount ?? null,
+      randomizeQuestionOrder: version.randomizeQuestionOrder,
     })
   }, [version])
 
@@ -505,6 +586,7 @@ export default function ExamVersionEditorPage() {
         supportedLanguages: versionSettings.supportedLanguages,
         passPercent: versionSettings.passPercent,
         questionCount: versionSettings.questionCount,
+        randomizeQuestionOrder: versionSettings.randomizeQuestionOrder,
       })
       await mutate()
     } catch {
@@ -524,6 +606,31 @@ export default function ExamVersionEditorPage() {
       >,
     })
     await mutate()
+  }
+
+  const handleDragEnd = async (result: DropResult) => {
+    if (!versionId) return
+    const intent = reorderIntentFromDrop(result, questions)
+    if (!intent) return
+
+    setReorderError(null)
+    setPendingQuestions(
+      intent.kind === 'questions'
+        ? intent.questions
+        : questions.map((q) =>
+            q.questionId === intent.questionId ? { ...q, choices: intent.choices } : q,
+          ),
+    )
+    try {
+      await commitReorder(intent, versionId)
+    } catch {
+      setReorderError(t('exams.admin.reorderFailed'))
+    } finally {
+      // Either way the server is now the authority: a success confirms the new
+      // order, a failure discards the optimistic one.
+      await mutate()
+      setPendingQuestions(null)
+    }
   }
 
   return (
@@ -552,7 +659,7 @@ export default function ExamVersionEditorPage() {
               />
             </Box>
 
-            {version.status === 'DRAFT' && versionSettings && (
+            {isDraft && versionSettings && (
               <>
                 <Typography variant='h6' gutterBottom>
                   {t('exams.admin.versionSettings')}
@@ -642,6 +749,27 @@ export default function ExamVersionEditorPage() {
                     htmlInput: { min: 0, max: 100 },
                   }}
                 />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={versionSettings.randomizeQuestionOrder}
+                      onChange={(e) =>
+                        setVersionSettings((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                randomizeQuestionOrder: e.target.checked,
+                              }
+                            : prev,
+                        )
+                      }
+                    />
+                  }
+                  label={t('exams.admin.randomizeQuestionOrder')}
+                />
+                <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
+                  {t('exams.admin.randomizeQuestionOrderHelp')}
+                </Typography>
                 <TextField
                   label={t('exams.admin.questionCount')}
                   type='number'
@@ -656,9 +784,16 @@ export default function ExamVersionEditorPage() {
                         : prev,
                     )
                   }
+                  // A fixed-order exam is the whole authored set, so drawing a random
+                  // subset of it is not one of the two modes the backend supports.
+                  disabled={!versionSettings.randomizeQuestionOrder}
                   fullWidth
-                  sx={{ mb: 2 }}
-                  helperText={t('exams.admin.questionCountHelp')}
+                  sx={{ mt: 2, mb: 2 }}
+                  helperText={
+                    versionSettings.randomizeQuestionOrder
+                      ? t('exams.admin.questionCountHelp')
+                      : t('exams.admin.questionCountRandomOnly')
+                  }
                   slotProps={{
                     htmlInput: { min: 1 },
                   }}
@@ -742,9 +877,9 @@ export default function ExamVersionEditorPage() {
               }}
             >
               <Typography variant='h6'>
-                {t('exams.admin.questions')} ({version.questions.length})
+                {t('exams.admin.questions')} ({questions.length})
               </Typography>
-              {version.status === 'DRAFT' && (
+              {isDraft && (
                 <Button
                   variant='contained'
                   startIcon={<Icon icon='mdi:plus' />}
@@ -755,16 +890,54 @@ export default function ExamVersionEditorPage() {
               )}
             </Box>
 
-            {version.questions.map((q, idx) => (
-              <QuestionCard
-                key={q.questionId}
-                versionId={version.versionId}
-                question={q}
-                index={idx}
-                languages={versionLanguages}
-                onChanged={() => mutate()}
-              />
-            ))}
+            {reorderError && (
+              <Alert severity='error' sx={{ mb: 2 }} onClose={() => setReorderError(null)}>
+                {reorderError}
+              </Alert>
+            )}
+
+            {isDraft && (questions.length > 1 || questions.some((q) => q.choices.length > 1)) && (
+              <Alert severity='info' sx={{ mb: 2 }}>
+                {t('exams.admin.reorderHint')}
+              </Alert>
+            )}
+
+            {isDraft ? (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId={QUESTIONS_DROPPABLE_ID} type={QUESTION_DRAG_TYPE}>
+                  {(dropProvided) => (
+                    <Box ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
+                      {questions.map((q, idx) => (
+                        <Draggable key={q.questionId} draggableId={q.questionId} index={idx}>
+                          {(dragProvided) => (
+                            <QuestionCard
+                              versionId={version.versionId}
+                              question={q}
+                              index={idx}
+                              languages={versionLanguages}
+                              drag={dragProvided}
+                              onChanged={() => mutate()}
+                            />
+                          )}
+                        </Draggable>
+                      ))}
+                      {dropProvided.placeholder}
+                    </Box>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            ) : (
+              questions.map((q, idx) => (
+                <QuestionCard
+                  key={q.questionId}
+                  versionId={version.versionId}
+                  question={q}
+                  index={idx}
+                  languages={versionLanguages}
+                  onChanged={() => mutate()}
+                />
+              ))
+            )}
           </>
         )}
       </RemoteContent>

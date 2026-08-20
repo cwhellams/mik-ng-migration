@@ -90,6 +90,7 @@ export const adminUpdateVersion = (
     supportedLanguages?: string[]
     passPercent?: number
     questionCount?: number | null
+    randomizeQuestionOrder?: boolean
   },
 ): Promise<ExamVersion> => put<ExamVersion>(`admin/versions/${versionId}`, data)
 
@@ -122,6 +123,13 @@ export const adminUpsertQuestion = (
 export const adminDeleteQuestion = (questionId: string): Promise<void> =>
   del(`admin/questions/${questionId}`)
 
+/** Sends the complete new order; `sortOrder` becomes each id's index in the list. */
+export const adminReorderQuestions = (
+  versionId: string,
+  questionIds: string[],
+): Promise<ExamVersionDetail> =>
+  put<ExamVersionDetail>(`admin/versions/${versionId}/questions/order`, { questionIds })
+
 export const adminUpsertChoice = (
   questionId: string,
   data: {
@@ -134,6 +142,12 @@ export const adminUpsertChoice = (
 
 export const adminDeleteChoice = (choiceId: string): Promise<void> =>
   del(`admin/choices/${choiceId}`)
+
+export const adminReorderChoices = (
+  questionId: string,
+  choiceIds: string[],
+): Promise<ExamVersionDetail> =>
+  put<ExamVersionDetail>(`admin/questions/${questionId}/choices/order`, { choiceIds })
 
 export const adminGetAttempts = (params?: Record<string, string>): Promise<AttemptListResponse> =>
   get<AttemptListResponse>('admin/attempts', params)

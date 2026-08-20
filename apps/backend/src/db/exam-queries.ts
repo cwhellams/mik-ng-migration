@@ -191,6 +191,7 @@ export async function getVersionsByExamId(examId: string): Promise<ExamVersion[]
     supportedLanguages: r.supportedLanguages,
     passPercent: Number(r.passPercent),
     questionCount: r.questionCount ?? null,
+    randomizeQuestionOrder: r.randomizeQuestionOrder,
     createdAt: toIso(r.createdAt),
     createdBy: r.createdBy,
     updatedAt: toIso(r.updatedAt),
@@ -214,6 +215,7 @@ export async function getVersionById(versionId: string): Promise<ExamVersion | u
     supportedLanguages: r.supportedLanguages,
     passPercent: Number(r.passPercent),
     questionCount: r.questionCount ?? null,
+    randomizeQuestionOrder: r.randomizeQuestionOrder,
     createdAt: toIso(r.createdAt),
     createdBy: r.createdBy,
     updatedAt: toIso(r.updatedAt),
@@ -343,6 +345,7 @@ export async function createVersion(
         supportedLanguages: data.supportedLanguages ?? [],
         passPercent: data.passPercent ?? 75,
         questionCount: data.questionCount ?? null,
+        randomizeQuestionOrder: data.randomizeQuestionOrder ?? true,
         ...auditCreate(user.memberId, now),
       })
       .execute()
@@ -419,6 +422,9 @@ export async function updateVersion(
       }),
       ...(data.passPercent !== undefined && { passPercent: data.passPercent }),
       ...('questionCount' in data && { questionCount: data.questionCount ?? null }),
+      ...(data.randomizeQuestionOrder !== undefined && {
+        randomizeQuestionOrder: data.randomizeQuestionOrder,
+      }),
       ...auditUpdate(user.memberId),
     })
     .where('versionId', '=', versionId)
@@ -488,6 +494,7 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
         supportedLanguages: data.version.supportedLanguages ?? [],
         passPercent: data.version.passPercent ?? 75,
         questionCount: null,
+        randomizeQuestionOrder: data.version.randomizeQuestionOrder ?? true,
         ...auditCreate(user.memberId, now),
       })
       .execute()
@@ -560,6 +567,8 @@ export async function getVersionByQuestionId(questionId: string): Promise<ExamVe
       'exam.examVersions.defaultLanguage as defaultLanguage',
       'exam.examVersions.supportedLanguages as supportedLanguages',
       'exam.examVersions.passPercent as passPercent',
+      'exam.examVersions.questionCount as questionCount',
+      'exam.examVersions.randomizeQuestionOrder as randomizeQuestionOrder',
       'exam.examVersions.createdAt as createdAt',
       'exam.examVersions.createdBy as createdBy',
       'exam.examVersions.updatedAt as updatedAt',
@@ -577,6 +586,8 @@ export async function getVersionByQuestionId(questionId: string): Promise<ExamVe
     defaultLanguage: row.defaultLanguage,
     supportedLanguages: row.supportedLanguages,
     passPercent: Number(row.passPercent),
+    questionCount: row.questionCount ?? null,
+    randomizeQuestionOrder: row.randomizeQuestionOrder,
     createdAt: toIso(row.createdAt),
     createdBy: row.createdBy,
     updatedAt: toIso(row.updatedAt),
@@ -597,6 +608,8 @@ export async function getVersionByChoiceId(choiceId: string): Promise<ExamVersio
       'exam.examVersions.defaultLanguage as defaultLanguage',
       'exam.examVersions.supportedLanguages as supportedLanguages',
       'exam.examVersions.passPercent as passPercent',
+      'exam.examVersions.questionCount as questionCount',
+      'exam.examVersions.randomizeQuestionOrder as randomizeQuestionOrder',
       'exam.examVersions.createdAt as createdAt',
       'exam.examVersions.createdBy as createdBy',
       'exam.examVersions.updatedAt as updatedAt',
@@ -614,6 +627,8 @@ export async function getVersionByChoiceId(choiceId: string): Promise<ExamVersio
     defaultLanguage: row.defaultLanguage,
     supportedLanguages: row.supportedLanguages,
     passPercent: Number(row.passPercent),
+    questionCount: row.questionCount ?? null,
+    randomizeQuestionOrder: row.randomizeQuestionOrder,
     createdAt: toIso(row.createdAt),
     createdBy: row.createdBy,
     updatedAt: toIso(row.updatedAt),
@@ -700,6 +715,38 @@ export async function deleteQuestion(questionId: string): Promise<void> {
   await db.deleteFrom('exam.questions').where('questionId', '=', questionId).execute()
 }
 
+/**
+ * Rewrites `sort_order` for every question of a version so it matches the position
+ * of its id in `questionIds`. The caller sends the complete list, which is what
+ * makes this idempotent and lets a drag-and-drop reorder be one atomic write
+ * instead of a burst of independent upserts that could interleave.
+ */
+export async function reorderQuestions(versionId: string, questionIds: string[]): Promise<void> {
+  const existing = await db
+    .selectFrom('exam.questions')
+    .select('questionId')
+    .where('versionId', '=', versionId)
+    .execute()
+  const existingIds = new Set(existing.map((q) => q.questionId))
+
+  if (questionIds.length !== existingIds.size || questionIds.some((id) => !existingIds.has(id))) {
+    return problem({
+      status: 400,
+      detail: "Reorder must list every question of this version's pool exactly once",
+    })
+  }
+
+  await db.transaction().execute(async (trx) => {
+    for (const [index, questionId] of questionIds.entries()) {
+      await trx
+        .updateTable('exam.questions')
+        .set({ sortOrder: index })
+        .where('questionId', '=', questionId)
+        .execute()
+    }
+  })
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Choices
 // ─────────────────────────────────────────────────────────────────────────────
@@ -776,6 +823,33 @@ export async function upsertChoice(questionId: string, data: ChoiceUpsert): Prom
 
 export async function deleteChoice(choiceId: string): Promise<void> {
   await db.deleteFrom('exam.choices').where('choiceId', '=', choiceId).execute()
+}
+
+/** The choice-level counterpart of {@link reorderQuestions}. */
+export async function reorderChoices(questionId: string, choiceIds: string[]): Promise<void> {
+  const existing = await db
+    .selectFrom('exam.choices')
+    .select('choiceId')
+    .where('questionId', '=', questionId)
+    .execute()
+  const existingIds = new Set(existing.map((c) => c.choiceId))
+
+  if (choiceIds.length !== existingIds.size || choiceIds.some((id) => !existingIds.has(id))) {
+    return problem({
+      status: 400,
+      detail: 'Reorder must list every choice of this question exactly once',
+    })
+  }
+
+  await db.transaction().execute(async (trx) => {
+    for (const [index, choiceId] of choiceIds.entries()) {
+      await trx
+        .updateTable('exam.choices')
+        .set({ sortOrder: index })
+        .where('choiceId', '=', choiceId)
+        .execute()
+    }
+  })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -900,13 +974,28 @@ export async function createAttempt(
     .selectFrom('exam.questions')
     .select('questionId')
     .where('versionId', '=', versionId)
+    // questionId breaks ties so a fixed-order attempt is reproducible even if two
+    // questions somehow share a sort_order.
+    .orderBy('sortOrder')
+    .orderBy('questionId')
     .execute()
 
-  const shuffled = fisherYatesShuffle(allQuestions.map((q) => q.questionId))
-  const selected =
-    version.questionCount != null && version.questionCount < shuffled.length
-      ? shuffled.slice(0, version.questionCount)
-      : shuffled
+  const questionIds = allQuestions.map((q) => q.questionId)
+
+  // The two presentation modes are mutually exclusive (#855): either the whole pool
+  // in the order the author arranged it, or a shuffle that questionCount may narrow
+  // to a random subset. questionCount is deliberately ignored in fixed order — a
+  // fixed exam is that fixed set of questions, not a random slice of one.
+  let selected: string[]
+  if (version.randomizeQuestionOrder) {
+    const shuffled = fisherYatesShuffle(questionIds)
+    selected =
+      version.questionCount != null && version.questionCount < shuffled.length
+        ? shuffled.slice(0, version.questionCount)
+        : shuffled
+  } else {
+    selected = questionIds
+  }
 
   await db.transaction().execute(async (trx) => {
     await trx
