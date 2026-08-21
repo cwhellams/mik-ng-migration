@@ -23,6 +23,10 @@ Interactive weight and balance calculator for Diamond aircraft flight planning.
 - **Weight Summary**: Real-time display of all weight calculations
 - **Status Indicator**: Color-coded validation (green/yellow/red)
 - **Flight Envelope Chart**: Visual weight and balance envelope with current aircraft position
+- **Responsive layout**: below the `sm` breakpoint (600px) the read-only blocks — disclaimer
+  text, Weight Summary, Aircraft Specifications and Conversion Factors — start collapsed, so
+  the loading inputs are reachable without scrolling (#382). Each stays open once tapped, and
+  from `sm` up they are all open as before.
 
 ### International Support
 

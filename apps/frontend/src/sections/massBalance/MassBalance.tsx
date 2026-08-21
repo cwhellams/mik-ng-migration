@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Typography,
   Paper,
@@ -14,12 +17,16 @@ import {
   Card,
   CardContent,
   Button,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import WarningIcon from '@mui/icons-material/Warning'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useTranslation } from 'react-i18next'
 import { loadAircraftSpecs, AircraftSpecs, CONVERSIONS } from './components/specsParser'
 import WeightBalanceEnvelope from './components/WeightBalanceEnvelope'
 import WeightSlider from './components/WeightSlider'
+import CollapsibleSection from './components/CollapsibleSection'
 import { useMassBalanceState } from '../../hooks/useMassBalanceState'
 import { Title } from '@mik/ui/components/Title'
 import {
@@ -50,6 +57,12 @@ const STATUS_DISPLAY: Record<WeightBalanceStatus, { message: string; color: stri
  */
 const MassBalance: React.FC = () => {
   const { t } = useTranslation()
+
+  // #382: the read-only blocks wrapped around the inputs are several screens
+  // tall on a phone, which put the first input field below the fold. Under
+  // `sm` they start folded shut; from `sm` up the page is as it was.
+  const muiTheme = useTheme()
+  const isSmUp = useMediaQuery(muiTheme.breakpoints.up('sm'))
 
   // Use custom hook for persistent state management
   const {
@@ -214,34 +227,58 @@ const MassBalance: React.FC = () => {
   }
 
   return (
-    <Box sx={{ py: 4 }}>
+    <Box sx={{ py: { xs: 2, sm: 4 } }}>
       <Title label={t('massBalance.title')} />
       <Typography
         variant='body1'
         sx={{
           color: 'text.secondary',
-          mb: 4,
+          mb: { xs: 2, sm: 4 },
         }}
       >
         {t('massBalance.description')}
       </Typography>
-      {/* Disclaimer */}
+      {/* Disclaimer. The warning banner and its heading stay visible at every
+          width -- only the body text folds away on a phone. */}
       <Alert
         severity='warning'
         icon={<WarningIcon fontSize='large' />}
-        sx={{ mb: 4, fontWeight: 500 }}
+        sx={{
+          mb: { xs: 2, sm: 4 },
+          fontWeight: 500,
+          '& .MuiAlert-message': { width: '100%', py: 0 },
+        }}
       >
-        <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
-          {t('massBalance.disclaimer.title')}
-        </Typography>
-        <Typography variant='body2'>{t('massBalance.disclaimer.text')}</Typography>
+        <Accordion
+          defaultExpanded={isSmUp}
+          disableGutters
+          elevation={0}
+          sx={{
+            bgcolor: 'transparent',
+            color: 'inherit',
+            '&:before': { display: 'none' },
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ color: 'inherit' }} />}
+            sx={{ p: 0, minHeight: 0, '& .MuiAccordionSummary-content': { my: 1 } }}
+          >
+            <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
+              {t('massBalance.disclaimer.title')}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0, pb: 1 }}>
+            <Typography variant='body2'>{t('massBalance.disclaimer.text')}</Typography>
+          </AccordionDetails>
+        </Accordion>
       </Alert>
-      {/* Aircraft Selection */}
-      <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant='h6' gutterBottom>
+      {/* Aircraft Selection. Never collapsed -- the selector is itself an input
+          -- just trimmed of its heading and data-origin chip on a phone. */}
+      <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
+        <Typography variant='h6' gutterBottom sx={{ display: { xs: 'none', sm: 'block' } }}>
           {t('massBalance.aircraftSelection')}
         </Typography>
-        <FormControl fullWidth sx={{ mb: 2 }}>
+        <FormControl fullWidth sx={{ mb: { xs: 0, sm: 2 } }}>
           <InputLabel>{t('massBalance.selectAircraft')}</InputLabel>
           <Select
             value={selectedAircraftId}
@@ -265,6 +302,9 @@ const MassBalance: React.FC = () => {
             size='small'
             variant='outlined'
             sx={{
+              // Repeated as "Data Source" in Aircraft Specifications, so on a
+              // phone it costs three lines above the inputs for nothing new.
+              display: { xs: 'none', sm: 'inline-flex' },
               height: 'auto',
               '& .MuiChip-label': {
                 display: 'block',
@@ -276,11 +316,7 @@ const MassBalance: React.FC = () => {
       </Paper>
       {/* Weight Summary Section */}
       {selectedAircraft && results && (
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-          <Typography variant='h6' gutterBottom>
-            Weight Summary
-          </Typography>
-
+        <CollapsibleSection title='Weight Summary' defaultExpanded={isSmUp}>
           {/* Basic Empty Weight - Full Width */}
           <Box sx={{ mb: 3 }}>
             <Card
@@ -510,7 +546,7 @@ const MassBalance: React.FC = () => {
               </Card>
             </Grid>
           </Grid>
-        </Paper>
+        </CollapsibleSection>
       )}
       <Grid container spacing={3}>
         {/* Loading Section */}
@@ -993,10 +1029,10 @@ const MassBalance: React.FC = () => {
       {/* Aircraft Base Data Grid - Moved to Bottom */}
       <Box sx={{ mt: 4 }}>
         {selectedAircraft && (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant='h6' gutterBottom>
-              Aircraft Specifications - {selectedAircraft.registration}
-            </Typography>
+          <CollapsibleSection
+            title={`Aircraft Specifications - ${selectedAircraft.registration}`}
+            defaultExpanded={isSmUp}
+          >
             <Typography
               variant='caption'
               sx={{
@@ -1109,16 +1145,13 @@ const MassBalance: React.FC = () => {
                 </Card>
               </Grid>
             </Grid>
-          </Paper>
+          </CollapsibleSection>
         )}
       </Box>
       {/* Conversion Factors */}
       <Box sx={{ mt: 3 }}>
         {selectedAircraft && (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant='h6' gutterBottom>
-              Conversion Factors
-            </Typography>
+          <CollapsibleSection title='Conversion Factors' defaultExpanded={isSmUp}>
             <Typography
               variant='caption'
               sx={{
@@ -1213,7 +1246,7 @@ const MassBalance: React.FC = () => {
                 </Card>
               </Grid>
             </Grid>
-          </Paper>
+          </CollapsibleSection>
         )}
       </Box>
     </Box>
