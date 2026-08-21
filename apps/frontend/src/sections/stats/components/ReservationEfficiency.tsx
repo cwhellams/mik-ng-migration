@@ -14,6 +14,7 @@ import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
+import { getMonthlyRange, getYearRange } from '../statsUtils'
 import type {
   ReservationEfficiencyByYr,
   ReservationEfficiencyByYrMth,
@@ -39,21 +40,6 @@ type AcRow = ReservationEfficiencyByAcYr | SchoolFlightEfficiencyByAcYr
 type AcMthRow = ReservationEfficiencyByAcYrMth | SchoolFlightEfficiencyByAcYrMth
 type EntityRow = ReservationEfficiencyByMemberYr | SchoolFlightEfficiencyByInstructorYr
 type EntityMthRow = ReservationEfficiencyByMemberYrMth | SchoolFlightEfficiencyByInstructorYrMth
-
-const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
-
-const getYearRange = () => {
-  const currentYear = new Date().getFullYear()
-  return { yrFrom: currentYear - (STATS_YEAR_RANGE - 1), yrTo: currentYear }
-}
-
-const getMonthlyRange = () => {
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const currentMonth = now.getMonth() + 1
-  const from = currentMonth === 12 ? currentYear : currentYear - 1
-  return { yrFrom: from, yrTo: currentYear }
-}
 
 const formatEfficiency = (pct: number | null) => {
   if (pct == null) return '—'

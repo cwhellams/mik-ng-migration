@@ -20,8 +20,7 @@ import type { TotalFlightTimeByAcYrMth } from '@mik/contracts/stats'
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { endpoints } from '../../../api/endpoints'
 import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
-
-const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
+import { getYearRange } from '../statsUtils'
 
 const MONTH_NAMES = [
   'Jan',
@@ -41,10 +40,7 @@ const MONTH_NAMES = [
 export const YearOnYearReport = () => {
   const { t } = useTranslation()
 
-  const { yrFrom, yrTo } = useMemo(() => {
-    const currentYear = new Date().getFullYear()
-    return { yrFrom: currentYear - (STATS_YEAR_RANGE - 1), yrTo: currentYear }
-  }, [])
+  const { yrFrom, yrTo } = useMemo(() => getYearRange(), [])
 
   const years = useMemo(
     () => Array.from({ length: yrTo - yrFrom + 1 }, (_, i) => String(yrFrom + i)),

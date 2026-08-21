@@ -14,6 +14,7 @@ import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
+import { getMonthlyRange, getYearRange } from '../statsUtils'
 import type {
   AirfieldEfficiencyByYr,
   AirfieldEfficiencyByYrMth,
@@ -23,8 +24,6 @@ import type {
 
 type GroupBy = 'overall' | 'aircraft'
 type Period = 'year' | 'month'
-
-const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
 
 const CATEGORY_COLORS: Record<string, string> = {
   efnuEfnuMins: '#4e79a7',
@@ -36,19 +35,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   efnuEfnuMins: 'EFNU–EFNU',
   inboundOutboundMins: 'Inbound/Outbound',
   awayMins: 'Away',
-}
-
-const getYearRange = () => {
-  const currentYear = new Date().getFullYear()
-  return { yrFrom: currentYear - (STATS_YEAR_RANGE - 1), yrTo: currentYear }
-}
-
-const getMonthlyRange = () => {
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const currentMonth = now.getMonth() + 1
-  const from = currentMonth === 12 ? currentYear : currentYear - 1
-  return { yrFrom: from, yrTo: currentYear }
 }
 
 const formatHours = (mins: number | null) => {
