@@ -27,6 +27,7 @@ import { mutate } from 'swr'
 import type { BookingListResponse } from '@mik/contracts/bookings'
 import type { InventoryItem } from '@mik/contracts/inventory'
 import {
+  committedQuantity,
   ItemReservationStatus,
   reservationInvariantError,
   type ItemReservation,
@@ -34,7 +35,7 @@ import {
   type ItemReservationListResponse,
   type ItemReservationUpsertRequest,
 } from '@mik/contracts/inventory-reservations'
-import type { ItemUnitListResponse } from '@mik/contracts/inventory-units'
+import { isInServiceUnitStatus, type ItemUnitListResponse } from '@mik/contracts/inventory-units'
 import type { Problem } from '@mik/contracts/problem'
 import type { Upsert } from '@mik/contracts/schema'
 
@@ -178,14 +179,29 @@ export const ItemReservationEditor = ({
   })
 
   const inServiceCount = unitData?.inServiceCount ?? 0
-  const committed = (overlapping?.reservations ?? []).reduce(
-    (total, other) => total + other.quantity,
-    0,
-  )
+
+  // Not a plain sum over what the list returned: its `from`/`to` filter is
+  // inclusive on both edges, so a reservation ending exactly when this one
+  // starts comes back in the response without ever colliding with it.
+  // `committedQuantity` re-applies the trigger's half-open rule, which is what
+  // stops a clean handover from disabling Save.
+  const committed = committedQuantity(overlapping?.reservations ?? [], {
+    startTimeEpoch: startDate.date.unix().toString(),
+    endTimeEpoch: endDate.date.unix().toString(),
+  })
   const available = Math.max(inServiceCount - committed, 0)
 
   const units = unitData?.units ?? []
-  const selectableUnits = units.filter((unit) => unit.isActive)
+  // In service, not merely active: a unit in MAINTENANCE, LOST or RETIRED is
+  // still an `isActive` row but has left the pool `inServiceCount` counts, so
+  // offering it would be offering something the club cannot hand over — and the
+  // backend now refuses it. The reservation's own unit stays listed even after
+  // leaving the pool, because blanking the field on open would hide what it
+  // actually says.
+  const selectableUnits = units.filter(
+    (unit) =>
+      (unit.isActive && isInServiceUnitStatus(unit.status)) || unit.unitId === reservation?.unitId,
+  )
 
   const invariantError = datesAreValid
     ? reservationInvariantError({

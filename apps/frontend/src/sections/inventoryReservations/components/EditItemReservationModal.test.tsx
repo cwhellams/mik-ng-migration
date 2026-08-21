@@ -112,6 +112,49 @@ describe('ItemReservationEditor', () => {
     ).toBeInTheDocument()
   })
 
+  it('does not count a reservation that ends exactly when this one starts', async () => {
+    // The list endpoint's from/to filter is inclusive, so a reservation handing
+    // the vests back at 09:00 comes back in the response for a 09:00–11:00
+    // window. The capacity trigger's rule is half-open and would allow this, so
+    // the editor must not disable Save over it.
+    stubUnits(anItemUnitListResponse([anItemUnit(), anItemUnit({ unitId: 'VEST2' })], 2))
+    stubOverlaps(
+      anItemReservationListResponse([
+        anItemReservation({
+          startTimeEpoch: '1780038000',
+          startTime: '2026-05-29T07:00:00.000Z',
+          endTimeEpoch: FUTURE.startTimeEpoch,
+          endTime: FUTURE.startTime,
+          quantity: 2,
+        }),
+      ]),
+    )
+
+    renderEditor(anEditableReservation({ quantity: 2 }))
+
+    expect(await screen.findByText('2 of 2 in service free for this time')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /save/i })).toBeEnabled()
+  })
+
+  it('does not count a reservation that starts exactly when this one ends either', async () => {
+    stubUnits(anItemUnitListResponse([anItemUnit(), anItemUnit({ unitId: 'VEST2' })], 2))
+    stubOverlaps(
+      anItemReservationListResponse([
+        anItemReservation({
+          startTimeEpoch: FUTURE.endTimeEpoch,
+          startTime: FUTURE.endTime,
+          endTimeEpoch: '1780059600',
+          endTime: '2026-05-29T13:00:00.000Z',
+          quantity: 2,
+        }),
+      ]),
+    )
+
+    renderEditor(anEditableReservation({ quantity: 2 }))
+
+    expect(await screen.findByText('2 of 2 in service free for this time')).toBeInTheDocument()
+  })
+
   it('refuses to save a quantity the club cannot cover', async () => {
     stubUnits(anItemUnitListResponse([anItemUnit(), anItemUnit({ unitId: 'VEST2' })], 2))
     stubOverlaps(anItemReservationListResponse([anItemReservation({ ...FUTURE, quantity: 2 })]))
@@ -183,6 +226,41 @@ describe('ItemReservationEditor', () => {
 
     expect(screen.queryByRole('option', { name: /LV-006/ })).not.toBeInTheDocument()
     expect(screen.getByRole('option', { name: /LV-001/ })).toBeInTheDocument()
+  })
+
+  it('leaves a unit that is out of service out of the picker', async () => {
+    // MAINTENANCE with isActive still true: not counted by
+    // `inventory.in_service_unit_count()`, so not something to offer.
+    stubUnits(
+      anItemUnitListResponse([
+        anItemUnit({ tag: 'LV-001' }),
+        anItemUnit({ unitId: 'VEST5', tag: 'LV-005', status: 'MAINTENANCE' }),
+      ]),
+    )
+
+    const { user } = renderEditor(anEditableReservation())
+
+    await user.click(await screen.findByRole('combobox', { name: 'Specific unit' }))
+
+    expect(screen.queryByRole('option', { name: /LV-005/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /LV-001/ })).toBeInTheDocument()
+  })
+
+  it('still lists the reservation’s own unit after it has left service', async () => {
+    // Blanking the field on open would hide what the reservation actually says;
+    // saving it is what the backend refuses.
+    stubUnits(
+      anItemUnitListResponse([
+        anItemUnit({ tag: 'LV-001' }),
+        anItemUnit({ unitId: 'VEST5', tag: 'LV-005', status: 'MAINTENANCE' }),
+      ]),
+    )
+
+    const { user } = renderEditor(anEditableReservation({ unitId: 'VEST5', quantity: 1 }))
+
+    await user.click(await screen.findByRole('combobox', { name: 'Specific unit' }))
+
+    expect(await screen.findByRole('option', { name: /LV-005/ })).toBeInTheDocument()
   })
 
   it('offers the member’s own upcoming flights to link to, plus no flight at all', async () => {

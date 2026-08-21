@@ -9,6 +9,7 @@ import {
   type ItemReservationFilters,
   type ItemReservationListResponse,
 } from '@mik/contracts/inventory-reservations'
+import { isInServiceUnitStatus } from '@mik/contracts/inventory-units'
 import { MIKPermissions } from '@mik/contracts/members'
 import { Router, type Request, type Response } from 'express'
 
@@ -82,8 +83,12 @@ type ReservationDraft = {
  *
  * Kept apart from the capacity check below because these are all "you asked for
  * something that isn't there" — a 400 that no retry at another time would fix.
+ *
+ * `holdsCapacity` is false for a reservation on its way to CANCELLED, which
+ * holds nothing: a unit that has gone to MAINTENANCE since it was reserved must
+ * not stand between a member and cancelling.
  */
-const validateReservationRefs = async (draft: ReservationDraft) => {
+const validateReservationRefs = async (draft: ReservationDraft, holdsCapacity: boolean) => {
   // Re-checked here rather than trusted from the request body, because a PATCH
   // can move one end of the window and leave the other where it was.
   const invariantError = reservationInvariantError(draft)
@@ -106,6 +111,15 @@ const validateReservationRefs = async (draft: ReservationDraft) => {
     }
     if (!unit.isActive) {
       return problem({ status: 400, detail: 'This unit has been retired' })
+    }
+    // In service is not the same as active. A unit in MAINTENANCE, LOST or
+    // RETIRED status is still an active row, but `in_service_unit_count()` does
+    // not count it, so naming one here would both promise a unit the club
+    // cannot hand over and slip past the capacity check — the pooled total it
+    // is measured against excludes that unit. The predicate is the contracts
+    // copy of the function's, so the two cannot drift.
+    if (holdsCapacity && !isInServiceUnitStatus(unit.status)) {
+      return problem({ status: 400, detail: 'This unit is not in service' })
     }
   }
 
@@ -202,10 +216,12 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response) => 
     return problem({ status: 400, detail: 'Reservations suspended' })
   }
 
-  const refError = await validateReservationRefs(data)
+  const confirmed = data.status === ItemReservationStatus.CONFIRMED
+
+  const refError = await validateReservationRefs(data, confirmed)
   if (refError) return refError
 
-  if (data.status === ItemReservationStatus.CONFIRMED) {
+  if (confirmed) {
     const capacityError = await checkCapacity(data)
     if (capacityError) return capacityError
   }
@@ -289,10 +305,11 @@ router.patch('/:id', async (req: Request<Record<string, string>>, res: Response)
     endTimeEpoch: patch.endTimeEpoch ?? reservation.endTimeEpoch,
   }
 
-  const refError = await validateReservationRefs(merged)
+  const stillConfirmed = (patch.status ?? reservation.status) === ItemReservationStatus.CONFIRMED
+
+  const refError = await validateReservationRefs(merged, stillConfirmed)
   if (refError) return refError
 
-  const stillConfirmed = (patch.status ?? reservation.status) === ItemReservationStatus.CONFIRMED
   if (stillConfirmed) {
     const capacityError = await checkCapacity(merged, reservationId)
     if (capacityError) return capacityError

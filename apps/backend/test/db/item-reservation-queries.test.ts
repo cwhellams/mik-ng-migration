@@ -15,7 +15,7 @@ import type { JWTUser } from '../../src/routes/auth/token.ts'
  * reservations counted together, cancelled ones not counted, units out of
  * service not counted — is where a change could silently over-book the club.
  *
- * The seeded cast comes from `sql/schema/testdata/V300`: item `INV_VEST` has
+ * The seeded cast comes from `sql/schema/testdata/V340`: item `INV_VEST` has
  * six units of which four hold capacity (one is in MAINTENANCE, one retired),
  * `INV_O2` has two, and `INV_PAPER` is deliberately not reservable.
  */

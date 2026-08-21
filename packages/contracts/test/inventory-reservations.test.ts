@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  committedQuantity,
   ItemReservationCancellationSchema,
   ItemReservationCreateSchema,
   ItemReservationFiltersSchema,
   ItemReservationStatus,
   ItemReservationUpsertSchema,
   reservationInvariantError,
+  reservationOverlapsWindow,
 } from '../src/inventory-reservations.ts'
 import {
   IN_SERVICE_UNIT_STATUSES,
@@ -193,6 +195,103 @@ describe('ItemReservationCancellationSchema', () => {
 
   it('rejects a note longer than the column', () => {
     expect(() => ItemReservationCancellationSchema.parse({ note: 'x'.repeat(501) })).toThrow()
+  })
+})
+
+/**
+ * The half-open overlap rule, and the committed-quantity sum built on it.
+ *
+ * Both restate `inventory.check_reservation_capacity()` (V1950) for a client
+ * that has a list of reservations and needs the same answer the trigger would
+ * give. The list endpoint's own `from`/`to` filter is inclusive on both edges,
+ * so "came back from the list" and "overlaps" are not the same question — which
+ * is the whole reason these exist.
+ */
+describe('reservationOverlapsWindow', () => {
+  const window = { startTimeEpoch: '1800003600', endTimeEpoch: '1800010800' }
+
+  it('counts a reservation sitting inside the window', () => {
+    expect(
+      reservationOverlapsWindow(
+        { startTimeEpoch: '1800005400', endTimeEpoch: '1800007200' },
+        window,
+      ),
+    ).toBe(true)
+  })
+
+  it('counts one that straddles the whole window', () => {
+    expect(
+      reservationOverlapsWindow(
+        { startTimeEpoch: '1800000000', endTimeEpoch: '1800014400' },
+        window,
+      ),
+    ).toBe(true)
+  })
+
+  it('does not count one that ends exactly when the window starts', () => {
+    // The handover case: a vest coming back at 10:00 is free to go out at 10:00.
+    expect(
+      reservationOverlapsWindow(
+        { startTimeEpoch: '1800000000', endTimeEpoch: '1800003600' },
+        window,
+      ),
+    ).toBe(false)
+  })
+
+  it('does not count one that starts exactly when the window ends', () => {
+    expect(
+      reservationOverlapsWindow(
+        { startTimeEpoch: '1800010800', endTimeEpoch: '1800014400' },
+        window,
+      ),
+    ).toBe(false)
+  })
+
+  it('does not count one nowhere near it', () => {
+    expect(
+      reservationOverlapsWindow(
+        { startTimeEpoch: '1800100000', endTimeEpoch: '1800103600' },
+        window,
+      ),
+    ).toBe(false)
+  })
+})
+
+describe('committedQuantity', () => {
+  const window = { startTimeEpoch: '1800003600', endTimeEpoch: '1800010800' }
+
+  const held = (overrides: Partial<Parameters<typeof committedQuantity>[0][number]> = {}) => ({
+    status: ItemReservationStatus.CONFIRMED,
+    quantity: 1,
+    startTimeEpoch: '1800005400',
+    endTimeEpoch: '1800007200',
+    ...overrides,
+  })
+
+  it('adds up the quantities of everything overlapping, not the row count', () => {
+    // Three vests on one reservation and one on another is four units held.
+    expect(committedQuantity([held({ quantity: 3 }), held()], window)).toBe(4)
+  })
+
+  it('ignores a cancelled reservation, which holds nothing', () => {
+    expect(
+      committedQuantity([held({ status: ItemReservationStatus.CANCELLED, quantity: 3 })], window),
+    ).toBe(0)
+  })
+
+  it('ignores one that merely touches the window at a boundary', () => {
+    // What the list endpoint's inclusive from/to filter returns and the trigger
+    // does not count. Summing the response blind is what this prevents.
+    expect(
+      committedQuantity(
+        [held({ startTimeEpoch: '1800000000', endTimeEpoch: '1800003600', quantity: 4 })],
+        window,
+      ),
+    ).toBe(0)
+  })
+
+  it('is zero for an empty list', () => {
+    expect(committedQuantity([], window)).toBe(0)
   })
 })
 

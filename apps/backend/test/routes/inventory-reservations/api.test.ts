@@ -221,6 +221,17 @@ describe('POST /inventory-reservations', () => {
     expect(response.body.detail).toBe('This unit has been retired')
   })
 
+  it('rejects a unit that is out of service though its row is still active', async () => {
+    // VEST5 is in MAINTENANCE with is_active TRUE — the gap `isActive` alone
+    // leaves open. `in_service_unit_count()` does not count it, so reserving it
+    // would promise a vest the club cannot hand over *and* escape the capacity
+    // check, which measures against a pool that excludes it.
+    const response = await post(draft({ unitId: 'VEST5' }))
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toBe('This unit is not in service')
+  })
+
   it('rejects a linked booking that does not exist', async () => {
     const response = await post(draft({ linkedBookingId: 'nope' }))
 
@@ -409,6 +420,35 @@ describe('PATCH /inventory-reservations/:id', () => {
       .send({ quantity: 1 })
 
     expect(response.status).toBe(404)
+  })
+
+  it('still cancels a reservation whose unit has left service since', async () => {
+    const { body } = await post(draft({ unitId: 'VEST1' }))
+
+    // The vest is discovered to be broken after it was reserved. A cancelled
+    // reservation holds nothing, so the in-service rule must not be what stands
+    // between the member and giving it back.
+    await db
+      .updateTable('inventory.itemUnits')
+      .set({ status: 'MAINTENANCE' })
+      .where('unitId', '=', 'VEST1')
+      .execute()
+
+    try {
+      const response = await request(app)
+        .patch(`/inventory-reservations/${body.reservationId}`)
+        .set('Cookie', `accessToken=${userToken}`)
+        .send({ status: ItemReservationStatus.CANCELLED })
+
+      expect(response.status).toBe(200)
+      expect(response.body.status).toBe(ItemReservationStatus.CANCELLED)
+    } finally {
+      await db
+        .updateTable('inventory.itemUnits')
+        .set({ status: 'AVAILABLE' })
+        .where('unitId', '=', 'VEST1')
+        .execute()
+    }
   })
 
   it('emails a cancellation, not an update, when the patch cancels', async () => {

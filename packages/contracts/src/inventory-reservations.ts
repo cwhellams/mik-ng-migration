@@ -118,6 +118,53 @@ export const reservationInvariantError = (reservation: {
 }
 
 /**
+ * The overlap rule `inventory.check_reservation_capacity()` (V1950) applies,
+ * restated where a client can see it: half-open, so a reservation that ends
+ * exactly when another starts does not overlap it — handing a vest over at 11:00
+ * is a handover, not a clash.
+ *
+ * The list endpoint's `from`/`to` filter is deliberately *inclusive* by
+ * comparison, because a calendar wants the event that ends on the hour its week
+ * begins. The two boundaries therefore disagree by design, and a client sizing
+ * up a window has to re-apply this rule to what the list gave it rather than
+ * treat every row as a collision.
+ */
+export const reservationOverlapsWindow = (
+  reservation: { startTimeEpoch: string; endTimeEpoch: string },
+  window: { startTimeEpoch: string; endTimeEpoch: string },
+): boolean =>
+  Number(reservation.startTimeEpoch) < Number(window.endTimeEpoch) &&
+  Number(reservation.endTimeEpoch) > Number(window.startTimeEpoch)
+
+/**
+ * How much of an item's capacity a set of reservations already holds in a
+ * window — the client-side twin of `getCommittedQuantity()` in
+ * `item-reservation-queries.ts`, down to which rows it counts: CONFIRMED only,
+ * overlap half-open.
+ *
+ * Cancelled rows are filtered rather than assumed absent, because the list
+ * endpoint returns them whenever `showCancelled` is set, and a cancelled
+ * reservation holds nothing.
+ */
+export const committedQuantity = (
+  reservations: readonly {
+    status: ItemReservationStatus
+    quantity: number
+    startTimeEpoch: string
+    endTimeEpoch: string
+  }[],
+  window: { startTimeEpoch: string; endTimeEpoch: string },
+): number =>
+  reservations.reduce(
+    (total, reservation) =>
+      reservation.status === ItemReservationStatus.CONFIRMED &&
+      reservationOverlapsWindow(reservation, window)
+        ? total + reservation.quantity
+        : total,
+    0,
+  )
+
+/**
  * What `POST /inventory-reservations` parses: the full upsert plus the
  * invariants, so a bad window is a field error rather than a bare message.
  * PATCH keeps using `ItemReservationUpsertSchema.partial()` — `.superRefine()`

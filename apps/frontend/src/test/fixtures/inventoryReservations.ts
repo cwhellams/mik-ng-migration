@@ -9,7 +9,7 @@ import { auditFields, MEMBER_ID } from '@mik/ui/test/fixtures/cast'
 import { LIFE_VEST_ITEM_ID } from '@mik/ui/test/fixtures/inventoryUnits'
 
 /**
- * The item reservation cast (#1139), mirroring `sql/schema/testdata/V300`:
+ * The item reservation cast (#1139), mirroring `sql/schema/testdata/V340`:
  * `INV_VEST` is a group of life vests with per-unit tags, `INV_O2` is a pair of
  * oxygen tanks, and `INV_PAPER` is the consumable that must stay out of the
  * reservation calendar. The unit builders are in `@mik/ui`, since apps/admin
