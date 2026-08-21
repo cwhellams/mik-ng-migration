@@ -11,6 +11,11 @@ import {
   QuantityAdjustmentSchema,
 } from '@mik/contracts/inventory'
 import {
+  ItemUnitStatusTransitionSchema,
+  ItemUnitUpsertSchema,
+  type ItemUnitListResponse,
+} from '@mik/contracts/inventory-units'
+import {
   getLocations,
   getLocationById,
   upsertLocation,
@@ -23,6 +28,13 @@ import {
   adjustQuantity,
   getAuditLog,
 } from '../../db/inventory-queries.ts'
+import {
+  getInServiceUnitCount,
+  getUnitById,
+  getUnitsByItemId,
+  transitionUnitStatus,
+  upsertUnit,
+} from '../../db/item-unit-queries.ts'
 
 export const router = Router()
 router.use(validateUser(MIKPermissions.INVENTORY_USER, MIKPermissions.INVENTORY_ADMIN))
@@ -217,5 +229,113 @@ router.post(
       }
       throw err
     }
+  },
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Item units (#1139)
+//
+// The physical units of an item live under the item, because that is what they
+// are: creating one is inventory-catalog work, gated on INVENTORY_ADMIN like
+// every other write here. *Reserving* one is a different privilege axis and
+// lives in /api/v1/inventory-reservations.
+//
+// Reads are open to INVENTORY_USER, since the reservation editor needs the unit
+// list to offer "this specific vest".
+// ─────────────────────────────────────────────────────────────────────────────
+
+router.get('/items/:id/units', async (req: Request<Record<string, string>>, res: Response) => {
+  const admin = isInventoryAdmin(req)
+  const item = await getItemById(req.params.id)
+  if (!item || (!item.isActive && !admin)) {
+    return problem({ status: 404, detail: 'Item not found' })
+  }
+
+  // A retired unit is history an admin needs and a member does not — the same
+  // split as inactive items on the listing above.
+  const units = await getUnitsByItemId(req.params.id, admin)
+  const inServiceCount = await getInServiceUnitCount(req.params.id)
+
+  res.json(<ItemUnitListResponse>{ units, inServiceCount })
+})
+
+router.post(
+  '/items/:id/units',
+  validateUser(MIKPermissions.INVENTORY_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const item = await getItemById(req.params.id)
+    if (!item) return problem({ status: 404, detail: 'Item not found' })
+
+    const data = ItemUnitUpsertSchema.parse({
+      ...req.body,
+      itemId: req.params.id,
+      unitId: undefined,
+    })
+
+    try {
+      const unit = await upsertUnit(data, req.user!)
+      res.status(HttpStatusCode.Created).json(unit)
+    } catch (err: any) {
+      // uq_item_units_tag: two units of one item cannot claim the same tag.
+      if (err?.constraint === 'uq_item_units_tag') {
+        return problem({ status: 409, detail: 'Another unit of this item already has that tag' })
+      }
+      throw err
+    }
+  },
+)
+
+router.put(
+  '/units/:unitId',
+  validateUser(MIKPermissions.INVENTORY_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const existing = await getUnitById(req.params.unitId)
+    if (!existing) return problem({ status: 404, detail: 'Unit not found' })
+
+    const body = (req.body ?? {}) as Record<string, unknown>
+    const data = ItemUnitUpsertSchema.partial().parse({
+      ...body,
+      itemId: existing.itemId,
+      unitId: req.params.unitId,
+    })
+
+    // Zod re-applies a field's `.default()` even under `.partial()`, so `data`
+    // carries `condition: 'UNKNOWN'` and `isActive: true` whether or not the
+    // caller sent them — which would quietly reset a unit's condition, and
+    // un-retire it, on a PUT that only meant to add a note. Forward only the
+    // fields actually present in the body.
+    const patch = {
+      itemId: existing.itemId,
+      unitId: req.params.unitId,
+      ...('tag' in body ? { tag: data.tag } : {}),
+      ...('condition' in body ? { condition: data.condition } : {}),
+      ...('notes' in body ? { notes: data.notes } : {}),
+      ...('isActive' in body ? { isActive: data.isActive } : {}),
+    }
+
+    try {
+      const unit = await upsertUnit(patch, req.user!)
+      res.json(unit)
+    } catch (err: any) {
+      if (err?.constraint === 'uq_item_units_tag') {
+        return problem({ status: 409, detail: 'Another unit of this item already has that tag' })
+      }
+      throw err
+    }
+  },
+)
+
+router.post(
+  '/units/:unitId/status',
+  validateUser(MIKPermissions.INVENTORY_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const existing = await getUnitById(req.params.unitId)
+    if (!existing) return problem({ status: 404, detail: 'Unit not found' })
+
+    const { status, notes } = ItemUnitStatusTransitionSchema.parse(req.body)
+    const unit = await transitionUnitStatus(req.params.unitId, status, notes, req.user!)
+    if (!unit) return problem({ status: 404, detail: 'Unit not found' })
+
+    res.json(unit)
   },
 )

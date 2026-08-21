@@ -103,6 +103,14 @@ URL.revokeObjectURL ??= () => {}
 Element.prototype.scrollIntoView ??= () => {}
 window.scrollTo = () => {}
 
+// react-big-calendar's drag/select layer (both calendars use it) listens for
+// mousedown on `document` and calls this on every one, so without a stub any
+// click anywhere in a calendar test throws an uncaught TypeError. jsdom does no
+// layout, so `null` — "the point is over nothing" — is the only honest answer;
+// it means drag-to-select a slot does not fire in tests, while clicking an
+// existing event, which goes through a plain onClick, still does.
+document.elementFromPoint ??= () => null
+
 // --- lifecycle -------------------------------------------------------------
 
 beforeAll(async () => {

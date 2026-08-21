@@ -1,8 +1,10 @@
 import { BookingStatus, BookingType, type Booking } from '@mik/contracts/bookings'
 import { MIKLang } from '@mik/contracts/members'
+import { ItemReservationStatus, type ItemReservation } from '@mik/contracts/inventory-reservations'
 import { OccurrenceStatus, type Occurrence } from '@mik/contracts/occurrences'
 import { renderEmail } from '../../src/templates/renderEmail.ts'
 import { bookingEmailVars } from '../../src/templates/bookingEmailHelpers.ts'
+import { itemReservationEmailVars } from '../../src/templates/itemReservationEmailHelpers.ts'
 import { occurrenceEmailVars } from '../../src/templates/occurrenceEmailHelpers.ts'
 
 // These suites snapshot the rendered HTML of every markdown-backed email. The
@@ -305,6 +307,97 @@ describe('Expense claim email template tests', () => {
       expect(result).toMatchSnapshot()
     },
   )
+})
+
+describe('Item reservation template tests', () => {
+  // The vests-on-a-flight case: a multi-unit reservation whose owner needs to
+  // recognise it from the subject line alone. Rendered through the same helper
+  // the routes use, so the snapshots move if the helper's output does.
+  const reservation: ItemReservation = {
+    reservationId: 'test-reservation-id',
+    memberId: 'Matti1',
+    member: { firstName: 'Tester', lastName: 'User', phoneNumber: null },
+    itemId: 'INV_VEST',
+    itemName: { en: 'Life Vest', fi: 'Pelastusliivi', sv: 'Flytväst' },
+    unitId: null,
+    unitTag: null,
+    unitStatus: null,
+    quantity: 3,
+    linkedBookingId: null,
+    status: ItemReservationStatus.CONFIRMED,
+    startTimeEpoch: '1700000000',
+    startTime: '2023-11-14T22:13:20.000Z',
+    endTimeEpoch: '1700003600',
+    endTime: '2023-11-14T23:13:20.000Z',
+    createdAt: '2023-11-14T20:00:00.000Z',
+    createdBy: 'Matti1',
+    updatedAt: '2023-11-14T20:00:00.000Z',
+    updatedBy: 'Matti1',
+    cancelledBy: null,
+  }
+
+  const vars = (lang: MIKLang) =>
+    itemReservationEmailVars(reservation, lang, { firstName: 'Tester' })
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'itemReservationConfirmedEmailBodyHtml for lang: %s',
+    (lang) => {
+      expect(renderEmail('item-reservation-confirmed', lang, vars(lang))).toMatchSnapshot()
+    },
+  )
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'itemReservationUpdatedEmailBodyHtml for lang: %s',
+    (lang) => {
+      expect(renderEmail('item-reservation-updated', lang, vars(lang))).toMatchSnapshot()
+    },
+  )
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'itemReservationCancelledEmailBodyHtml for lang: %s',
+    (lang) => {
+      expect(
+        renderEmail('item-reservation-cancelled', lang, {
+          ...vars(lang),
+          cancellationNote: 'Flight scrubbed for weather',
+        }),
+      ).toMatchSnapshot()
+    },
+  )
+
+  it('names a specifically reserved unit in the body', () => {
+    const { html } = renderEmail(
+      'item-reservation-confirmed',
+      MIKLang.EN,
+      itemReservationEmailVars({ ...reservation, quantity: 1, unitTag: 'LV-001' }, MIKLang.EN, {
+        firstName: 'Tester',
+      }),
+    )
+
+    expect(html).toContain('LV-001')
+  })
+
+  it('leaves the count out of a single-unit reservation', () => {
+    const { html } = renderEmail(
+      'item-reservation-confirmed',
+      MIKLang.EN,
+      itemReservationEmailVars({ ...reservation, quantity: 1 }, MIKLang.EN, {
+        firstName: 'Tester',
+      }),
+    )
+
+    expect(html).toContain('Life Vest')
+    expect(html).not.toContain('1 × Life Vest')
+  })
+
+  it('leaves the reason line out when a cancellation carries no note', () => {
+    const { html } = renderEmail('item-reservation-cancelled', MIKLang.EN, {
+      ...vars(MIKLang.EN),
+      cancellationNote: '',
+    })
+
+    expect(html).not.toContain('Reason given')
+  })
 })
 
 describe('Responsive email wrapper', () => {

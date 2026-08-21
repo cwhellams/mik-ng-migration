@@ -18,7 +18,7 @@ import type { InventoryCategories, InventoryItems, InventoryLocations, Json } fr
 import type { DB } from './schema.d.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
 
-type Executor = Kysely<DB> | Transaction<DB>
+export type Executor = Kysely<DB> | Transaction<DB>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -201,6 +201,7 @@ type ItemRow = {
   notes: string | null
   tags: string[]
   isActive: boolean
+  isReservable: boolean
   createdAt: Date | string
   createdBy: string
   updatedAt: Date | string
@@ -223,6 +224,7 @@ function toItem(r: ItemRow, category?: CategoryRow, location?: LocationRow | nul
     notes: r.notes ?? null,
     tags: r.tags ?? [],
     isActive: r.isActive,
+    isReservable: r.isReservable,
     createdAt: toDate(r.createdAt),
     createdBy: r.createdBy,
     updatedAt: toDate(r.updatedAt),
@@ -270,6 +272,9 @@ export async function getItems(filters?: InventoryFilters): Promise<InventoryIte
   }
   if (filters?.itemType) {
     q = q.where('i.itemType', '=', filters.itemType)
+  }
+  if (filters?.reservableOnly) {
+    q = q.where('i.isReservable', '=', true)
   }
   if (filters?.search) {
     const term = `%${filters.search}%`
@@ -392,6 +397,7 @@ export async function upsertItem(data: InventoryItemUpsert, user: JWTUser): Prom
     if (data.notes !== undefined) set('notes', data.notes ?? null)
     if (data.tags !== undefined) set('tags', data.tags)
     if (data.isActive !== undefined) set('isActive', data.isActive)
+    if (data.isReservable !== undefined) set('isReservable', data.isReservable)
 
     const oldValues: Record<string, Json> = {}
     if (before) {
@@ -434,6 +440,7 @@ export async function upsertItem(data: InventoryItemUpsert, user: JWTUser): Prom
           notes: data.notes ?? null,
           tags: data.tags ?? [],
           isActive: data.isActive ?? true,
+          isReservable: data.isReservable ?? false,
           createdBy: user.memberId,
           updatedBy: user.memberId,
         })
@@ -495,7 +502,16 @@ export async function adjustQuantity(
 // Audit log
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function writeAuditLog(
+/**
+ * One row of the item's change history.
+ *
+ * Exported because the unit queries write to the same log: a unit going to
+ * MAINTENANCE is a change to the item's reservable capacity, and reading it
+ * from a separate table would mean two histories to consult for one question.
+ * Takes an `Executor` so the caller can keep the write in its own transaction
+ * alongside the change it describes.
+ */
+export async function writeAuditLog(
   executor: Executor,
   itemId: string,
   memberId: string,

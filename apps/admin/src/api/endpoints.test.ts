@@ -18,6 +18,9 @@ describe('endpoints', () => {
     endpoints.members.deactivate('Matti1'),
     endpoints.members.sendRenewalReminder('Matti1'),
     endpoints.aircrafts.root,
+    endpoints.inventoryUnits.forItem('INV_VEST'),
+    endpoints.inventoryUnits.byId('VEST1'),
+    endpoints.inventoryUnits.status('VEST1'),
   ]
 
   it('carries no leading slash', () => {
@@ -45,6 +48,12 @@ describe('endpoints', () => {
     expect(endpoints.members.sendRenewalReminder('Matti1')).toBe(
       'v1/members/Matti1/send-renewal-reminder',
     )
+  })
+
+  it('interpolates the item and unit ids into the inventory unit paths', () => {
+    expect(endpoints.inventoryUnits.forItem('INV_VEST')).toBe('v1/inventory/items/INV_VEST/units')
+    expect(endpoints.inventoryUnits.byId('VEST1')).toBe('v1/inventory/units/VEST1')
+    expect(endpoints.inventoryUnits.status('VEST1')).toBe('v1/inventory/units/VEST1/status')
   })
 
   it('absolute() makes a path replace the hook url rather than extend it', () => {

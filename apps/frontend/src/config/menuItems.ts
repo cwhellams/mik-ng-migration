@@ -143,6 +143,14 @@ export const menuItems: MenuItem[] = [
     requiredRoles: [MIKPermissions.INVENTORY_USER, MIKPermissions.INVENTORY_ADMIN],
   },
   {
+    path: '/inventory-reservations',
+    label: 'header.itemReservations',
+    requiredRoles: [
+      MIKPermissions.INVENTORY_RESERVATION_USER,
+      MIKPermissions.INVENTORY_RESERVATION_ADMIN,
+    ],
+  },
+  {
     path: '/dto',
     label: 'header.dto',
     requiredRoles: [

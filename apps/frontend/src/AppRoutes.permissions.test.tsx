@@ -65,13 +65,18 @@ describe('route table', () => {
     // anticipated — a route that needs a gate again — and `RequirePermission`
     // being still in the tree is what made adding it a one-liner.
     //
+    // #1139 added the 61st route, the item reservation calendar, ungated: the
+    // menu entry asks for `inventory_reservation.user`/`.admin`, but the page
+    // itself only shows what the API already filters per member, so the check
+    // that matters is the API's.
+    //
     // The rest is for any signed-in member by design, not by oversight. If
     // another gate is added, add its row to routeMatrix.tsx and change these
     // numbers with it — `covers every gate in AppRoutes.tsx` above is what
     // forces that.
-    expect(ROUTES).toHaveLength(60)
+    expect(ROUTES).toHaveLength(61)
     expect(GATED_ROUTES).toHaveLength(1)
-    expect(UNGATED_ROUTES).toHaveLength(59)
+    expect(UNGATED_ROUTES).toHaveLength(60)
   })
 
   it('opens nothing to the public beyond the sign-in routes and the 404', () => {
@@ -136,6 +141,7 @@ describe('route table', () => {
       MIKPermissions.STORE_USER,
       MIKPermissions.EXAM_USER,
       MIKPermissions.INVENTORY_USER,
+      MIKPermissions.INVENTORY_RESERVATION_USER,
       MIKPermissions.AME_USER,
       MIKPermissions.MEETING_USER,
       MIKPermissions.EXPENSE_USER,

@@ -177,11 +177,15 @@ export default defineConfig({
         // test (43.98/39.24/29.71 measured). Raised in the PR that earned it, per the rule
         // above.
         //
-        // 43/38/28 -> 44/40/29: #1255 brought the fly page's Hold Item List, its
-        // grounding banner and the shared defect link under test — that directory
-        // had no tests at all — plus the member list's selection checkbox and the
-        // DTO student detail page. 44.10/40.47/29.66 -> 45.10/41.67/30.88 measured.
-        'src/sections/**': { statements: 44, branches: 40, functions: 29 },
+        // 43/38/28 -> 44/40/29 (#1255: the fly page's Hold Item List, its grounding
+        // banner and the shared defect link — that directory had no tests at all —
+        // plus the member list's selection checkbox and the DTO student detail page),
+        // then -> 46/43/32: #1139 added the item reservation calendar, its editor and
+        // its helpers with tests, and extended the inventory admin page's suite over
+        // the new units tab. 47.10/44.06/32.79 measured with both changes in. Same
+        // rule — the branch bar rises further than either change claimed alone
+        // because the two sets of tests land in the same directory.
+        'src/sections/**': { statements: 46, branches: 43, functions: 32 },
       },
     },
   },

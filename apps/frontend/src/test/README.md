@@ -150,7 +150,8 @@ const expired = aMember({ medicalExpiry: '2020-01-01' })
 
 Available: `aMember`, `anAdmin`, `anInstructor`, `aMemberWithoutPermissions`,
 `aMemberWithPermissions`, `aMemberListEntry`, `anAircraft`, `aBooking`, `aFlightLog`,
-`aFlightLogListEntry`, plus the role catalogue in `roles.ts`.
+`aFlightLogListEntry`, `aReservableItem`, `anItemUnit`, `anItemReservation` (plus their
+`*ListResponse` wrappers), and the role catalogue in `roles.ts`.
 
 The entities are the **same cast the backend suite uses** — member `Matti1`, admin `k1mnimda`,
 aircraft `OH-STL` — seeded by `sql/schema/testdata/`. Keeping the names identical on both sides
@@ -206,7 +207,7 @@ actually achieves:
 | `src/components/**`                            | 92         | 88       | 86        |
 | `src/{*,lib/**,layouts/**,theme/**,config/**}` | 71         | 46       | 68        |
 | `src/utils/**`                                 | 61         | 55       | 76        |
-| `src/sections/**`                              | 43         | 38       | 28        |
+| `src/sections/**`                              | 46         | 43       | 32        |
 | _(all files, as a backstop)_                   | 44         | 37       | 31        |
 
 That third row is `App.tsx`, `AppRoutes.tsx`, `i18n.ts` and the four small directories, sharing one

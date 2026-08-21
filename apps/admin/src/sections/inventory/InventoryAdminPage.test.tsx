@@ -1,8 +1,10 @@
 import type { InventoryCategory, InventoryItem, InventoryLocation } from '@mik/contracts/inventory'
+import type { ItemUnitListResponse } from '@mik/contracts/inventory-units'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { anItemUnit, anItemUnitListResponse } from '../../test/fixtures'
 import { apiUrl, problemResponse } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import { renderWithProviders } from '../../test/renderWithProviders'
@@ -51,6 +53,7 @@ const anItem = (overrides: Partial<InventoryItem> = {}) =>
     notes: null,
     tags: [],
     isActive: true,
+    isReservable: false,
     ...overrides,
   }) as InventoryItem
 
@@ -60,6 +63,7 @@ const inventoryApi = (
   items: InventoryItem[] = [anItem()],
   categories: InventoryCategory[] = [aCategory()],
   locations: InventoryLocation[] = [aLocation()],
+  units: ItemUnitListResponse = anItemUnitListResponse(),
 ) => {
   const state = { writes: [] as Write[] }
   const record = async (method: string, request: Request) => {
@@ -105,6 +109,19 @@ const inventoryApi = (
     http.delete(apiUrl('v1/inventory/locations/:id'), async ({ request }) => {
       await record('DELETE', request)
       return HttpResponse.json({})
+    }),
+    http.get(apiUrl('v1/inventory/items/:id/units'), () => HttpResponse.json(units)),
+    http.post(apiUrl('v1/inventory/items/:id/units'), async ({ request }) => {
+      await record('POST', request)
+      return HttpResponse.json(anItemUnit({ unitId: 'unit-new' }))
+    }),
+    http.put(apiUrl('v1/inventory/units/:unitId'), async ({ request }) => {
+      await record('PUT', request)
+      return HttpResponse.json(anItemUnit())
+    }),
+    http.post(apiUrl('v1/inventory/units/:unitId/status'), async ({ request }) => {
+      await record('POST', request)
+      return HttpResponse.json(anItemUnit({ status: 'MAINTENANCE' }))
     }),
   )
 
@@ -584,5 +601,194 @@ describe('InventoryAdminPage categories and locations tabs', () => {
     await screen.findByText('Hangar')
 
     expect(screen.queryByRole('button', { name: /Delete/ })).toBeNull()
+  })
+})
+
+/**
+ * Units tab (#1139).
+ *
+ * The tab exists because per-unit identity is what makes an item reservable at
+ * all: capacity is a count of units in service, so an item with no unit rows
+ * can never be reserved however large its `quantity` says it is.
+ */
+describe('InventoryAdminPage units tab', () => {
+  const aReservable = (overrides: Partial<InventoryItem> = {}) =>
+    anItem({
+      itemId: 'INV_VEST',
+      name: { en: 'Life Vest', fi: 'Pelastusliivi', sv: 'Flytväst' },
+      itemType: 'ASSET',
+      isReservable: true,
+      ...overrides,
+    })
+
+  it('asks the member to pick an item before showing any units', async () => {
+    inventoryApi([aReservable()])
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await goToTab(user, 'Units')
+
+    expect(await screen.findByText('Choose an item to manage its units.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add Unit' })).toBeDisabled()
+  })
+
+  it('lists the chosen item’s units and how many of them hold capacity', async () => {
+    inventoryApi(
+      [aReservable()],
+      [aCategory()],
+      [aLocation()],
+      anItemUnitListResponse(
+        [
+          anItemUnit({ tag: 'LV-001' }),
+          anItemUnit({ unitId: 'VEST5', tag: 'LV-005', status: 'MAINTENANCE' }),
+        ],
+        1,
+      ),
+    )
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await goToTab(user, 'Units')
+    await user.click(await screen.findByRole('combobox', { name: 'Item' }))
+    await user.click(await screen.findByRole('option', { name: 'Life Vest' }))
+
+    expect(await screen.findByText('LV-001')).toBeInTheDocument()
+    expect(screen.getByText('LV-005')).toBeInTheDocument()
+    expect(screen.getByText('In maintenance')).toBeInTheDocument()
+    expect(screen.getByText('1 of 2 units in service')).toBeInTheDocument()
+  })
+
+  it('says an item has no units rather than showing an empty table', async () => {
+    inventoryApi([aReservable()], [aCategory()], [aLocation()], anItemUnitListResponse([], 0))
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await goToTab(user, 'Units')
+    await user.click(await screen.findByRole('combobox', { name: 'Item' }))
+    await user.click(await screen.findByRole('option', { name: 'Life Vest' }))
+
+    expect(await screen.findByText(/This item has no individual units yet/)).toBeInTheDocument()
+  })
+
+  it('creates a unit under the chosen item', async () => {
+    const state = inventoryApi([aReservable()])
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await goToTab(user, 'Units')
+    await user.click(await screen.findByRole('combobox', { name: 'Item' }))
+    await user.click(await screen.findByRole('option', { name: 'Life Vest' }))
+
+    await user.click(await screen.findByRole('button', { name: 'Add Unit' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox', { name: 'Tag' }), 'LV-009')
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(state.writes[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/v1/inventory/items/INV_VEST/units',
+      body: { tag: 'LV-009' },
+    })
+  })
+
+  it('sends a status change to its own endpoint, with the note', async () => {
+    const state = inventoryApi(
+      [aReservable()],
+      [aCategory()],
+      [aLocation()],
+      anItemUnitListResponse([anItemUnit({ tag: 'LV-001' })], 1),
+    )
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await goToTab(user, 'Units')
+    await user.click(await screen.findByRole('combobox', { name: 'Item' }))
+    await user.click(await screen.findByRole('option', { name: 'Life Vest' }))
+
+    await user.click(await screen.findByRole('button', { name: 'Change Unit Status LV-001' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('combobox', { name: 'Status' }))
+    await user.click(await screen.findByRole('option', { name: 'In maintenance' }))
+    await user.type(within(dialog).getByRole('textbox', { name: 'Notes' }), 'Whistle missing')
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(state.writes[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/v1/inventory/units/VEST1/status',
+      body: { status: 'MAINTENANCE', notes: 'Whistle missing' },
+    })
+  })
+
+  it('patches a unit through the unit endpoint rather than the item’s', async () => {
+    const state = inventoryApi(
+      [aReservable()],
+      [aCategory()],
+      [aLocation()],
+      anItemUnitListResponse([anItemUnit({ tag: 'LV-001' })], 1),
+    )
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await goToTab(user, 'Units')
+    await user.click(await screen.findByRole('combobox', { name: 'Item' }))
+    await user.click(await screen.findByRole('option', { name: 'Life Vest' }))
+
+    await user.click(await screen.findByRole('button', { name: 'Edit LV-001' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox', { name: 'Notes' }), 'Repacked')
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(state.writes[0]).toMatchObject({
+      method: 'PUT',
+      url: '/api/v1/inventory/units/VEST1',
+      body: { notes: 'Repacked' },
+    })
+  })
+
+  it('offers only reservable items, so a consumable never gets units', async () => {
+    let reservableOnly: string | null = null
+    inventoryApi([aReservable()])
+    server.use(
+      http.get(apiUrl('v1/inventory/items'), ({ request }) => {
+        reservableOnly = new URL(request.url).searchParams.get('reservableOnly')
+        return HttpResponse.json([aReservable()])
+      }),
+    )
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await goToTab(user, 'Units')
+
+    await waitFor(() => expect(reservableOnly).toBe('true'))
+    expect(screen.getByText('Only items marked reservable are listed.')).toBeInTheDocument()
+  })
+})
+
+describe('InventoryAdminPage reservable flag', () => {
+  it('sends the item to the reservation calendar when the box is ticked', async () => {
+    const state = inventoryApi()
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    const dialog = await openItemDialog(user)
+
+    await user.type(within(dialog).getByRole('textbox', { name: 'Name (EN)' }), 'Life Vest')
+    await user.click(within(dialog).getByRole('combobox', { name: /Category/ }))
+    await user.click(await screen.findByRole('option', { name: 'Headsets' }))
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Reservable' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(state.writes[0].body).toMatchObject({ isReservable: true })
+  })
+
+  it('leaves an item out of the calendar by default', async () => {
+    const state = inventoryApi()
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    const dialog = await openItemDialog(user)
+
+    await user.type(within(dialog).getByRole('textbox', { name: 'Name (EN)' }), 'Printer Paper')
+    await user.click(within(dialog).getByRole('combobox', { name: /Category/ }))
+    await user.click(await screen.findByRole('option', { name: 'Headsets' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(state.writes[0].body).toMatchObject({ isReservable: false })
   })
 })

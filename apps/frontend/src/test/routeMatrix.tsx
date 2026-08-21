@@ -106,6 +106,7 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/dto/verify', url: '/dto/verify' },
   { path: '/inventory', url: '/inventory' },
   { path: '/inventory/:id', url: '/inventory/1' },
+  { path: '/inventory-reservations', url: '/inventory-reservations' },
   { path: '/login', url: '/login' },
   { path: '/login/sent', url: '/login/sent' },
   { path: '/login/validate', url: '/login/validate' },

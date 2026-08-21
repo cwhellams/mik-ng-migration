@@ -80,6 +80,24 @@ export const endpoints = {
     byId: (bookingId: string) => `v1/bookings/${bookingId}`,
     cancel: (bookingId: string) => `v1/bookings/${bookingId}/cancel`,
   },
+
+  inventoryReservations: {
+    root: 'v1/inventory-reservations',
+    byId: (reservationId: string) => `v1/inventory-reservations/${reservationId}`,
+    cancel: (reservationId: string) => `v1/inventory-reservations/${reservationId}/cancel`,
+  },
+
+  /**
+   * Only the paths #1139 added. The rest of the inventory catalog still uses
+   * raw literals, so `inventory` is deliberately absent from the
+   * `no-restricted-syntax` list in eslint.config.js — migrating a domain means
+   * moving *all* of its call sites, and that is its own change.
+   */
+  inventoryUnits: {
+    forItem: (itemId: string) => `v1/inventory/items/${itemId}/units`,
+    byId: (unitId: string) => `v1/inventory/units/${unitId}`,
+    status: (unitId: string) => `v1/inventory/units/${unitId}/status`,
+  },
 } as const
 
 /**

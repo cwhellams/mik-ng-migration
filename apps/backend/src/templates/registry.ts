@@ -167,6 +167,29 @@ export const emailTemplates = {
       en: 'Reminder: Your upcoming MIK booking',
     },
   },
+
+  // ─── Item reservations (#1139) ────────────────────────────────────────────
+  'item-reservation-confirmed': {
+    subject: {
+      fi: 'MIK varauksesi {{itemName}} on vahvistettu',
+      sv: 'Din MIK-bokning av {{itemName}} är bekräftad',
+      en: 'Your MIK reservation for {{itemName}} is confirmed',
+    },
+  },
+  'item-reservation-updated': {
+    subject: {
+      fi: 'MIK varauksesi {{itemName}} on päivitetty',
+      sv: 'Din MIK-bokning av {{itemName}} har uppdaterats',
+      en: 'Your MIK reservation for {{itemName}} has been updated',
+    },
+  },
+  'item-reservation-cancelled': {
+    subject: {
+      fi: 'MIK varauksesi {{itemName}} on peruttu',
+      sv: 'Din MIK-bokning av {{itemName}} är inställd',
+      en: 'Your MIK reservation for {{itemName}} is cancelled',
+    },
+  },
   'booking-transferred-from': {
     subject: {
       fi: 'MIK varauksesi on siirretty toiselle jäsenelle',
@@ -353,6 +376,12 @@ export interface EmailTemplateVars {
   'booking-instructor-updated': BookingEmailVars & { studentName: string }
   'booking-instructor-cancelled': BookingEmailVars & { studentName: string }
 
+  // ─── Item reservations ────────────────────────────────────────────────────
+  // Built with `itemReservationEmailVars()` from ./itemReservationEmailHelpers.ts.
+  'item-reservation-confirmed': ItemReservationEmailVars
+  'item-reservation-updated': ItemReservationEmailVars
+  'item-reservation-cancelled': ItemReservationEmailVars & { cancellationNote: string }
+
   // ─── Expense claims ───────────────────────────────────────────────────────
   'expense-approved': ExpenseEmailVars
   'expense-rejected': ExpenseEmailVars & { rejectionReason: string }
@@ -415,6 +444,18 @@ interface BookingEmailVars {
   bookingTime: string
   /** Unused by the cancellation bodies, but every booking email is built alike. */
   calendarLink: string
+  href: string
+}
+
+interface ItemReservationEmailVars {
+  firstName: string
+  /** The item's name in the recipient's language, already resolved. */
+  itemName: string
+  /** `"3 × "` for a multi-unit reservation, empty for a single one. */
+  quantityLabel: string
+  /** The reserved unit's asset tag, or empty when any unit from the pool will do. */
+  unitTag: string
+  reservationTime: string
   href: string
 }
 

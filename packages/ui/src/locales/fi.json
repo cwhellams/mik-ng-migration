@@ -62,7 +62,8 @@
     "ameList": "AME-hakemisto",
     "ameAdmin": "AME-hyväksynnät",
     "meetings": "Kokoukset",
-    "meetingsAdmin": "Kokoukset (hallinto)"
+    "meetingsAdmin": "Kokoukset (hallinto)",
+    "itemReservations": "Kalustovaraukset"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -3045,7 +3046,10 @@
       "UPDATED": "Päivitetty",
       "QUANTITY_CHANGE": "Määrä muuttunut",
       "CONDITION_CHANGE": "Kunto muuttunut",
-      "DEACTIVATED": "Deaktivoitu"
+      "DEACTIVATED": "Deaktivoitu",
+      "UNIT_CREATED": "Yksilö lisätty",
+      "UNIT_UPDATED": "Yksilöä muokattu",
+      "UNIT_STATUS_CHANGE": "Yksilön tila muuttui"
     },
     "admin": {
       "title": "Varasto-hallinta",
@@ -3062,7 +3066,30 @@
       "delta": "Muutos (+ tai -)",
       "deltaHint": "Positiivinen lisää, negatiivinen vähentää",
       "fieldRequired": "Tämä kenttä on pakollinen",
-      "invalidImageUrl": "Anna kelvollinen http(s)-osoite"
+      "invalidImageUrl": "Anna kelvollinen http(s)-osoite",
+      "tabUnits": "Yksilöt",
+      "selectItem": "Tuote",
+      "selectItemFirst": "Valitse tuote, jonka yksilöitä haluat hallita.",
+      "onlyReservableItems": "Vain varattaviksi merkityt tuotteet näytetään."
+    },
+    "isReservable": "Varattavissa",
+    "isReservableHint": "Näytä tämä tuote kalustovarauskalenterissa",
+    "units": "Yksilöt",
+    "unit": "Yksilö",
+    "unitTag": "Tunniste",
+    "unitsInService": "{{count}} / {{total}} yksilöä käytössä",
+    "addUnit": "Lisää yksilö",
+    "editUnit": "Muokkaa yksilöä",
+    "changeUnitStatus": "Vaihda yksilön tila",
+    "noUnits": "Tällä tuotteella ei ole vielä yksilöitä. Lisää yksi, jotta sen voi varata.",
+    "unitStatus": {
+      "label": "Tila",
+      "AVAILABLE": "Vapaa",
+      "RESERVED": "Varattu",
+      "ON_LOAN": "Lainassa",
+      "MAINTENANCE": "Huollossa",
+      "LOST": "Kadonnut",
+      "RETIRED": "Poistettu käytöstä"
     }
   },
   "meetings": {
@@ -3216,6 +3243,58 @@
       "noCommercialFlights": "Viimeisen 12 kuukauden ajalta ei ole kirjattu kaupallisia lentoja.",
       "month": "Kuukausi",
       "commercialHours": "Kaupalliset tunnit"
+    }
+  },
+  "itemReservations": {
+    "title": "Kalustovaraukset",
+    "showItems": "Tuotteet",
+    "ALL": "Kaikki",
+    "showCancelled": "Näytä peruutetut",
+    "newReservation": "Uusi varaus",
+    "editReservation": "Muokkaa varausta",
+    "startDate": "Aloituspäivä ja -aika ({{tz}})",
+    "endDate": "Loppupäivä ja -aika ({{tz}})",
+    "item": "Tuote",
+    "quantity": "Määrä",
+    "unit": "Tietty yksilö",
+    "anyUnit": "Mikä tahansa vapaa yksilö",
+    "unitOnlyForOne": "Tietyn yksilön voi valita vain yhden kappaleen varaukseen.",
+    "linkedBooking": "Lentovaraus",
+    "noLinkedBooking": "Ei liitetty lentoon",
+    "linkedBookingHint": "Liitä varaus tulevaan lentoosi, jotta on selvää mihin kalustoa tarvitaan.",
+    "description": "Kuvaus",
+    "details": "Varauksen tiedot",
+    "owner": "Varaaja",
+    "created": "Luotu",
+    "updated": "Päivitetty",
+    "cancelled": "Peruutettu",
+    "cancellationNote": "Lisätiedot",
+    "cancellationNoteHint": "Valinnainen: miksi varaus peruttiin",
+    "confirmCancel": "Peru varaus",
+    "availability": "{{available}} / {{total}} käytössä olevasta yksilöstä vapaana tähän aikaan",
+    "noneAvailable": "Yksikään {{total}} käytössä olevasta yksilöstä ei ole vapaana tähän aikaan",
+    "noReservableItems": "Yhtään tuotetta ei ole merkitty varattavaksi. Varastonhoitaja voi ottaa tuotteen käyttöön ja lisätä sen yksilöt.",
+    "noUnits": "Tällä tuotteella ei ole käytössä olevia yksilöitä, joten sitä ei voi vielä varata.",
+    "self": "oma",
+    "calendarMessages": {
+      "date": "Päivä",
+      "time": "Aika (Helsinki)",
+      "event": "Varaus",
+      "allDay": "Koko päivä",
+      "week": "Viikko",
+      "day": "Päivä",
+      "month": "Kuukausi",
+      "today": "Tänään",
+      "previous": "Edellinen",
+      "next": "Seuraava",
+      "noEventsInRange": "Ei varauksia valitulla aikavälillä."
+    },
+    "validation": {
+      "disablePast": "Päivä/aika ei voi olla menneisyydessä",
+      "minutesStep": "Käytä 15 minuutin tarkkuutta",
+      "invalidDateTime": "Virheellinen päivä tai aika",
+      "endAfterStart": "Loppuajan on oltava alkuajan jälkeen",
+      "itemRequired": "Valitse varattava tuote"
     }
   }
 }
