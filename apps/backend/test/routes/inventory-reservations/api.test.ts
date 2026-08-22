@@ -240,10 +240,12 @@ describe('POST /inventory-reservations', () => {
   })
 
   it('accepts a link to a real flight booking', async () => {
-    const response = await post(draft({ linkedBookingId: 'stl1' }))
+    // `resvbk1` rather than one of the seeded `stl%` flights — see V300: those
+    // are scratch space two worker suites hard-delete rows from.
+    const response = await post(draft({ linkedBookingId: 'resvbk1' }))
 
     expect(response.status).toBe(201)
-    expect(response.body.linkedBookingId).toBe('stl1')
+    expect(response.body.linkedBookingId).toBe('resvbk1')
   })
 
   it('says how many units are free when the window is full', async () => {

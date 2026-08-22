@@ -207,7 +207,7 @@ describe('reservation reads', () => {
       itemId: 'INV_VEST',
       itemName: { en: 'Life Vest', fi: 'Pelastusliivi', sv: 'Flytväst' },
       quantity: 2,
-      linkedBookingId: 'stl1',
+      linkedBookingId: 'resvbk1',
       status: ItemReservationStatus.CONFIRMED,
       member: { firstName: 'Matti', lastName: 'Virtanen' },
       unitId: null,
@@ -262,7 +262,7 @@ describe('reservation reads', () => {
   })
 
   it('finds the reservations riding along with a flight booking', async () => {
-    const found = await reservations.getReservationsByLinkedBookingId('stl1')
+    const found = await reservations.getReservationsByLinkedBookingId('resvbk1')
     expect(found.map((r) => r.reservationId)).toEqual(['resv1'])
   })
 

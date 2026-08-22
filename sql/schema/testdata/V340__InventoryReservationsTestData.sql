@@ -11,6 +11,7 @@
 DELETE FROM inventory.reservations WHERE reservation_id LIKE 'resv%';
 DELETE FROM inventory.item_units   WHERE unit_id LIKE 'VEST%' OR unit_id LIKE 'O2%';
 DELETE FROM inventory.items        WHERE item_id IN ('INV_VEST', 'INV_O2', 'INV_PAPER');
+DELETE FROM schedule.bookings      WHERE booking_id = 'resvbk1';
 
 INSERT INTO inventory.items (
     item_id, category_id, location_id, item_type, name, description,
@@ -49,17 +50,36 @@ VALUES
   ('O2A',   'INV_O2',   'OX-A',   'AVAILABLE',   'GOOD',    NULL, TRUE,  'k1mnimda', 'k1mnimda'),
   ('O2B',   'INV_O2',   'OX-B',   'AVAILABLE',   'UNKNOWN', NULL, TRUE,  'k1mnimda', 'k1mnimda');
 
--- resv1 rides along with flight booking stl1 and shares its window, which is
+-- The flight resv1 rides along with. Its own booking rather than one of the
+-- seeded stl1..stl20, because `inventory.reservations.linked_booking_id` is a
+-- RESTRICT foreign key and those twenty are shared scratch space: the push and
+-- reminder worker suites hard-delete any `stl%` booking that lands in a window
+-- they are testing (now+5h, now+24h, now+48h) and re-insert it afterwards.
+-- stl1 and stl2 sit one and two days out, so for several hours a day that
+-- delete would hit a booking a reservation points at and fail — a suite that
+-- passes or fails by the clock. Day 40 is clear of every seeded stl/ihq
+-- booking, so the overlap trigger is happy and no worker's window reaches it.
+INSERT INTO schedule.bookings (
+    booking_id, member_id, registration, booking_type, booking_status,
+    start_time_epoch, end_time_epoch, created_by, updated_by
+) VALUES (
+    'resvbk1', 'Matti1', 'OH-STL', 'PRIVATE', 'CONFIRMED',
+    EXTRACT(EPOCH FROM (current_date + INTERVAL '40 days' + INTERVAL '9 hours')),
+    EXTRACT(EPOCH FROM (current_date + INTERVAL '40 days' + INTERVAL '11 hours')),
+    'Matti1', 'Matti1'
+);
+
+-- resv1 rides along with flight booking resvbk1 and shares its window, which is
 -- what the linked-booking column exists for.
 INSERT INTO inventory.reservations (
     reservation_id, member_id, item_id, unit_id, quantity, linked_booking_id,
     reservation_status, start_time_epoch, end_time_epoch, description, created_by, updated_by
 )
-SELECT 'resv1', 'Matti1', 'INV_VEST', NULL, 2, 'stl1',
+SELECT 'resv1', 'Matti1', 'INV_VEST', NULL, 2, 'resvbk1',
        'CONFIRMED', b.start_time_epoch, b.end_time_epoch,
        'Two vests for the passengers', 'Matti1', 'Matti1'
   FROM schedule.bookings b
- WHERE b.booking_id = 'stl1';
+ WHERE b.booking_id = 'resvbk1';
 
 INSERT INTO inventory.reservations (
     reservation_id, member_id, item_id, unit_id, quantity, linked_booking_id,
