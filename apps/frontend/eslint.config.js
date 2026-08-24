@@ -4,6 +4,17 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
+// @mik/ui's i18n turns i18next's HTML escaping off, because React escapes at
+// render time and double-escaping printed entities on screen (issue #1255).
+// That is only safe while no translated string reaches an HTML sink. This app
+// has no such sink today; the rule is what keeps it that way. Sanitised server
+// HTML goes through @mik/ui's MarkdownContent, the one sanctioned exemption.
+const noHtmlSink = {
+  selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+  message:
+    'dangerouslySetInnerHTML is restricted: i18next interpolation is unescaped (see packages/ui/src/i18n.ts, issue #1255), so feeding a translated string to an HTML sink would be an XSS hole. Compose JSX instead, or route sanitised server HTML through MarkdownContent.',
+}
+
 export default tseslint.config(
   // dev-dist holds the generated PWA service worker; it carries eslint-disable
   // comments for rules this config does not define, which ESLint reports as errors.
@@ -72,6 +83,9 @@ export default tseslint.config(
     rules: {
       'no-restricted-syntax': [
         'error',
+        // Flat config replaces a rule's options rather than merging them, so the
+        // HTML-sink restriction has to ride along in this array to survive.
+        noHtmlSink,
         {
           selector: 'Literal[value=/^v1\\u002F(members|aircrafts|bookings)(\\u002F|$)/]',
           message:
@@ -83,6 +97,15 @@ export default tseslint.config(
             'Use the path builder from src/api/endpoints.ts (e.g. endpoints.members.byId(id)) instead of interpolating an API path.',
         },
       ],
+    },
+  },
+  // The block above exempts tests, src/test and src/api from the API-path rules,
+  // for the reason given there. The HTML-sink restriction has no such reason, so
+  // restate it for exactly those files rather than leaving them uncovered.
+  {
+    files: ['**/*.test.{ts,tsx}', 'src/test/**', 'src/api/**'],
+    rules: {
+      'no-restricted-syntax': ['error', noHtmlSink],
     },
   },
 )

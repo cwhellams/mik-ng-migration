@@ -1,5 +1,12 @@
 import { auditCreate, auditUpdate, mapAudit } from './audit.ts'
-import { sql, type ExpressionBuilder, type Kysely, type Transaction } from 'kysely'
+import {
+  sql,
+  type Expression,
+  type ExpressionBuilder,
+  type Kysely,
+  type SqlBool,
+  type Transaction,
+} from 'kysely'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   OccurrenceCategory,
@@ -176,6 +183,43 @@ const hasAccess = (
   }
 }
 
+/**
+ * Every `OccurrenceFilters` field as one boolean expression, shared by the list
+ * query and `countOccurrences` so a filter cannot be honoured by one and ignored
+ * by the other. `eb.and([])` is `true`, so an empty filter object is a no-op.
+ *
+ * `fromDate`/`toDate` bound `occurrenceDate`, not `reportDate` — see the schema.
+ * They were declared on `OccurrenceFiltersSchema` from the start but never
+ * applied until the occurrence register (#519) needed them.
+ */
+const occurrenceFilters = (
+  eb: ExpressionBuilder<DB, 'flight.occurrences'>,
+  filters: OccurrenceFilters,
+): Expression<SqlBool> => {
+  const conditions: Expression<SqlBool>[] = []
+
+  if (filters.status !== undefined) {
+    conditions.push(eb('flight.occurrences.status', '=', filters.status))
+  }
+  if (filters.ignoreStatuses && filters.ignoreStatuses.length > 0) {
+    conditions.push(eb('flight.occurrences.status', 'not in', filters.ignoreStatuses))
+  }
+  if (filters.aircraftRegistration) {
+    conditions.push(eb('flight.occurrences.registration', '=', filters.aircraftRegistration))
+  }
+  if (filters.fromDate) {
+    conditions.push(eb('flight.occurrences.occurrenceDate', '>=', new Date(filters.fromDate)))
+  }
+  if (filters.toDate) {
+    conditions.push(eb('flight.occurrences.occurrenceDate', '<=', new Date(filters.toDate)))
+  }
+  if (filters.isDtoReport !== undefined) {
+    conditions.push(eb('flight.occurrences.isDtoReport', '=', filters.isDtoReport))
+  }
+
+  return eb.and(conditions)
+}
+
 export async function getOccurrences(
   filters: OccurrenceFilters,
   limitations: {
@@ -192,10 +236,7 @@ export async function getOccurrences(
       'flight.occurrenceAccess.reportId',
     )
     .where((eb) => hasAccess(eb, limitations))
-    .$if(filters.status !== undefined, (qb) => qb.where('status', '=', filters.status!))
-    .$if(filters.ignoreStatuses ? filters.ignoreStatuses.length > 0 : false, (qb) =>
-      qb.where((eb) => eb('status', 'not in', filters.ignoreStatuses!)),
-    )
+    .where((eb) => occurrenceFilters(eb, filters))
     .distinctOn('flight.occurrences.reportId')
     .orderBy('flight.occurrences.reportId')
     .orderBy('reportDate', 'desc')
@@ -204,6 +245,33 @@ export async function getOccurrences(
     .execute()
 
   return results.map((r) => toOccurrence(r, [], []))
+}
+
+/**
+ * How many reports `getOccurrences` would return for the same arguments. The
+ * access join fans out one row per grant, so the count has to be distinct on the
+ * report id or a report shared with three roles would be counted three times.
+ */
+export async function countOccurrences(
+  filters: OccurrenceFilters,
+  limitations: {
+    memberId?: string
+    roles: string[]
+  },
+): Promise<number> {
+  const { count } = await connection.db
+    .selectFrom('flight.occurrences')
+    .innerJoin(
+      'flight.occurrenceAccess',
+      'flight.occurrences.reportId',
+      'flight.occurrenceAccess.reportId',
+    )
+    .where((eb) => hasAccess(eb, limitations))
+    .where((eb) => occurrenceFilters(eb, filters))
+    .select((eb) => eb.fn.count('flight.occurrences.reportId').distinct().as('count'))
+    .executeTakeFirstOrThrow()
+
+  return Number(count)
 }
 
 /**

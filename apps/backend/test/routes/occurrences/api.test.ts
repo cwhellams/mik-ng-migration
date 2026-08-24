@@ -136,6 +136,9 @@ describe('GET /occurrences', () => {
         status: 'CLOSED',
         createdBy: '-',
       },
+      { id: 'SMS5_CLOS', status: 'CLOSED', createdBy: '-' },
+      { id: 'SMS6_PROC', status: 'PROCESSED', createdBy: '-' },
+      { id: 'SMS7_ANON', status: 'ANONYMIZED', createdBy: '-' },
     ])
   })
 
@@ -174,6 +177,126 @@ describe('GET /occurrences', () => {
       .query({})
     expect(response.status).toBe(403)
   })
+})
+
+/**
+ * The printable occurrence register (#519).
+ *
+ * Two things are being guarded here. One is the gate: the register is the whole
+ * anonymized occurrence history in one file, and only the safety manager may pull
+ * it — in admin mode, since SMS_MANAGER is stripped from a request sent without
+ * sudo. The other is which reports it covers: NEW/RECEIVED/ANONYMIZING reports
+ * still carry the reporter's own words, and the register must never be a way
+ * around that.
+ */
+describe('GET /occurrences/export', () => {
+  const exportRequest = (path: string, token: string, sudo = true, params = {}) =>
+    request(app)
+      .get(`/occurrences/${path}`)
+      .set('Cookie', `accessToken=${token}`)
+      .set('X-Sudo', sudo ? 'true' : 'false')
+      .query(params)
+
+  const count = async (token: string, sudo = true, params = {}) =>
+    exportRequest('export/count', token, sudo, params)
+
+  // What the export dialog sends for "the 2026 calendar year": the start and end
+  // of the chosen days in club local time, which is UTC+2 at both ends of winter.
+  const YEAR_2026 = { fromDate: '2025-12-31T22:00:00.000Z', toDate: '2026-12-31T21:59:59.999Z' }
+
+  describe.each([
+    ['export/count', 'the count preview'],
+    ['export', 'the register itself'],
+  ])('%s', (path) => {
+    it('is refused without a token', async () => {
+      expect((await request(app).get(`/occurrences/${path}`).query({})).status).toBe(401)
+    })
+
+    it('is refused to a member with no permissions', async () => {
+      expect((await exportRequest(path, missingUserToken)).status).toBe(403)
+    })
+
+    it('is refused to an ordinary flight log user', async () => {
+      expect((await exportRequest(path, userToken)).status).toBe(403)
+    })
+
+    // The independent processor sees the reports the manager cannot, not the
+    // register: their job ends at anonymizing, and the register is the club's
+    // own authority filing.
+    it('is refused to the independent SMS processor', async () => {
+      expect((await exportRequest(path, processorToken)).status).toBe(403)
+    })
+
+    it('is refused to the safety manager outside admin mode', async () => {
+      expect((await exportRequest(path, managerToken, false)).status).toBe(403)
+    })
+
+    it('is allowed to the safety manager in admin mode', async () => {
+      expect((await exportRequest(path, managerToken, true)).status).toBe(200)
+    })
+
+    it('rejects an unknown filter rather than silently ignoring it', async () => {
+      // A mistyped `dto=true` would otherwise export the whole register while the
+      // filename and page header claimed the DTO subset.
+      expect((await exportRequest(path, managerToken, true, { dto: 'true' })).status).toBe(400)
+    })
+  })
+
+  it('counts every anonymized report when no period is given', async () => {
+    const response = await count(managerToken)
+
+    // SMS2_ANON, SMS3_CLOS, SMS5_CLOS, SMS6_PROC, SMS7_ANON — everything the
+    // safety manager has access to, and neither SMS1_NEW nor SMS4_ANON.
+    expect(response.body).toEqual({ count: 5 })
+  })
+
+  it('counts only the occurrences inside the period', async () => {
+    const response = await count(managerToken, true, YEAR_2026)
+
+    expect(response.body).toEqual({ count: 3 })
+  })
+
+  it('counts only DTO reports when the DTO scope is chosen', async () => {
+    const response = await count(managerToken, true, { dtoOnly: 'true' })
+
+    expect(response.body).toEqual({ count: 2 })
+  })
+
+  // "All reports", not "the reports that are not DTO reports".
+  it('counts everything when the DTO scope is explicitly off', async () => {
+    const response = await count(managerToken, true, { dtoOnly: 'false' })
+
+    expect(response.body).toEqual({ count: 5 })
+  })
+
+  it('returns a PDF named after the period and scope', async () => {
+    const response = await exportRequest('export', managerToken, true, {
+      ...YEAR_2026,
+      dtoOnly: 'true',
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.headers['content-type']).toEqual('application/pdf')
+    expect(response.headers['content-disposition']).toEqual(
+      'attachment; filename="occurrence-register_2026-01-01_2026-12-31_dto.pdf"',
+    )
+    expect(response.body.subarray(0, 5).toString()).toEqual('%PDF-')
+  })
+
+  it('returns a PDF for a period with no occurrences at all', async () => {
+    const response = await exportRequest('export', managerToken, true, {
+      fromDate: '2099-01-01T00:00:00.000Z',
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.body.subarray(0, 5).toString()).toEqual('%PDF-')
+  })
+
+  // Blocked on the fixtures: tripping MAX_REGISTRY_OCCURRENCES means seeding 501
+  // occurrences into the shared test database, which every other occurrence suite
+  // asserting an exact list would then have to account for. The limit is a
+  // module-level constant, so there is nothing to lower for one test either.
+  it.todo('refuses to render a register of more than MAX_REGISTRY_OCCURRENCES reports')
 })
 
 const query = async (id: string, token: string, sudo = true) =>

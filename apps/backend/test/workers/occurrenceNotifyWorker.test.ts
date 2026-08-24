@@ -55,8 +55,11 @@ describe('Occurrence Notifying Worker', () => {
 
       expect(mockCronSchedule).toHaveBeenCalledWith('0 7 * * *', expect.any(Function))
 
-      // 2 processors and 2 occurences + 1 occurrence for managers
-      expect(mockSendEmail).toHaveBeenCalledTimes(5)
+      // Pending occurrences are the NEW/ANONYMIZING/ANONYMIZED seed rows: SMS1_NEW
+      // and SMS4_ANON go to both SMS processors (2 x 2), SMS2_ANON and SMS7_ANON
+      // to the one safety manager (2 x 1). SMS7_ANON came with the occurrence
+      // register fixtures in V300 (#519).
+      expect(mockSendEmail).toHaveBeenCalledTimes(6)
 
       worker.stop()
 

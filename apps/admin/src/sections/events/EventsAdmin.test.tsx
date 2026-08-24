@@ -520,6 +520,24 @@ describe('EventsAdmin deleting', () => {
     expect(state.writes).toHaveLength(0)
   })
 
+  it('names a title containing an apostrophe verbatim (issue #1255)', async () => {
+    // The title is interpolated into `events.deleteConfirm`, so with i18next's
+    // default escaping this dialog read `Pilots&#39; BBQ &amp; fly-in`.
+    const title = "Pilots' BBQ & fly-in"
+    eventsApi([anEvent({ title })])
+
+    const { user } = renderWithProviders(<EventsAdmin />)
+    await screen.findByText(title)
+    await user.click(within(rowFor(title)).getByRole('button', { name: 'Delete' }))
+    const dialog = await screen.findByRole('dialog')
+
+    expect(
+      within(dialog).getByText(
+        `Are you sure you want to delete "${title}"? This cannot be undone.`,
+      ),
+    ).toBeInTheDocument()
+  })
+
   it('deletes the event once confirmed', async () => {
     const state = eventsApi()
 

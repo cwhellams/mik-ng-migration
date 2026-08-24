@@ -169,7 +169,12 @@ export default defineConfig({
         // the change-history dialog and the crew/instructor gating on the entry form under
         // test (43.98/39.24/29.71 measured). Raised in the PR that earned it, per the rule
         // above.
-        'src/sections/**': { statements: 43, branches: 38, functions: 28 },
+        //
+        // 43/38/28 -> 44/40/29: #1255 brought the fly page's Hold Item List, its
+        // grounding banner and the shared defect link under test — that directory
+        // had no tests at all — plus the member list's selection checkbox and the
+        // DTO student detail page. 44.10/40.47/29.66 -> 45.10/41.67/30.88 measured.
+        'src/sections/**': { statements: 44, branches: 40, functions: 29 },
       },
     },
   },

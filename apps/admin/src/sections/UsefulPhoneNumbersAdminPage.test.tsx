@@ -182,6 +182,18 @@ describe('UsefulPhoneNumbersAdminPage deleting', () => {
     expect(state.writes).toHaveLength(0)
   })
 
+  it('names a row containing a slash or apostrophe verbatim (issue #1255)', async () => {
+    // The label is interpolated into the confirm text, so with i18next's default
+    // escaping this prompt read `Tower &#x2F; Ground`.
+    phoneNumbers([aNumber({ label: "Tower / Ground (Pilot's desk)" })])
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
+
+    const { user } = renderWithProviders(<UsefulPhoneNumbersAdminPage />)
+    await user.click(await screen.findByRole('button', { name: 'Delete' }))
+
+    expect(confirm).toHaveBeenCalledWith("Delete phone number Tower / Ground (Pilot's desk)?")
+  })
+
   it('deletes once confirmed and refreshes the list', async () => {
     const state = phoneNumbers()
     vi.spyOn(globalThis, 'confirm').mockReturnValue(true)

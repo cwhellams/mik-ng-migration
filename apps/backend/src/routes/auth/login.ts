@@ -20,7 +20,7 @@ import {
   type LoginResponse,
   type RegisterRequest,
 } from '@mik/contracts/auth'
-import { decodeRefreshToken, respondWithAccessAndRefreshToken } from './token.ts'
+import { clearAuthCookies, decodeRefreshToken, respondWithAccessAndRefreshToken } from './token.ts'
 import { generateJWTUser } from './token.ts'
 import {
   addMember,
@@ -304,20 +304,11 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
   }
 })
 
-router.post('/logout', async (req: Request, res: Response) => {
-  const secure = process.env.NODE_ENV === 'production'
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure,
-    sameSite: 'strict',
-    path: '/api/auth/refresh',
-  })
-  res.clearCookie('accessToken', {
-    httpOnly: true,
-    secure,
-    sameSite: 'strict',
-    path: '/',
-  })
+router.post('/logout', async (_req: Request, res: Response) => {
+  // Clears the host-only *and* the COOKIE_DOMAIN-scoped variants. Clearing only
+  // the host-only one left the shared '.mik.fi' session cookie alive, so logging
+  // out of either app logged you out of neither.
+  clearAuthCookies(res)
   res.status(200).json({})
 })
 

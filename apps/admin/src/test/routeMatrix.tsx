@@ -166,6 +166,11 @@ export const ROUTES: RouteUnderTest[] = [
     permissions: [MIKPermissions.EXPENSE_HETU_ADMIN],
   },
   {
+    path: '/occurrences/registry',
+    url: '/occurrences/registry',
+    permissions: [MIKPermissions.SMS_MANAGER],
+  },
+  {
     path: '/accounting/cost-centres',
     url: '/accounting/cost-centres',
     permissions: [MIKPermissions.EXPENSE_ADMIN],

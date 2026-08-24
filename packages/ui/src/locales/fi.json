@@ -1999,6 +1999,24 @@
       "read": "Lukuoikeus",
       "write": "Kirjoitusoikeus",
       "manage": "Ylläpito-oikeus"
+    },
+    "registry": {
+      "button": "Tulosta rekisteri",
+      "title": "Tulosta poikkeamarekisteri",
+      "info": "Tulostaa anonymisoidut poikkeamailmoitukset ja niiden käsittelytiedot A4-asiakirjaksi vuosiraportin liitteeksi. Riippumattoman käsittelijän työn alla olevat ilmoitukset eivät sisälly tulosteeseen.",
+      "dateRange": "Ajanjakso",
+      "startDate": "Alkaen",
+      "endDate": "Päättyen",
+      "scope": "Laajuus",
+      "scopeAll": "Kaikki poikkeamailmoitukset",
+      "scopeDto": "Vain DTO-koulutuslennot",
+      "countLoading": "Lasketaan...",
+      "countResult": "{{count}} poikkeamailmoitusta valitulla ajanjaksolla",
+      "countResultZero": "Ei poikkeamailmoituksia valitulla ajanjaksolla",
+      "countFailed": "Ilmoitusten lukumäärää ei voitu laskea.",
+      "exportButton": "Luo PDF",
+      "exporting": "Luodaan...",
+      "failed": "Rekisterin luonti ei onnistunut. Yritä uudelleen."
     }
   },
   "outbox": {
@@ -3077,6 +3095,7 @@
       "traficomReport": "Traficom-raportti",
       "upliftReport": "Polttoainetankkaukset",
       "instructorWorktime": "Opettajien työaika",
+      "occurrenceRegistry": "Poikkeamarekisteri",
       "tulorekisteriReport": "Tulorekisteri-raportti",
       "expenseApproval": "Kulukorvausten hyväksyntä",
       "mileageAllowances": "Kilometrikorvaukset",

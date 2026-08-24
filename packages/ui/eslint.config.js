@@ -3,8 +3,29 @@ import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 
+// i18n.ts turns i18next's HTML escaping off, because React escapes at render
+// time and double-escaping printed entities on screen (issue #1255). That is
+// only safe while no translated string reaches an HTML sink, so the sinks are
+// restricted rather than left to reviewer memory.
+//
+// MarkdownContent is the one sanctioned sink — it takes server-rendered `*Html`
+// fields (DTO syllabus, fuel prices) and never a `t()` result, and its test
+// pins that contract. Anything else that needs markup should compose JSX.
+const noHtmlSink = {
+  selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+  message:
+    'dangerouslySetInnerHTML is restricted: i18next interpolation is unescaped (see packages/ui/src/i18n.ts, issue #1255), so feeding a translated string to an HTML sink would be an XSS hole. Compose JSX instead, or route sanitised server HTML through MarkdownContent.',
+}
+
 export default tseslint.config(
   { ignores: ['node_modules', 'coverage'] },
+  {
+    files: ['**/*.{ts,tsx}'],
+    ignores: ['src/components/MarkdownContent.tsx'],
+    rules: {
+      'no-restricted-syntax': ['error', noHtmlSink],
+    },
+  },
   {
     // The same no-Node-globals rule tsconfig.json enforces by omitting
     // @types/node, repeated here so it holds regardless of which ambient types

@@ -167,6 +167,12 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
         ],
       },
       {
+        label: 'admin.nav.occurrenceRegistry',
+        icon: 'mdi:printer',
+        path: '/occurrences/registry',
+        permissions: [MIKPermissions.SMS_MANAGER],
+      },
+      {
         label: 'admin.nav.tulorekisteriReport',
         icon: 'mdi:bank-transfer',
         path: '/accounting/tulorekisteri-report',

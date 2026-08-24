@@ -28,6 +28,7 @@ import InventoryAdminPage from './sections/inventory/InventoryAdminPage'
 import MeetingsAdminPage from './sections/meetings/MeetingsAdminPage'
 import NonRenewals from './sections/NonRenewals'
 import NotificationBannerAdmin from './sections/NotificationBannerAdmin'
+import OccurrenceRegistryPage from './sections/occurrences/OccurrenceRegistryPage'
 import OrderDetailAdmin from './sections/shop/OrderDetailAdmin'
 import OrdersAdmin from './sections/shop/OrdersAdmin'
 import Outbox from './sections/Outbox'
@@ -358,6 +359,14 @@ const AppRoutes = () => {
           element={
             <RequirePermission permissions={[MIKPermissions.EXPENSE_HETU_ADMIN]}>
               <MileageTulorekisteriReport />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/occurrences/registry'
+          element={
+            <RequirePermission permissions={[MIKPermissions.SMS_MANAGER]}>
+              <OccurrenceRegistryPage />
             </RequirePermission>
           }
         />
