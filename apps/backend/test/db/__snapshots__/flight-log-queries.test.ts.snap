@@ -161,8 +161,8 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1
     "ajlbSeqNo": 4,
   },
   {
-    "acTotalFlightMins": 703390,
-    "acTotalFlightTime": "11723:10",
+    "acTotalFlightMins": 703744,
+    "acTotalFlightTime": "11729:04",
     "acTotalLandings": 0,
     "aircraftRegistration": "OH-STL",
     "ajlbSeqNo": 3,
@@ -173,8 +173,8 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1
 exports[`Db query FlightLog tests getFlightLogTotals returns totals for single ac 1`] = `
 [
   {
-    "acTotalFlightMins": 703390,
-    "acTotalFlightTime": "11723:10",
+    "acTotalFlightMins": 703744,
+    "acTotalFlightTime": "11729:04",
     "acTotalLandings": 0,
     "aircraftRegistration": "OH-STL",
     "ajlbSeqNo": 3,

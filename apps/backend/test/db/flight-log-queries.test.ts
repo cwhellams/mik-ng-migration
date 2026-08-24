@@ -67,8 +67,10 @@ describe('Db Get FlightLog tests', () => {
 describe('Db query FlightLog tests', () => {
   it('getFlightLogs with no params should return all logs', async () => {
     const result = await getFlightLogs({})
-    expect(result.rows).toEqual(283)
-    expect(result.logs.length).toEqual(33)
+    // +3 for V330's eff1fl/eff2fl/eff4fl. No page requested, so this defaults to the
+    // last page (page 6 of 50): 286 - 5*50 = 36 rows.
+    expect(result.rows).toEqual(286)
+    expect(result.logs.length).toEqual(36)
   })
 
   it('getFlightLogs with Captain and copilot should return filtered logs', async () => {
@@ -103,7 +105,8 @@ describe('Db query FlightLog tests', () => {
 
   it('getFlightLogs for specified aircraft should match snapshot', async () => {
     const result = await getFlightLogs({ aircraftRegistration: 'OH-STL' })
-    expect(result.rows).toEqual(246)
+    // +3 for V330's eff1fl/eff2fl/eff4fl.
+    expect(result.rows).toEqual(249)
   })
 
   it('getFlightLogs populates acTotalLandings for a NEW (unvalidated) flight, not just validated ones', async () => {
@@ -126,7 +129,8 @@ describe('Db query FlightLog tests', () => {
     const result = await getFlightLogs({
       startDate: '2025-03-04',
     })
-    expect(result.rows).toEqual(63)
+    // +3 for V330's eff1fl/eff2fl/eff4fl (all 2026, well inside this range).
+    expect(result.rows).toEqual(66)
     expect(normalizeLandingTotals(result.logs[0])).toMatchSnapshot()
   })
 

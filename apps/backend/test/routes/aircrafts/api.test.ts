@@ -53,6 +53,18 @@ const removeTimestamps = (aircraft: Aircraft) => ({
   ...aircraft,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
+  // OH-STL's most recent landing now comes from V330's `eff*` flights, which are
+  // dated relative to `CURRENT_DATE` so the member efficiency report has data
+  // inside its default six-month window whenever the database is baselined. That
+  // one timestamp therefore moves with the baseline date and cannot be
+  // snapshotted. Masked for OH-STL alone rather than for every aircraft: the
+  // other registrations' last landings come from fixed fixture dates and are
+  // still worth asserting. Everything else in `status` is derived from minutes
+  // and stays fixed either way.
+  status:
+    aircraft.status && aircraft.registration === 'OH-STL'
+      ? { ...aircraft.status, lastLandingTimeUtc: expect.any(String) }
+      : aircraft.status,
   documents: aircraft.documents.map((doc) => ({
     ...doc,
     createdAt: expect.any(String),
