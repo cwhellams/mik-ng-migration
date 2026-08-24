@@ -1,13 +1,42 @@
 import logger from '../lib/logger.ts'
 
+/**
+ * Canonicalise one configured entry into the exact string a browser sends in
+ * its `Origin` header: scheme + host + non-default port, lowercased, with no
+ * path and **no trailing slash**.
+ *
+ * The normalisation is not cosmetic. Origin headers never carry a trailing
+ * slash, and the allowlist is matched by exact string equality, so a perfectly
+ * reasonable-looking `https://twr.mik.fi/` in the env var silently matches
+ * nothing — no `Access-Control-Allow-Origin` header, and every request from
+ * that app dies in preflight. That cost a beta outage once already.
+ *
+ * Returns undefined for an entry that is not a parseable absolute URL, so a
+ * typo is dropped loudly rather than sitting in the list matching nothing.
+ */
+const normaliseOrigin = (entry: string): string | undefined => {
+  try {
+    return new URL(entry).origin
+  } catch {
+    logger.warn('CORS_ALLOWED_ORIGINS: ignoring unparseable origin %j', entry)
+    return undefined
+  }
+}
+
 // Parse CORS allowed origins from comma-separated environment variable.
 // Wildcard ('*') is explicitly rejected — it cannot be used with credentialed requests
 // (httpOnly cookies) as required by the CORS spec.
-const rawOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-      .map((origin) => origin.trim())
-      .filter((origin) => origin.length > 0 && origin !== '*')
-  : []
+export const parseAllowedOrigins = (raw: string | undefined): string[] =>
+  raw
+    ? raw
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter((origin) => origin.length > 0 && origin !== '*')
+        .map(normaliseOrigin)
+        .filter((origin): origin is string => origin !== undefined)
+    : []
+
+const rawOrigins = parseAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS)
 
 /**
  * The origins allowed to make credentialed cross-origin requests to this API —
