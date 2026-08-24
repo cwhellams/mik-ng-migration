@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { jest } from '@jest/globals'
 import { BookingStatus, BookingType, CancellationReason } from '@mik/contracts/bookings'
 import type {
   MemberEfficiencyEntry,
@@ -408,5 +409,163 @@ describe('GET /members/:memberId/reservation-efficiency', () => {
       expect(body.memberId).toBe('Matti1')
       expect(body.from).toBe(WINDOW_FROM)
     })
+  })
+})
+
+/**
+ * Both callers ask for a window that ends at the end of *today*, which is in the future
+ * for most of the day, so the report has to say what it does with a reservation that has
+ * not finished yet (#1247 review).
+ *
+ * July 2019 with the clock pinned to the 15th, rather than real bookings around the real
+ * now: `schedule.no_overlap_trigger` refuses a confirmed booking overlapping another on
+ * the same aircraft, and the seeded bookings are `current_date`-relative, so a slot
+ * chosen against the real clock would collide on whichever day someone last baselined.
+ * A past year rather than a future one because `check_epochs_not_future` is enforced by
+ * the database against the real clock, which no fake timer reaches — so a flight log has
+ * to be genuinely in the past even when Node thinks otherwise. Nothing is seeded in 2019,
+ * and OH-STL's verified logs all predate it (see the note on WINDOW_FROM).
+ */
+describe('GET /members/:memberId/reservation-efficiency, over a window running past now', () => {
+  const NOW = Date.UTC(2019, 6, 15, 12, 0, 0)
+  const at2019 = (day: number, hour: number, minute = 0): number =>
+    Math.floor(Date.UTC(2019, 6, day, hour, minute, 0) / 1000)
+
+  const LIVE_BOOKING_IDS = ['effGone', 'effEnded', 'effLive', 'effLater', 'effCancL']
+  const LIVE_FLIGHT_IDS = ['efFEnded']
+
+  /** Minted after the clock moves: the suite-level token is not yet valid back in 2019. */
+  let token = ''
+
+  beforeAll(async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] }).setSystemTime(new Date(NOW))
+    token = generateAccessToken({
+      memberId: 'k1mnimda',
+      lastName: 'Admin',
+      email: 'admin@mik.fi',
+      roles: ['ADMIN'],
+      permissions: [MIKPermissions.MEMBER_ADMIN],
+      canMakeReservations: false,
+    })
+
+    // Two days ago, nobody turned up: the one genuine no-show here.
+    await insertBookingRow({
+      bookingId: 'effGone',
+      memberId: 'Matti1',
+      registration: 'OH-STL',
+      startTimeEpoch: at2019(13, 9),
+      endTimeEpoch: at2019(13, 11),
+    })
+
+    // Yesterday, 3h reserved and 1h30 airborne.
+    await insertBookingRow({
+      bookingId: 'effEnded',
+      memberId: 'Matti1',
+      registration: 'OH-STL',
+      startTimeEpoch: at2019(14, 9),
+      endTimeEpoch: at2019(14, 12),
+    })
+    await insertFlightRow({
+      flightId: 'efFEnded',
+      memberId: 'Matti1',
+      registration: 'OH-STL',
+      ajlbSeqNo: 1,
+      offBlockTimeEpoch: at2019(14, 9, 5),
+      takeoffTimeEpoch: at2019(14, 9, 10),
+      landingTimeEpoch: at2019(14, 10, 40),
+      onBlockTimeEpoch: at2019(14, 10, 45),
+    })
+
+    // Running right now — 10:00 to 14:00 against a pinned 12:00.
+    await insertBookingRow({
+      bookingId: 'effLive',
+      memberId: 'Matti1',
+      registration: 'OH-STL',
+      startTimeEpoch: at2019(15, 10),
+      endTimeEpoch: at2019(15, 14),
+    })
+
+    // This afternoon, inside a window that runs to the end of today.
+    await insertBookingRow({
+      bookingId: 'effLater',
+      memberId: 'Matti1',
+      registration: 'OH-STL',
+      startTimeEpoch: at2019(15, 16),
+      endTimeEpoch: at2019(15, 18),
+    })
+
+    // Also still to come, but already called off.
+    await insertBookingRow({
+      bookingId: 'effCancL',
+      memberId: 'Matti1',
+      registration: 'OH-STL',
+      startTimeEpoch: at2019(15, 20),
+      endTimeEpoch: at2019(15, 22),
+      bookingStatus: BookingStatus.CANCELLED,
+      cancelledAt: new Date((at2019(15, 20) - 4 * 60 * MINUTE) * 1000),
+      cancellationReason: CancellationReason.WEATHER_DEPARTURE,
+    })
+  })
+
+  afterAll(async () => {
+    jest.useRealTimers()
+    await db.deleteFrom('flight.logsAudit').where('flightId', 'in', LIVE_FLIGHT_IDS).execute()
+    await db.deleteFrom('flight.logs').where('flightId', 'in', LIVE_FLIGHT_IDS).execute()
+    await db.deleteFrom('schedule.bookings').where('bookingId', 'in', LIVE_BOOKING_IDS).execute()
+  })
+
+  const queryToEndOfToday = () =>
+    queryEfficiency(token, 'Matti1', {
+      from: '2019-07-01T00:00:00.000Z',
+      to: '2019-07-15T23:59:59.000Z',
+    })
+
+  it('should leave out a reservation that is still in the air', async () => {
+    const res = await queryToEndOfToday()
+
+    expect(res.status).toBe(HttpStatusCode.Ok)
+    expect(
+      (res.body as MemberEfficiencyResponse).entries.map((entry) => entry.bookingId),
+    ).not.toContain('effLive')
+  })
+
+  it('should leave out a reservation that has not started yet', async () => {
+    const res = await queryToEndOfToday()
+
+    expect(
+      (res.body as MemberEfficiencyResponse).entries.map((entry) => entry.bookingId),
+    ).not.toContain('effLater')
+  })
+
+  it('should still show a cancellation whose slot has not come round yet', async () => {
+    const res = await queryToEndOfToday()
+
+    const entry = entryFor(res.body as MemberEfficiencyResponse, 'effCancL')
+    expect(entry.status).toBe(BookingStatus.CANCELLED)
+    expect(entry.cancelledNoticeHours).toBe(4)
+  })
+
+  it('should count only the reservation that has been and gone as a no-show', async () => {
+    const res = await queryToEndOfToday()
+
+    // Without the cut-off this read 5 bookings and 3 no-shows: the two that have not
+    // happened yet were indistinguishable from the one nobody turned up for.
+    expect((res.body as MemberEfficiencyResponse).summary).toMatchObject({
+      bookingCount: 3,
+      cancelledCount: 1,
+      noShowCount: 1,
+      totalReservedMins: 300,
+      totalFlightMins: 90,
+      memberEfficiencyPct: 30,
+    })
+  })
+
+  it('should hold the club to the same cut-off, so neither side carries unflown slots', async () => {
+    const res = await queryToEndOfToday()
+
+    // The same 90 of 300 the member is measured on, since these are July 2019's only
+    // reservations. Counting effLive and effLater in the denominator too — which is what
+    // the club query did before — would have made it 90 of 660, or 13.64%.
+    expect((res.body as MemberEfficiencyResponse).summary.clubEfficiencyPct).toBe(30)
   })
 })

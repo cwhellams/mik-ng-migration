@@ -24,6 +24,13 @@ import { db } from './connection.ts'
  *
  * Cancelled bookings never take a flight, even when one happened in their window — the
  * aircraft was released, and whatever was flown belongs to whoever booked it after.
+ *
+ * Only reservations that have already run their course are measured. Both callers ask
+ * for a window ending at the end of *today*, so without that a confirmed booking later
+ * this afternoon — or one airborne right now — would arrive with no flights against it
+ * and be reported as a no-show before it had had the chance to happen. A cancellation is
+ * the exception: it is complete the moment it is made, so a cancelled booking counts
+ * whether or not its slot has come round yet.
  */
 
 /** One booking row, repeated once per flight log matched to it (none → a single null row). */
@@ -68,6 +75,10 @@ interface FlightPart {
 /**
  * Groups the flat join into one entry per booking and derives the flags the report is
  * really about.
+ *
+ * Assumes every row it is given is for a booking that is finished or cancelled — the
+ * queries below are what guarantee that, and it is why a booking with no flights can be
+ * called a no-show here without asking what the time is.
  *
  * Exported so the gap rules can be tested without a database: they are the only part of
  * this module that encodes a judgement rather than a query.
@@ -176,6 +187,9 @@ export const buildMemberEfficiency = (
 
 const epochOf = (isoDateTime: string): string => dayjs(isoDateTime).unix().toString()
 
+/** The present moment, as the same string epoch the window bounds use. */
+const nowEpoch = (): string => dayjs().unix().toString()
+
 /**
  * The club over the same window, on the same basis as the member's own figure: minutes
  * flown out of a live reservation over minutes reserved.
@@ -185,36 +199,51 @@ const epochOf = (isoDateTime: string): string => dayjs(isoDateTime).unix().toStr
  * all — by reserved time. Comparing a member's matched-only numerator against that would
  * flatter the club and make every member look wasteful.
  */
-export const getClubEfficiencyPct = async (from: string, to: string): Promise<number> => {
+export const getClubEfficiencyPct = async (
+  from: string,
+  to: string,
+  /**
+   * The moment reservations stop counting, passed in by the caller so the member and
+   * the club are held to one cut-off rather than to two readings of the clock. Same
+   * value either way; taking it twice would just leave a second where a booking could
+   * belong to one side of the comparison and not the other.
+   */
+  endedBy: string = nowEpoch(),
+): Promise<number> => {
   const fromEpoch = epochOf(from)
   const toEpoch = epochOf(to)
 
-  const reserved = await db
-    .selectFrom('schedule.bookings')
-    .select(sql<string>`coalesce(sum((end_time_epoch - start_time_epoch) / 60.0), 0)`.as('mins'))
-    .where('bookingStatus', '!=', BookingStatus.CANCELLED)
-    .where('endTimeEpoch', '>=', fromEpoch)
-    .where('startTimeEpoch', '<=', toEpoch)
-    .executeTakeFirst()
+  // Independent of each other and of the member's own rows, so nothing waits its turn.
+  const [reserved, flown] = await Promise.all([
+    db
+      .selectFrom('schedule.bookings')
+      .select(sql<string>`coalesce(sum((end_time_epoch - start_time_epoch) / 60.0), 0)`.as('mins'))
+      .where('bookingStatus', '!=', BookingStatus.CANCELLED)
+      .where('endTimeEpoch', '>=', fromEpoch)
+      .where('endTimeEpoch', '<=', endedBy)
+      .where('startTimeEpoch', '<=', toEpoch)
+      .executeTakeFirst(),
 
-  // EXISTS rather than a join, so a flight spanning two overlapping bookings counts once.
-  const flown = await db
-    .selectFrom('flight.logs as f')
-    .select(sql<string>`coalesce(sum(f.flight_mins), 0)`.as('mins'))
-    .where((eb) =>
-      eb.exists(
-        eb
-          .selectFrom('schedule.bookings as b')
-          .select(sql<number>`1`.as('matched'))
-          .whereRef('b.registration', '=', 'f.aircraftRegistration')
-          .where('b.bookingStatus', '!=', BookingStatus.CANCELLED)
-          .where('b.endTimeEpoch', '>=', fromEpoch)
-          .where('b.startTimeEpoch', '<=', toEpoch)
-          .whereRef('f.offBlockTimeEpoch', '<', 'b.endTimeEpoch')
-          .whereRef('f.onBlockTimeEpoch', '>', 'b.startTimeEpoch'),
-      ),
-    )
-    .executeTakeFirst()
+    // EXISTS rather than a join, so a flight spanning two overlapping bookings counts once.
+    db
+      .selectFrom('flight.logs as f')
+      .select(sql<string>`coalesce(sum(f.flight_mins), 0)`.as('mins'))
+      .where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom('schedule.bookings as b')
+            .select(sql<number>`1`.as('matched'))
+            .whereRef('b.registration', '=', 'f.aircraftRegistration')
+            .where('b.bookingStatus', '!=', BookingStatus.CANCELLED)
+            .where('b.endTimeEpoch', '>=', fromEpoch)
+            .where('b.endTimeEpoch', '<=', endedBy)
+            .where('b.startTimeEpoch', '<=', toEpoch)
+            .whereRef('f.offBlockTimeEpoch', '<', 'b.endTimeEpoch')
+            .whereRef('f.onBlockTimeEpoch', '>', 'b.startTimeEpoch'),
+        ),
+      )
+      .executeTakeFirst(),
+  ])
 
   return percent(Number(flown?.mins ?? 0), Number(reserved?.mins ?? 0))
 }
@@ -226,8 +255,9 @@ export const getMemberReservationEfficiency = async (
 ): Promise<MemberEfficiencyResponse> => {
   const fromEpoch = epochOf(from)
   const toEpoch = epochOf(to)
+  const endedBy = nowEpoch()
 
-  const rows = await db
+  const rowsPromise = db
     .selectFrom('schedule.bookings as b')
     .leftJoin('flight.logs as f', (join) =>
       join
@@ -256,12 +286,28 @@ export const getMemberReservationEfficiency = async (
     .where('b.memberId', '=', memberId)
     .where('b.endTimeEpoch', '>=', fromEpoch)
     .where('b.startTimeEpoch', '<=', toEpoch)
+    // `to` is the end of *today* for both callers, so without this a reservation still
+    // to come — or one in the air right now — would be listed with nothing flown against
+    // it and counted a no-show. A cancellation is already a complete fact, so those stay
+    // however far ahead their slot was.
+    .where((eb) =>
+      eb.or([
+        eb('b.endTimeEpoch', '<=', endedBy),
+        eb('b.bookingStatus', '=', BookingStatus.CANCELLED),
+      ]),
+    )
     .orderBy('b.startTimeEpoch', 'desc')
     .orderBy('f.offBlockTimeEpoch', 'asc')
     .execute()
 
+  // The club figure shares only `from`/`to` with the member's rows, so the two round
+  // trips overlap rather than queue.
+  const [rows, clubEfficiencyPct] = await Promise.all([
+    rowsPromise,
+    getClubEfficiencyPct(from, to, endedBy),
+  ])
+
   const { entries, totals } = buildMemberEfficiency(rows)
-  const clubEfficiencyPct = await getClubEfficiencyPct(from, to)
 
   return {
     memberId,
