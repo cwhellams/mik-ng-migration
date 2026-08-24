@@ -7,14 +7,14 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { MemoryRouter } from 'react-router'
 import { Member, MemberListResponse, MIKLang, MIKMemberTypes } from '@mik/contracts/members'
 import type { MemberEditMode } from './EditMemberModal'
-import type { APIMutation } from '../../../hooks/useApi'
+import type { APIMutation } from '@mik/ui/hooks/useApi'
 import { EditMemberModal } from './EditMemberModal'
 import '@mik/ui/i18n'
 
 // The modal fetches the instructor list through useApi; stub it out so no HTTP
 // (or SWR cache) is involved. The mutation API is injected as a prop, so the
 // submitted payload is captured there instead.
-vi.mock('../../../hooks/useApi', () => {
+vi.mock('@mik/ui/hooks/useApi', () => {
   const instructors: MemberListResponse['members'] = [
     {
       memberId: 'Jukka1',

@@ -14,10 +14,10 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type { FlightLogAuditResponse } from '@mik/contracts/flight-log'
-import { EditDialogTitle } from '../../../components/EditDialogTitle'
+import { EditDialogTitle } from '@mik/ui/components/EditDialogTitle'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import useApi from '../../../hooks/useApi'
-import { useTimezone } from '../../../hooks/useTimezone'
+import useApi from '@mik/ui/hooks/useApi'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 interface Props {
   flightId: string | undefined

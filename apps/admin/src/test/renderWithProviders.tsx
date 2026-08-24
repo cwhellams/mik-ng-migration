@@ -8,14 +8,16 @@ import {
   type RenderResult,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ReactElement, ReactNode } from 'react'
+import { useMemo, type ReactElement, type ReactNode } from 'react'
 import { I18nextProvider } from 'react-i18next'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { SWRConfig } from 'swr'
+import { ApiConfigProvider } from '@mik/ui/hooks/apiConfig'
+import { TimezoneProvider } from '@mik/ui/hooks/useTimezone'
 import i18n from '@mik/ui/i18n'
 
 import { SnackbarProvider } from '../hooks/useSnackbar'
-import { ThemeProvider } from '../theme/ThemeContext'
+import { ThemeProvider, useThemeMode } from '../theme/ThemeContext'
 
 export interface ProviderOptions {
   /** URL the memory router starts at. Defaults to `/`. */
@@ -46,6 +48,16 @@ export interface ProviderOptions {
  */
 const adapterLocale = (language: string) => (language === 'en' ? 'en-gb' : language)
 
+/** Matches App.tsx: this app is always in admin context. */
+const API_CONFIG = { sudo: true }
+
+/** Bridges ThemeContext's timezone preference into the shared formatters, as App.tsx does. */
+const WithTimezone = ({ children }: { children: ReactNode }) => {
+  const { timezone, setTimezone } = useThemeMode()
+  const value = useMemo(() => ({ timezone, setTimezone }), [timezone, setTimezone])
+  return <TimezoneProvider value={value}>{children}</TimezoneProvider>
+}
+
 const Providers = ({ children, options }: { children: ReactNode; options: ProviderOptions }) => {
   const { route = '/', path, language = 'en' } = options
 
@@ -58,26 +70,33 @@ const Providers = ({ children, options }: { children: ReactNode; options: Provid
   )
 
   return (
-    <I18nextProvider i18n={i18n}>
-      <ThemeProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={adapterLocale(language)}>
-          <SWRConfig
-            value={{
-              // A fresh cache per render, so one test never sees another's data.
-              provider: () => new Map(),
-              dedupingInterval: 0,
-              // Error states should settle immediately instead of waiting out
-              // SWR's exponential backoff. Retry tests can override this.
-              shouldRetryOnError: false,
-            }}
-          >
-            <MemoryRouter initialEntries={[route]}>
-              <SnackbarProvider>{routed}</SnackbarProvider>
-            </MemoryRouter>
-          </SWRConfig>
-        </LocalizationProvider>
-      </ThemeProvider>
-    </I18nextProvider>
+    <ApiConfigProvider value={API_CONFIG}>
+      <I18nextProvider i18n={i18n}>
+        <ThemeProvider>
+          <WithTimezone>
+            <LocalizationProvider
+              dateAdapter={AdapterDayjs}
+              adapterLocale={adapterLocale(language)}
+            >
+              <SWRConfig
+                value={{
+                  // A fresh cache per render, so one test never sees another's data.
+                  provider: () => new Map(),
+                  dedupingInterval: 0,
+                  // Error states should settle immediately instead of waiting out
+                  // SWR's exponential backoff. Retry tests can override this.
+                  shouldRetryOnError: false,
+                }}
+              >
+                <MemoryRouter initialEntries={[route]}>
+                  <SnackbarProvider>{routed}</SnackbarProvider>
+                </MemoryRouter>
+              </SWRConfig>
+            </LocalizationProvider>
+          </WithTimezone>
+        </ThemeProvider>
+      </I18nextProvider>
+    </ApiConfigProvider>
   )
 }
 

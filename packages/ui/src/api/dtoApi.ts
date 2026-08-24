@@ -1,4 +1,4 @@
-import { http } from './http'
+import { sharedApi } from '../hooks/useApi'
 import { FlightTypeEnum } from '@mik/contracts/dto'
 import type {
   TrainingProgram,
@@ -42,26 +42,18 @@ export const FLIGHT_TYPE_OPTIONS = FlightTypeEnum.options.map((value) => ({
 }))
 
 const get = <T>(path: string, params?: Record<string, unknown>): Promise<T> =>
-  http()
-    .get<T>(`${BASE}/${path}`, { params })
-    .then((r) => r.data)
+  sharedApi.get<T>(`${BASE}/${path}`, { params }).then((r) => r.data)
 
-const getRaw = (path: string) => http().get(`${BASE}/${path}`, { responseType: 'blob' })
+const getRaw = (path: string) => sharedApi.get(`${BASE}/${path}`, { responseType: 'blob' })
 
 const post = <T>(path: string, data?: unknown): Promise<T> =>
-  http()
-    .post<T>(`${BASE}/${path}`, data)
-    .then((r) => r.data)
+  sharedApi.post<T>(`${BASE}/${path}`, data).then((r) => r.data)
 
 const patch = <T>(path: string, data?: unknown): Promise<T> =>
-  http()
-    .patch<T>(`${BASE}/${path}`, data)
-    .then((r) => r.data)
+  sharedApi.patch<T>(`${BASE}/${path}`, data).then((r) => r.data)
 
 const put = <T>(path: string, data?: unknown): Promise<T> =>
-  http()
-    .put<T>(`${BASE}/${path}`, data)
-    .then((r) => r.data)
+  sharedApi.put<T>(`${BASE}/${path}`, data).then((r) => r.data)
 
 // ── Training Programs ─────────────────────────────────────────────────────────
 export const getPrograms = (): Promise<TrainingProgram[]> => get<TrainingProgram[]>('programs')
@@ -161,7 +153,7 @@ export const getSyllabusFlights = (syllabusId: string): Promise<SyllabusFlight[]
 export const importSyllabus = (programId: string, file: File): Promise<SyllabusWithFlights> => {
   const form = new FormData()
   form.append('file', file)
-  return http()
+  return sharedApi
     .post<SyllabusWithFlights>(`/api/${BASE}/programs/${programId}/syllabi/import`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })

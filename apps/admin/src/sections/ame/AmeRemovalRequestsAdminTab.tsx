@@ -22,7 +22,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { AmeRemovalRequest, AmeRemovalRequestListResponse } from '@mik/contracts/ame'
 
 const STATUS_COLOR: Record<string, 'warning' | 'success' | 'error' | 'default'> = {

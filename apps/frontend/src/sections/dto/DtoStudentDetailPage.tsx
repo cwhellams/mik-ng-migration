@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { Title } from '@mik/ui/components/Title'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { MarkdownContent } from '@mik/ui/components/MarkdownContent'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { SyllabusFlight } from '@mik/contracts/dto'
 import type { StudentProgressDetail, AttemptWithOutcomes } from '@mik/ui/api/dtoApi'
 

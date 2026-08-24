@@ -14,7 +14,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import useApi, { api } from '../hooks/useApi'
+import useApi, { api } from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
 import type { UsefulPhoneNumber } from '@mik/contracts/useful-phone-numbers'

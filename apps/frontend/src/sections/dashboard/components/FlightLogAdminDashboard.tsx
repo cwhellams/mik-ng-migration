@@ -1,5 +1,5 @@
 import { AjlbListResponse } from '@mik/contracts/ajlb'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import {
   Accordion,
   AccordionSummary,
@@ -16,7 +16,7 @@ import { FlightLogListResponse, FlightLogStatus } from '@mik/contracts/flight-lo
 import type { RecentRemarksResponse } from '@mik/contracts/remarks'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
-import { useTimezone } from '../../../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 export const FlightLogAdminDashboard = () => {
   const { t } = useTranslation()

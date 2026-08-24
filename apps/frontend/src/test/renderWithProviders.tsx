@@ -8,10 +8,12 @@ import {
   type RenderResult,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, type ReactElement, type ReactNode } from 'react'
 import { I18nextProvider } from 'react-i18next'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { SWRConfig } from 'swr'
+import { ApiConfigProvider } from '@mik/ui/hooks/apiConfig'
+import { TimezoneProvider } from '@mik/ui/hooks/useTimezone'
 
 import { ServerClockProvider } from '../hooks/useServerClock'
 import { SnackbarProvider } from '../hooks/useSnackbar'
@@ -72,6 +74,18 @@ const SudoMode = ({ on, children }: { on: boolean; children: ReactNode }) => {
   return <>{children}</>
 }
 
+/** Mirrors what `App.tsx` does: derive useApi's config from the live sudo state. */
+const ApiConfigFromThemeMode = ({ children }: { children: ReactNode }) => {
+  const { sudo, timezone, setTimezone } = useThemeMode()
+  const apiConfig = useMemo(() => ({ sudo: sudo ?? false }), [sudo])
+  const timezoneSetting = useMemo(() => ({ timezone, setTimezone }), [timezone, setTimezone])
+  return (
+    <ApiConfigProvider value={apiConfig}>
+      <TimezoneProvider value={timezoneSetting}>{children}</TimezoneProvider>
+    </ApiConfigProvider>
+  )
+}
+
 /** Locale the date pickers use — `en-gb` for English, matching `App.tsx`. */
 const adapterLocale = (language: string) => (language === 'en' ? 'en-gb' : language)
 
@@ -93,20 +107,28 @@ const Providers = ({ children, options }: { children: ReactNode; options: Provid
     <I18nextProvider i18n={i18n}>
       <ThemeProvider>
         <SudoMode on={sudo}>
-          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={adapterLocale(language)}>
-            <SWRConfig
-              value={{
-                // A fresh cache per render, so one test never sees another's data.
-                provider: () => new Map(),
-                dedupingInterval: 0,
-                // Error states should settle immediately instead of waiting out
-                // SWR's exponential backoff. Retry tests can override this.
-                shouldRetryOnError: false,
-              }}
+          {/* Reads the live toggle rather than the `sudo` option, so a component
+              that flips admin mode mid-test changes what useApi sends — which is
+              what App.tsx does too. */}
+          <ApiConfigFromThemeMode>
+            <LocalizationProvider
+              dateAdapter={AdapterDayjs}
+              adapterLocale={adapterLocale(language)}
             >
-              <MemoryRouter initialEntries={[route]}>{clocked}</MemoryRouter>
-            </SWRConfig>
-          </LocalizationProvider>
+              <SWRConfig
+                value={{
+                  // A fresh cache per render, so one test never sees another's data.
+                  provider: () => new Map(),
+                  dedupingInterval: 0,
+                  // Error states should settle immediately instead of waiting out
+                  // SWR's exponential backoff. Retry tests can override this.
+                  shouldRetryOnError: false,
+                }}
+              >
+                <MemoryRouter initialEntries={[route]}>{clocked}</MemoryRouter>
+              </SWRConfig>
+            </LocalizationProvider>
+          </ApiConfigFromThemeMode>
         </SudoMode>
       </ThemeProvider>
     </I18nextProvider>

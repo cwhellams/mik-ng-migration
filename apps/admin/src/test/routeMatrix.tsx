@@ -6,7 +6,7 @@ import { useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import AppRoutes from '../AppRoutes'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { authScenarios, renderAs, signInAs, type AuthScenario } from './auth'
 import { apiUrl, problemResponse } from './msw/handlers'
 import { server } from './msw/server'
@@ -92,6 +92,86 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/inventory', url: '/inventory', permissions: [MIKPermissions.INVENTORY_ADMIN] },
   { path: '/ame', url: '/ame', permissions: [MIKPermissions.AME_ADMIN] },
   { path: '/meetings', url: '/meetings', permissions: [MIKPermissions.MEETING_ADMIN] },
+
+  // Accounting — ported from apps/frontend's top-level /accounting/* subtree,
+  // which was entirely adminModeOnly-gated despite not living under /admin.
+  { path: '/accounting', url: '/accounting', permissions: [MIKPermissions.INVOICING_ADMIN] },
+  {
+    path: '/accounting/invoicing',
+    url: '/accounting/invoicing',
+    permissions: [MIKPermissions.INVOICING_ADMIN],
+  },
+  {
+    path: '/accounting/items',
+    url: '/accounting/items',
+    permissions: [MIKPermissions.INVOICING_ADMIN],
+  },
+  {
+    path: '/accounting/tools',
+    url: '/accounting/tools',
+    permissions: [MIKPermissions.INVOICING_ADMIN],
+  },
+  {
+    path: '/accounting/tax-report',
+    url: '/accounting/tax-report',
+    permissions: [MIKPermissions.INVOICING_ADMIN],
+  },
+  {
+    path: '/accounting/traficom-report',
+    url: '/accounting/traficom-report',
+    permissions: [MIKPermissions.INVOICING_ADMIN],
+  },
+  {
+    path: '/accounting/uplift-report',
+    url: '/accounting/uplift-report',
+    permissions: [MIKPermissions.INVOICING_ADMIN],
+  },
+  {
+    path: '/accounting/instructor-worktime',
+    url: '/accounting/instructor-worktime',
+    permissions: [MIKPermissions.INVOICING_ADMIN],
+  },
+  {
+    path: '/accounting/unpaid-overdue',
+    url: '/accounting/unpaid-overdue',
+    permissions: [MIKPermissions.INVOICING_ADMIN],
+  },
+  {
+    path: '/accounting/expenses',
+    url: '/accounting/expenses',
+    permissions: [MIKPermissions.EXPENSE_ADMIN],
+  },
+  {
+    path: '/accounting/expenses/:id',
+    url: '/accounting/expenses/1',
+    permissions: [MIKPermissions.EXPENSE_ADMIN],
+  },
+  {
+    path: '/accounting/mileage-allowances',
+    url: '/accounting/mileage-allowances',
+    permissions: [MIKPermissions.EXPENSE_ADMIN],
+  },
+  {
+    path: '/accounting/tulorekisteri-report',
+    url: '/accounting/tulorekisteri-report',
+    permissions: [MIKPermissions.EXPENSE_HETU_ADMIN],
+  },
+  {
+    path: '/accounting/cost-centres',
+    url: '/accounting/cost-centres',
+    permissions: [MIKPermissions.EXPENSE_ADMIN],
+  },
+
+  // Member administration. /members/roles and /members/trash were *ungated*
+  // routes in the member app — they self-gated inside the page — so these two
+  // rows are a new gate, not a moved one.
+  { path: '/members/roles', url: '/members/roles', permissions: [MIKPermissions.MEMBER_ADMIN] },
+  { path: '/members/trash', url: '/members/trash', permissions: [MIKPermissions.MEMBER_ADMIN] },
+  {
+    path: '/members/changelog',
+    url: '/members/changelog',
+    permissions: [MIKPermissions.MEMBER_ADMIN],
+  },
 
   { path: '/login', url: '/login' },
   { path: '/login/sent', url: '/login/sent' },

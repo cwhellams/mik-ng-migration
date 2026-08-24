@@ -23,12 +23,12 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs, { type Dayjs } from 'dayjs'
-import useApi from '../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../hooks/useSnackbar'
 import type { OutboxListResponse, OutboxItem, OutboxStatus } from '@mik/contracts/outbox'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
-import { useTimezone } from '../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 const STATUS_OPTIONS: OutboxStatus[] = ['PENDING', 'PROCESSING', 'SYNCED', 'FAILED', 'SKIPPED']
 

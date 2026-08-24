@@ -40,9 +40,7 @@ import MainLayout from './layouts/MainLayout'
 import MassBalance from './sections/massBalance/MassBalance'
 import MeetingPage from './sections/meetings/MeetingPage'
 import Member from './sections/members/Member'
-import MemberChangeLog from './sections/members/MemberChangeLog'
 import Members from './sections/members/Members'
-import MemberTrash from './sections/members/MemberTrash'
 import MyExamHistoryPage from './sections/exams/MyExamHistoryPage'
 import MyFlightPackagesPage from './sections/shop/MyFlightPackagesPage'
 import NewFlightLogEntry from './sections/flightLog/FlightLogEntry'
@@ -52,30 +50,14 @@ import OrdersPage from './sections/shop/OrdersPage'
 import ProductPage from './sections/shop/ProductPage'
 import Register from './sections/login/Register'
 import RegistrationVerify from './sections/login/RegistrationVerify'
-import RequirePermission from './components/RequirePermission'
-import Roles from './sections/members/Roles'
 import Schedule from './sections/schedule/Schedule'
 import ShopPage from './sections/shop/ShopPage'
-import ToolsPage from './sections/accounting/ToolsPage'
 import { AccessCodes } from './sections/accessCodes/AccessCodes'
-import { CostCentresPage } from './sections/accounting/CostCentresPage'
-import { ExpenseApproval } from './sections/accounting/ExpenseApproval'
-import { ExpenseClaimAdminDetail } from './sections/accounting/ExpenseClaimAdminDetail'
-import { FlightInvoicing } from './sections/accounting/FlightInvoicing'
-import { InstructorWorktimeReport } from './sections/accounting/InstructorWorktimeReport'
-import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
-import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import { MIKPermissions } from '@mik/contracts/members'
-import { MileageAllowancesPage } from './sections/accounting/MileageAllowancesPage'
-import { MileageTulorekisteriReport } from './sections/accounting/MileageTulorekisteriReport'
 import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import { Occurrences } from './sections/occurrences/Occurences'
 import { Stats } from './sections/stats/Stats'
-import { TaxReport } from './sections/accounting/TaxReport'
-import { TraficomReport } from './sections/accounting/TraficomReport'
-import { UnpaidOverdueInvoices } from './sections/accounting/UnpaidOverdueInvoices'
-import { UpliftReport } from './sections/accounting/UpliftReport'
-import { useRoles } from './hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 
 function DtoIndexRedirect() {
   const { hasAccess } = useRoles()
@@ -119,16 +101,12 @@ export default function AppRoutes() {
         </Route>
         <Route path='/club'>
           <Route index element={<Members />} />
-          <Route path='members/roles' element={<Roles />} />
-          <Route path='members/trash' element={<MemberTrash />} />
-          <Route
-            path='members/changelog'
-            element={
-              <RequirePermission permissions={[MIKPermissions.MEMBER_ADMIN]}>
-                <MemberChangeLog />
-              </RequirePermission>
-            }
-          />
+          {/* members/roles, members/trash and members/changelog moved to
+              apps/admin (#1233). They are caught by the redirect below rather
+              than listed here, so the three old URLs still resolve. */}
+          <Route path='members/roles' element={<AdminAppRedirect />} />
+          <Route path='members/trash' element={<AdminAppRedirect />} />
+          <Route path='members/changelog' element={<AdminAppRedirect />} />
           <Route path='members/:memberId' element={<Member />} />
           <Route path='instructor-status' element={<InstructorStatus />} />
           <Route path='billing' element={<Billing />} />
@@ -148,120 +126,9 @@ export default function AppRoutes() {
           <Route path=':id' element={<ExpenseClaimDetail />} />
           <Route path=':id/edit' element={<ExpenseClaimForm />} />
         </Route>
-        <Route path='/accounting'>
-          <Route
-            index
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <InvoicingAdminDashboard />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='invoicing'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <FlightInvoicing />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='items'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <InvoiceItemsPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='tools'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <ToolsPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='tax-report'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <TaxReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='traficom-report'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <TraficomReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='uplift-report'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <UpliftReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='instructor-worktime'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <InstructorWorktimeReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='unpaid-overdue'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <UnpaidOverdueInvoices />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='expenses'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
-                <ExpenseApproval />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='expenses/:id'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
-                <ExpenseClaimAdminDetail />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='mileage-allowances'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
-                <MileageAllowancesPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='tulorekisteri-report'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_HETU_ADMIN]}>
-                <MileageTulorekisteriReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='cost-centres'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
-                <CostCentresPage />
-              </RequirePermission>
-            }
-          />
-        </Route>
+        {/* Ported to apps/admin (#1233), like /admin/* below. Both prefixes are
+            kept verbatim over there, so an old bookmark is a prefix swap. */}
+        <Route path='/accounting/*' element={<AdminAppRedirect />} />
         <Route path='/shop'>
           <Route index element={<ShopPage />} />
           <Route path='products/:id' element={<ProductPage />} />

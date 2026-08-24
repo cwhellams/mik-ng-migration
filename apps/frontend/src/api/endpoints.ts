@@ -1,3 +1,5 @@
+import { identityEndpoints } from '@mik/ui/api/identity'
+
 /**
  * Every API path the frontend calls, defined once — phase 6 of #1115 (§6).
  *
@@ -45,11 +47,11 @@ export const endpoints = {
   members: {
     /** List, and the base for member mutations via `trigger`'s path argument. */
     root: 'v1/members',
-    me: 'v1/members/me',
+    me: identityEndpoints.me,
     myLang: 'v1/members/me/lang',
     myPasskeys: 'v1/members/me/passkeys',
     myGdprExport: 'v1/members/me/gdpr-export',
-    roles: 'v1/members/roles',
+    roles: identityEndpoints.roles,
     role: (roleId: string) => `v1/members/roles/${roleId}`,
     nonRenewals: 'v1/members/non-renewals',
     trash: 'v1/members/trash',

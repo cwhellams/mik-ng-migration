@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import RequirePermission from '../components/RequirePermission'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { authScenarios, renderAs, signInWithPermissions } from './auth'
 import {
   aBooking,

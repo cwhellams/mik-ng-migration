@@ -23,7 +23,7 @@ import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Title } from '@mik/ui/components/Title'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { FlightItemOutcome, SyllabusFlight, SyllabusFlightItem } from '@mik/contracts/dto'
 import {

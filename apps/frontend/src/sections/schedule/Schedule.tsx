@@ -32,7 +32,7 @@ import {
   BookingStatus,
   BookingType,
 } from '@mik/contracts/bookings'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import {
   Box,
   Typography,
@@ -46,7 +46,7 @@ import {
 } from '@mui/material'
 import { BookingEditor, BookingFlags } from './components/EditBookingModal'
 import { Upsert } from '@mik/contracts/schema'
-import { useRoles } from '../../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { Dayjs } from 'dayjs'
 import { useSearchParams } from 'react-router'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'

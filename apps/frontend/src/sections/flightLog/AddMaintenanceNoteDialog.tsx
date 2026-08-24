@@ -20,11 +20,11 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useDefects } from '../../hooks/useDefects'
 import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import type { AircraftHil } from '@mik/contracts/aircraft-hil'
-import { SaveButton } from '../../components/SaveButton'
+import { SaveButton } from '@mik/ui/components/SaveButton'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 import {

@@ -6,7 +6,7 @@
  * PushNotificationsCard.tsx), so a member can have push enabled on their
  * phone but not their desktop.
  */
-import { sharedApi } from '../hooks/useApi'
+import { sharedApi } from '@mik/ui/hooks/useApi'
 
 export const pushNotificationsSupported = (): boolean =>
   'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window

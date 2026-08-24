@@ -39,7 +39,7 @@ import LanguageSelector from '../../components/LanguageSelector'
 import { TurnstileWidget } from '../../components/TurnstileWidget'
 import { PhoneNumberInput } from '../../components/PhoneNumberInput'
 import { CountrySelect } from '../../components/CountrySelect'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 
 // Local form state type — allows undefined for radio-button fields so that
 // none are pre-selected; cast to RegisterRequest on submission after validation.

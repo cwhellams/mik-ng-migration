@@ -20,7 +20,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { useTranslation } from 'react-i18next'
 import Papa from 'papaparse'
-import useApi, { sharedApi } from '../../hooks/useApi'
+import useApi, { sharedApi } from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
 import { Link } from 'react-router'
@@ -31,7 +31,7 @@ import type {
   InstructorStatusSummary,
   InstructorQualificationHistory,
 } from '@mik/contracts/instructor-qualifications'
-import { useRoles } from '../../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import EasaLogo from '../../assets/easa-logo.png'
 
 const EXPIRING_DAYS_THRESHOLD = 30

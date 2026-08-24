@@ -20,13 +20,13 @@ import { BaselineDialog } from './components/BaselineDialog'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Upsert } from '@mik/contracts/schema'
 import { AircraftJourneyLogBook, AjlbFilter, AjlbListResponse } from '@mik/contracts/ajlb'
-import useApi from '../../hooks/useApi'
-import { useRoles } from '../../hooks/useRoles'
+import useApi from '@mik/ui/hooks/useApi'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { Title } from '@mik/ui/components/Title'
-import { ResponsiveTable } from '../../components/ResponsiveTable'
+import { ResponsiveTable } from '@mik/ui/components/ResponsiveTable'
 import { Icon } from '@iconify/react/dist/iconify.js'
-import { FormField } from '../../components/FormField'
-import { useTimezone } from '../../hooks/useTimezone'
+import { FormField } from '@mik/ui/components/FormField'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 const Roles = () => {
   const { t } = useTranslation()

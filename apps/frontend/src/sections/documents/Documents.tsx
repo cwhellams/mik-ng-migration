@@ -20,11 +20,11 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import { EditButton } from '../../components/EditButton'
-import { useRoles } from '../../hooks/useRoles'
+import { EditButton } from '@mik/ui/components/EditButton'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import UploadDocumentModal from './UploadDocumentModal'
 import EditDocumentModal from './EditDocumentModal'
 
@@ -37,8 +37,8 @@ import type {
 } from '@mik/contracts/documents'
 import { MIKPermissions } from '@mik/contracts/members'
 import { Title } from '@mik/ui/components/Title'
-import { ResponsiveTable } from '../../components/ResponsiveTable'
-import { useTimezone } from '../../hooks/useTimezone'
+import { ResponsiveTable } from '@mik/ui/components/ResponsiveTable'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 // Express serializes Buffer as { type: 'Buffer', data: number[] }
 const bufferToDataUrl = (buf: any): string | null => {

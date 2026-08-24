@@ -1,4 +1,4 @@
-import useApi, { APIResponse } from './useApi'
+import useApi, { APIResponse } from '@mik/ui/hooks/useApi'
 
 // trigger authentication calls
 

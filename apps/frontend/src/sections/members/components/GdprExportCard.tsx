@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Box, Button, Card, CardContent, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { FormTitle } from '../../../components/FormTitle'
+import { FormTitle } from '@mik/ui/components/FormTitle'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 

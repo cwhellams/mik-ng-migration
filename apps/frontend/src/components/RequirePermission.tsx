@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { MIKPermissions } from '@mik/contracts/members'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
 import Forbidden from '../sections/error/Forbidden'
 

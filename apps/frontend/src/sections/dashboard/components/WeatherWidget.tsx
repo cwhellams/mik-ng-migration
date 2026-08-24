@@ -19,14 +19,14 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import VolumeUpIcon from '@mui/icons-material/VolumeUp'
 import StopIcon from '@mui/icons-material/Stop'
 import CloudIcon from '@mui/icons-material/Cloud'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { WeatherResponse } from '@mik/contracts/weather'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useState, useEffect, useRef } from 'react'
 import { WindRose, type RunwaySpec } from './WindRose'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import { useTimezone } from '../../../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 dayjs.extend(utc)
 

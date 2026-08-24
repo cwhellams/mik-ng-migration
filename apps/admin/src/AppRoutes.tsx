@@ -34,6 +34,25 @@ import ProductsAdmin from './sections/shop/ProductsAdmin'
 import ShopAdminDashboard from './sections/shop/ShopAdminDashboard'
 import UsefulPhoneNumbersAdminPage from './sections/UsefulPhoneNumbersAdminPage'
 
+import { CostCentresPage } from './sections/accounting/CostCentresPage'
+import { ExpenseApproval } from './sections/accounting/ExpenseApproval'
+import { ExpenseClaimAdminDetail } from './sections/accounting/ExpenseClaimAdminDetail'
+import { FlightInvoicing } from './sections/accounting/FlightInvoicing'
+import { InstructorWorktimeReport } from './sections/accounting/InstructorWorktimeReport'
+import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
+import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
+import { MileageAllowancesPage } from './sections/accounting/MileageAllowancesPage'
+import { MileageTulorekisteriReport } from './sections/accounting/MileageTulorekisteriReport'
+import { TaxReport } from './sections/accounting/TaxReport'
+import ToolsPage from './sections/accounting/ToolsPage'
+import { TraficomReport } from './sections/accounting/TraficomReport'
+import { UnpaidOverdueInvoices } from './sections/accounting/UnpaidOverdueInvoices'
+import { UpliftReport } from './sections/accounting/UpliftReport'
+
+import MemberChangeLog from './sections/members/MemberChangeLog'
+import MemberTrash from './sections/members/MemberTrash'
+import Roles from './sections/members/Roles'
+
 /**
  * Every route is wrapped in `RequirePermission`, which here checks the
  * permission alone — there is no `adminModeOnly` flag as in the member app,
@@ -221,6 +240,149 @@ const AppRoutes = () => {
           element={
             <RequirePermission permissions={[MIKPermissions.MEETING_ADMIN]}>
               <MeetingsAdminPage />
+            </RequirePermission>
+          }
+        />
+
+        {/* Accounting. The paths keep the member app's old /accounting/*
+            prefix verbatim, so AdminAppRedirect over there is a prefix swap. */}
+        <Route
+          path='/accounting'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <InvoicingAdminDashboard />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/invoicing'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <FlightInvoicing />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/items'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <InvoiceItemsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/tools'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <ToolsPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/tax-report'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <TaxReport />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/traficom-report'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <TraficomReport />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/uplift-report'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <UpliftReport />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/instructor-worktime'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <InstructorWorktimeReport />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/unpaid-overdue'
+          element={
+            <RequirePermission permissions={[MIKPermissions.INVOICING_ADMIN]}>
+              <UnpaidOverdueInvoices />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/expenses'
+          element={
+            <RequirePermission permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+              <ExpenseApproval />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/expenses/:id'
+          element={
+            <RequirePermission permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+              <ExpenseClaimAdminDetail />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/mileage-allowances'
+          element={
+            <RequirePermission permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+              <MileageAllowancesPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/tulorekisteri-report'
+          element={
+            <RequirePermission permissions={[MIKPermissions.EXPENSE_HETU_ADMIN]}>
+              <MileageTulorekisteriReport />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/accounting/cost-centres'
+          element={
+            <RequirePermission permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+              <CostCentresPage />
+            </RequirePermission>
+          }
+        />
+
+        {/* Member administration. Roles and trash were ungated routes in the
+            member app, self-gating inside the page instead; here they get a
+            route gate like everything else. */}
+        <Route
+          path='/members/roles'
+          element={
+            <RequirePermission permissions={[MIKPermissions.MEMBER_ADMIN]}>
+              <Roles />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/members/trash'
+          element={
+            <RequirePermission permissions={[MIKPermissions.MEMBER_ADMIN]}>
+              <MemberTrash />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/members/changelog'
+          element={
+            <RequirePermission permissions={[MIKPermissions.MEMBER_ADMIN]}>
+              <MemberChangeLog />
             </RequirePermission>
           }
         />

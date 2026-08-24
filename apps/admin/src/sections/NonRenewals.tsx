@@ -19,7 +19,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useApi from '../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useMultiSelect } from '@mik/ui/hooks/useMultiSelect'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
@@ -27,7 +27,7 @@ import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { formatPhoneNumber } from '@mik/ui/utils/format'
 import type { Problem } from '@mik/contracts/problem'
 import type { NonRenewalListResponse, NonRenewalMember } from '@mik/contracts/members'
-import { useTimezone } from '../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { absolute, endpoints } from '../api/endpoints'
 
 export default function NonRenewals() {

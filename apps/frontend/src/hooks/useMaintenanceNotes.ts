@@ -1,4 +1,4 @@
-import useApi from './useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 
 /** Pass ajlbSeqNo to scope to one logbook page, or omit it for the whole aircraft. */

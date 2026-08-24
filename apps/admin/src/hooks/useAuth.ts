@@ -1,4 +1,4 @@
-import useApi, { APIResponse } from './useApi'
+import useApi, { APIResponse } from '@mik/ui/hooks/useApi'
 
 export const useAuth = <Input, Output>(
   endpoint: 'login' | 'login/validate' | 'login/verify-code' | 'logout',

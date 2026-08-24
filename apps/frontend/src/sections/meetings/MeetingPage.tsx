@@ -23,8 +23,8 @@ import { MIKPermissions } from '@mik/contracts/members'
 import type { Meeting, MeetingVote, MeetingVotesResponse } from '@mik/contracts/meetings'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
-import useApi from '../../hooks/useApi'
-import { useRoles } from '../../hooks/useRoles'
+import useApi from '@mik/ui/hooks/useApi'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 
 const MeetingPage = () => {
   const { t } = useTranslation()

@@ -1,3 +1,5 @@
+import { identityEndpoints } from '@mik/ui/api/identity'
+
 /**
  * API endpoints registry for the admin app.
  *
@@ -15,9 +17,14 @@
 export const endpoints = {
   members: {
     root: 'v1/members',
-    me: 'v1/members/me',
-    roles: 'v1/members/roles',
+    me: identityEndpoints.me,
+    roles: identityEndpoints.roles,
+    role: (roleId: string) => `v1/members/roles/${roleId}`,
+    trash: 'v1/members/trash',
+    changelog: 'v1/members/changelog',
+    restore: (memberId: string) => `v1/members/${memberId}/restore`,
     nonRenewals: 'v1/members/non-renewals',
+    annualMembershipStats: 'v1/members/annual-membership-stats',
     deactivate: (memberId: string) => `v1/members/${memberId}/deactivate`,
     sendRenewalReminder: (memberId: string) => `v1/members/${memberId}/send-renewal-reminder`,
   },

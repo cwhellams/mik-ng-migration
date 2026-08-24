@@ -11,9 +11,9 @@ import {
 import dayjs from 'dayjs'
 import { t } from 'i18next'
 import theme from '../../../theme/theme'
-import { formatDuration } from '../../flightLog/utils/timeUtils'
+import { formatDuration } from '@mik/ui/utils/duration'
 import { FlightLogListEntry } from '@mik/contracts/flight-log'
-import { useTimezone } from '../../../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))

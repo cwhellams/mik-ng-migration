@@ -1,7 +1,7 @@
 import { Box, Tab, Tabs } from '@mui/material'
 import { useState } from 'react'
 import { Title } from '@mik/ui/components/Title'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { AmePendingCounts } from '@mik/contracts/ame'
 import { AmeSubmissionsAdminTab } from './AmeSubmissionsAdminTab'
 import { AmeEditSuggestionsAdminTab } from './AmeEditSuggestionsAdminTab'

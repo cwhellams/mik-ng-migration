@@ -1,9 +1,17 @@
 import '@testing-library/jest-dom/vitest'
 
 import { cleanup } from '@testing-library/react'
-import { afterEach, beforeAll } from 'vitest'
+import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 
 import i18n from '../i18n'
+import { server } from './msw/server'
+
+// Iconify fetches icon data from api.iconify.design on first render, which
+// would mean a network round-trip (and a late state update) in every component
+// here that draws one. The stub keeps the icon name assertable via `data-icon`
+// without any of that. Both import specifiers used by the apps are covered.
+vi.mock('@iconify/react', async () => await import('./mocks/iconify'))
+vi.mock('@iconify/react/dist/iconify.js', async () => await import('./mocks/iconify'))
 
 // Node 26 defines its own `localStorage`/`sessionStorage` globals that stay
 // `undefined` unless the process is started with `--localstorage-file`, and
@@ -50,12 +58,18 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 beforeAll(async () => {
+  // `error` rather than `warn`: an unhandled request is a missing handler, and
+  // silently answering it with a network error is far harder to debug than a
+  // loud failure.
+  server.listen({ onUnhandledRequest: 'error' })
+
   // Pin the language so tests assert on real English strings rather than on
   // whatever the browser language detector happens to pick.
   await i18n.changeLanguage('en')
 })
 
 afterEach(() => {
+  server.resetHandlers()
   localStorage.clear()
   sessionStorage.clear()
   // Vitest runs without global test hooks, so Testing Library's automatic
@@ -63,3 +77,5 @@ afterEach(() => {
   // queries start matching the previous test's DOM.
   cleanup()
 })
+
+afterAll(() => server.close())

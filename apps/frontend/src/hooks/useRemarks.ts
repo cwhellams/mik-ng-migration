@@ -1,4 +1,4 @@
-import useApi from './useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { Remark } from '@mik/contracts/remarks'
 
 /** Remarks already logged against a flight -- skipped until the flight has an id. */

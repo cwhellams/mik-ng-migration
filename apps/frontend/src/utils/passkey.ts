@@ -14,7 +14,7 @@ import {
   type PublicKeyCredentialCreationOptionsJSON,
   type PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/browser'
-import { sharedApi, type ExtendedAxiosConfig } from '../hooks/useApi'
+import { sharedApi, type ExtendedAxiosConfig } from '@mik/ui/hooks/useApi'
 
 export const passkeySupported = (): boolean => browserSupportsWebAuthn()
 

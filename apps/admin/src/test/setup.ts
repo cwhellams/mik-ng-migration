@@ -17,7 +17,7 @@ import 'dayjs/locale/en-gb'
 // with @mik/ui, which the shared dtoApi/examApi modules issue requests through.
 // A test that renders one of those pages without this would throw before MSW
 // ever saw a request.
-import '../hooks/useApi'
+import '@mik/ui/hooks/useApi'
 
 // Stub Iconify to avoid network requests in tests.
 vi.mock('@iconify/react', async () => await import('./mocks/iconify'))

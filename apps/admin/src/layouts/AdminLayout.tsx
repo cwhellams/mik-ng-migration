@@ -21,9 +21,9 @@ import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate, useLocation, Link } from 'react-router'
 import { ListSubheader } from '@mui/material'
-import { useMe } from '../hooks/useMe'
+import { useMe } from '@mik/ui/hooks/useMe'
 import { useAuth } from '../hooks/useAuth'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { navGroups } from '../config/navItems'
 
 const DRAWER_WIDTH = 240

@@ -33,8 +33,8 @@ import type {
 import { SelectMember } from '../../components/SelectMember'
 import { Title } from '@mik/ui/components/Title'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import useApi from '../../hooks/useApi'
-import { useRoles } from '../../hooks/useRoles'
+import useApi from '@mik/ui/hooks/useApi'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 
 const emptyMeetingForm: CreateMeeting = {
   title: '',

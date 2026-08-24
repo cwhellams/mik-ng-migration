@@ -54,6 +54,26 @@ describe('AdminAppRedirect', () => {
     expect(replace).toHaveBeenCalledWith('/atc/')
   })
 
+  it('forwards an accounting link, whose prefix the admin app keeps verbatim', () => {
+    renderWithProviders(<AdminAppRedirect />, {
+      route: '/accounting/items',
+      path: '/accounting/*',
+      serverClock: false,
+    })
+
+    expect(replace).toHaveBeenCalledWith('/atc/accounting/items')
+  })
+
+  it('rewrites the three /club/members admin screens, which lose the /club prefix', () => {
+    renderWithProviders(<AdminAppRedirect />, {
+      route: '/club/members/changelog',
+      path: '/club/members/changelog',
+      serverClock: false,
+    })
+
+    expect(replace).toHaveBeenCalledWith('/atc/members/changelog')
+  })
+
   it('tells the user what is happening rather than showing a blank page', () => {
     renderWithProviders(<AdminAppRedirect />, {
       route: '/admin/outbox',

@@ -2,7 +2,7 @@ import { AirfieldListResponse } from '@mik/contracts/flight-log'
 import { Autocomplete, TextField } from '@mui/material'
 import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import useApi from '../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useIsFormSubmitted } from '../hooks/useIsFormSubmitted'
 import { formatRequiredFieldError, shouldShowFieldError } from '../utils/formErrors'
 

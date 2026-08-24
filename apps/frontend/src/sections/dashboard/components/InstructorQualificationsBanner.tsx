@@ -2,8 +2,8 @@ import { Alert, Box, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import dayjs from 'dayjs'
-import useApi from '../../../hooks/useApi'
-import { useMe } from '../../../hooks/useMe'
+import useApi from '@mik/ui/hooks/useApi'
+import { useMe } from '@mik/ui/hooks/useMe'
 import type { InstructorQualification } from '@mik/contracts/instructor-qualifications'
 
 const EXPIRING_DAYS_THRESHOLD = 30

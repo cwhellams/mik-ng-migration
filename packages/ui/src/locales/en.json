@@ -3030,7 +3030,10 @@
         "training": "Training",
         "shop": "Shop",
         "operations": "Operations",
-        "system": "System"
+        "system": "System",
+        "invoicing": "Invoicing",
+        "reports": "Reports",
+        "expenses": "Expenses"
       },
       "dashboard": "Dashboard",
       "nonRenewals": "Non-renewals",
@@ -3049,7 +3052,23 @@
       "inventory": "Inventory",
       "outbox": "Outbox",
       "notificationBanner": "Notification banner",
-      "phoneNumbers": "Phone numbers"
+      "phoneNumbers": "Phone numbers",
+      "roles": "Roles & permissions",
+      "memberTrash": "Deleted members",
+      "memberChangeLog": "Change log",
+      "invoicingDashboard": "Invoicing overview",
+      "flightInvoicing": "Flight invoicing",
+      "invoiceItems": "Invoice items",
+      "unpaidOverdue": "Unpaid & overdue",
+      "accountingTools": "Tools",
+      "taxReport": "Tax report",
+      "traficomReport": "Traficom report",
+      "upliftReport": "Fuel uplift",
+      "instructorWorktime": "Instructor worktime",
+      "tulorekisteriReport": "Tulorekisteri report",
+      "expenseApproval": "Expense approval",
+      "mileageAllowances": "Mileage allowances",
+      "costCentres": "Cost centres"
     }
   }
 }

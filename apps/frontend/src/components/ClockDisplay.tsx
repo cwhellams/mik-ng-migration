@@ -2,7 +2,7 @@ import { Box, Tooltip, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useServerClock } from '../hooks/useServerClock'
 import { formatTimeInTz, getOffsetLabelInTz } from '@mik/ui/utils/date'
-import { useTimezone } from '../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 interface ClockDisplayProps {
   /** When true, show HH:MM:SS; when false, show HH:MM only */

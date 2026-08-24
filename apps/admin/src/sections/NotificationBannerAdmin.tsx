@@ -13,7 +13,7 @@ import {
 } from '@mui/material'
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import useApi from '../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { Title } from '@mik/ui/components/Title'
 import type {
   NotificationBanner,

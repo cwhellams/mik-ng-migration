@@ -1,4 +1,4 @@
-import { sharedApi } from '../../hooks/useApi'
+import { sharedApi } from '@mik/ui/hooks/useApi'
 
 // A row the user started typing into but left as only whitespace. Mirrors
 // hasBlankReportedDefect -- dropped silently would look like the app ate their input.

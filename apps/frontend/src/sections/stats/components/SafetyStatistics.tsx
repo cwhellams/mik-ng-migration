@@ -11,7 +11,7 @@ import {
   TableCell,
 } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { OccurrencesPerHundredHrsByAcYr } from '@mik/contracts/stats'

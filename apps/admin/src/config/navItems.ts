@@ -50,6 +50,24 @@ export const navGroups: NavGroup[] = [
     label: 'admin.nav.groups.membership',
     items: [
       {
+        label: 'admin.nav.roles',
+        icon: 'mdi:shield-account',
+        path: '/members/roles',
+        permissions: [MIKPermissions.MEMBER_ADMIN],
+      },
+      {
+        label: 'admin.nav.memberTrash',
+        icon: 'mdi:delete-restore',
+        path: '/members/trash',
+        permissions: [MIKPermissions.MEMBER_ADMIN],
+      },
+      {
+        label: 'admin.nav.memberChangeLog',
+        icon: 'mdi:history',
+        path: '/members/changelog',
+        permissions: [MIKPermissions.MEMBER_ADMIN],
+      },
+      {
         label: 'admin.nav.nonRenewals',
         icon: 'mdi:account-cancel',
         path: '/non-renewals',
@@ -89,6 +107,99 @@ export const navGroups: NavGroup[] = [
         icon: 'mdi:clipboard-check',
         path: '/exams/attempts',
         permissions: [MIKPermissions.EXAM_ADMIN],
+      },
+    ],
+  },
+  {
+    label: 'admin.nav.groups.invoicing',
+    items: [
+      {
+        label: 'admin.nav.invoicingDashboard',
+        icon: 'mdi:cash-multiple',
+        path: '/accounting',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'admin.nav.flightInvoicing',
+        icon: 'mdi:airplane-check',
+        path: '/accounting/invoicing',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'admin.nav.invoiceItems',
+        icon: 'mdi:format-list-numbered',
+        path: '/accounting/items',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'admin.nav.unpaidOverdue',
+        icon: 'mdi:cash-clock',
+        path: '/accounting/unpaid-overdue',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'admin.nav.accountingTools',
+        icon: 'mdi:tools',
+        path: '/accounting/tools',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+    ],
+  },
+  {
+    label: 'admin.nav.groups.reports',
+    items: [
+      {
+        label: 'admin.nav.taxReport',
+        icon: 'mdi:file-percent',
+        path: '/accounting/tax-report',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'admin.nav.traficomReport',
+        icon: 'mdi:file-chart',
+        path: '/accounting/traficom-report',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'admin.nav.upliftReport',
+        icon: 'mdi:fuel',
+        path: '/accounting/uplift-report',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'admin.nav.instructorWorktime',
+        icon: 'mdi:clock-check',
+        path: '/accounting/instructor-worktime',
+        permissions: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'admin.nav.tulorekisteriReport',
+        icon: 'mdi:bank-transfer',
+        path: '/accounting/tulorekisteri-report',
+        permissions: [MIKPermissions.EXPENSE_HETU_ADMIN],
+      },
+    ],
+  },
+  {
+    label: 'admin.nav.groups.expenses',
+    items: [
+      {
+        label: 'admin.nav.expenseApproval',
+        icon: 'mdi:receipt-text-check',
+        path: '/accounting/expenses',
+        permissions: [MIKPermissions.EXPENSE_ADMIN],
+      },
+      {
+        label: 'admin.nav.mileageAllowances',
+        icon: 'mdi:car',
+        path: '/accounting/mileage-allowances',
+        permissions: [MIKPermissions.EXPENSE_ADMIN],
+      },
+      {
+        label: 'admin.nav.costCentres',
+        icon: 'mdi:tag-multiple',
+        path: '/accounting/cost-centres',
+        permissions: [MIKPermissions.EXPENSE_ADMIN],
       },
     ],
   },

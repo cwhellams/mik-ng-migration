@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next'
 import { useDropzone } from 'react-dropzone'
 import { Icon } from '@iconify/react'
 import dayjs from 'dayjs'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { DocumentCategorySelect } from './components/DocumentCategorySelect'
 
 interface UploadDocumentModalProps {

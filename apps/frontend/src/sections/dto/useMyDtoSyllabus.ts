@@ -1,4 +1,4 @@
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { MemberSyllabusDetail } from '@mik/ui/api/dtoApi'
 
 /**

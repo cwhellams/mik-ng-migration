@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { AircraftDocumentList } from './AircraftDocumentList'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { AircraftDocumentListResponse } from '@mik/contracts/aircraft-documents'
 

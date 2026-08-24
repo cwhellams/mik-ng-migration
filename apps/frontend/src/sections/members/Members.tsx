@@ -17,7 +17,7 @@ import {
   Paper,
 } from '@mui/material'
 import { Link } from 'react-router'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import {
   Member,
   MemberListFilters,
@@ -28,19 +28,19 @@ import {
 import { Problem } from '@mik/contracts/problem'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Icon } from '@iconify/react'
-import { useRoles } from '../../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { t } from 'i18next'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EditButton } from '../../components/EditButton'
+import { EditButton } from '@mik/ui/components/EditButton'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import UserAvatar from './components/UserAvatar'
+import UserAvatar from '@mik/ui/components/UserAvatar'
 import { formatPhoneNumber } from '@mik/ui/utils/format'
 import { langFlagIcon } from '../../utils/lang'
 import { Title } from '@mik/ui/components/Title'
-import { ResponsiveTable } from '../../components/ResponsiveTable'
-import { useTimezone } from '../../hooks/useTimezone'
+import { ResponsiveTable } from '@mik/ui/components/ResponsiveTable'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { useMultiSelect } from '@mik/ui/hooks/useMultiSelect'
 import { endpoints } from '../../api/endpoints'
 

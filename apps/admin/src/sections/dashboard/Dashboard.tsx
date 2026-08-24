@@ -1,7 +1,7 @@
 import { Box, Grid, Card, CardContent, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { useMe } from '../../hooks/useMe'
-import { useRoles } from '../../hooks/useRoles'
+import { useMe } from '@mik/ui/hooks/useMe'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 
 const StatCard = ({ title, icon, color }: { title: string; icon: string; color: string }) => (
   <Card>

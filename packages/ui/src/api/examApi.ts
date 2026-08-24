@@ -7,29 +7,21 @@ import type {
   AttemptAnswer,
   AttemptListResponse,
 } from '@mik/contracts/exams'
-import { http } from './http'
+import { sharedApi } from '../hooks/useApi'
 
 const EXAMS_BASE = 'v1/exams/'
 
 const get = <T>(path: string, params?: Record<string, unknown>): Promise<T> =>
-  http()
-    .get<T>(`${EXAMS_BASE}${path}`, { params })
-    .then((r) => r.data)
+  sharedApi.get<T>(`${EXAMS_BASE}${path}`, { params }).then((r) => r.data)
 
 const post = <T>(path: string, data?: unknown): Promise<T> =>
-  http()
-    .post<T>(`${EXAMS_BASE}${path}`, data)
-    .then((r) => r.data)
+  sharedApi.post<T>(`${EXAMS_BASE}${path}`, data).then((r) => r.data)
 
 const put = <T>(path: string, data?: unknown): Promise<T> =>
-  http()
-    .put<T>(`${EXAMS_BASE}${path}`, data)
-    .then((r) => r.data)
+  sharedApi.put<T>(`${EXAMS_BASE}${path}`, data).then((r) => r.data)
 
 const del = (path: string): Promise<void> =>
-  http()
-    .delete(`${EXAMS_BASE}${path}`)
-    .then(() => undefined)
+  sharedApi.delete(`${EXAMS_BASE}${path}`).then(() => undefined)
 
 // ── User-facing ───────────────────────────────────────────────────────────────
 export const getExams = (): Promise<ExamWithVersion[]> => get<ExamWithVersion[]>('')

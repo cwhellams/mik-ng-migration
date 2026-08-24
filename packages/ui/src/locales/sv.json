@@ -3003,7 +3003,10 @@
         "training": "Utbildning",
         "shop": "Butik",
         "operations": "Verksamhet",
-        "system": "System"
+        "system": "System",
+        "invoicing": "Fakturering",
+        "reports": "Rapporter",
+        "expenses": "Utlägg"
       },
       "dashboard": "Instrumentpanel",
       "nonRenewals": "Ej förnyade",
@@ -3022,7 +3025,23 @@
       "inventory": "Lager",
       "outbox": "Utkorg",
       "notificationBanner": "Meddelandebanner",
-      "phoneNumbers": "Telefonnummer"
+      "phoneNumbers": "Telefonnummer",
+      "roles": "Roller och rättigheter",
+      "memberTrash": "Raderade medlemmar",
+      "memberChangeLog": "Ändringslogg",
+      "invoicingDashboard": "Faktureringsöversikt",
+      "flightInvoicing": "Flygfakturering",
+      "invoiceItems": "Fakturarader",
+      "unpaidOverdue": "Obetalda och förfallna",
+      "accountingTools": "Verktyg",
+      "taxReport": "Skatterapport",
+      "traficomReport": "Traficom-rapport",
+      "upliftReport": "Bränslepåfyllning",
+      "instructorWorktime": "Instruktörernas arbetstid",
+      "tulorekisteriReport": "Inkomstregisterrapport",
+      "expenseApproval": "Godkännande av utlägg",
+      "mileageAllowances": "Milersättning",
+      "costCentres": "Kostnadsställen"
     }
   }
 }

@@ -15,7 +15,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { Attempt, AttemptAnswer, ExamVersionDetail } from '@mik/contracts/exams'
 import { saveAnswer, submitAttempt, abandonAttempt } from '@mik/ui/api/examApi'

@@ -51,11 +51,12 @@ describe('route table', () => {
     // split: over there most routes carry no route-level gate because most
     // pages are for every member. Here the only ungated routes are `/` (a
     // redirect), the dashboard, the four sign-in routes and the 404.
-    expect(ROUTES).toHaveLength(28)
-    // 21, not the 22 routes the member app's /admin subtree had: its `index`
-    // route was a bare redirect to /admin/outbox, which this app does not need
-    // — `/` goes to the dashboard instead.
-    expect(GATED_ROUTES).toHaveLength(21)
+    expect(ROUTES).toHaveLength(45)
+    // 21 from the /admin/* subtree, 14 from /accounting/* and 3 member-admin
+    // screens. (21 rather than the member app's 22: its /admin index route was
+    // a bare redirect to /admin/outbox, which this app does not need — `/` goes
+    // to the dashboard instead.)
+    expect(GATED_ROUTES).toHaveLength(38)
     expect(UNGATED_ROUTES.map((route) => route.path).sort()).toEqual(
       ['/', '/*', '/dashboard', '/login', '/login/sent', '/login/validate', '/logout'].sort(),
     )
@@ -161,6 +162,7 @@ describe('sidebar navigation', () => {
       '/exams/versions/:versionId',
       '/dto/syllabi/:syllabusId',
       '/dto/programs/:programId/import',
+      '/accounting/expenses/:id',
     ]
     const linked = new Set(navItems.map((item) => item.path))
 

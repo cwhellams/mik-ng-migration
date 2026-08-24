@@ -1,4 +1,4 @@
-import useApi from './useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { AppConfig } from '@mik/contracts/config'
 
 export function useAppConfig(): {

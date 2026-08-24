@@ -13,12 +13,16 @@ import { useLocation } from 'react-router'
 const ADMIN_BASE = import.meta.env.VITE_ADMIN_URL ?? '/atc'
 
 /**
- * Sends an old in-app `/admin/*` link to the same path in the admin app.
+ * Sends an old in-app admin link to the same path in the admin app.
  *
  * The admin pages moved out of this app in #1233, but members' bookmarks and
- * links in old emails did not. The admin app deliberately kept the sub-paths
- * identical (`/admin/shop/orders` → `<admin>/shop/orders`), so this is a plain
- * prefix swap rather than a route table that would have to be kept in step.
+ * links in old emails did not. The admin app deliberately kept every path
+ * identical — `/admin/shop/orders` → `<admin>/shop/orders`, `/accounting/items`
+ * → `<admin>/accounting/items` — so this needs no route table of its own: it
+ * forwards whatever it was mounted at.
+ *
+ * The three `/club/members/{roles,trash,changelog}` screens are the exception,
+ * since the admin app has no `/club` prefix. `ADMIN_PATH` handles them.
  *
  * A full page load, not a router navigation: the destination is a separate
  * single-page app with its own bundle.
@@ -28,8 +32,14 @@ const AdminAppRedirect = () => {
   const { pathname, search, hash } = useLocation()
 
   useEffect(() => {
-    const rest = pathname.replace(/^\/admin\/?/, '')
-    window.location.replace(`${ADMIN_BASE.replace(/\/$/, '')}/${rest}${search}${hash}`)
+    // /admin/* loses its prefix (the admin app has no /admin); /accounting/*
+    // keeps its own, which is identical over there; /club/members/x becomes
+    // /members/x.
+    const target = pathname.replace(/^\/admin\/?/, '/').replace(/^\/club\/members\//, '/members/')
+
+    window.location.replace(
+      `${ADMIN_BASE.replace(/\/$/, '')}${target === '/' ? '/' : target}${search}${hash}`,
+    )
   }, [pathname, search, hash])
 
   return (

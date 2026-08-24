@@ -11,7 +11,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import type { Dayjs } from 'dayjs'
 import { ResponsiveBar } from '@nivo/bar'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { PilotStatistics as PilotStatisticsType } from '@mik/contracts/stats'

@@ -17,7 +17,7 @@ import { Icon } from '@iconify/react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Title } from '@mik/ui/components/Title'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useLocalisedText } from '@mik/ui/utils/localisedText'
 

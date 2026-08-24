@@ -2,7 +2,7 @@ import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { FlightLogFilters } from '@mik/contracts/flight-log'
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { t } from 'i18next'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { endpoints } from '../../../api/endpoints'
 
 type Props = {

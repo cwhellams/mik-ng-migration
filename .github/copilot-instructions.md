@@ -235,10 +235,11 @@ back-office functionality that both audiences were badly served by it.
   dividing line from #1233: back-office work moves, but anything a flight instructor uses
   during a lesson stays in the member app, because they are on a phone or tablet on the
   apron, not at a desk. When in doubt, ask which device the person is holding.
-- **`apps/admin`'s paths mirror the member app's old `/admin/*` sub-paths**
-  (`/admin/shop/orders` → `/shop/orders`), so `AdminAppRedirect` in the member app
-  forwards an old bookmark with a plain prefix swap. Keep that correspondence when adding
-  a route that used to exist over there.
+- **`apps/admin`'s paths mirror the member app's old ones** — `/admin/shop/orders` →
+  `/shop/orders`, `/accounting/items` → `/accounting/items` unchanged — so
+  `AdminAppRedirect` in the member app forwards an old bookmark by rewriting the prefix
+  and nothing else. Keep that correspondence when adding a route that used to exist over
+  there, and add a case to that component if a new prefix needs a different mapping.
 - **The sidebar and the route gates must agree.** `apps/admin/src/config/navItems.ts`
   lists each item's permissions and `AppRoutes.tsx` gates the route; a test in
   `AppRoutes.permissions.test.tsx` fails if they diverge, because a visible menu item that
@@ -273,15 +274,25 @@ Rules:
 - **Nothing app-specific.** A component belongs there only if both apps render it
   unchanged. `Header`, `Footer`, `AdminToggle`, each app's `theme/` and each app's
   `menuItems`/`navItems` are app-local because they encode one app's identity.
-- **No `useApi` and no component that fetches its own data.** The two apps' API hooks
-  differ on purpose (admin's always sends `x-sudo: true`, and each redirects a dead
-  session to its own login route), so a self-fetching component cannot be shared as-is —
-  take the data as a prop. `SelectMember` is app-local for exactly this reason.
-- **The API clients take their HTTP client by injection.** `@mik/ui/api/dtoApi` and
-  `examApi` call `http()` from `@mik/ui/api/http`; each app calls `setHttpClient(sharedApi)`
-  from its own `hooks/useApi.ts`, at module scope, so importing one of those clients
-  without a client registered is impossible. Add new shared API modules the same way —
-  never import an app's axios instance.
+- **`useApi` lives here, and so do the identity hooks.** There is one implementation for
+  both apps; what they disagree on comes from two contexts each app provides at its root:
+
+  | Context             | Supplies                            | `apps/frontend`    | `apps/admin`       |
+  | ------------------- | ----------------------------------- | ------------------ | ------------------ |
+  | `ApiConfigProvider` | whether requests carry admin rights | the sudo toggle    | constant `true`    |
+  | `TimezoneProvider`  | UTC or local timestamps             | its `ThemeContext` | its `ThemeContext` |
+
+  Both throw when the provider is missing rather than defaulting: a silent fallback for
+  `sudo` would either lose admin rights everywhere or grant them everywhere, and both are
+  far worse to diagnose than a throw. `useRoles`'s `hasSudoAccess` reads the _same_ flag
+  `useApi` sends as `x-sudo`, so the UI can never offer an action the request would then
+  be refused for.
+
+  This is what makes a self-fetching component shareable at all — `LineItemsTable`,
+  `SelectMember`, `InvoicePdfLink` and `FlightListEntry` all needed it. Follow the same
+  pattern for anything else that differs per app: one implementation, the difference in a
+  context.
+
 - **No Node builtins and no `process`.** `tsconfig.json` omits `@types/node` and
   `eslint.config.js` blocks the globals by name, the same two-layer guard
   `packages/contracts` uses. Environment values come from `import.meta.env`.
@@ -291,6 +302,11 @@ Rules:
 - **Member and role fixtures live there too** (`@mik/ui/test/fixtures/{cast,roles,members}`),
   because a permission-gate test needs the same cast on both sides. App-specific fixtures
   (aircraft, bookings, flight logs) stay in the app that uses them.
+- **`components/expenseShared.tsx` and `api/{dtoApi,examApi}.ts` have no tests.** They
+  never had any in `apps/frontend` either — they sat under its 43% `src/sections` bar —
+  and between them they are ~310 statements, which is why `src/components` and `src/api`
+  carry the low bars they do in `vitest.config.ts`. They are the next thing to earn a
+  raise, not a precedent.
 - CI holds `packages/ui` at **zero** ESLint errors and runs it as its own job in
   `intra-frontend-review.yml`, since a break there breaks both apps.
 

@@ -124,7 +124,12 @@ export default defineConfig({
         // every migrated call site, so it starts at the top of the range and
         // there is no reason for it ever to leave.
         'src/api/**': { statements: 99, branches: 99, functions: 99 },
-        'src/hooks/**': { statements: 97, branches: 93, functions: 99 },
+        // branches 93 -> 89: #1233 moved useApi, useMe, useRoles, useTimezone,
+        // useMultiSelect, useScrollOnRender and useInvoicePdfDownload to
+        // @mik/ui, and they were the most branch-covered hooks here. What
+        // remains measures 98.35/90.18/100. Statements and functions are
+        // untouched.
+        'src/hooks/**': { statements: 97, branches: 89, functions: 99 },
         // 92/88/86 -> 91/86/86, and src/utils below 61/55/76 -> 54/43/66.
         //
         // The only time these bars move down. #1233 moved five well-covered
@@ -142,10 +147,16 @@ export default defineConfig({
         // meant either deleting the moved tests' subjects from the report or
         // leaving a red build. Both are worse than saying so here.
         'src/components/**': { statements: 91, branches: 86, functions: 86 },
+        // 71/46/68 -> 64/46/62. `src/lib` is gone entirely — its one module,
+        // pdfDownload, moved to @mik/ui with the invoice-download hook that
+        // calls it — and App.tsx grew the two provider bridges the shared hooks
+        // read their config from. At 65 statements between five directories a
+        // single statement is worth 1.5 points, which is why this bar moves
+        // more than the others for the same amount of change.
         'src/{*,lib/**,layouts/**,theme/**,config/**}': {
-          statements: 71,
+          statements: 64,
           branches: 46,
-          functions: 68,
+          functions: 62,
         },
         // 53/49/65 -> 61/55/76 in #1115 (finding 8 brought the two calendar
         // modules and the extracted icsDownload under test), then 61/55/76 ->

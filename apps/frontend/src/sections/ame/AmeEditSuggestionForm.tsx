@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Title } from '@mik/ui/components/Title'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { AME_MEDICAL_TYPES } from '@mik/contracts/ame'
 import type { AmeListResponse, SuggestAmeEdit } from '@mik/contracts/ame'
 

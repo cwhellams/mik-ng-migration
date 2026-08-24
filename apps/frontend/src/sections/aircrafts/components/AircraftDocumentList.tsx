@@ -33,7 +33,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import dayjs from 'dayjs'
 import { DocumentUploadArea } from './AircraftDocumentUploadArea'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../../hooks/useSnackbar'
 import {
   AircraftDocument,
@@ -42,7 +42,7 @@ import {
 } from '@mik/contracts/aircraft-documents'
 import { DownloadDocument } from '@mik/contracts/documents'
 import { DOCUMENT_CONSTANTS, getFileIcon, formatFileSize } from '../../../utils/documentHelpers'
-import { useTimezone } from '../../../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 const EXPIRING_DAYS_THRESHOLD = DOCUMENT_CONSTANTS.EXPIRING_DAYS_THRESHOLD
 

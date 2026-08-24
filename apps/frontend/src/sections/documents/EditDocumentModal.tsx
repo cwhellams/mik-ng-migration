@@ -15,7 +15,7 @@ import {
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Document, DocumentUpdate } from '@mik/contracts/documents'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { DocumentCategorySelect } from './components/DocumentCategorySelect'
 
 interface EditDocumentModalProps {

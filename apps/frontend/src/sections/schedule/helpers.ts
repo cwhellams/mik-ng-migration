@@ -1,6 +1,6 @@
 import { BookingListResponse, BookingStatus } from '@mik/contracts/bookings'
 import dayjs, { Dayjs } from 'dayjs'
-import { useMe } from '../../hooks/useMe'
+import { useMe } from '@mik/ui/hooks/useMe'
 
 export const bookingMinDate = (startTime?: Dayjs) => {
   const now = dayjs()

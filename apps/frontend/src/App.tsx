@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { dayjs } from '@mik/ui/utils/date'
 import { Snackbar, Button, Box } from '@mui/material'
 import SplashScreen from './components/SplashScreen'
@@ -10,12 +10,28 @@ import 'dayjs/locale/en-gb'
 import { ServerClockProvider } from './hooks/useServerClock'
 import { SnackbarProvider } from './hooks/useSnackbar'
 import { BrowserRouter } from 'react-router'
+import { ApiConfigProvider } from '@mik/ui/hooks/apiConfig'
+import { TimezoneProvider } from '@mik/ui/hooks/useTimezone'
+import { useThemeMode } from './theme/ThemeContext'
 import AppRoutes from './AppRoutes'
 
 function App() {
   const [loading, setLoading] = useState(true)
   const { i18n, t } = useTranslation()
   const { isUpdateAvailable, dismissUpdate, refreshApp } = useServiceWorkerUpdate()
+  const { sudo, timezone, setTimezone } = useThemeMode()
+
+  // What the shared `useApi` needs from this app: whether requests carry admin
+  // rights. Here that follows the sudo toggle, so a member who holds an admin
+  // permission but has not switched admin mode on still browses as a member.
+  // (`apps/admin` passes a constant `true` — see its App.tsx.)
+  // Memoised so flipping some unrelated state does not hand every consumer a
+  // new context value and revalidate the whole SWR cache.
+  const apiConfig = useMemo(() => ({ sudo: sudo ?? false }), [sudo])
+
+  // Where the member's UTC-or-local preference lives is this app's business;
+  // the formatting built on it is shared (@mik/ui/hooks/useTimezone).
+  const timezoneSetting = useMemo(() => ({ timezone, setTimezone }), [timezone, setTimezone])
 
   // Keep dayjs's global default locale (month/day names used by plain dayjs().format()
   // calls throughout the app) in sync with the selected app language. This must run
@@ -56,37 +72,41 @@ function App() {
   }, [])
 
   return (
-    <LocalizationProvider
-      dateAdapter={AdapterDayjs}
-      adapterLocale={i18n.language === 'en' ? 'en-gb' : i18n.language}
-    >
-      <ServerClockProvider>
-        <SnackbarProvider>
-          <SplashScreen loading={loading} />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-          {/* Service Worker Update Notification */}
-          <Snackbar
-            open={isUpdateAvailable}
-            autoHideDuration={null}
-            onClose={dismissUpdate}
-            message={t('common.updateAvailable')}
-            action={
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button color='primary' size='small' onClick={refreshApp}>
-                  {t('common.refresh')}
-                </Button>
-                <Button color='inherit' size='small' onClick={dismissUpdate}>
-                  {t('common.dismiss')}
-                </Button>
-              </Box>
-            }
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-          />
-        </SnackbarProvider>
-      </ServerClockProvider>
-    </LocalizationProvider>
+    <ApiConfigProvider value={apiConfig}>
+      <TimezoneProvider value={timezoneSetting}>
+        <LocalizationProvider
+          dateAdapter={AdapterDayjs}
+          adapterLocale={i18n.language === 'en' ? 'en-gb' : i18n.language}
+        >
+          <ServerClockProvider>
+            <SnackbarProvider>
+              <SplashScreen loading={loading} />
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+              {/* Service Worker Update Notification */}
+              <Snackbar
+                open={isUpdateAvailable}
+                autoHideDuration={null}
+                onClose={dismissUpdate}
+                message={t('common.updateAvailable')}
+                action={
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button color='primary' size='small' onClick={refreshApp}>
+                      {t('common.refresh')}
+                    </Button>
+                    <Button color='inherit' size='small' onClick={dismissUpdate}>
+                      {t('common.dismiss')}
+                    </Button>
+                  </Box>
+                }
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              />
+            </SnackbarProvider>
+          </ServerClockProvider>
+        </LocalizationProvider>
+      </TimezoneProvider>
+    </ApiConfigProvider>
   )
 }
 

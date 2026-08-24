@@ -16,7 +16,7 @@ import {
   ListItemText,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { Link, useParams, useSearchParams } from 'react-router'
 import {
   FlightLog,
@@ -27,11 +27,11 @@ import {
   PageItemRow,
 } from '@mik/contracts/flight-log'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import { useRoles } from '../../hooks/useRoles'
-import { useScrollOnRender } from '../../hooks/useScrollOnRender'
+import { useRoles } from '@mik/ui/hooks/useRoles'
+import { useScrollOnRender } from '@mik/ui/hooks/useScrollOnRender'
 import { AircraftJourneyLogBook } from '@mik/contracts/ajlb'
 import { useEffect, useMemo, useState } from 'react'
-import { EditButton } from '../../components/EditButton'
+import { EditButton } from '@mik/ui/components/EditButton'
 import { Problem } from '@mik/contracts/problem'
 import { StatusButton } from './components/StatusButton'
 import { FlightLogValidation } from './components/FlightLogValidation'
@@ -42,9 +42,9 @@ import {
   ViewFlightDate,
   ViewMobileFlightDetails,
   ViewMobileCrew,
-} from './components/FlightListEntry'
-import { ResponsiveTable } from '../../components/ResponsiveTable'
-import { useTimezone } from '../../hooks/useTimezone'
+} from '@mik/ui/components/FlightListEntry'
+import { ResponsiveTable } from '@mik/ui/components/ResponsiveTable'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { Icon } from '@iconify/react'
 import { useMaintenanceNotes } from '../../hooks/useMaintenanceNotes'
 import { useDefects } from '../../hooks/useDefects'

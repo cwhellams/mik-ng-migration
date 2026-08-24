@@ -3036,7 +3036,10 @@
         "training": "Koulutus",
         "shop": "Kauppa",
         "operations": "Toiminta",
-        "system": "Järjestelmä"
+        "system": "Järjestelmä",
+        "invoicing": "Laskutus",
+        "reports": "Raportit",
+        "expenses": "Kulukorvaukset"
       },
       "dashboard": "Kojelauta",
       "nonRenewals": "Uusimatta jättäneet",
@@ -3055,7 +3058,23 @@
       "inventory": "Varasto",
       "outbox": "Lähtevät",
       "notificationBanner": "Ilmoitusbanneri",
-      "phoneNumbers": "Puhelinnumerot"
+      "phoneNumbers": "Puhelinnumerot",
+      "roles": "Roolit ja oikeudet",
+      "memberTrash": "Poistetut jäsenet",
+      "memberChangeLog": "Muutosloki",
+      "invoicingDashboard": "Laskutuksen yleiskatsaus",
+      "flightInvoicing": "Lentojen laskutus",
+      "invoiceItems": "Laskurivit",
+      "unpaidOverdue": "Maksamattomat ja erääntyneet",
+      "accountingTools": "Työkalut",
+      "taxReport": "Veroraportti",
+      "traficomReport": "Traficom-raportti",
+      "upliftReport": "Polttoainetankkaukset",
+      "instructorWorktime": "Opettajien työaika",
+      "tulorekisteriReport": "Tulorekisteri-raportti",
+      "expenseApproval": "Kulukorvausten hyväksyntä",
+      "mileageAllowances": "Kilometrikorvaukset",
+      "costCentres": "Kustannuspaikat"
     }
   }
 }

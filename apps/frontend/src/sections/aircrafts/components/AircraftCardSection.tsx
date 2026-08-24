@@ -16,7 +16,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { AircraftCardListResponse } from '@mik/contracts/aircraft-cards'
 import { EditCardModal, type CardEditMode } from './EditCardModal'

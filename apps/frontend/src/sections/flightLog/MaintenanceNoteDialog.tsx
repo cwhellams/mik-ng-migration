@@ -17,18 +17,18 @@ import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Icon } from '@iconify/react'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useDefects } from '../../hooks/useDefects'
 import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import {
   MaintenanceNoteFormSchema,
   type MaintenanceNoteFormValues,
 } from './maintenanceNoteFormSchema'
-import { useRoles } from '../../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { useAircraftHil } from '../aircrafts/components/hil/useAircraftHil'
 import { useOpenDefectLink } from '../aircrafts/components/hil/useOpenDefectLink'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
-import { SaveButton } from '../../components/SaveButton'
+import { SaveButton } from '@mik/ui/components/SaveButton'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 

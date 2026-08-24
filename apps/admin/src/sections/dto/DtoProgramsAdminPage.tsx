@@ -21,7 +21,7 @@ import { Icon } from '@iconify/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Title } from '@mik/ui/components/Title'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { TrainingProgram, Syllabus } from '@mik/contracts/dto'
 import {

@@ -12,7 +12,7 @@ import {
   TableSortLabel,
 } from '@mui/material'
 import type { FuelReportResponse } from '@mik/contracts/fuel-report'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
 

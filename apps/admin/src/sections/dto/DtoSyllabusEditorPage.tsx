@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Title } from '@mik/ui/components/Title'
 import { MarkdownContent } from '@mik/ui/components/MarkdownContent'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { SyllabusWithFlights, SyllabusFlight } from '@mik/contracts/dto'
 import {
   updateSyllabus,

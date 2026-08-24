@@ -26,7 +26,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router'
 import { Title } from '@mik/ui/components/Title'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { ExamVersionDetail } from '@mik/contracts/exams'
 
 type QuestionDetail = ExamVersionDetail['questions'][number]

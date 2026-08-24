@@ -13,7 +13,7 @@ import {
 } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
 import { useTranslation } from 'react-i18next'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { TotalFlightTimeByAcYrMth } from '@mik/contracts/stats'

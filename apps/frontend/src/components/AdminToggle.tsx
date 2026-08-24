@@ -1,7 +1,7 @@
 import { IconButton, Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
 
 const AdminToggle = () => {

@@ -17,7 +17,7 @@ import dayjs, { type Dayjs } from 'dayjs'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Title } from '@mik/ui/components/Title'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { AME_MEDICAL_TYPES } from '@mik/contracts/ame'
 import type { CreateAmeEntry } from '@mik/contracts/ame'
 

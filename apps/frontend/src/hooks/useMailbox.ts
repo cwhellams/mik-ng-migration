@@ -1,5 +1,5 @@
 import { MailboxMessage } from '@mik/contracts/mailbox'
-import useApi from './useApi'
+import useApi from '@mik/ui/hooks/useApi'
 
 /**
  * Lightweight hook for just the unread count (e.g. the header profile-menu badge).

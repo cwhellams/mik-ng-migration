@@ -15,7 +15,7 @@ import {
 import { ResponsiveBar } from '@nivo/bar'
 import { ResponsiveCalendar } from '@nivo/calendar'
 import { useTranslation } from 'react-i18next'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { formatHHMM } from '@mik/ui/utils/format'

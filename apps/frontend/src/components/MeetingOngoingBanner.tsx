@@ -1,7 +1,7 @@
 import { Alert, Button } from '@mui/material'
 import { Link as RouterLink } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import useApi from '../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { Meeting } from '@mik/contracts/meetings'
 
 export function MeetingOngoingBanner() {
