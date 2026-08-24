@@ -84,12 +84,6 @@ export const menuItems: MenuItem[] = [
         label: 'header.members',
       },
       {
-        path: 'members/trash',
-        label: 'header.membersTrash',
-        requiredRoles: [MIKPermissions.MEMBER_ADMIN],
-        adminModeOnly: true,
-      },
-      {
         path: 'instructor-status',
         label: 'header.instructorStatus',
         requiredRoles: [MIKPermissions.MEMBER_ADMIN],
@@ -140,87 +134,13 @@ export const menuItems: MenuItem[] = [
     ],
   },
   {
+    // Was INVENTORY_ADMIN + adminModeOnly, which hid the link from the members
+    // this page is for — they could only reach it by typing the URL. The route
+    // has never been gated; the admin side of inventory moved to apps/admin in
+    // #1233, so what is left here is the shelf list every member may read.
     path: '/inventory',
     label: 'header.inventory',
-    requiredRoles: [MIKPermissions.INVENTORY_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting',
-    label: 'header.accounts',
-    requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-    subItems: [
-      {
-        label: 'invoicing.tabs.dashboard',
-        path: '',
-        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'invoicing.tabs.flights',
-        path: 'invoicing',
-        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'invoicing.tabs.items',
-        path: 'items',
-        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'invoicing.tabs.tools',
-        path: 'tools',
-        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'invoicing.tabs.taxReport',
-        path: 'tax-report',
-        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'invoicing.tabs.traficomReport',
-        path: 'traficom-report',
-        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'invoicing.tabs.upliftReport',
-        path: 'uplift-report',
-        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'invoicing.tabs.instructorWorktime',
-        path: 'instructor-worktime',
-        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'invoicing.tabs.unpaidOverdue',
-        path: 'unpaid-overdue',
-        requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
-      },
-      {
-        label: 'header.expenseClaims',
-        path: 'expenses',
-        requiredRoles: [MIKPermissions.EXPENSE_ADMIN],
-        adminModeOnly: true,
-      },
-      {
-        label: 'header.mileageAllowances',
-        path: 'mileage-allowances',
-        requiredRoles: [MIKPermissions.EXPENSE_ADMIN],
-        adminModeOnly: true,
-      },
-      {
-        label: 'header.tulorekisteriReport',
-        path: 'tulorekisteri-report',
-        requiredRoles: [MIKPermissions.EXPENSE_HETU_ADMIN],
-        adminModeOnly: true,
-      },
-      {
-        label: 'header.costCentres',
-        path: 'cost-centres',
-        requiredRoles: [MIKPermissions.EXPENSE_ADMIN],
-        adminModeOnly: true,
-      },
-    ],
+    requiredRoles: [MIKPermissions.INVENTORY_USER, MIKPermissions.INVENTORY_ADMIN],
   },
   {
     path: '/dto',

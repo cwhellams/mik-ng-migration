@@ -315,7 +315,7 @@ export default function DtoSyllabusEditorPage() {
           mb: 2,
         }}
       >
-        <IconButton onClick={() => navigate('/admin/dto')}>
+        <IconButton onClick={() => navigate('/dto')}>
           <Icon icon='mdi:arrow-left' />
         </IconButton>
         <Title label={`Syllabus v${syllabus.version}`} />

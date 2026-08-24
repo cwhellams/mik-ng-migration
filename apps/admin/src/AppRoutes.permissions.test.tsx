@@ -32,8 +32,13 @@ describe('route table', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/AppRoutes.tsx'), 'utf-8')
     const gatesInSource = source.match(/<RequirePermission/g) ?? []
 
+    // '/' is a bare `<Navigate>` with no `RequirePermission` of its own — its
+    // row in the matrix just mirrors the redirect target's expectation — so it
+    // is excluded here rather than counted as a gate the source doesn't have.
+    const gatedRoutesWithTheirOwnGate = GATED_ROUTES.filter((route) => route.path !== '/')
+
     // If this fails, a route was added, removed or re-gated — update routeMatrix.tsx.
-    expect(gatesInSource).toHaveLength(GATED_ROUTES.length)
+    expect(gatesInSource).toHaveLength(gatedRoutesWithTheirOwnGate.length)
   })
 
   it('gives every gated route at least one permission', () => {
@@ -50,15 +55,19 @@ describe('route table', () => {
     // The inverse of apps/frontend's equivalent assertion, and the point of the
     // split: over there most routes carry no route-level gate because most
     // pages are for every member. Here the only ungated routes are `/` (a
-    // redirect), the dashboard, the four sign-in routes and the 404.
+    // redirect), the four sign-in routes and the 404 — the dashboard used to be
+    // ungated too, until a member with no admin permissions at all turned out
+    // to be able to load it and see an empty shell (#1233 follow-up).
     expect(ROUTES).toHaveLength(48)
     // 21 from the /admin/* subtree, 14 from /accounting/*, 3 member-admin
-    // screens, and 3 split out of interleaved member pages. (21 rather than the
-    // member app's 22: its /admin index route was a bare redirect to
-    // /admin/outbox, which this app does not need — `/` goes to the dashboard.)
-    expect(GATED_ROUTES).toHaveLength(41)
+    // screens, 3 split out of interleaved member pages, the dashboard itself,
+    // and `/`, which inherits the dashboard's expectation since it redirects
+    // straight there. (21 rather than the member app's 22: its /admin index
+    // route was a bare redirect to /admin/outbox, which this app does not
+    // need — `/` goes to the dashboard.)
+    expect(GATED_ROUTES).toHaveLength(43)
     expect(UNGATED_ROUTES.map((route) => route.path).sort()).toEqual(
-      ['/', '/*', '/dashboard', '/login', '/login/sent', '/login/validate', '/logout'].sort(),
+      ['/*', '/login', '/login/sent', '/login/validate', '/logout'].sort(),
     )
   })
 
@@ -156,13 +165,16 @@ describe('sidebar navigation', () => {
 
   it('reaches every gated route except the detail pages opened from within one', () => {
     // A gated route with no sidebar entry has to be reachable some other way.
-    // These four are: each is opened from the list page above it.
+    // The five below are: each is opened from the list page above it. `/` is
+    // reachable too, just not by a sidebar link — it is the app's own index
+    // redirect to `/dashboard`.
     const reachedFromAList = [
       '/shop/orders/:orderId',
       '/exams/versions/:versionId',
       '/dto/syllabi/:syllabusId',
       '/dto/programs/:programId/import',
       '/accounting/expenses/:id',
+      '/',
     ]
     const linked = new Set(navItems.map((item) => item.path))
 

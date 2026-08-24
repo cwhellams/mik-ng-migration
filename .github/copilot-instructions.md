@@ -191,7 +191,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 ├── apps/
 │   ├── backend/          # Node.js/Express API with TypeScript
 │   ├── frontend/         # React/Vite — the member app (intra.mik.fi)
-│   └── admin/            # React/Vite — the back-office app (atc.mik.fi, see below)
+│   └── admin/            # React/Vite — the back-office app (twr.mik.fi, see below)
 ├── packages/
 │   ├── contracts/        # @mik/contracts — API models shared by every app (see below)
 │   └── ui/               # @mik/ui — components, utils and i18n shared by the two frontends (see below)
@@ -219,10 +219,21 @@ Always check these locations when working on the codebase:
 
 ## The Two Frontends
 
-`apps/frontend` is the member app (`intra.mik.fi`); `apps/admin` is the back-office app
-(`atc.mik.fi`, served from `/atc` by a second `static_sites` component in the same
-DigitalOcean app). The split is issue #1233: the member UI had accumulated enough
-back-office functionality that both audiences were badly served by it.
+`apps/frontend` is the member app (`intra.mik.fi` / `beta.mik.fi`); `apps/admin` is the
+back-office app (`twr.mik.fi` / `beta-twr.mik.fi`), served by the same DigitalOcean app as
+a second `static_sites` component with its own domain — routed by an `authority`-matched
+ingress rule (see `.do/mik-intranet-{prod,test}.yaml`), not a path prefix. The split is
+issue #1233: the member UI had accumulated enough back-office functionality that both
+audiences were badly served by it.
+
+Because the two apps are genuine subdomains rather than paths on one origin, the admin
+app's calls to the backend are cross-origin from the member app's. That is made to work
+by two things, both set on the backend service in the DO spec: `COOKIE_DOMAIN=.mik.fi`
+(shares the auth session across every mik.fi subdomain — see
+`apps/backend/src/routes/auth/token.ts`) and `CORS_ALLOWED_ORIGINS` including the admin
+subdomain (a GitHub Actions var, not in this repo — see the comment beside it in the DO
+spec). DNS for `twr.mik.fi`/`beta-twr.mik.fi` is likewise external to this repo, same as
+for the existing `intra.mik.fi`/`beta.mik.fi`.
 
 - **No sudo toggle in `apps/admin`.** The member app's `AdminToggle` exists so that
   someone who merely _holds_ an admin permission doesn't see admin UI by accident.
@@ -253,6 +264,31 @@ back-office functionality that both audiences were badly served by it.
   path prefix) and `MemberAppLink` (admin → member, for the flight-log links the admin
   dashboard still needs). Both do a full page load, because the destination is a separate
   bundle. Neither app should ever `<Link to>` a route the other owns.
+
+- **The environment badge next to the logo is shared logic, app-local wiring.**
+  `apps/frontend`'s `Header` and `apps/admin`'s `AdminLayout` sidebar each show
+  `envLabel(import.meta.env.VITE_API_TARGET)` next to the MIK logo — hidden in production
+  (`'intra'`), shown otherwise (`'beta'`, `'local'`, or whatever else the target resolves
+  to). Compute it inside the component, not at module scope: `import.meta.env.VITE_*` is
+  read live under Vitest, so a module-level constant is captured once at first import and
+  never sees a later `vi.stubEnv` in a test — this bit both apps once already.
+
+  Both resolve the other app's base URL themselves from `VITE_API_TARGET` — the one env
+  var already set per environment, identical in both apps, whose host **is** the member
+  app's own domain (`intra`/`beta`) and maps to the admin app's differently-named one
+  (`twr`/`beta-twr`) via a small table in `@mik/ui/utils/deploymentEnv`. In development
+  `VITE_API_TARGET` is unset, so both fall back to the other app's Vite port — `pnpm dev`
+  at the repo root starts the backend and **both** front ends for that reason, since with
+  only one running, every cross-app link lands on the running app's 404 page.
+  `VITE_ADMIN_URL`/`VITE_MEMBER_URL` override the derived value if you ever need to.
+
+- **Moving a route means moving its menu entry.** They are separate edits and the second
+  one is easy to forget: #1233 removed the `/accounting` routes three PRs before anyone
+  noticed the member app still offered thirteen invoicing menu items that 404'd on click.
+  `apps/frontend/src/config/menuItems.test.ts` now fails on a menu item that matches no
+  route, _and_ on one that matches only an `AdminAppRedirect` route — the second check is
+  the one that catches this, since a redirect makes a dead link look alive.
+  `apps/admin`'s equivalent lives in its `AppRoutes.permissions.test.tsx`.
 - **Where a page is genuinely shared, the capability is a prop.** `DocumentsPage` takes
   `canManage`; `apps/frontend` renders it with the default `false` and cannot turn it on,
   `apps/admin` passes its permission check. That is what "removed from the member UI"

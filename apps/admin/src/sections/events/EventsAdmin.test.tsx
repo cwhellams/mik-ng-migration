@@ -92,6 +92,18 @@ const openEdit = async (
 }
 
 describe('EventsAdmin listing', () => {
+  it('links "view all" to the member app\'s events calendar, not this app\'s own router', async () => {
+    // Genuinely cross-app (apps/frontend's /club/events) — regression test for
+    // #1262, which shipped this as a same-app react-router Link and 404'd.
+    eventsApi([anEvent()])
+
+    renderWithProviders(<EventsAdmin />)
+
+    const link = await screen.findByRole('link', { name: /view all/i })
+    expect(link.tagName).toBe('A')
+    expect(link).toHaveAttribute('href', 'http://localhost:5173/club/events')
+  })
+
   it('separates upcoming events from past ones', async () => {
     eventsApi([anEvent(), aPastEvent()])
 

@@ -77,7 +77,7 @@ export default function OrderDetailAdmin() {
     <Box>
       <Button
         component={Link}
-        to='/admin/shop/orders'
+        to='/shop/orders'
         startIcon={<Icon icon='mdi:arrow-left' />}
         sx={{ mb: 2 }}
       >

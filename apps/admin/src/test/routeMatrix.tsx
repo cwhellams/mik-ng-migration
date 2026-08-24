@@ -6,6 +6,7 @@ import { useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import AppRoutes from '../AppRoutes'
+import { ALL_ADMIN_PERMISSIONS } from '../config/navItems'
 import { useRoles } from '@mik/ui/hooks/useRoles'
 import { authScenarios, renderAs, signInAs, type AuthScenario } from './auth'
 import { apiUrl, problemResponse } from './msw/handlers'
@@ -35,8 +36,16 @@ export interface RouteUnderTest {
 }
 
 export const ROUTES: RouteUnderTest[] = [
-  { path: '/', url: '/' },
-  { path: '/dashboard', url: '/dashboard' },
+  // `/` carries no `RequirePermission` of its own — it is a bare `<Navigate>`
+  // — but what a visitor actually sees is whatever `/dashboard` renders once
+  // the redirect lands, so it is given the same expected permissions here.
+  // Excluded from the "every RequirePermission in the source has a row"
+  // count below for exactly that reason: there is no gate literally on this
+  // route to count.
+  { path: '/', url: '/', permissions: ALL_ADMIN_PERMISSIONS },
+  // Gated on the same "holds at least one admin permission" check as every
+  // sidebar item's own route — see ALL_ADMIN_PERMISSIONS in navItems.ts.
+  { path: '/dashboard', url: '/dashboard', permissions: ALL_ADMIN_PERMISSIONS },
 
   { path: '/outbox', url: '/outbox', permissions: [MIKPermissions.OUTBOX_ADMIN] },
   { path: '/non-renewals', url: '/non-renewals', permissions: [MIKPermissions.MEMBER_ADMIN] },

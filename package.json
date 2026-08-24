@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"pnpm --filter mik_ng-backend-service dev\" \"pnpm --filter frontend dev\"",
+    "dev": "concurrently \"pnpm --filter mik_ng-backend-service dev\" \"pnpm --filter frontend dev\" \"pnpm --filter admin dev\"",
     "mock:simplbooks": "./scripts/start-simplbooks-mock-server.sh",
     "build": "pnpm --recursive run build",
     "start": "pnpm --recursive run start",

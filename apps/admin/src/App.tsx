@@ -28,15 +28,15 @@ const WithTimezone = ({ children }: { children: React.ReactNode }) => {
 }
 
 function App() {
-  // import.meta.env.BASE_URL is set by Vite to the configured `base` option,
-  // so React Router's basename stays in sync with the deployment path (/atc/).
+  // No basename: the admin app is served from the root of its own subdomain
+  // (twr.mik.fi / beta-twr.mik.fi), not a path on another app's domain.
   return (
     <ApiConfigProvider value={API_CONFIG}>
       <ThemeProvider>
         <WithTimezone>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
             <SnackbarProvider>
-              <BrowserRouter basename={import.meta.env.BASE_URL}>
+              <BrowserRouter>
                 <AppRoutes />
               </BrowserRouter>
             </SnackbarProvider>

@@ -866,12 +866,7 @@ export default function ProductsAdmin() {
         <DialogActions>
           <Button onClick={close}>{t('common.cancel')}</Button>
           {isFlightPackageEdit && (
-            <Button
-              variant='contained'
-              component={Link}
-              to='/admin/shop/flight-packages'
-              onClick={close}
-            >
+            <Button variant='contained' component={Link} to='/shop/flight-packages' onClick={close}>
               {t('shop.admin.goToFlightPackages')}
             </Button>
           )}

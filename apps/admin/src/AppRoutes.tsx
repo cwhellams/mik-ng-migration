@@ -4,6 +4,7 @@ import { MIKPermissions } from '@mik/contracts/members'
 import AdminLayout from './layouts/AdminLayout'
 import AuthLayout from './layouts/AuthLayout'
 import RequirePermission from './components/RequirePermission'
+import { ALL_ADMIN_PERMISSIONS } from './config/navItems'
 
 import Dashboard from './sections/dashboard/Dashboard'
 import Login from './sections/login/Login'
@@ -71,7 +72,14 @@ const AppRoutes = () => {
       {/* Admin layout — protected routes */}
       <Route element={<AdminLayout />}>
         <Route path='/' element={<Navigate to='/dashboard' replace />} />
-        <Route path='/dashboard' element={<Dashboard />} />
+        <Route
+          path='/dashboard'
+          element={
+            <RequirePermission permissions={ALL_ADMIN_PERMISSIONS}>
+              <Dashboard />
+            </RequirePermission>
+          }
+        />
 
         <Route
           path='/outbox'

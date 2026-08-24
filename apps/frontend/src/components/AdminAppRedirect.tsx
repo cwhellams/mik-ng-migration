@@ -2,15 +2,23 @@ import { useEffect } from 'react'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
+import { adminUrlFor } from '@mik/ui/utils/deploymentEnv'
 
 /**
  * Base URL of the admin app (`apps/admin`).
  *
- * Defaults to the path the DO App Platform spec serves it from. In development
- * the admin app runs on its own Vite port, so set `VITE_ADMIN_URL=http://localhost:5174`
- * in `apps/frontend/.env.local` to follow these redirects to a local instance.
+ * The admin app is a genuine subdomain, not a path on this one — `twr.mik.fi`
+ * in production, `beta-twr.mik.fi` in beta — derived from `VITE_API_TARGET`
+ * via `adminUrlFor` so there is nothing new to configure per environment (see
+ * that function's doc for why). In development the two apps are separate Vite
+ * servers with no `VITE_API_TARGET` set, so this falls back to the admin app's
+ * own port — `pnpm dev` at the repo root starts both. Override with
+ * `VITE_ADMIN_URL` if you run the admin app somewhere else.
  */
-const ADMIN_BASE = import.meta.env.VITE_ADMIN_URL ?? '/atc'
+export const adminBase = (): string =>
+  import.meta.env.VITE_ADMIN_URL ??
+  adminUrlFor(import.meta.env.VITE_API_TARGET) ??
+  'http://localhost:5174'
 
 /**
  * Sends an old in-app admin link to the same path in the admin app.
@@ -38,7 +46,7 @@ const AdminAppRedirect = () => {
     const target = pathname.replace(/^\/admin\/?/, '/').replace(/^\/club\/members\//, '/members/')
 
     window.location.replace(
-      `${ADMIN_BASE.replace(/\/$/, '')}${target === '/' ? '/' : target}${search}${hash}`,
+      `${adminBase().replace(/\/$/, '')}${target === '/' ? '/' : target}${search}${hash}`,
     )
   }, [pathname, search, hash])
 

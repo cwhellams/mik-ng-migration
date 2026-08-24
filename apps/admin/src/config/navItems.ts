@@ -8,9 +8,7 @@ export interface NavItem {
   /** Absolute path within the admin app. */
   path: string
   /**
-   * The item shows if the signed-in admin holds **any** of these. An empty
-   * array means "any authenticated admin" — the dashboard is the only such
-   * item.
+   * The item shows if the signed-in admin holds **any** of these.
    *
    * These must stay in step with the `RequirePermission` wrapper on the
    * matching route in `AppRoutes.tsx`: an item that is visible but leads to a
@@ -27,25 +25,11 @@ export interface NavGroup {
 }
 
 /**
- * The admin sidebar.
- *
- * Grouped by what an admin is *doing* rather than by which backend domain the
- * page happens to live in — the flat `/admin/*` submenu this replaces was the
- * specific complaint in #1233. A group renders only if at least one of its
- * items is visible to the signed-in admin.
+ * Every real admin page's group, i.e. everything except the dashboard itself.
+ * Split out so `ALL_ADMIN_PERMISSIONS` below can be derived from it without
+ * being self-referential.
  */
-export const navGroups: NavGroup[] = [
-  {
-    label: null,
-    items: [
-      {
-        label: 'admin.nav.dashboard',
-        icon: 'mdi:view-dashboard',
-        path: '/dashboard',
-        permissions: [],
-      },
-    ],
-  },
+const ADMIN_NAV_GROUPS: NavGroup[] = [
   {
     label: 'admin.nav.groups.membership',
     items: [
@@ -306,4 +290,42 @@ export const navGroups: NavGroup[] = [
       },
     ],
   },
+]
+
+/**
+ * Every permission that unlocks at least one admin page. This is what "any
+ * authenticated admin" actually means in this app: there is no standalone
+ * admin flag, so holding none of these is indistinguishable from being an
+ * ordinary member who has wandered into `/admin` by URL.
+ *
+ * Used to gate the dashboard itself (`AppRoutes.tsx`) and its nav item below:
+ * a member who holds none of these is not shown a sidebar full of items that
+ * would all 403, and landing on `/dashboard` gets `<Forbidden />` instead of
+ * an empty page.
+ */
+export const ALL_ADMIN_PERMISSIONS: MIKPermissions[] = [
+  ...new Set(ADMIN_NAV_GROUPS.flatMap((group) => group.items.flatMap((item) => item.permissions))),
+]
+
+/**
+ * The admin sidebar.
+ *
+ * Grouped by what an admin is *doing* rather than by which backend domain the
+ * page happens to live in — the flat `/admin/*` submenu this replaces was the
+ * specific complaint in #1233. A group renders only if at least one of its
+ * items is visible to the signed-in admin.
+ */
+export const navGroups: NavGroup[] = [
+  {
+    label: null,
+    items: [
+      {
+        label: 'admin.nav.dashboard',
+        icon: 'mdi:view-dashboard',
+        path: '/dashboard',
+        permissions: ALL_ADMIN_PERMISSIONS,
+      },
+    ],
+  },
+  ...ADMIN_NAV_GROUPS,
 ]

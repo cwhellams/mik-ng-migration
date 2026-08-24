@@ -51,7 +51,7 @@ export default function AttemptsAdminPage() {
     <Box>
       <Button
         component={Link}
-        to='/admin/exams'
+        to='/exams'
         startIcon={<Icon icon='mdi:arrow-left' />}
         sx={{ mb: 2 }}
       >

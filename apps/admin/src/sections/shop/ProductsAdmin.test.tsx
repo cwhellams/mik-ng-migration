@@ -475,7 +475,7 @@ describe('ProductsAdmin editing', () => {
     expect(screen.queryByRole('button', { name: 'Save' })).toBeNull()
     expect(screen.getByRole('link', { name: 'Go to Flight Packages' })).toHaveAttribute(
       'href',
-      '/admin/shop/flight-packages',
+      '/shop/flight-packages',
     )
   })
 })

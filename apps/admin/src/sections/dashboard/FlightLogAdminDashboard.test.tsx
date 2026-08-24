@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RecentRemark } from '@mik/contracts/remarks'
 
 import { aFlightLog, anAdmin } from '../../test/fixtures'
@@ -9,6 +9,14 @@ import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import { renderWithProviders } from '../../test/renderWithProviders'
 import { FlightLogAdminDashboard } from './FlightLogAdminDashboard'
+
+// This widget links out to the flight logbook, which stayed in the member app
+// (#1233). `MemberAppLink` resolves that app's base itself and defaults to its
+// own Vite port when VITE_API_TARGET is unset, which it is by default in this
+// suite — so pin the production value and let MemberAppLink's own tests cover
+// the dev default.
+beforeEach(() => vi.stubEnv('VITE_API_TARGET', 'https://intra.mik.fi'))
+afterEach(() => vi.unstubAllEnvs())
 
 const aRecentRemark = (overrides: Partial<RecentRemark> = {}): RecentRemark => ({
   remarkId: 'remark-1',
@@ -43,7 +51,8 @@ describe('FlightLogAdminDashboard incidents, observations and remarks', () => {
 
     expect(await screen.findByText('Oil stain noticed on the ramp, wiped off')).toBeInTheDocument()
     const link = screen.getByRole('link', { name: /OH-STL/ })
-    expect(link).toHaveAttribute('href', '/logs/flights/fi_inst1')
+    // A plain href, not a router link: the logbook is a different app.
+    expect(link).toHaveAttribute('href', 'https://intra.mik.fi/logs/flights/fi_inst1')
   })
 
   it('lists flights with an incident or observation alongside remarks, in one widget', async () => {

@@ -149,7 +149,7 @@ export default function DtoImportPage() {
       {success && <Alert severity='success'>Import successful! Redirecting to editor…</Alert>}
       <Button
         startIcon={<Icon icon='mdi:arrow-left' />}
-        onClick={() => navigate('/admin/dto')}
+        onClick={() => navigate('/dto')}
         sx={{ mt: 2 }}
       >
         Back to Programs

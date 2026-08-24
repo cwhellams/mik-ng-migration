@@ -5,8 +5,16 @@ vpc:
 domains:
   - domain: ${DOMAIN}
     type: PRIMARY
+  # Admin app's own subdomain — mirrors twr.mik.fi in
+  # .do/mik-intranet-prod.yaml. Not auto-DNS-managed (no `zone:`), matching
+  # ${DOMAIN} above: beta-twr.mik.fi must be pointed at this app externally.
+  - domain: beta-twr.mik.fi
+    type: ALIAS
 ingress:
   rules:
+    # /api, /auth, /health, /t carry no `authority` match, so they apply
+    # regardless of which of the app's domains the request arrived on — the
+    # backend is one service shared by both beta.mik.fi and beta-twr.mik.fi.
     - component:
         name: mik-intranet-api-test
         preserve_path_prefix: true
@@ -31,6 +39,17 @@ ingress:
       match:
         path:
           prefix: /t
+    # Host-based split: beta-twr.mik.fi goes to the admin app, everything else
+    # (beta.mik.fi) falls through to the member frontend below. This rule must
+    # come before the authority-less catch-all — ingress rules are evaluated
+    # in order and the first match wins.
+    - component:
+        name: mik-intranet-admin
+      match:
+        authority:
+          exact: beta-twr.mik.fi
+        path:
+          prefix: /
     - component:
         name: mik-intranet-frontend
       match:
@@ -192,8 +211,18 @@ services:
         value: '${OCCURRENCE_NOTIFICATION_WORKER_ENABLED}'
         type: GENERAL
       - key: CORS_ALLOWED_ORIGINS
+        # Must include https://beta-twr.mik.fi (set as a GitHub Actions
+        # var/secret outside this repo) — the admin app calls this same
+        # backend cross-origin from its own subdomain. See COOKIE_DOMAIN
+        # below for the other half of making that a shared session.
         value: '${CORS_ALLOWED_ORIGINS}'
         type: SECRET
+      - key: COOKIE_DOMAIN
+        # Literal, not templated: shares the auth cookies across every
+        # mik.fi subdomain (beta.mik.fi, beta-twr.mik.fi) so signing in on
+        # one authenticates the other. See apps/backend/src/routes/auth/token.ts.
+        value: '.mik.fi'
+        type: GENERAL
       - key: SIMPLBOOKS_MEMBER_SYNC_ENABLED
         value: '${SIMPLBOOKS_MEMBER_SYNC_ENABLED}'
         type: GENERAL
@@ -337,10 +366,11 @@ static_sites:
 
     catchall_document: index.html
 
-  # Admin panel — served at /atc/* on the same origin.
-  # atc.mik.fi (subdomain) will forward here via DNS redirect once the
-  # subdomain is provisioned; at that point the base path can be changed to /
-  # in a separate component with its own domain binding.
+  # Admin app — served at beta-twr.mik.fi, routed by the authority-matched
+  # ingress rule above rather than a path. Backend calls stay pointed at
+  # ${DOMAIN} (beta.mik.fi, same VITE_API_TARGET as the frontend below), which
+  # makes them cross-origin from beta-twr.mik.fi; COOKIE_DOMAIN and
+  # CORS_ALLOWED_ORIGINS on mik-intranet-api-test are what makes that work.
   - name: mik-intranet-admin
     github:
       repo: MIK-dev-team/mik-ng
@@ -356,9 +386,6 @@ static_sites:
       pnpm --filter admin build
 
     environment_slug: node-js
-
-    routes:
-      - path: /atc
 
     envs:
       - key: VITE_API_TARGET

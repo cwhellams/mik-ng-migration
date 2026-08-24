@@ -529,7 +529,7 @@ export default function ExamVersionEditorPage() {
   return (
     <Box>
       <Button
-        onClick={() => navigate('/admin/exams')}
+        onClick={() => navigate('/exams')}
         startIcon={<Icon icon='mdi:arrow-left' />}
         sx={{ mb: 2 }}
       >

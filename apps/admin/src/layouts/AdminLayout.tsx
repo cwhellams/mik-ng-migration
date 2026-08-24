@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Box,
   Drawer,
@@ -25,10 +25,19 @@ import { useMe } from '@mik/ui/hooks/useMe'
 import { useAuth } from '../hooks/useAuth'
 import { useRoles } from '@mik/ui/hooks/useRoles'
 import { navGroups } from '../config/navItems'
+import { envLabel } from '@mik/ui/utils/deploymentEnv'
 
 const DRAWER_WIDTH = 240
 
 const AdminLayout = () => {
+  // Computed per render rather than at module scope: it's cheap, env vars
+  // don't change at runtime anyway, and a module-level constant is baked in
+  // at first import — before a test's vi.stubEnv can affect it.
+  //
+  // Mirrors apps/frontend/src/components/Header.tsx's `hostName`: both apps
+  // read the same VITE_API_TARGET, so 'intra' means production regardless of
+  // which app you're in.
+  const hostName = envLabel(import.meta.env.VITE_API_TARGET)
   const { me } = useMe()
   const { hasAccess } = useRoles()
   const { t } = useTranslation()
@@ -39,12 +48,22 @@ const AdminLayout = () => {
 
   // Drop the items this admin may not reach, then the groups that emptied as a
   // result — a heading over nothing reads as a broken page.
-  const visibleGroups = navGroups
-    .map((group) => ({
-      ...group,
-      items: group.items.filter((item) => hasAccess(...item.permissions)),
-    }))
-    .filter((group) => group.items.length > 0)
+  //
+  // Memoised against `hasAccess` now that useRoles stabilises it: AdminLayout
+  // re-renders on every route change (it reads useLocation for the active-item
+  // highlight), and without this the full permission-filter pass over every
+  // nav item reran on every navigation even though the admin's permissions
+  // hadn't changed.
+  const visibleGroups = useMemo(
+    () =>
+      navGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) => hasAccess(...item.permissions)),
+        }))
+        .filter((group) => group.items.length > 0),
+    [hasAccess],
+  )
 
   const handleLogout = async () => {
     setAnchorEl(null)
@@ -94,12 +113,31 @@ const AdminLayout = () => {
               sx={{ width: 32, height: 32 }}
             />
             <Box>
-              <Typography
-                variant='subtitle2'
-                sx={{ color: 'primary.contrastText', fontWeight: 700, lineHeight: 1.2 }}
-              >
-                MIK ATC
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
+                <Typography
+                  variant='subtitle2'
+                  sx={{ color: 'primary.contrastText', fontWeight: 700, lineHeight: 1.2 }}
+                >
+                  MIK ATC
+                </Typography>
+                {/* Hidden in production (VITE_API_TARGET -> intra.mik.fi), shown
+                    otherwise — 'beta' in the beta environment, 'local' in dev.
+                    Matches apps/frontend/src/components/Header.tsx's badge, so
+                    which environment you're in reads the same way in both apps. */}
+                {hostName !== 'intra' && (
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'warning.light',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {hostName}
+                  </Typography>
+                )}
+              </Box>
               <Typography
                 variant='caption'
                 sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.65rem' }}
@@ -144,7 +182,8 @@ const AdminLayout = () => {
                         sx={{
                           mx: 1,
                           borderRadius: 1,
-                          bgcolor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+                          // `selected` above already drives `.Mui-selected` — no
+                          // need for a redundant inline bgcolor ternary on top.
                           '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
                           '&.Mui-selected': { bgcolor: 'rgba(255,255,255,0.15)' },
                           '&.Mui-selected:hover': { bgcolor: 'rgba(255,255,255,0.2)' },

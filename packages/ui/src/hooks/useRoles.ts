@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react'
 import {
   type MemberRole,
   type MemberRolesResponse,
@@ -83,13 +84,29 @@ export function useRoles(): {
     },
   )
 
-  const myPermissions = me?.roles?.flatMap((r) => r.permissions).filter((r) => !!r) ?? []
+  // Memoised, not recomputed inline: `me` is a stable reference across
+  // re-renders whenever SWR's underlying data hasn't changed, so this only
+  // reallocates when the member's roles actually change — which is what lets
+  // `hasAccess` below be stable too, rather than a fresh closure on every
+  // render regardless of what triggered it. AdminLayout's sidebar filter
+  // depends on that: without it, memoising the filtered nav against
+  // `hasAccess` would be a no-op, since the "memoised" value would still be
+  // rebuilt every time.
+  const myPermissions = useMemo(
+    () => me?.roles?.flatMap((r) => r.permissions).filter((r) => !!r) ?? [],
+    [me],
+  )
 
-  const hasAccess = (...permissions: MIKPermissions[]) =>
-    permissions.length === 0 || permissions.some((p) => myPermissions.includes(p))
+  const hasAccess = useCallback(
+    (...permissions: MIKPermissions[]) =>
+      permissions.length === 0 || permissions.some((p) => myPermissions.includes(p)),
+    [myPermissions],
+  )
 
-  const hasSudoAccess = (...permissions: MIKPermissions[]) =>
-    sudo ? hasAccess(...permissions) : false
+  const hasSudoAccess = useCallback(
+    (...permissions: MIKPermissions[]) => (sudo ? hasAccess(...permissions) : false),
+    [hasAccess, sudo],
+  )
 
   return {
     me,

@@ -8,9 +8,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    // Admin app is served at /atc/ in production (DO App Platform path-based routing).
-    // In development (port 5174) it serves at / for simplicity.
-    base: mode === 'production' ? '/atc/' : '/',
+    // The admin app is served from its own subdomain (twr.mik.fi / beta-twr.mik.fi
+    // in production/beta — see .do/mik-intranet-{prod,test}.yaml), so it is
+    // always at the root of whatever host it's on. mode is unused now but the
+    // parameter stays so this factory signature matches the member app's.
+    base: '/',
     server: {
       port: 5174,
       proxy: {

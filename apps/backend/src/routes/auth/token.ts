@@ -73,7 +73,7 @@ export const decodeRefreshToken = (refreshToken: string): JWTUser =>
  */
 export const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): void => {
   // When COOKIE_DOMAIN is set (e.g. '.mik.fi'), cookies are shared across all
-  // subdomains so both intra.mik.fi and atc.mik.fi (admin) can use the same
+  // subdomains so both intra.mik.fi and twr.mik.fi (admin) can use the same
   // auth session without separate logins.
   const cookieDomain = process.env.COOKIE_DOMAIN || undefined
   res.cookie('refreshToken', generateRefreshToken(user), {

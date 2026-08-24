@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 interface ImportMetaEnv {
   readonly VITE_API_TARGET: string
-  /** Base URL of the admin app. Defaults to '/atc' — set this only in local dev. */
+  /** Base URL of the admin app. Derived from VITE_API_TARGET by default (see AdminAppRedirect's adminBase) — set this to override, e.g. for local dev. */
   readonly VITE_ADMIN_URL?: string
 }
 

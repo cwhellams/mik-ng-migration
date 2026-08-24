@@ -1,15 +1,21 @@
 import { Link, type LinkProps } from '@mui/material'
 import type { ReactNode } from 'react'
+import { memberUrlFor } from '@mik/ui/utils/deploymentEnv'
 
 /**
  * Base URL of the member app (`apps/frontend`).
  *
- * Defaults to `/`, which is where the DO App Platform spec serves it from — the
- * admin app sits at `/atc` on the same host. In development the two run on
- * different Vite ports, so set `VITE_MEMBER_URL=http://localhost:5173` in
- * `apps/admin/.env.local` to follow these links to a local instance.
+ * This app and the member app are separate subdomains — `intra.mik.fi` in
+ * production, `beta.mik.fi` in beta — derived from `VITE_API_TARGET` via
+ * `memberUrlFor`, the mirror of `adminUrlFor` on the other side. In
+ * development they are separate Vite servers with no `VITE_API_TARGET` set,
+ * so this falls back to the member app's own port. Override with
+ * `VITE_MEMBER_URL` if you run the member app somewhere else.
  */
-const MEMBER_BASE = import.meta.env.VITE_MEMBER_URL ?? ''
+export const memberBase = (): string =>
+  import.meta.env.VITE_MEMBER_URL ??
+  memberUrlFor(import.meta.env.VITE_API_TARGET) ??
+  'http://localhost:5173'
 
 /**
  * A link from the admin app into a page that deliberately stayed in the member
@@ -29,7 +35,7 @@ export const MemberAppLink = ({
   children,
   ...props
 }: { to: string; children: ReactNode } & Omit<LinkProps, 'href'>) => (
-  <Link href={`${MEMBER_BASE.replace(/\/$/, '')}${to}`} {...props}>
+  <Link href={`${memberBase().replace(/\/$/, '')}${to}`} {...props}>
     {children}
   </Link>
 )

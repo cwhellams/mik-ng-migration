@@ -23,7 +23,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { MemberAppLink } from '../../components/MemberAppLink'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import dayjs, { type Dayjs } from 'dayjs'
 import { Title } from '@mik/ui/components/Title'
@@ -452,8 +452,14 @@ const EventsAdmin = () => {
             gap: 1,
           }}
         >
+          {/* The member-facing events calendar, not this app's own — an admin
+              wants to see what members currently see, which apps/admin does
+              not render. Genuinely cross-app, so MemberAppLink rather than
+              react-router's Link (#1262 shipped this with the latter, and it
+              404'd inside the deployed admin app: /club/events is a
+              apps/frontend route this app's router has never had). */}
           <Button
-            component={Link}
+            component={MemberAppLink}
             to='/club/events'
             variant='outlined'
             startIcon={<Icon icon='mdi:eye' />}
