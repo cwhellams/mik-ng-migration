@@ -6,12 +6,14 @@ on:
     branches: [main]
     paths:
       - 'apps/frontend/**'
+      - 'apps/admin/**'
       - 'packages/**'
       - '.github/workflows/**'
   push:
     branches: [main]
     paths:
       - 'apps/frontend/**'
+      - 'apps/admin/**'
       - 'packages/**'
       - '.github/workflows/**'
 
@@ -114,3 +116,65 @@ jobs:
       - name: Check for Security Vulnerabilities
         working-directory: apps/frontend
         run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"
+
+  build-and-test-admin:
+    runs-on: ubuntu-latest
+    environment: DEV
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run ESLint and check error count
+        working-directory: apps/admin
+        run: |
+          npx eslint . --format json > eslint-results.json || ESLINT_EXIT=$?
+          if [ "${ESLINT_EXIT:-0}" -gt 1 ]; then
+            echo "::error::ESLint failed to run (exit ${ESLINT_EXIT})"
+            exit 1
+          fi
+          if ! jq -e 'type == "array"' eslint-results.json > /dev/null 2>&1; then
+            echo "::error::ESLint produced no usable report — treating as a failure"
+            exit 1
+          fi
+          ERROR_COUNT=$(jq '[.[] | .errorCount] | add // 0' eslint-results.json)
+          echo "Total ESLint errors: $ERROR_COUNT"
+          # New app starts at 0 errors — ratchet starts here, may only go down.
+          THRESHOLD=0
+          if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then
+            echo "ESLint errors ($ERROR_COUNT) exceed threshold ($THRESHOLD)"
+            exit 1
+          fi
+
+      - name: Run Prettier Check
+        working-directory: apps/admin
+        run: pnpm format:check
+
+      - name: Build admin app
+        working-directory: apps/admin
+        run: pnpm run build
+
+      - name: Run tests with coverage
+        working-directory: apps/admin
+        run: pnpm run test:coverage
+
+      - name: Upload test coverage
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: admin-coverage-report
+          path: apps/admin/coverage/
+          if-no-files-found: ignore

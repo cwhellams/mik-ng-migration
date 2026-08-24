@@ -43,6 +43,9 @@ pnpm-debug.log*
 
 # Testing
 coverage
+
+# Written by the lint step of every CI job that counts errors against a ratchet.
+eslint-results.json
 .nyc_output
 
 # Temporary files

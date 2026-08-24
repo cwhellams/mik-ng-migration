@@ -330,3 +330,33 @@ static_sites:
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
     catchall_document: index.html
+
+  # Admin panel — served at /atc/* on the same origin.
+  # atc.mik.fi (subdomain) will forward here via DNS redirect once provisioned.
+  - name: mik-intranet-admin-prod
+    github:
+      repo: MIK-dev-team/mik-ng
+      branch: ${DEPLOY_BRANCH}
+    source_dir: /
+    output_dir: /apps/admin/dist
+
+    build_command: |
+      corepack enable
+      pnpm install --frozen-lockfile
+      pnpm --filter admin build
+
+    environment_slug: node-js
+
+    routes:
+      - path: /atc
+
+    envs:
+      - key: VITE_API_TARGET
+        value: '${VITE_API_TARGET}'
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
+      - key: DEPLOY_TIMESTAMP
+        value: '${DEPLOY_TIMESTAMP}'
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
+    catchall_document: index.html

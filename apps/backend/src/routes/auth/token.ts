@@ -72,6 +72,10 @@ export const decodeRefreshToken = (refreshToken: string): JWTUser =>
  * registration, token-refresh) so cookie flags/paths stay consistent.
  */
 export const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): void => {
+  // When COOKIE_DOMAIN is set (e.g. '.mik.fi'), cookies are shared across all
+  // subdomains so both intra.mik.fi and atc.mik.fi (admin) can use the same
+  // auth session without separate logins.
+  const cookieDomain = process.env.COOKIE_DOMAIN || undefined
   res.cookie('refreshToken', generateRefreshToken(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -80,12 +84,14 @@ export const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): 
       .add(ms(process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
       .toDate(),
     path: '/api/auth/refresh',
+    ...(cookieDomain ? { domain: cookieDomain } : {}),
   })
   res.cookie('accessToken', generateAccessToken(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     path: '/',
+    ...(cookieDomain ? { domain: cookieDomain } : {}),
   })
   res.json({ ok: true })
 }
