@@ -25,7 +25,7 @@ import {
   replaceMileageLegs,
   maskHetu,
 } from './mileage-queries.ts'
-import { encryptField, decryptField } from '../lib/fieldEncryption.ts'
+import { encryptField, decryptField, FieldEncryptionConfigError } from '../lib/fieldEncryption.ts'
 import { getEffectiveLocalFuelPrice } from './local-fuel-price-queries.ts'
 import { computeFuelReimbursement } from '../services/fuelReimbursement.ts'
 import { getExpenseAttachments } from './expense-attachment-queries.ts'
@@ -173,6 +173,10 @@ const maskHetuEncrypted = (claimId: string, hetuEncrypted: string): string | und
   try {
     return maskHetu(decryptField(hetuEncrypted))
   } catch (error) {
+    // A missing/malformed FIELD_ENCRYPTION_KEY means every row will fail the same way -
+    // that's a deploy misconfiguration, not a bad row, so let it fail the request loudly
+    // instead of silently omitting HETU from the entire list.
+    if (error instanceof FieldEncryptionConfigError) throw error
     logger.warn('hetuEncrypted failed to decrypt for claim, omitting from response', {
       claimId,
       error,

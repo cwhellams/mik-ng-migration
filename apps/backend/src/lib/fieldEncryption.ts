@@ -14,10 +14,16 @@ import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
 const ALGORITHM = 'aes-256-gcm'
 const IV_BYTES = 12 // 96-bit IV recommended for GCM
 
+// Thrown for a missing/malformed FIELD_ENCRYPTION_KEY, as opposed to a bad ciphertext.
+// Callers that tolerate per-row decryption failures (e.g. to keep a list endpoint from
+// 500ing on one corrupted row) should let this one propagate instead of swallowing it -
+// it means the deploy is misconfigured, not that one row is bad.
+export class FieldEncryptionConfigError extends Error {}
+
 function getKey(): Buffer {
   const hex = process.env.FIELD_ENCRYPTION_KEY
   if (!hex || hex.length !== 64) {
-    throw new Error(
+    throw new FieldEncryptionConfigError(
       'FIELD_ENCRYPTION_KEY must be set to a 64-character hex string (32 bytes). ' +
         "Generate one with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
     )
