@@ -1,8 +1,3 @@
-import { auditCreate, auditUpdate } from './audit.ts'
-import { db, type DbRow } from './connection.ts'
-import { generateShortId } from '../util/nanoId.ts'
-import type { JWTUser } from '../routes/auth/token.ts'
-import { problem } from '../routes/response.ts'
 import type {
   Exam,
   ExamUpsert,
@@ -22,6 +17,13 @@ import type {
   ExamImport,
   ExamImportResult,
 } from '@mik/contracts/exams'
+import { sql } from 'kysely'
+
+import { auditCreate, auditUpdate } from './audit.ts'
+import { db, type DbRow } from './connection.ts'
+import type { JWTUser } from '../routes/auth/token.ts'
+import { problem } from '../routes/response.ts'
+import { generateShortId } from '../util/nanoId.ts'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -191,6 +193,7 @@ export async function getVersionsByExamId(examId: string): Promise<ExamVersion[]
     supportedLanguages: r.supportedLanguages,
     passPercent: Number(r.passPercent),
     questionCount: r.questionCount ?? null,
+    randomizeQuestionOrder: r.randomizeQuestionOrder,
     createdAt: toIso(r.createdAt),
     createdBy: r.createdBy,
     updatedAt: toIso(r.updatedAt),
@@ -214,6 +217,7 @@ export async function getVersionById(versionId: string): Promise<ExamVersion | u
     supportedLanguages: r.supportedLanguages,
     passPercent: Number(r.passPercent),
     questionCount: r.questionCount ?? null,
+    randomizeQuestionOrder: r.randomizeQuestionOrder,
     createdAt: toIso(r.createdAt),
     createdBy: r.createdBy,
     updatedAt: toIso(r.updatedAt),
@@ -241,7 +245,11 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
     .selectFrom('exam.questions')
     .selectAll()
     .where('versionId', '=', versionId)
+    // Rows imported or hand-numbered before ordering was a drag can share a
+    // sort_order; the id breaks the tie so the editor shows the same order twice
+    // running, and so a reorder starts from what the author actually saw.
     .orderBy('sortOrder')
+    .orderBy('questionId')
     .execute()
 
   if (qRows.length === 0) {
@@ -263,6 +271,7 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
     .selectAll()
     .where('questionId', 'in', questionIds)
     .orderBy('sortOrder')
+    .orderBy('choiceId')
     .execute()
 
   // Batch: all choice_translations for fetched choices (skip if no choices)
@@ -343,6 +352,7 @@ export async function createVersion(
         supportedLanguages: data.supportedLanguages ?? [],
         passPercent: data.passPercent ?? 75,
         questionCount: data.questionCount ?? null,
+        randomizeQuestionOrder: data.randomizeQuestionOrder ?? true,
         ...auditCreate(user.memberId, now),
       })
       .execute()
@@ -419,6 +429,9 @@ export async function updateVersion(
       }),
       ...(data.passPercent !== undefined && { passPercent: data.passPercent }),
       ...('questionCount' in data && { questionCount: data.questionCount ?? null }),
+      ...(data.randomizeQuestionOrder !== undefined && {
+        randomizeQuestionOrder: data.randomizeQuestionOrder,
+      }),
       ...auditUpdate(user.memberId),
     })
     .where('versionId', '=', versionId)
@@ -488,6 +501,7 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
         supportedLanguages: data.version.supportedLanguages ?? [],
         passPercent: data.version.passPercent ?? 75,
         questionCount: null,
+        randomizeQuestionOrder: data.version.randomizeQuestionOrder ?? true,
         ...auditCreate(user.memberId, now),
       })
       .execute()
@@ -560,6 +574,8 @@ export async function getVersionByQuestionId(questionId: string): Promise<ExamVe
       'exam.examVersions.defaultLanguage as defaultLanguage',
       'exam.examVersions.supportedLanguages as supportedLanguages',
       'exam.examVersions.passPercent as passPercent',
+      'exam.examVersions.questionCount as questionCount',
+      'exam.examVersions.randomizeQuestionOrder as randomizeQuestionOrder',
       'exam.examVersions.createdAt as createdAt',
       'exam.examVersions.createdBy as createdBy',
       'exam.examVersions.updatedAt as updatedAt',
@@ -577,6 +593,8 @@ export async function getVersionByQuestionId(questionId: string): Promise<ExamVe
     defaultLanguage: row.defaultLanguage,
     supportedLanguages: row.supportedLanguages,
     passPercent: Number(row.passPercent),
+    questionCount: row.questionCount ?? null,
+    randomizeQuestionOrder: row.randomizeQuestionOrder,
     createdAt: toIso(row.createdAt),
     createdBy: row.createdBy,
     updatedAt: toIso(row.updatedAt),
@@ -597,6 +615,8 @@ export async function getVersionByChoiceId(choiceId: string): Promise<ExamVersio
       'exam.examVersions.defaultLanguage as defaultLanguage',
       'exam.examVersions.supportedLanguages as supportedLanguages',
       'exam.examVersions.passPercent as passPercent',
+      'exam.examVersions.questionCount as questionCount',
+      'exam.examVersions.randomizeQuestionOrder as randomizeQuestionOrder',
       'exam.examVersions.createdAt as createdAt',
       'exam.examVersions.createdBy as createdBy',
       'exam.examVersions.updatedAt as updatedAt',
@@ -614,6 +634,8 @@ export async function getVersionByChoiceId(choiceId: string): Promise<ExamVersio
     defaultLanguage: row.defaultLanguage,
     supportedLanguages: row.supportedLanguages,
     passPercent: Number(row.passPercent),
+    questionCount: row.questionCount ?? null,
+    randomizeQuestionOrder: row.randomizeQuestionOrder,
     createdAt: toIso(row.createdAt),
     createdBy: row.createdBy,
     updatedAt: toIso(row.updatedAt),
@@ -700,6 +722,55 @@ export async function deleteQuestion(questionId: string): Promise<void> {
   await db.deleteFrom('exam.questions').where('questionId', '=', questionId).execute()
 }
 
+/**
+ * Checks that `ids` is a permutation of `existingIds` — same members, no repeats.
+ *
+ * Counting alone is not enough: `[A, A, B]` against `{A, B, C}` has the right
+ * length and no unknown members, but would leave C's `sort_order` untouched and
+ * silently produce an order the caller never asked for. The route's Zod schema
+ * rejects duplicates too, but these helpers are exported and must hold their own
+ * stated contract.
+ */
+function isCompleteReorder(ids: string[], existingIds: ReadonlySet<string>): boolean {
+  const unique = new Set(ids)
+  return (
+    unique.size === ids.length &&
+    unique.size === existingIds.size &&
+    ids.every((id) => existingIds.has(id))
+  )
+}
+
+/**
+ * Rewrites `sort_order` for every question of a version so it matches the position
+ * of its id in `questionIds`. The caller sends the complete list, which is what
+ * makes this idempotent and lets a drag-and-drop reorder be one atomic write
+ * instead of a burst of independent upserts that could interleave.
+ */
+export async function reorderQuestions(versionId: string, questionIds: string[]): Promise<void> {
+  const existing = await db
+    .selectFrom('exam.questions')
+    .select('questionId')
+    .where('versionId', '=', versionId)
+    .execute()
+  const existingIds = new Set(existing.map((q) => q.questionId))
+
+  if (!isCompleteReorder(questionIds, existingIds)) {
+    return problem({
+      status: 400,
+      detail: "Reorder must list every question of this version's pool exactly once",
+    })
+  }
+
+  await sql`
+    UPDATE exam.questions AS q
+    SET sort_order = v.sort_order
+    FROM (VALUES ${sql.join(
+      questionIds.map((id, index) => sql`(${id}::varchar(9), ${index}::int)`),
+    )}) AS v(question_id, sort_order)
+    WHERE q.question_id = v.question_id
+  `.execute(db)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Choices
 // ─────────────────────────────────────────────────────────────────────────────
@@ -776,6 +847,32 @@ export async function upsertChoice(questionId: string, data: ChoiceUpsert): Prom
 
 export async function deleteChoice(choiceId: string): Promise<void> {
   await db.deleteFrom('exam.choices').where('choiceId', '=', choiceId).execute()
+}
+
+/** The choice-level counterpart of {@link reorderQuestions}. */
+export async function reorderChoices(questionId: string, choiceIds: string[]): Promise<void> {
+  const existing = await db
+    .selectFrom('exam.choices')
+    .select('choiceId')
+    .where('questionId', '=', questionId)
+    .execute()
+  const existingIds = new Set(existing.map((c) => c.choiceId))
+
+  if (!isCompleteReorder(choiceIds, existingIds)) {
+    return problem({
+      status: 400,
+      detail: 'Reorder must list every choice of this question exactly once',
+    })
+  }
+
+  await sql`
+    UPDATE exam.choices AS c
+    SET sort_order = v.sort_order
+    FROM (VALUES ${sql.join(
+      choiceIds.map((id, index) => sql`(${id}::varchar(9), ${index}::int)`),
+    )}) AS v(choice_id, sort_order)
+    WHERE c.choice_id = v.choice_id
+  `.execute(db)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -900,13 +997,28 @@ export async function createAttempt(
     .selectFrom('exam.questions')
     .select('questionId')
     .where('versionId', '=', versionId)
+    // questionId breaks ties so a fixed-order attempt is reproducible even if two
+    // questions somehow share a sort_order.
+    .orderBy('sortOrder')
+    .orderBy('questionId')
     .execute()
 
-  const shuffled = fisherYatesShuffle(allQuestions.map((q) => q.questionId))
-  const selected =
-    version.questionCount != null && version.questionCount < shuffled.length
-      ? shuffled.slice(0, version.questionCount)
-      : shuffled
+  const questionIds = allQuestions.map((q) => q.questionId)
+
+  // The two presentation modes are mutually exclusive (#855): either the whole pool
+  // in the order the author arranged it, or a shuffle that questionCount may narrow
+  // to a random subset. questionCount is deliberately ignored in fixed order — a
+  // fixed exam is that fixed set of questions, not a random slice of one.
+  let selected: string[]
+  if (version.randomizeQuestionOrder) {
+    const shuffled = fisherYatesShuffle(questionIds)
+    selected =
+      version.questionCount != null && version.questionCount < shuffled.length
+        ? shuffled.slice(0, version.questionCount)
+        : shuffled
+  } else {
+    selected = questionIds
+  }
 
   await db.transaction().execute(async (trx) => {
     await trx
@@ -981,6 +1093,7 @@ export async function getAttemptVersionDetail(
     .selectAll()
     .where('questionId', 'in', questionIds)
     .orderBy('sortOrder')
+    .orderBy('choiceId')
     .execute()
 
   const choiceIds = cRows.map((c) => c.choiceId)

@@ -670,6 +670,10 @@ export interface ExamExamVersions {
    * When set, each attempt draws this many randomly-selected questions from the version pool. NULL means all questions are used.
    */
   questionCount: number | null
+  /**
+   * When true (the default, and the behaviour of every version created before this column existed), each attempt shuffles the questions and question_count may draw a random subset. When false the attempt presents every question of the version in the authored sort_order and question_count is ignored.
+   */
+  randomizeQuestionOrder: Generated<boolean>
   status: Generated<ExamExamVersionStatus>
   supportedLanguages: Generated<string[]>
   updatedAt: Generated<Timestamp>

@@ -206,7 +206,7 @@ actually achieves:
 | `src/components/**`                            | 92         | 88       | 86        |
 | `src/{*,lib/**,layouts/**,theme/**,config/**}` | 71         | 46       | 68        |
 | `src/utils/**`                                 | 61         | 55       | 76        |
-| `src/sections/**`                              | 40         | 34       | 26        |
+| `src/sections/**`                              | 43         | 38       | 28        |
 | _(all files, as a backstop)_                   | 44         | 37       | 31        |
 
 That third row is `App.tsx`, `AppRoutes.tsx`, `i18n.ts` and the four small directories, sharing one

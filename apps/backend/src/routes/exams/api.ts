@@ -10,7 +10,9 @@ import {
   ExamVersionUpsertSchema,
   ExamVersionTranslationSchema,
   QuestionUpsertSchema,
+  ReorderQuestionsSchema,
   ChoiceUpsertSchema,
+  ReorderChoicesSchema,
   AttemptAnswerUpsertSchema,
   AttemptFiltersSchema,
   StartAttemptSchema,
@@ -35,8 +37,10 @@ import {
   upsertVersionTranslation,
   upsertQuestion,
   deleteQuestion,
+  reorderQuestions,
   upsertChoice,
   deleteChoice,
+  reorderChoices,
   importExam,
   createAttempt,
   getAttemptById,
@@ -297,6 +301,8 @@ router.post(
         defaultLanguage: data.defaultLanguage,
         supportedLanguages: data.supportedLanguages,
         passPercent: data.passPercent,
+        questionCount: data.questionCount,
+        randomizeQuestionOrder: data.randomizeQuestionOrder,
       },
       req.user!,
       data.cloneFromPublished,
@@ -395,6 +401,23 @@ router.put(
   },
 )
 
+// Reordering is a whole-list write, so it gets its own route rather than N
+// sequential question upserts from the editor's drag handler.
+router.put(
+  '/admin/versions/:versionId/questions/order',
+  validateUser(MIKPermissions.EXAM_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const version = await getVersionById(req.params.versionId)
+    if (!version) return problem({ status: 404, detail: 'Version not found' })
+    if (version.status !== 'DRAFT')
+      return problem({ status: 409, detail: 'Only DRAFT versions can be edited' })
+    const { questionIds } = ReorderQuestionsSchema.parse(req.body)
+    await reorderQuestions(req.params.versionId, questionIds)
+    const detail = await getVersionDetail(req.params.versionId)
+    res.json(detail)
+  },
+)
+
 router.delete(
   '/admin/questions/:questionId',
   validateUser(MIKPermissions.EXAM_ADMIN),
@@ -423,6 +446,21 @@ router.put(
     const data = ChoiceUpsertSchema.parse(req.body)
     const choice = await upsertChoice(req.params.questionId, data)
     res.json(choice)
+  },
+)
+
+router.put(
+  '/admin/questions/:questionId/choices/order',
+  validateUser(MIKPermissions.EXAM_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const version = await getVersionByQuestionId(req.params.questionId)
+    if (!version) return problem({ status: 404, detail: 'Question not found' })
+    if (version.status !== 'DRAFT')
+      return problem({ status: 409, detail: 'Only DRAFT versions can be edited' })
+    const { choiceIds } = ReorderChoicesSchema.parse(req.body)
+    await reorderChoices(req.params.questionId, choiceIds)
+    const detail = await getVersionDetail(version.versionId)
+    res.json(detail)
   },
 )
 

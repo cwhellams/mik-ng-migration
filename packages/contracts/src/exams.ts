@@ -34,6 +34,7 @@ export const ExamVersionSchema = AuditableSchema.extend({
   supportedLanguages: z.array(z.string()).default([]),
   passPercent: z.number().nonnegative().default(75),
   questionCount: z.number().int().positive().nullable().optional(),
+  randomizeQuestionOrder: z.boolean().default(true),
 })
 export type ExamVersion = z.infer<typeof ExamVersionSchema>
 
@@ -85,6 +86,23 @@ export const QuestionUpsertSchema = z.object({
 })
 export type QuestionUpsert = z.infer<typeof QuestionUpsertSchema>
 
+// A reorder request carries the *complete* ordered list of ids rather than one
+// moved id: `sort_order` becomes each id's index in the list. That makes the
+// write idempotent, lets the whole reorder land in one transaction, and lets the
+// backend reject a list that has drifted from the set it is meant to reorder.
+const uniqueIdList = (field: string) =>
+  z
+    .array(z.string().max(9))
+    .min(1)
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: `${field} must not contain duplicates`,
+    })
+
+export const ReorderQuestionsSchema = z.object({
+  questionIds: uniqueIdList('questionIds'),
+})
+export type ReorderQuestions = z.infer<typeof ReorderQuestionsSchema>
+
 // ── Choices ───────────────────────────────────────────────────────────────────
 export const ChoiceTranslationSchema = z.object({
   text: z.string(),
@@ -107,6 +125,11 @@ export const ChoiceUpsertSchema = z.object({
   translations: z.record(z.string(), ChoiceTranslationSchema).default({}),
 })
 export type ChoiceUpsert = z.infer<typeof ChoiceUpsertSchema>
+
+export const ReorderChoicesSchema = z.object({
+  choiceIds: uniqueIdList('choiceIds'),
+})
+export type ReorderChoices = z.infer<typeof ReorderChoicesSchema>
 
 // ── Exam version detail (full tree) ──────────────────────────────────────────
 export const ExamVersionDetailSchema = ExamVersionSchema.extend({
@@ -190,6 +213,7 @@ export const ExamImportVersionSchema = z.object({
   defaultLanguage: z.string().max(5).default('fi'),
   supportedLanguages: z.array(z.string().max(5)).default([]),
   passPercent: z.number().nonnegative().default(75),
+  randomizeQuestionOrder: z.boolean().default(true),
   translations: z.record(
     z.string().max(5),
     z.object({ title: z.string(), description: z.string().nullable().optional() }),

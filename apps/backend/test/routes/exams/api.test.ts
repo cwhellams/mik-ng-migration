@@ -31,8 +31,10 @@ const mockDeleteVersion = jest.fn<(...args: any[]) => Promise<void>>()
 const mockUpsertVersionTranslation = jest.fn<(...args: any[]) => Promise<unknown>>()
 const mockUpsertQuestion = jest.fn<(...args: any[]) => Promise<unknown>>()
 const mockDeleteQuestion = jest.fn<(...args: any[]) => Promise<void>>()
+const mockReorderQuestions = jest.fn<(...args: any[]) => Promise<void>>()
 const mockUpsertChoice = jest.fn<(...args: any[]) => Promise<unknown>>()
 const mockDeleteChoice = jest.fn<(...args: any[]) => Promise<void>>()
+const mockReorderChoices = jest.fn<(...args: any[]) => Promise<void>>()
 const mockImportExam = jest.fn<(...args: any[]) => Promise<unknown>>()
 const mockCreateAttempt = jest.fn<(...args: any[]) => Promise<unknown>>()
 const mockGetAttemptById = jest.fn<(...args: any[]) => Promise<unknown>>()
@@ -65,8 +67,10 @@ jest.unstable_mockModule('../../../src/db/exam-queries.ts', () => ({
   upsertVersionTranslation: mockUpsertVersionTranslation,
   upsertQuestion: mockUpsertQuestion,
   deleteQuestion: mockDeleteQuestion,
+  reorderQuestions: mockReorderQuestions,
   upsertChoice: mockUpsertChoice,
   deleteChoice: mockDeleteChoice,
+  reorderChoices: mockReorderChoices,
   importExam: mockImportExam,
   createAttempt: mockCreateAttempt,
   getAttemptById: mockGetAttemptById,
@@ -659,5 +663,248 @@ describe('POST /exams/admin/exams/import', () => {
       .set('Cookie', `accessToken=${examAdminToken}`)
       .send({ name: 'Missing version' })
     expect(res.status).toBe(400)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin: PUT /exams/admin/versions/:versionId — the fixed/random order toggle
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('PUT /exams/admin/versions/:versionId', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockGetVersionById.mockResolvedValue({ versionId: 'VER00001', status: 'DRAFT' })
+    mockUpdateVersion.mockResolvedValue({
+      versionId: 'VER00001',
+      status: 'DRAFT',
+      randomizeQuestionOrder: false,
+    })
+  })
+
+  it('passes randomizeQuestionOrder through for exam admin', async () => {
+    const res = await request(app)
+      .put('/exams/admin/versions/VER00001')
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send({ randomizeQuestionOrder: false })
+
+    expect(res.status).toBe(200)
+    expect(mockUpdateVersion).toHaveBeenCalledWith(
+      'VER00001',
+      expect.objectContaining({ randomizeQuestionOrder: false }),
+      expect.anything(),
+    )
+  })
+
+  it('returns 400 for a non-boolean randomizeQuestionOrder', async () => {
+    const res = await request(app)
+      .put('/exams/admin/versions/VER00001')
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send({ randomizeQuestionOrder: 'yes' })
+
+    expect(res.status).toBe(400)
+    expect(mockUpdateVersion).not.toHaveBeenCalled()
+  })
+
+  it('returns 409 for a published version', async () => {
+    mockGetVersionById.mockResolvedValue({ versionId: 'VER00001', status: 'PUBLISHED' })
+
+    const res = await request(app)
+      .put('/exams/admin/versions/VER00001')
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send({ randomizeQuestionOrder: false })
+
+    expect(res.status).toBe(409)
+  })
+
+  it('returns 403 for exam user', async () => {
+    const res = await request(app)
+      .put('/exams/admin/versions/VER00001')
+      .set('Cookie', `accessToken=${examUserToken}`)
+      .send({ randomizeQuestionOrder: false })
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for plain member', async () => {
+    const res = await request(app)
+      .put('/exams/admin/versions/VER00001')
+      .set('Cookie', `accessToken=${plainMemberToken}`)
+      .send({ randomizeQuestionOrder: false })
+    expect(res.status).toBe(403)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin: PUT /exams/admin/versions/:versionId/questions/order
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('PUT /exams/admin/versions/:versionId/questions/order', () => {
+  const path = '/exams/admin/versions/VER00001/questions/order'
+  const body = { questionIds: ['Q0000002', 'Q0000001', 'Q0000003'] }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockGetVersionById.mockResolvedValue({ versionId: 'VER00001', status: 'DRAFT' })
+    mockReorderQuestions.mockResolvedValue(undefined)
+    mockGetVersionDetail.mockResolvedValue({ versionId: 'VER00001', questions: [] })
+  })
+
+  it('reorders and returns the refreshed version detail for exam admin', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(body)
+
+    expect(res.status).toBe(200)
+    expect(res.body).toMatchObject({ versionId: 'VER00001' })
+    expect(mockReorderQuestions).toHaveBeenCalledWith('VER00001', body.questionIds)
+  })
+
+  it('returns 404 for an unknown version', async () => {
+    mockGetVersionById.mockResolvedValue(undefined)
+
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(body)
+
+    expect(res.status).toBe(404)
+    expect(mockReorderQuestions).not.toHaveBeenCalled()
+  })
+
+  it('returns 409 for a published version — reordering is a DRAFT-only edit', async () => {
+    mockGetVersionById.mockResolvedValue({ versionId: 'VER00001', status: 'PUBLISHED' })
+
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(body)
+
+    expect(res.status).toBe(409)
+    expect(mockReorderQuestions).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 for a duplicated question id', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send({ questionIds: ['Q0000001', 'Q0000001'] })
+
+    expect(res.status).toBe(400)
+    expect(mockReorderQuestions).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 for an empty list', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send({ questionIds: [] })
+
+    expect(res.status).toBe(400)
+    expect(mockReorderQuestions).not.toHaveBeenCalled()
+  })
+
+  it('returns 403 for exam user', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examUserToken}`)
+      .send(body)
+    expect(res.status).toBe(403)
+    expect(mockReorderQuestions).not.toHaveBeenCalled()
+  })
+
+  it('returns 403 for plain member', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${plainMemberToken}`)
+      .send(body)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 401 without auth', async () => {
+    const res = await request(app).put(path).send(body)
+    expect(res.status).toBe(401)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin: PUT /exams/admin/questions/:questionId/choices/order
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('PUT /exams/admin/questions/:questionId/choices/order', () => {
+  const path = '/exams/admin/questions/Q0000001/choices/order'
+  const body = { choiceIds: ['C0000002', 'C0000001'] }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockGetVersionByQuestionId.mockResolvedValue({ versionId: 'VER00001', status: 'DRAFT' })
+    mockReorderChoices.mockResolvedValue(undefined)
+    mockGetVersionDetail.mockResolvedValue({ versionId: 'VER00001', questions: [] })
+  })
+
+  it('reorders and returns the refreshed version detail for exam admin', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(body)
+
+    expect(res.status).toBe(200)
+    expect(mockReorderChoices).toHaveBeenCalledWith('Q0000001', body.choiceIds)
+    expect(mockGetVersionDetail).toHaveBeenCalledWith('VER00001')
+  })
+
+  it('returns 404 for an unknown question', async () => {
+    mockGetVersionByQuestionId.mockResolvedValue(undefined)
+
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(body)
+
+    expect(res.status).toBe(404)
+    expect(mockReorderChoices).not.toHaveBeenCalled()
+  })
+
+  it('returns 409 when the owning version is not a DRAFT', async () => {
+    mockGetVersionByQuestionId.mockResolvedValue({ versionId: 'VER00001', status: 'PUBLISHED' })
+
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(body)
+
+    expect(res.status).toBe(409)
+    expect(mockReorderChoices).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 for a duplicated choice id', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send({ choiceIds: ['C0000001', 'C0000001'] })
+
+    expect(res.status).toBe(400)
+    expect(mockReorderChoices).not.toHaveBeenCalled()
+  })
+
+  it('returns 403 for exam user', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${examUserToken}`)
+      .send(body)
+    expect(res.status).toBe(403)
+    expect(mockReorderChoices).not.toHaveBeenCalled()
+  })
+
+  it('returns 403 for plain member', async () => {
+    const res = await request(app)
+      .put(path)
+      .set('Cookie', `accessToken=${plainMemberToken}`)
+      .send(body)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 401 without auth', async () => {
+    const res = await request(app).put(path).send(body)
+    expect(res.status).toBe(401)
   })
 })

@@ -11,6 +11,8 @@ import {
   submitAttempt,
   importExam,
   getVersionDetail,
+  reorderQuestions,
+  reorderChoices,
 } from '../../src/db/exam-queries.ts'
 
 describe('Db exam attempt tests', () => {
@@ -337,6 +339,7 @@ describe('importExam', () => {
       defaultLanguage: 'fi',
       supportedLanguages: ['fi', 'en'],
       passPercent: 75,
+      randomizeQuestionOrder: true,
       translations: {
         fi: { title: '010 Ilmailulainsäädäntö', description: null },
         en: { title: '010 Air Law Test', description: null },
@@ -448,5 +451,251 @@ describe('importExam', () => {
     const correctChoice = q2.choices.find((c) => c.isCorrect)
 
     expect(correctChoice!.sortOrder).toBe(1) // B is correct in question 2
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Question order: the authored order vs. the shuffle (#855)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Question ordering', () => {
+  const ordExamId = 'ORDEXAM1'
+  const ordVersionId = 'ORDVER01'
+  const ordMemberId = 'Matti1' // exists in test data
+  const createdBy = 'k1mnimda'
+  // Deliberately inserted with sort_order 0..4 so the authored order is known.
+  const questionIds = ['ORDQ0001', 'ORDQ0002', 'ORDQ0003', 'ORDQ0004', 'ORDQ0005']
+  const choiceIds = ['ORDC0001', 'ORDC0002', 'ORDC0003']
+
+  const cleanup = async () => {
+    await db.deleteFrom('exam.attempts').where('versionId', '=', ordVersionId).execute()
+    await db.deleteFrom('exam.questions').where('versionId', '=', ordVersionId).execute()
+    await db.deleteFrom('exam.examVersions').where('versionId', '=', ordVersionId).execute()
+    await db.deleteFrom('exam.exams').where('examId', '=', ordExamId).execute()
+  }
+
+  const setRandomizeQuestionOrder = async (randomize: boolean) => {
+    await db
+      .updateTable('exam.examVersions')
+      .set({ randomizeQuestionOrder: randomize })
+      .where('versionId', '=', ordVersionId)
+      .execute()
+  }
+
+  const currentQuestionOrder = async () => {
+    const rows = await db
+      .selectFrom('exam.questions')
+      .select(['questionId', 'sortOrder'])
+      .where('versionId', '=', ordVersionId)
+      .orderBy('sortOrder')
+      .execute()
+    return rows.map((r) => r.questionId)
+  }
+
+  beforeEach(async () => {
+    await cleanup()
+
+    await db
+      .insertInto('exam.exams')
+      .values({
+        examId: ordExamId,
+        examType: 'AFM',
+        name: 'Ordered Exam',
+        createdBy: createdBy,
+        updatedBy: createdBy,
+      })
+      .execute()
+
+    await db
+      .insertInto('exam.examVersions')
+      .values({
+        versionId: ordVersionId,
+        examId: ordExamId,
+        versionNumber: 1,
+        status: 'DRAFT',
+        defaultLanguage: 'en',
+        supportedLanguages: ['en'],
+        passPercent: 75,
+        questionCount: 3,
+        randomizeQuestionOrder: false,
+        createdBy: createdBy,
+        updatedBy: createdBy,
+      })
+      .execute()
+
+    for (let i = 0; i < questionIds.length; i++) {
+      await db
+        .insertInto('exam.questions')
+        .values({ questionId: questionIds[i], versionId: ordVersionId, sortOrder: i })
+        .execute()
+    }
+
+    for (let i = 0; i < choiceIds.length; i++) {
+      await db
+        .insertInto('exam.choices')
+        .values({
+          choiceId: choiceIds[i],
+          questionId: questionIds[0],
+          isCorrect: i === 0,
+          sortOrder: i,
+        })
+        .execute()
+    }
+  })
+
+  afterEach(cleanup)
+
+  it('defaults a version to random order when the column is not given', async () => {
+    const version = await getVersionDetail(ordVersionId)
+    expect(version!.randomizeQuestionOrder).toBe(false) // explicitly set by the fixture
+
+    await db
+      .insertInto('exam.examVersions')
+      .values({
+        versionId: 'ORDVER99',
+        examId: ordExamId,
+        versionNumber: 2,
+        status: 'DRAFT',
+        defaultLanguage: 'en',
+        supportedLanguages: ['en'],
+        passPercent: 75,
+        createdBy: createdBy,
+        updatedBy: createdBy,
+      })
+      .execute()
+
+    const defaulted = await getVersionDetail('ORDVER99')
+    expect(defaulted!.randomizeQuestionOrder).toBe(true)
+
+    await db.deleteFrom('exam.examVersions').where('versionId', '=', 'ORDVER99').execute()
+  })
+
+  it('presents every question in the authored order when randomization is off', async () => {
+    const attempt = await createAttempt(ordVersionId, ordMemberId, 'en')
+    const detail = await getAttemptVersionDetail(attempt.attemptId)
+
+    expect(detail!.questions.map((q) => q.questionId)).toEqual(questionIds)
+  })
+
+  it('ignores question_count in fixed order — a fixed exam is the whole set', async () => {
+    // The fixture sets questionCount to 3 against a pool of 5.
+    const attempt = await createAttempt(ordVersionId, ordMemberId, 'en')
+    const detail = await getAttemptVersionDetail(attempt.attemptId)
+
+    expect(detail!.questions).toHaveLength(questionIds.length)
+  })
+
+  it('grades every question of a fixed-order attempt', async () => {
+    const attempt = await createAttempt(ordVersionId, ordMemberId, 'en')
+    const graded = await submitAttempt(attempt.attemptId)
+
+    expect(graded.totalCount).toBe(questionIds.length)
+  })
+
+  it('honours question_count again once randomization is turned back on', async () => {
+    await setRandomizeQuestionOrder(true)
+
+    const attempt = await createAttempt(ordVersionId, ordMemberId, 'en')
+    const detail = await getAttemptVersionDetail(attempt.attemptId)
+
+    expect(detail!.questions).toHaveLength(3)
+  })
+
+  it('reorderQuestions rewrites sort_order to match the list it is given', async () => {
+    const reversed = [...questionIds].reverse()
+    await reorderQuestions(ordVersionId, reversed)
+
+    expect(await currentQuestionOrder()).toEqual(reversed)
+  })
+
+  it('a fixed-order attempt follows a reorder made after it was authored', async () => {
+    const moved = [questionIds[4], questionIds[0], questionIds[1], questionIds[2], questionIds[3]]
+    await reorderQuestions(ordVersionId, moved)
+
+    const attempt = await createAttempt(ordVersionId, ordMemberId, 'en')
+    const detail = await getAttemptVersionDetail(attempt.attemptId)
+
+    expect(detail!.questions.map((q) => q.questionId)).toEqual(moved)
+  })
+
+  it('reorderQuestions leaves the existing order alone when the list is incomplete', async () => {
+    await expect(reorderQuestions(ordVersionId, questionIds.slice(0, 3))).rejects.toThrow()
+
+    expect(await currentQuestionOrder()).toEqual(questionIds)
+  })
+
+  it('reorderQuestions rejects an id from outside the version', async () => {
+    const foreign = [...questionIds.slice(0, 4), 'NOTMINE1']
+    await expect(reorderQuestions(ordVersionId, foreign)).rejects.toThrow()
+
+    expect(await currentQuestionOrder()).toEqual(questionIds)
+  })
+
+  it('reorderQuestions rejects a duplicated id, which would drop a question silently', async () => {
+    // Right length, no unknown ids — only the repeat gives it away, and the
+    // question it displaces would keep whatever sort_order it had.
+    const duplicated = [
+      questionIds[0],
+      questionIds[0],
+      questionIds[1],
+      questionIds[2],
+      questionIds[3],
+    ]
+    await expect(reorderQuestions(ordVersionId, duplicated)).rejects.toThrow()
+
+    expect(await currentQuestionOrder()).toEqual(questionIds)
+  })
+
+  it('reorderChoices rewrites sort_order within one question', async () => {
+    const reversed = [...choiceIds].reverse()
+    await reorderChoices(questionIds[0], reversed)
+
+    const detail = await getVersionDetail(ordVersionId)
+    const question = detail!.questions.find((q) => q.questionId === questionIds[0])
+    expect(question!.choices.map((c) => c.choiceId)).toEqual(reversed)
+  })
+
+  it('reorderChoices rejects a duplicated id', async () => {
+    await expect(
+      reorderChoices(questionIds[0], [choiceIds[0], choiceIds[0], choiceIds[1]]),
+    ).rejects.toThrow()
+
+    const detail = await getVersionDetail(ordVersionId)
+    const question = detail!.questions.find((q) => q.questionId === questionIds[0])
+    expect(question!.choices.map((c) => c.choiceId)).toEqual(choiceIds)
+  })
+
+  it('orders questions and choices deterministically when sort_order ties', async () => {
+    // Legacy rows: sort_order was a hand-typed number before it was a drag.
+    await db
+      .updateTable('exam.questions')
+      .set({ sortOrder: 0 })
+      .where('versionId', '=', ordVersionId)
+      .execute()
+    await db
+      .updateTable('exam.choices')
+      .set({ sortOrder: 0 })
+      .where('questionId', '=', questionIds[0])
+      .execute()
+
+    const first = await getVersionDetail(ordVersionId)
+    const second = await getVersionDetail(ordVersionId)
+
+    expect(first!.questions.map((q) => q.questionId)).toEqual(
+      second!.questions.map((q) => q.questionId),
+    )
+    expect(first!.questions[0].choices.map((c) => c.choiceId)).toEqual(
+      second!.questions[0].choices.map((c) => c.choiceId),
+    )
+  })
+
+  it('reorderChoices rejects a choice belonging to another question', async () => {
+    await expect(
+      reorderChoices(questionIds[1], [choiceIds[0], choiceIds[1], choiceIds[2]]),
+    ).rejects.toThrow()
+
+    const detail = await getVersionDetail(ordVersionId)
+    const question = detail!.questions.find((q) => q.questionId === questionIds[0])
+    expect(question!.choices.map((c) => c.choiceId)).toEqual(choiceIds)
   })
 })

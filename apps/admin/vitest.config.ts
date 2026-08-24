@@ -65,7 +65,12 @@ export default defineConfig({
         // 51.98/46.02/40.00 -> 52.74/47.01/40.78 measured. Functions moved less
         // than a point, so its bar stays where it is rather than being set with
         // no headroom.
-        'src/sections/**': { statements: 51, branches: 46, functions: 39 },
+        // 51/46/39 -> 55/50/44: #855's exam version editor and its drag-and-drop
+        // reorder helpers landed here (moved from apps/frontend, where the admin
+        // split hadn't yet existed when that PR was written) with the tests that
+        // came with them — 55.79/50.17/44.29 measured. Left with headroom rather
+        // than set at the ceiling.
+        'src/sections/**': { statements: 55, branches: 50, functions: 44 },
         'src/{*,hooks/**,theme/**,config/**}': { statements: 74, branches: 36, functions: 50 },
       },
     },
