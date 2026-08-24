@@ -15,17 +15,12 @@ import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { AogDaysByAcYr, AogDaysByAcYrMth } from '@mik/contracts/stats'
-
-const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
+import { getYearRange } from '../statsUtils'
 
 export const AogStatistics = () => {
   const now = new Date()
-  const currentYear = now.getFullYear()
   const currentMonth = now.getMonth() + 1
-  const { yrFrom } = useMemo(
-    () => ({ yrFrom: currentYear - (STATS_YEAR_RANGE - 1) }),
-    [currentYear],
-  )
+  const { yrFrom, yrTo: currentYear } = getYearRange()
 
   const last12Months = useMemo(() => {
     const months: string[] = []

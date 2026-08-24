@@ -22,6 +22,7 @@ import { useThemeMode } from '../../theme/ThemeContext'
 import { monthKey, monthlySeriesByAircraft } from '@mik/ui/utils/monthlySeries'
 
 import { useNivoTheme } from './useNivoTheme'
+import { getMonthlyRange, getYearRange } from './statsUtils'
 import {
   TotalFlightTimeByAcYrFt,
   TotalFlightTimeByPilotYr,
@@ -91,15 +92,8 @@ export const Stats = () => {
   // permission check here moved to the admin app in #1233 — revenue reporting
   // is desk work. What is left on this page is the same for every member.
 
-  // Get year range from env var (default 5 years)
-  const statsYearRange = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
-
-  // Calculate year range based on configured value
-  const { yrFrom, yrTo } = useMemo(() => {
-    const currentYear = new Date().getFullYear()
-    const from = currentYear - (statsYearRange - 1)
-    return { yrFrom: from, yrTo: currentYear }
-  }, [statsYearRange])
+  // Year range from VITE_STATS_YEAR_RANGE (default 5 years)
+  const { yrFrom, yrTo } = useMemo(() => getYearRange(), [])
 
   // Calculate date range for calendar (last year and current year)
   const { dateFrom, dateTo } = useMemo(() => {
@@ -197,13 +191,7 @@ export const Stats = () => {
   )
 
   // Fetch monthly data for last 12 months
-  const { yrFrom: monthlyYrFrom, yrTo: monthlyYrTo } = useMemo(() => {
-    const now = new Date()
-    const currentYear = now.getFullYear()
-    const currentMonth = now.getMonth() + 1
-    const from = currentMonth === 12 ? currentYear : currentYear - 1
-    return { yrFrom: from, yrTo: currentYear }
-  }, [])
+  const { yrFrom: monthlyYrFrom, yrTo: monthlyYrTo } = useMemo(() => getMonthlyRange(), [])
 
   const {
     data: monthlyData,
