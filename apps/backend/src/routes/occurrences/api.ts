@@ -7,6 +7,7 @@ import {
   OccurrenceCommentSchema,
   OccurrenceFiltersSchema,
   OccurrenceProcessedPayloadSchema,
+  OccurrenceRegistryFiltersSchema,
   OccurrenceStatus,
   OccurrenceUpsertSchema,
   type Occurrence,
@@ -14,6 +15,8 @@ import {
   type OccurrenceAttachment,
   type OccurrenceComment,
   type OccurrenceFilters,
+  type OccurrenceRegistryCountResponse,
+  type OccurrenceRegistryFilters,
   type OccurrencesListResponse,
 } from '@mik/contracts/occurrences'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -23,6 +26,7 @@ import {
   addOccurrenceAttachment,
   copyOccurrenceAttachments,
   countOccurrenceAttachments,
+  countOccurrences,
   createOccurrence,
   deleteOccurrenceAccess,
   getOccurrence,
@@ -35,6 +39,11 @@ import {
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
+import {
+  generateOccurrenceRegistryPdf,
+  getRegistryFilename,
+  inRegisterOrder,
+} from './exportFormats.ts'
 import dayjs from 'dayjs'
 
 import { sendOccurrenceNotification } from '../../templates/occurrenceNotification.ts'
@@ -142,6 +151,84 @@ const anonymize = (occurrence: Occurrence, user: JWTUser) => {
     attachments: canSeeAttachments(occurrence, user) ? occurrence.attachments : [],
   }
 }
+
+// ---------------------------------------------------------------------------
+// Printable occurrence register (#519)
+//
+// Registered ahead of GET /:reportId: Express matches in declaration order, so
+// below it `/export` would be read as a report id and 404.
+// ---------------------------------------------------------------------------
+
+/**
+ * The register never shows a report the safety manager has no business printing.
+ * NEW/RECEIVED/ANONYMIZING reports still hold the reporter's own words and are
+ * restricted to the independent processor by design, so an occurrence enters the
+ * register only once it has been anonymized — agreed on the issue, over the
+ * alternative of listing them with the narrative fields blanked out.
+ *
+ * The row-level access filter would exclude them from a safety manager's request
+ * anyway; stating the statuses here means the register does not quietly widen if
+ * a future grant does.
+ */
+const REGISTRY_IGNORED_STATUSES = [
+  OccurrenceStatus.NEW,
+  OccurrenceStatus.RECEIVED,
+  OccurrenceStatus.ANONYMIZING,
+  OccurrenceStatus.DELETED,
+]
+
+/** `dtoOnly: false` means "all reports", not "non-DTO reports". */
+const toRegistryFilters = (query: OccurrenceRegistryFilters): OccurrenceFilters => ({
+  fromDate: query.fromDate,
+  toDate: query.toDate,
+  isDtoReport: query.dtoOnly ? true : undefined,
+  ignoreStatuses: REGISTRY_IGNORED_STATUSES,
+})
+
+// A register is an annual attachment of tens of records; a request for thousands
+// is a mis-set filter, and rendering it would tie up the process for minutes.
+const MAX_REGISTRY_OCCURRENCES = 500
+
+// Preview for the export dialog, so the filters can be checked before a download.
+router.get(
+  '/export/count',
+  validateUser(MIKPermissions.SMS_MANAGER),
+  async (req: Request<Record<string, string>>, res: Response<OccurrenceRegistryCountResponse>) => {
+    const query = OccurrenceRegistryFiltersSchema.parse(req.query)
+    const count = await countOccurrences(toRegistryFilters(query), accessFilters(req.user!))
+    res.status(200).json({ count })
+  },
+)
+
+router.get(
+  '/export',
+  validateUser(MIKPermissions.SMS_MANAGER),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const query = OccurrenceRegistryFiltersSchema.parse(req.query)
+    const filters = toRegistryFilters(query)
+    const limitations = accessFilters(req.user!)
+
+    const count = await countOccurrences(filters, limitations)
+    if (count > MAX_REGISTRY_OCCURRENCES) {
+      return problem({
+        status: 422,
+        detail: `The register would include ${count} occurrences, which exceeds the maximum of ${MAX_REGISTRY_OCCURRENCES}. Narrow the date range and try again.`,
+      })
+    }
+
+    // getOccurrences orders by report id, which is its DISTINCT ON key rather
+    // than a choice; a register reads chronologically.
+    const occurrences = inRegisterOrder(await getOccurrences(filters, limitations))
+
+    const pdf = await generateOccurrenceRegistryPdf(
+      occurrences.map((occurrence) => anonymize(occurrence, req.user!)),
+      query,
+    )
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${getRegistryFilename(query)}"`)
+    res.status(200).send(pdf)
+  },
+)
 
 router.get(
   '/:reportId',

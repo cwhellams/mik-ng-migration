@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import {
+  countOccurrences,
   createOccurrence,
   getOccurrence,
   getOccurrences,
@@ -122,12 +123,19 @@ describe('Db query occurrence tests', () => {
         roles: ['SMS_PROCESSOR'],
       },
     )
-    expect(fetched.length).toEqual(5)
     expect(fetched[0]).toEqual(expectedSMS1)
-    expect(fetched[1].id).toEqual('SMS2_RECE')
-    expect(fetched[2].id).toEqual('SMS3_RECE')
-    expect(fetched[3].id).toEqual('SMS4_ANON')
-    expect(fetched[4].id).toEqual('SMS4_RECE')
+    expect(fetched.map((o) => o.id)).toEqual([
+      'SMS1_NEW',
+      'SMS2_RECE',
+      'SMS3_RECE',
+      'SMS4_ANON',
+      'SMS4_RECE',
+      // the three RECEIVED originals seeded for the occurrence register (#519);
+      // their anonymized copies belong to the safety manager, not the processor
+      'SMS5_RECE',
+      'SMS6_RECE',
+      'SMS7_RECE',
+    ])
   })
 
   it('should get occurrences as SMS_PROCESSOR without received reports', async () => {
@@ -169,6 +177,88 @@ describe('Db query occurrence tests', () => {
     )
     expect(fetched.length).toEqual(1)
     expect(fetched[0].id).toEqual('SMS4_ANON')
+  })
+})
+
+// fromDate/toDate and aircraftRegistration were declared on OccurrenceFiltersSchema
+// long before anything applied them; the occurrence register (#519) is the first
+// caller that needs them, and isDtoReport came with it.
+describe('occurrence filters', () => {
+  const asSafetyManager = { roles: ['SMS_MANAGER'] }
+
+  const ids = (filters: Parameters<typeof getOccurrences>[0]) =>
+    getOccurrences(filters, asSafetyManager).then((o) => o.map((r) => r.id))
+
+  it('bounds the range on the occurrence date, inclusive at both ends', async () => {
+    // 2026-03-14 07:20Z is the SMS5_CLOS occurrence itself, so a range that
+    // starts and ends on that instant still contains it.
+    await expect(
+      ids({ fromDate: '2026-03-14T07:20:00.000Z', toDate: '2026-03-14T07:20:00.000Z' }),
+    ).resolves.toEqual(['SMS5_CLOS'])
+
+    await expect(
+      ids({ fromDate: '2026-01-01T00:00:00.000Z', toDate: '2026-12-31T23:59:59.000Z' }),
+    ).resolves.toEqual(['SMS5_CLOS', 'SMS6_PROC', 'SMS7_ANON'])
+  })
+
+  it('excludes occurrences outside the range', async () => {
+    await expect(ids({ fromDate: '2026-06-01T00:00:00.000Z' })).resolves.toEqual(['SMS7_ANON'])
+    await expect(ids({ toDate: '2025-12-31T23:59:59.000Z' })).resolves.toEqual([
+      'SMS2_ANON',
+      'SMS3_CLOS',
+    ])
+  })
+
+  it('filters on the DTO flag', async () => {
+    await expect(ids({ isDtoReport: true })).resolves.toEqual(['SMS5_CLOS', 'SMS7_ANON'])
+    await expect(ids({ isDtoReport: false })).resolves.toEqual([
+      'SMS2_ANON',
+      'SMS3_CLOS',
+      'SMS6_PROC',
+    ])
+  })
+
+  it('filters on the aircraft registration', async () => {
+    await expect(ids({ aircraftRegistration: 'OH-IHQ' })).resolves.toEqual(['SMS6_PROC'])
+  })
+
+  it('combines the filters', async () => {
+    await expect(
+      ids({
+        fromDate: '2026-01-01T00:00:00.000Z',
+        toDate: '2026-12-31T23:59:59.000Z',
+        isDtoReport: true,
+        ignoreStatuses: [OccurrenceStatus.ANONYMIZED],
+      }),
+    ).resolves.toEqual(['SMS5_CLOS'])
+  })
+})
+
+// The count backs the export dialog's preview, so it has to agree with the list
+// exactly - including on the access join, which fans out one row per grant.
+describe('countOccurrences', () => {
+  const asSafetyManager = { roles: ['SMS_MANAGER'] }
+
+  it.each([
+    ['no filters', {}],
+    ['a date range', { fromDate: '2026-01-01T00:00:00.000Z', toDate: '2026-12-31T23:59:59.000Z' }],
+    ['the DTO flag', { isDtoReport: true }],
+    ['a status exclusion', { ignoreStatuses: [OccurrenceStatus.ANONYMIZED] }],
+    ['a range matching nothing', { fromDate: '2099-01-01T00:00:00.000Z' }],
+  ])('counts the same rows the list returns for %s', async (_name, filters) => {
+    const listed = await getOccurrences(filters, asSafetyManager)
+
+    await expect(countOccurrences(filters, asSafetyManager)).resolves.toEqual(listed.length)
+  })
+
+  it('counts each report once however many grants it has', async () => {
+    // SMS5_CLOS carries two access rows: its author and the safety manager role.
+    await expect(
+      countOccurrences(
+        { fromDate: '2026-03-01T00:00:00.000Z', toDate: '2026-03-31T00:00:00.000Z' },
+        asSafetyManager,
+      ),
+    ).resolves.toEqual(1)
   })
 })
 

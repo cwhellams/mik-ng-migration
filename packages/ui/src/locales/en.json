@@ -1992,6 +1992,24 @@
       "read": "Read Access",
       "write": "Write Access",
       "manage": "Admin Access"
+    },
+    "registry": {
+      "button": "Print register",
+      "title": "Print Occurrence Register",
+      "info": "Prints the anonymized occurrence reports and how they were handled as an A4 document, to be attached to the annual activity report. Reports still being reviewed by the independent reviewer are not included.",
+      "dateRange": "Period",
+      "startDate": "From",
+      "endDate": "To",
+      "scope": "Scope",
+      "scopeAll": "All occurrence reports",
+      "scopeDto": "DTO training reports only",
+      "countLoading": "Counting...",
+      "countResult": "{{count}} occurrence reports in this period",
+      "countResultZero": "No occurrence reports in this period",
+      "countFailed": "Could not count the reports in this period.",
+      "exportButton": "Generate PDF",
+      "exporting": "Generating...",
+      "failed": "Generating the register failed. Please try again."
     }
   },
   "outbox": {
@@ -3065,6 +3083,7 @@
       "traficomReport": "Traficom report",
       "upliftReport": "Fuel uplift",
       "instructorWorktime": "Instructor worktime",
+      "occurrenceRegistry": "Occurrence registry",
       "tulorekisteriReport": "Tulorekisteri report",
       "expenseApproval": "Expense approval",
       "mileageAllowances": "Mileage allowances",

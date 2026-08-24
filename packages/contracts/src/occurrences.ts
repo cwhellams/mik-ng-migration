@@ -1,5 +1,5 @@
 import z from 'zod'
-import { AuditableSchema, nullableTrimmedString } from './schema.ts'
+import { AuditableSchema, BooleanSchema, nullableTrimmedString } from './schema.ts'
 
 export enum OccurrenceStatus {
   // only the independent SMS processor can see the reports with
@@ -221,8 +221,12 @@ export const OccurrenceFiltersSchema = z.object({
   status: z.nativeEnum(OccurrenceStatus).optional(),
   ignoreStatuses: z.array(z.nativeEnum(OccurrenceStatus)).optional(),
   aircraftRegistration: z.string().optional(),
+  // both bounds are compared against occurrenceDate, not reportDate: a registry
+  // covering a calendar year has to contain the events of that year, whenever
+  // they happened to be reported
   fromDate: z.string().datetime().optional(),
   toDate: z.string().datetime().optional(),
+  isDtoReport: BooleanSchema.optional(),
 })
 
 export type OccurrenceFilters = z.infer<typeof OccurrenceFiltersSchema>
@@ -230,3 +234,25 @@ export type OccurrenceFilters = z.infer<typeof OccurrenceFiltersSchema>
 export interface OccurrencesListResponse {
   occurrences: Occurrence[]
 }
+
+/**
+ * Filters for the printable occurrence register (#519) — the annual activity
+ * report a training organisation files with Traficom.
+ *
+ * Deliberately not `OccurrenceFiltersSchema`: the register never lets the caller
+ * choose a status, because which statuses it covers is a privacy rule rather
+ * than a preference. See `REGISTRY_IGNORED_STATUSES` in the backend.
+ */
+export const OccurrenceRegistryFiltersSchema = z
+  .object({
+    fromDate: z.string().datetime().optional(),
+    toDate: z.string().datetime().optional(),
+    /** Restrict to reports filed against a DTO training flight. */
+    dtoOnly: BooleanSchema.optional(),
+  })
+  .strict()
+
+export type OccurrenceRegistryFilters = z.infer<typeof OccurrenceRegistryFiltersSchema>
+
+export const OccurrenceRegistryCountResponseSchema = z.object({ count: z.number().int() })
+export type OccurrenceRegistryCountResponse = z.infer<typeof OccurrenceRegistryCountResponseSchema>

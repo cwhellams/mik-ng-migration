@@ -2000,6 +2000,24 @@
       "read": "Läsåtkomst",
       "write": "Skrivåtkomst",
       "manage": "Administratörsåtkomst"
+    },
+    "registry": {
+      "button": "Skriv ut register",
+      "title": "Skriv ut avvikelseregister",
+      "info": "Skriver ut de anonymiserade avvikelserapporterna och deras handläggning som ett A4-dokument, att bifogas den årliga verksamhetsrapporten. Rapporter som den oberoende granskaren fortfarande arbetar med ingår inte.",
+      "dateRange": "Period",
+      "startDate": "Från",
+      "endDate": "Till",
+      "scope": "Omfattning",
+      "scopeAll": "Alla avvikelserapporter",
+      "scopeDto": "Endast DTO-utbildningsrapporter",
+      "countLoading": "Räknar...",
+      "countResult": "{{count}} avvikelserapporter under perioden",
+      "countResultZero": "Inga avvikelserapporter under perioden",
+      "countFailed": "Kunde inte räkna rapporterna för perioden.",
+      "exportButton": "Skapa PDF",
+      "exporting": "Skapar...",
+      "failed": "Registret kunde inte skapas. Försök igen."
     }
   },
   "shop": {
@@ -3038,6 +3056,7 @@
       "traficomReport": "Traficom-rapport",
       "upliftReport": "Bränslepåfyllning",
       "instructorWorktime": "Instruktörernas arbetstid",
+      "occurrenceRegistry": "Avvikelseregister",
       "tulorekisteriReport": "Inkomstregisterrapport",
       "expenseApproval": "Godkännande av utlägg",
       "mileageAllowances": "Milersättning",
