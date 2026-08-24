@@ -153,6 +153,15 @@ Rules that follow from it:
 `apps/frontend/src/test/README.md` is the frontend harness guide — read it before writing
 a frontend test rather than re-inventing providers, fixtures or API stubs.
 
+**A new feature also brings seed data that demonstrates it.** Automated tests prove the
+code path works in isolation; seed data is what lets a developer click through the running
+app (`pnpm dev`) and actually see the feature. Add it as a new file in
+`sql/schema/testdata/`, following the versioning rules in Database Schema Management below
+(new file, version = current highest + 10, never edit an existing testdata file). Cover the
+feature's distinct modes, not just one example — e.g. #855's random-vs-fixed question
+ordering shipped with one exam of each kind (`sql/schema/testdata/V300__ExamTestData.sql`),
+not just one.
+
 ## Critical Timing Information
 
 **NEVER CANCEL** the following operations:
