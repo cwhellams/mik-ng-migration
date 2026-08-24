@@ -1,10 +1,3 @@
-import { sql } from 'kysely'
-
-import { auditCreate, auditUpdate } from './audit.ts'
-import { db, type DbRow } from './connection.ts'
-import { generateShortId } from '../util/nanoId.ts'
-import type { JWTUser } from '../routes/auth/token.ts'
-import { problem } from '../routes/response.ts'
 import type {
   Exam,
   ExamUpsert,
@@ -24,6 +17,13 @@ import type {
   ExamImport,
   ExamImportResult,
 } from '@mik/contracts/exams'
+import { sql } from 'kysely'
+
+import { auditCreate, auditUpdate } from './audit.ts'
+import { db, type DbRow } from './connection.ts'
+import type { JWTUser } from '../routes/auth/token.ts'
+import { problem } from '../routes/response.ts'
+import { generateShortId } from '../util/nanoId.ts'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
