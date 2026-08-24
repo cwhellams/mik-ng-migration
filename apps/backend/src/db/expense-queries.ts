@@ -29,6 +29,7 @@ import { encryptField, decryptField } from '../lib/fieldEncryption.ts'
 import { getEffectiveLocalFuelPrice } from './local-fuel-price-queries.ts'
 import { computeFuelReimbursement } from '../services/fuelReimbursement.ts'
 import { getExpenseAttachments } from './expense-attachment-queries.ts'
+import logger from '../lib/logger.ts'
 
 const toIsoString = (value: unknown): string => {
   if (value instanceof Date) {
@@ -165,6 +166,21 @@ const mapMessage = (row: {
     sentAt: toIsoString(row.sentAt),
   })
 
+// A stored hetuEncrypted that fails to decrypt (corrupted ciphertext, or encrypted under
+// a key that's since rotated) must not take down the whole claims list — log it so the
+// underlying row can be found and fixed, and omit the HETU from this claim's response.
+const maskHetuEncrypted = (claimId: string, hetuEncrypted: string): string | undefined => {
+  try {
+    return maskHetu(decryptField(hetuEncrypted))
+  } catch (error) {
+    logger.warn('hetuEncrypted failed to decrypt for claim, omitting from response', {
+      claimId,
+      error,
+    })
+    return undefined
+  }
+}
+
 const mapClaim = (
   row: ClaimRow,
   details?: Pick<
@@ -200,7 +216,7 @@ const mapClaim = (
   updatedAt: toIsoString(row.updatedAt),
   memberName: row.memberName ?? undefined,
   memberEmail: row.memberEmail ?? undefined,
-  hetu: row.hetuEncrypted ? maskHetu(decryptField(row.hetuEncrypted)) : undefined,
+  hetu: row.hetuEncrypted ? maskHetuEncrypted(row.id, row.hetuEncrypted) : undefined,
   totalAmount: toNullableNumber(row.totalAmount) ?? 0,
   receipt: row.receiptStorageKey
     ? {
