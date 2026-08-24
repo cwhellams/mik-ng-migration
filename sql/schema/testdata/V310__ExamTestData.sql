@@ -1,5 +1,5 @@
 -- ============================================================
--- V300 – Exam test data
+-- V310 – Exam test data
 -- ============================================================
 -- Two published exams to exercise both question-ordering modes
 -- introduced by #855:
@@ -45,70 +45,70 @@ INSERT INTO exam.exam_version_translations (
 -- 3. Random-order exam: questions & choices
 -- ----------------------------------------------------------------
 INSERT INTO exam.questions (question_id, version_id, sort_order) VALUES
-    ('RNDQ0001', 'RNDVER001', 0),
-    ('RNDQ0002', 'RNDVER001', 1),
-    ('RNDQ0003', 'RNDVER001', 2),
-    ('RNDQ0004', 'RNDVER001', 3),
-    ('RNDQ0005', 'RNDVER001', 4);
+    ('LAWQ0001', 'RNDVER001', 0),
+    ('LAWQ0002', 'RNDVER001', 1),
+    ('LAWQ0003', 'RNDVER001', 2),
+    ('LAWQ0004', 'RNDVER001', 3),
+    ('LAWQ0005', 'RNDVER001', 4);
 
 INSERT INTO exam.question_translations (question_id, language, prompt, reasoning) VALUES
-    ('RNDQ0001', 'en', 'What document must a pilot carry to act as PIC of a Finnish-registered aircraft?', 'A valid pilot licence is required to act as PIC.'),
-    ('RNDQ0002', 'en', 'Below what altitude is VFR flight generally restricted from flying over congested areas without a specific minimum height?', 'Minimum height rules protect people and property on the ground.'),
-    ('RNDQ0003', 'en', 'Who has right of way when two aircraft of the same category are converging at approximately the same altitude?', 'The aircraft to the other''s right has right of way.'),
-    ('RNDQ0004', 'en', 'What colour is a VFR sectional chart''s controlled airspace boundary typically depicted in?', 'Controlled airspace boundaries are shown in blue on most VFR charts.'),
-    ('RNDQ0005', 'en', 'What is the standard QNH-setting transition altitude in Finland unless otherwise published?', 'Finland uses a nationwide default transition altitude published in the AIP.');
+    ('LAWQ0001', 'en', 'What document must a pilot carry to act as PIC of a Finnish-registered aircraft?', 'A valid pilot licence is required to act as PIC.'),
+    ('LAWQ0002', 'en', 'Below what altitude is VFR flight generally restricted from flying over congested areas without a specific minimum height?', 'Minimum height rules protect people and property on the ground.'),
+    ('LAWQ0003', 'en', 'Who has right of way when two aircraft of the same category are converging at approximately the same altitude?', 'The aircraft to the other''s right has right of way.'),
+    ('LAWQ0004', 'en', 'What colour is a VFR sectional chart''s controlled airspace boundary typically depicted in?', 'Controlled airspace boundaries are shown in blue on most VFR charts.'),
+    ('LAWQ0005', 'en', 'What is the standard QNH-setting transition altitude in Finland unless otherwise published?', 'Finland uses a nationwide default transition altitude published in the AIP.');
 
 INSERT INTO exam.choices (choice_id, question_id, is_correct, sort_order) VALUES
-    ('RNDQ0001A', 'RNDQ0001', TRUE,  0),
-    ('RNDQ0001B', 'RNDQ0001', FALSE, 1),
-    ('RNDQ0001C', 'RNDQ0001', FALSE, 2),
-    ('RNDQ0001D', 'RNDQ0001', FALSE, 3),
+    ('LAWQ0001A', 'LAWQ0001', TRUE,  0),
+    ('LAWQ0001B', 'LAWQ0001', FALSE, 1),
+    ('LAWQ0001C', 'LAWQ0001', FALSE, 2),
+    ('LAWQ0001D', 'LAWQ0001', FALSE, 3),
 
-    ('RNDQ0002A', 'RNDQ0002', FALSE, 0),
-    ('RNDQ0002B', 'RNDQ0002', TRUE,  1),
-    ('RNDQ0002C', 'RNDQ0002', FALSE, 2),
-    ('RNDQ0002D', 'RNDQ0002', FALSE, 3),
+    ('LAWQ0002A', 'LAWQ0002', FALSE, 0),
+    ('LAWQ0002B', 'LAWQ0002', TRUE,  1),
+    ('LAWQ0002C', 'LAWQ0002', FALSE, 2),
+    ('LAWQ0002D', 'LAWQ0002', FALSE, 3),
 
-    ('RNDQ0003A', 'RNDQ0003', FALSE, 0),
-    ('RNDQ0003B', 'RNDQ0003', FALSE, 1),
-    ('RNDQ0003C', 'RNDQ0003', TRUE,  2),
-    ('RNDQ0003D', 'RNDQ0003', FALSE, 3),
+    ('LAWQ0003A', 'LAWQ0003', FALSE, 0),
+    ('LAWQ0003B', 'LAWQ0003', FALSE, 1),
+    ('LAWQ0003C', 'LAWQ0003', TRUE,  2),
+    ('LAWQ0003D', 'LAWQ0003', FALSE, 3),
 
-    ('RNDQ0004A', 'RNDQ0004', TRUE,  0),
-    ('RNDQ0004B', 'RNDQ0004', FALSE, 1),
-    ('RNDQ0004C', 'RNDQ0004', FALSE, 2),
-    ('RNDQ0004D', 'RNDQ0004', FALSE, 3),
+    ('LAWQ0004A', 'LAWQ0004', TRUE,  0),
+    ('LAWQ0004B', 'LAWQ0004', FALSE, 1),
+    ('LAWQ0004C', 'LAWQ0004', FALSE, 2),
+    ('LAWQ0004D', 'LAWQ0004', FALSE, 3),
 
-    ('RNDQ0005A', 'RNDQ0005', FALSE, 0),
-    ('RNDQ0005B', 'RNDQ0005', FALSE, 1),
-    ('RNDQ0005C', 'RNDQ0005', FALSE, 2),
-    ('RNDQ0005D', 'RNDQ0005', TRUE,  3);
+    ('LAWQ0005A', 'LAWQ0005', FALSE, 0),
+    ('LAWQ0005B', 'LAWQ0005', FALSE, 1),
+    ('LAWQ0005C', 'LAWQ0005', FALSE, 2),
+    ('LAWQ0005D', 'LAWQ0005', TRUE,  3);
 
 INSERT INTO exam.choice_translations (choice_id, language, text) VALUES
-    ('RNDQ0001A', 'en', 'A valid pilot licence with the appropriate rating'),
-    ('RNDQ0001B', 'en', 'A passport only'),
-    ('RNDQ0001C', 'en', 'A driving licence'),
-    ('RNDQ0001D', 'en', 'No document is required'),
+    ('LAWQ0001A', 'en', 'A valid pilot licence with the appropriate rating'),
+    ('LAWQ0001B', 'en', 'A passport only'),
+    ('LAWQ0001C', 'en', 'A driving licence'),
+    ('LAWQ0001D', 'en', 'No document is required'),
 
-    ('RNDQ0002A', 'en', '150 m (500 ft)'),
-    ('RNDQ0002B', 'en', '300 m (1000 ft) above the highest obstacle within 600 m'),
-    ('RNDQ0002C', 'en', '600 m (2000 ft)'),
-    ('RNDQ0002D', 'en', 'There is no minimum height over congested areas'),
+    ('LAWQ0002A', 'en', '150 m (500 ft)'),
+    ('LAWQ0002B', 'en', '300 m (1000 ft) above the highest obstacle within 600 m'),
+    ('LAWQ0002C', 'en', '600 m (2000 ft)'),
+    ('LAWQ0002D', 'en', 'There is no minimum height over congested areas'),
 
-    ('RNDQ0003A', 'en', 'The faster aircraft'),
-    ('RNDQ0003B', 'en', 'The higher aircraft'),
-    ('RNDQ0003C', 'en', 'The aircraft on the other''s right'),
-    ('RNDQ0003D', 'en', 'The aircraft on the other''s left'),
+    ('LAWQ0003A', 'en', 'The faster aircraft'),
+    ('LAWQ0003B', 'en', 'The higher aircraft'),
+    ('LAWQ0003C', 'en', 'The aircraft on the other''s right'),
+    ('LAWQ0003D', 'en', 'The aircraft on the other''s left'),
 
-    ('RNDQ0004A', 'en', 'Blue'),
-    ('RNDQ0004B', 'en', 'Red'),
-    ('RNDQ0004C', 'en', 'Green'),
-    ('RNDQ0004D', 'en', 'Black'),
+    ('LAWQ0004A', 'en', 'Blue'),
+    ('LAWQ0004B', 'en', 'Red'),
+    ('LAWQ0004C', 'en', 'Green'),
+    ('LAWQ0004D', 'en', 'Black'),
 
-    ('RNDQ0005A', 'en', '1000 ft'),
-    ('RNDQ0005B', 'en', '3000 ft'),
-    ('RNDQ0005C', 'en', '4500 ft'),
-    ('RNDQ0005D', 'en', '5000 ft');
+    ('LAWQ0005A', 'en', '1000 ft'),
+    ('LAWQ0005B', 'en', '3000 ft'),
+    ('LAWQ0005C', 'en', '4500 ft'),
+    ('LAWQ0005D', 'en', '5000 ft');
 
 -- ----------------------------------------------------------------
 -- 4. Fixed-order exam: questions & choices
