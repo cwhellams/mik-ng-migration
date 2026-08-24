@@ -3,7 +3,7 @@ import type {
   FlightLogOverlapResponse,
   FlightLogUpsertRequest,
 } from '@mik/contracts/flight-log'
-import { api } from '../../hooks/useApi'
+import { api } from '@mik/ui/hooks/useApi'
 import { usePendingConfirm } from './usePendingConfirm'
 
 /**

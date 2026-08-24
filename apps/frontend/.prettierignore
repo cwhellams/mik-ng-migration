@@ -10,3 +10,8 @@ build
 # in scope here, so `pnpm format:check` would fail on 700+ generated HTML files
 # for anyone who has checked the ratchet locally before pushing.
 coverage
+
+# Same again for the PWA plugin's dev output, written by `pnpm dev`. Gitignored,
+# so CI never sees it — but locally it made `pnpm format:check` fail for anyone
+# who had run the dev server.
+dev-dist

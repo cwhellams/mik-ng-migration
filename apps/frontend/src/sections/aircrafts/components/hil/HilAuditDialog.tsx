@@ -15,9 +15,9 @@ import {
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import type { AircraftHilAuditEntry, AircraftHilDetail } from '@mik/contracts/aircraft-hil'
-import { EditDialogTitle } from '../../../../components/EditDialogTitle'
-import { RemoteContent } from '../../../../components/RemoteContent'
-import useApi from '../../../../hooks/useApi'
+import { EditDialogTitle } from '@mik/ui/components/EditDialogTitle'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import useApi from '@mik/ui/hooks/useApi'
 
 interface HilAuditDialogProps {
   hil: AircraftHilDetail | undefined

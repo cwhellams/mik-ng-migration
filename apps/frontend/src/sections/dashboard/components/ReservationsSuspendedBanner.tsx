@@ -1,7 +1,7 @@
 import { Alert, AlertTitle, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { useMe } from '../../../hooks/useMe'
+import { useMe } from '@mik/ui/hooks/useMe'
 
 export function ReservationsSuspendedBanner() {
   const { t } = useTranslation()

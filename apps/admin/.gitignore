@@ -1,0 +1,27 @@
+# Logs
+logs
+*.log
+
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+dist
+dev-dist
+
+# Coverage
+coverage
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode
+.idea
+*.swp

@@ -4,7 +4,7 @@ import { FlightLogStatus } from '@mik/contracts/flight-log'
 import { StatusButton } from './StatusButton'
 import { renderAs, authScenarios } from '../../../test/auth'
 import { aFlightLogListEntry } from '../../../test/fixtures'
-import { MEMBER_ID } from '../../../test/fixtures/cast'
+import { MEMBER_ID } from '@mik/ui/test/fixtures/cast'
 
 describe('StatusButton', () => {
   it('renders an editable NEW badge that triggers update on click', async () => {

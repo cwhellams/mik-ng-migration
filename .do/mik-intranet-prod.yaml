@@ -5,8 +5,18 @@ vpc:
 domains:
   - domain: ${DOMAIN}
     type: PRIMARY
+  # Admin app's own subdomain. Not PRIMARY — that's reserved for the app's
+  # canonical domain (${DOMAIN}, intra.mik.fi) — and not auto-DNS-managed
+  # (no `zone:`), matching ${DOMAIN} above: DNS for mik.fi lives outside DO,
+  # so twr.mik.fi must be pointed at this app externally before this takes
+  # effect. See the ingress rule below for how requests to it are routed.
+  - domain: twr.mik.fi
+    type: ALIAS
 ingress:
   rules:
+    # /api, /auth, /health, /t carry no `authority` match, so they apply
+    # regardless of which of the app's domains the request arrived on — the
+    # backend is one service shared by both intra.mik.fi and twr.mik.fi.
     - component:
         name: mik-intranet-api-prod
         preserve_path_prefix: true
@@ -31,6 +41,18 @@ ingress:
       match:
         path:
           prefix: /t
+    # Host-based split: twr.mik.fi goes to the admin app, everything else
+    # (intra.mik.fi) falls through to the member frontend below. This rule
+    # must come before the authority-less catch-all, since ingress rules are
+    # evaluated in order and the first match wins — an unfiltered `/` rule
+    # ahead of this one would swallow twr.mik.fi requests too.
+    - component:
+        name: mik-intranet-admin-prod
+      match:
+        authority:
+          exact: twr.mik.fi
+        path:
+          prefix: /
     - component:
         name: mik-intranet-frontend-prod
       match:
@@ -184,8 +206,18 @@ services:
         value: '${OCCURRENCE_NOTIFICATION_WORKER_ENABLED}'
         type: GENERAL
       - key: CORS_ALLOWED_ORIGINS
+        # Must include https://twr.mik.fi (set as a GitHub Actions var/secret
+        # outside this repo) — the admin app calls this same backend
+        # cross-origin from its own subdomain. See COOKIE_DOMAIN below for the
+        # other half of making that a shared session rather than two logins.
         value: '${CORS_ALLOWED_ORIGINS}'
         type: SECRET
+      - key: COOKIE_DOMAIN
+        # Literal, not templated: shares the auth cookies across every
+        # mik.fi subdomain (intra.mik.fi, twr.mik.fi) so signing in on one
+        # authenticates the other. See apps/backend/src/routes/auth/token.ts.
+        value: '.mik.fi'
+        type: GENERAL
       - key: WEATHER_API_BASE_URL
         value: '${WEATHER_API_BASE_URL}'
         type: GENERAL
@@ -313,6 +345,40 @@ static_sites:
       corepack enable
       pnpm install --frozen-lockfile
       pnpm --filter frontend build
+
+    environment_slug: node-js
+
+    envs:
+      - key: VITE_API_TARGET
+        value: '${VITE_API_TARGET}'
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
+      - key: VITE_TURNSTILE_SITE_KEY
+        value: '${VITE_TURNSTILE_SITE_KEY}'
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
+      - key: DEPLOY_TIMESTAMP
+        value: '${DEPLOY_TIMESTAMP}'
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
+    catchall_document: index.html
+
+  # Admin app — served at twr.mik.fi, routed by the authority-matched ingress
+  # rule above rather than a path. Backend calls stay pointed at ${DOMAIN}
+  # (intra.mik.fi, same VITE_API_TARGET as the frontend below), which makes
+  # them cross-origin from twr.mik.fi; COOKIE_DOMAIN and CORS_ALLOWED_ORIGINS
+  # on mik-intranet-api-prod are what makes that work (see the comments there).
+  - name: mik-intranet-admin-prod
+    github:
+      repo: MIK-dev-team/mik-ng
+      branch: ${DEPLOY_BRANCH}
+    source_dir: /
+    output_dir: /apps/admin/dist
+
+    build_command: |
+      corepack enable
+      pnpm install --frozen-lockfile
+      pnpm --filter admin build
 
     environment_slug: node-js
 

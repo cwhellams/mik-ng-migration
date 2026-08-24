@@ -47,6 +47,7 @@ jest.unstable_mockModule('../../../src/services/turnstile.ts', () => ({
 
 jest.unstable_mockModule('../../../src/routes/auth/magiclink.ts', () => ({
   buildMagicLinkHref: jest.fn(),
+  resolveMagicLinkOrigin: jest.fn(),
   generateMagicLinkToken: jest.fn(),
   generateLoginCode: jest.fn(),
 }))

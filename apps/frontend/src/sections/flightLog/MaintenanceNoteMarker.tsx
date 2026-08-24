@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import { useAircraftHil } from '../aircrafts/components/hil/useAircraftHil'
-import { useTimezone } from '../../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { MaintenanceNoteDialog } from './MaintenanceNoteDialog'
 
 interface MaintenanceNoteMarkerProps {

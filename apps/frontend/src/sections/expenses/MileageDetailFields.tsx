@@ -21,7 +21,7 @@ import {
 import { Icon } from '@iconify/react'
 import type { RouteDistanceResponse } from '@mik/contracts/mileage-geo'
 import { DEFAULT_MILEAGE_MAX_KM } from '@mik/contracts/expenses-mileage'
-import { api } from '../../hooks/useApi'
+import { api } from '@mik/ui/hooks/useApi'
 import { AddressAutocomplete, type AddressValue } from './AddressAutocomplete'
 
 export interface MileageLegForm {

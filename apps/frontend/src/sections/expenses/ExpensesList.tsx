@@ -21,10 +21,11 @@ import {
   type ExpenseClaim,
   type ExpenseClaimListResponse,
 } from '@mik/contracts/expenses'
-import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
-import { ExpenseStatusChip, formatExpenseAmount, getExpenseCategoryLabel } from './expenseUi'
+import useApi from '@mik/ui/hooks/useApi'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
+import { formatExpenseAmount, getExpenseCategoryLabel } from '@mik/ui/utils/expenseUi'
+import { ExpenseStatusChip } from '@mik/ui/components/ExpenseStatusChip'
 
 const PAGE_SIZE = 20
 

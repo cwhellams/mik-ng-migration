@@ -1,5 +1,5 @@
 import { MemberListFilters, MemberListResponse } from '@mik/contracts/members'
-import useApi from '../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { Autocomplete, TextField } from '@mui/material'
 import { useMemo } from 'react'
 import { endpoints } from '../api/endpoints'

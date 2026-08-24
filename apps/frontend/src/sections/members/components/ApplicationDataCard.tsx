@@ -12,7 +12,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { useTranslation } from 'react-i18next'
-import { FormTitle } from '../../../components/FormTitle'
+import { FormTitle } from '@mik/ui/components/FormTitle'
 import {
   type ApplicationData,
   PilotLicenceType,

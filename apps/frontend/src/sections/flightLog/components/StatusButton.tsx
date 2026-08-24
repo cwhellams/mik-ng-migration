@@ -1,9 +1,9 @@
 import { FlightLogListEntry } from '@mik/contracts/flight-log'
 import { Tooltip, useTheme, IconButton, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
-import { EditButton } from '../../../components/EditButton'
+import { EditButton } from '@mik/ui/components/EditButton'
 import { Icon } from '@iconify/react'
-import { useInvoicePdfDownload } from '../../../hooks/useInvoicePdfDownload'
+import { useInvoicePdfDownload } from '@mik/ui/hooks/useInvoicePdfDownload'
 
 type Props = {
   log: FlightLogListEntry

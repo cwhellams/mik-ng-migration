@@ -38,18 +38,22 @@ import {
   type ExpenseClaimAttachment,
 } from '@mik/contracts/expenses'
 import type { FlightLogListEntry, FlightLogListResponse } from '@mik/contracts/flight-log'
-import useApi, { sharedApi } from '../../hooks/useApi'
-import { useMe } from '../../hooks/useMe'
-import { Title } from '../../components/Title'
-import { getExpenseCategoryLabel } from './expenseUi'
-import { AttachmentsUploadZone, BankDetailsFields, LineItemsTable } from './expenseShared'
+import useApi, { sharedApi } from '@mik/ui/hooks/useApi'
+import { useMe } from '@mik/ui/hooks/useMe'
+import { Title } from '@mik/ui/components/Title'
+import { getExpenseCategoryLabel } from '@mik/ui/utils/expenseUi'
+import {
+  AttachmentsUploadZone,
+  BankDetailsFields,
+  LineItemsTable,
+} from '@mik/ui/components/expenseShared'
 import {
   type EditableLineItem,
   defaultUnitForCategory,
   isAirportOutsideFinland,
   makeDefaultLineItem,
-} from './expenseHelpers'
-import { validateHetu, validateIban } from './validation'
+} from '@mik/ui/utils/expenseHelpers'
+import { validateHetu, validateIban } from '@mik/ui/utils/expenseValidation'
 import {
   MILEAGE_MAX_KM,
   MileageLegsEditor,

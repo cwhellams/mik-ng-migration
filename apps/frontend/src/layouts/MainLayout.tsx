@@ -4,7 +4,7 @@ import Footer from '../components/Footer'
 import { Outlet, useNavigate, useLocation } from 'react-router'
 import { NotificationBanner } from '../components/NotificationBanner'
 import { MeetingOngoingBanner } from '../components/MeetingOngoingBanner'
-import { useMe } from '../hooks/useMe'
+import { useMe } from '@mik/ui/hooks/useMe'
 import { useEffect } from 'react'
 
 const PROFILE_PATH = '/club/members/me'

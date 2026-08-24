@@ -1,7 +1,7 @@
 import React from 'react'
 import { Typography, Box } from '@mui/material'
 import { t } from 'i18next'
-import { useTimezone } from '../../../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 interface InvoiceDatesCellProps {
   sentAt: string | Date | null

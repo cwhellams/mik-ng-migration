@@ -1,0 +1,163 @@
+import { screen } from '@testing-library/react'
+import { http, HttpResponse } from 'msw'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { RecentRemark } from '@mik/contracts/remarks'
+
+import { aFlightLog, anAdmin } from '../../test/fixtures'
+import { signInAs } from '../../test/auth'
+import { apiUrl } from '../../test/msw/handlers'
+import { server } from '../../test/msw/server'
+import { renderWithProviders } from '../../test/renderWithProviders'
+import { FlightLogAdminDashboard } from './FlightLogAdminDashboard'
+
+// This widget links out to the flight logbook, which stayed in the member app
+// (#1233). `MemberAppLink` resolves that app's base itself and defaults to its
+// own Vite port when VITE_API_TARGET is unset, which it is by default in this
+// suite — so pin the production value and let MemberAppLink's own tests cover
+// the dev default.
+beforeEach(() => vi.stubEnv('VITE_API_TARGET', 'https://intra.mik.fi'))
+afterEach(() => vi.unstubAllEnvs())
+
+const aRecentRemark = (overrides: Partial<RecentRemark> = {}): RecentRemark => ({
+  remarkId: 'remark-1',
+  flightId: 'fi_inst1',
+  description: 'Oil stain noticed on the ramp, wiped off',
+  aircraftRegistration: 'OH-STL',
+  takeoffTimeUtc: '2025-06-02T09:00:00.000Z',
+  createdAt: '2025-06-02T09:00:00.000Z',
+  createdBy: 'Matti1',
+  updatedAt: '2025-06-02T09:00:00.000Z',
+  updatedBy: 'Matti1',
+  ...overrides,
+})
+
+const dashboardApi = (
+  logs: ReturnType<typeof aFlightLog>[] = [],
+  recentRemarks: RecentRemark[] = [],
+) => {
+  server.use(
+    http.get(apiUrl('v1/ajlb'), () => HttpResponse.json({ books: [] })),
+    http.get(apiUrl('v1/flight-logs'), () => HttpResponse.json({ logs })),
+    http.get(apiUrl('v1/remarks/recent'), () => HttpResponse.json({ remarks: recentRemarks })),
+  )
+}
+
+describe('FlightLogAdminDashboard incidents, observations and remarks', () => {
+  it('lists the most recently logged remarks with a link to the flight', async () => {
+    signInAs(anAdmin())
+    dashboardApi([], [aRecentRemark()])
+
+    renderWithProviders(<FlightLogAdminDashboard />)
+
+    expect(await screen.findByText('Oil stain noticed on the ramp, wiped off')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: /OH-STL/ })
+    // A plain href, not a router link: the logbook is a different app.
+    expect(link).toHaveAttribute('href', 'https://intra.mik.fi/logs/flights/fi_inst1')
+  })
+
+  it('lists flights with an incident or observation alongside remarks, in one widget', async () => {
+    signInAs(anAdmin())
+    dashboardApi(
+      [
+        aFlightLog({
+          flightId: 'fi_inst2',
+          aircraftRegistration: 'OH-IHQ',
+          incidentOrObservations: 'Rough running on climb-out',
+          takeoffTimeUtc: '2025-06-03T09:00:00.000Z',
+        }),
+      ],
+      [aRecentRemark({ takeoffTimeUtc: '2025-06-02T09:00:00.000Z' })],
+    )
+
+    renderWithProviders(<FlightLogAdminDashboard />)
+
+    expect(await screen.findByText('Rough running on climb-out')).toBeInTheDocument()
+    expect(screen.getByText('Oil stain noticed on the ramp, wiped off')).toBeInTheDocument()
+  })
+
+  it('puts the most recent flight -- incident or remark -- first', async () => {
+    signInAs(anAdmin())
+    dashboardApi(
+      [
+        aFlightLog({
+          flightId: 'fi_inst2',
+          aircraftRegistration: 'OH-IHQ',
+          incidentOrObservations: 'Rough running on climb-out',
+          takeoffTimeUtc: '2025-06-01T09:00:00.000Z',
+        }),
+      ],
+      [aRecentRemark({ takeoffTimeUtc: '2025-06-05T09:00:00.000Z' })],
+    )
+
+    renderWithProviders(<FlightLogAdminDashboard />)
+
+    const items = await screen.findAllByRole('listitem')
+    expect(items[0]).toHaveTextContent('Oil stain noticed on the ramp, wiped off')
+    expect(items[1]).toHaveTextContent('Rough running on climb-out')
+  })
+
+  it('shows an empty state when there are no incidents, observations or remarks', async () => {
+    signInAs(anAdmin())
+    dashboardApi([], [])
+
+    renderWithProviders(<FlightLogAdminDashboard />)
+
+    expect(
+      await screen.findByText('No flights with incidents, observations or remarks.'),
+    ).toBeInTheDocument()
+  })
+
+  it('requests remarks scoped to the same NEW status as the observations list', async () => {
+    signInAs(anAdmin())
+    let capturedStatus: string | null = null
+    server.use(
+      http.get(apiUrl('v1/ajlb'), () => HttpResponse.json({ books: [] })),
+      http.get(apiUrl('v1/flight-logs'), () => HttpResponse.json({ logs: [] })),
+      http.get(apiUrl('v1/remarks/recent'), ({ request }) => {
+        capturedStatus = new URL(request.url).searchParams.get('status')
+        return HttpResponse.json({ remarks: [] })
+      }),
+    )
+
+    renderWithProviders(<FlightLogAdminDashboard />)
+
+    await screen.findByText('No flights with incidents, observations or remarks.')
+    expect(capturedStatus).toBe('NEW')
+  })
+
+  it('does not let backend truncation by createdAt silently drop a remark for the newest flight', async () => {
+    signInAs(anAdmin())
+
+    // Ten remarks the backend would return first under its own createdAt DESC + limit
+    // ordering (as if just bulk-backfilled onto old flights), plus one remark on a
+    // genuinely much newer flight. Fetching only the final display limit (10) raw
+    // would cut the newest-flight remark off before this component's own merge/sort
+    // by takeoffTimeUtc ever saw it -- the over-fetch below is what prevents that.
+    const oldFlightBackfilledRemarks = Array.from({ length: 10 }, (_, i) =>
+      aRecentRemark({
+        remarkId: `backfill-${i}`,
+        description: `Backfilled remark ${i}`,
+        takeoffTimeUtc: '2020-01-01T09:00:00.000Z',
+      }),
+    )
+    const newestFlightRemark = aRecentRemark({
+      remarkId: 'newest',
+      description: 'Remark on the actual newest flight',
+      takeoffTimeUtc: '2025-06-10T09:00:00.000Z',
+    })
+
+    server.use(
+      http.get(apiUrl('v1/ajlb'), () => HttpResponse.json({ books: [] })),
+      http.get(apiUrl('v1/flight-logs'), () => HttpResponse.json({ logs: [] })),
+      http.get(apiUrl('v1/remarks/recent'), ({ request }) => {
+        const limit = Number(new URL(request.url).searchParams.get('limit'))
+        const all = [...oldFlightBackfilledRemarks, newestFlightRemark]
+        return HttpResponse.json({ remarks: all.slice(0, limit) })
+      }),
+    )
+
+    renderWithProviders(<FlightLogAdminDashboard />)
+
+    expect(await screen.findByText('Remark on the actual newest flight')).toBeInTheDocument()
+  })
+})

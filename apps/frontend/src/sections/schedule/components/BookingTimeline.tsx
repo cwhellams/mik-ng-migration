@@ -2,9 +2,9 @@ import { Typography } from '@mui/material'
 import { Box, alpha } from '@mui/system'
 import dayjs from 'dayjs'
 import theme from '../../../theme/theme'
-import { formatDuration } from '../../flightLog/utils/timeUtils'
+import { formatDuration } from '@mik/ui/utils/duration'
 import { useTranslation } from 'react-i18next'
-import { toHelsinki } from '../../../utils/date'
+import { toHelsinki } from '@mik/ui/utils/date'
 
 const showDiff = (previous?: dayjs.Dayjs, next?: dayjs.Dayjs) => {
   if (!previous || !next) {

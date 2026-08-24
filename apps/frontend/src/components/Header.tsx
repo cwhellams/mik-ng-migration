@@ -29,25 +29,27 @@ import { menuItems } from '../config/menuItems'
 import { useSwipeable } from 'react-swipeable'
 import ThemeToggle from './ThemeToggle'
 import AdminToggle from './AdminToggle'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
 import { HeaderSubMenu } from './HeaderSubMenu'
 import ClockDisplay from './ClockDisplay'
 import { MIKPermissions } from '@mik/contracts/members'
 import { useMyDtoSyllabus } from '../sections/dto/useMyDtoSyllabus'
-import useApi from '../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { Cart } from '@mik/contracts/shop'
+import { envLabel } from '@mik/ui/utils/deploymentEnv'
 
 interface HeaderProps {
   window?: () => Window
 }
 
-const hostName =
-  import.meta.env.VITE_API_TARGET?.replace('https://', '').replace('.mik.fi', '') ?? 'local'
-
 const Header = (props: HeaderProps) => {
   const { window } = props
   const theme = useTheme()
+  // Computed per render rather than at module scope: it's cheap, env vars
+  // don't change at runtime anyway, and a module-level constant is baked in
+  // at first import — before a test's vi.stubEnv can affect it.
+  const hostName = envLabel(import.meta.env.VITE_API_TARGET)
   const { sudo } = useThemeMode()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isVisible, setIsVisible] = useState(true)

@@ -3,7 +3,7 @@ import { t } from 'i18next'
 import { Control, Controller } from 'react-hook-form'
 import { FlightLogUpsertRequest } from '@mik/contracts/flight-log'
 import { TimeField } from '@mui/x-date-pickers/TimeField'
-import { durationToDayjs } from '../utils/timeUtils'
+import { durationToDayjs } from '@mik/ui/utils/duration'
 
 interface MinutesFieldProps {
   name: keyof FlightLogUpsertRequest

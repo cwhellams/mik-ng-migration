@@ -1,43 +1,32 @@
 import { Routes, Route, Navigate } from 'react-router'
+import AdminAppRedirect from './components/AdminAppRedirect'
 
 import Aircrafts from './sections/aircrafts/Aircrafts'
-import AmeAdminList from './sections/admin/ame/AmeAdminList'
 import AmeEditSuggestionForm from './sections/ame/AmeEditSuggestionForm'
 import AmeList from './sections/ame/AmeList'
 import AmeSubmitForm from './sections/ame/AmeSubmitForm'
-import AttemptsAdminPage from './sections/admin/exams/AttemptsAdminPage'
 import AuthLayout from './layouts/AuthLayout'
 import Billing from './sections/billing/Billing'
 import CartPage from './sections/shop/CartPage'
-import CategoriesAdmin from './sections/admin/shop/CategoriesAdmin'
 import Dashboard from './sections/dashboard/Dashboard'
-import DiscountCodesAdmin from './sections/admin/shop/DiscountCodesAdmin'
 import Documents from './sections/documents/Documents'
-import DtoImportPage from './sections/admin/dto/DtoImportPage'
 import DtoMyTrainingPage from './sections/dto/DtoMyTrainingPage'
-import DtoProgramsAdminPage from './sections/admin/dto/DtoProgramsAdminPage'
 import DtoProgressPage from './sections/dto/DtoProgressPage'
 import DtoStudentDetailPage from './sections/dto/DtoStudentDetailPage'
-import DtoSyllabusEditorPage from './sections/admin/dto/DtoSyllabusEditorPage'
 import DtoVerificationPage from './sections/dto/DtoVerificationPage'
 import EmailChangeVerify from './sections/members/EmailChangeVerify'
-import EventsAdmin from './sections/admin/events/EventsAdmin'
 import EventsList from './sections/events/EventsList'
 import ExamAttemptPage from './sections/exams/ExamAttemptPage'
 import ExamDetailPage from './sections/exams/ExamDetailPage'
 import ExamReviewPage from './sections/exams/ExamReviewPage'
-import ExamsAdminPage from './sections/admin/exams/ExamsAdminPage'
 import ExamsPage from './sections/exams/ExamsPage'
-import ExamVersionEditorPage from './sections/admin/exams/ExamVersionEditorPage'
 import ExpenseClaimDetail from './sections/expenses/ExpenseClaimDetail'
 import ExpenseClaimForm from './sections/expenses/ExpenseClaimForm'
 import ExpenseClaimWizard from './sections/expenses/ExpenseClaimWizard'
 import ExpensesList from './sections/expenses/ExpensesList'
 import FlightLogsList from './sections/flightLog/FlightLogsList'
-import FlightPackagesAdmin from './sections/admin/shop/FlightPackagesAdmin'
 import FuelPrices from './sections/fuelPrices/FuelPrices'
 import InstructorStatus from './sections/members/InstructorStatus'
-import InventoryAdminPage from './sections/admin/inventory/InventoryAdminPage'
 import InventoryItemPage from './sections/inventory/InventoryItemPage'
 import InventoryPage from './sections/inventory/InventoryPage'
 import LogbookFlights from './sections/flightLog/LogbookPage'
@@ -50,52 +39,25 @@ import Mailbox from './sections/mailbox/Mailbox'
 import MainLayout from './layouts/MainLayout'
 import MassBalance from './sections/massBalance/MassBalance'
 import MeetingPage from './sections/meetings/MeetingPage'
-import MeetingsAdminPage from './sections/admin/meetings/MeetingsAdminPage'
 import Member from './sections/members/Member'
-import MemberChangeLog from './sections/members/MemberChangeLog'
 import Members from './sections/members/Members'
-import MemberTrash from './sections/members/MemberTrash'
 import MyExamHistoryPage from './sections/exams/MyExamHistoryPage'
 import MyFlightPackagesPage from './sections/shop/MyFlightPackagesPage'
 import NewFlightLogEntry from './sections/flightLog/FlightLogEntry'
-import NonRenewals from './sections/admin/NonRenewals'
 import NotFound from './sections/error/NotFound'
-import NotificationBannerAdmin from './sections/admin/NotificationBannerAdmin'
-import OrderDetailAdmin from './sections/admin/shop/OrderDetailAdmin'
 import OrderDetailPage from './sections/shop/OrderDetailPage'
-import OrdersAdmin from './sections/admin/shop/OrdersAdmin'
 import OrdersPage from './sections/shop/OrdersPage'
-import Outbox from './sections/admin/Outbox'
 import ProductPage from './sections/shop/ProductPage'
-import ProductsAdmin from './sections/admin/shop/ProductsAdmin'
 import Register from './sections/login/Register'
 import RegistrationVerify from './sections/login/RegistrationVerify'
-import RequirePermission from './components/RequirePermission'
-import Roles from './sections/members/Roles'
 import Schedule from './sections/schedule/Schedule'
-import ShopAdminDashboard from './sections/admin/shop/ShopAdminDashboard'
 import ShopPage from './sections/shop/ShopPage'
-import ToolsPage from './sections/accounting/ToolsPage'
-import UsefulPhoneNumbersAdminPage from './sections/admin/UsefulPhoneNumbersAdminPage'
 import { AccessCodes } from './sections/accessCodes/AccessCodes'
-import { CostCentresPage } from './sections/accounting/CostCentresPage'
-import { ExpenseApproval } from './sections/accounting/ExpenseApproval'
-import { ExpenseClaimAdminDetail } from './sections/accounting/ExpenseClaimAdminDetail'
-import { FlightInvoicing } from './sections/accounting/FlightInvoicing'
-import { InstructorWorktimeReport } from './sections/accounting/InstructorWorktimeReport'
-import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
-import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import { MIKPermissions } from '@mik/contracts/members'
-import { MileageAllowancesPage } from './sections/accounting/MileageAllowancesPage'
-import { MileageTulorekisteriReport } from './sections/accounting/MileageTulorekisteriReport'
 import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import { Occurrences } from './sections/occurrences/Occurences'
 import { Stats } from './sections/stats/Stats'
-import { TaxReport } from './sections/accounting/TaxReport'
-import { TraficomReport } from './sections/accounting/TraficomReport'
-import { UnpaidOverdueInvoices } from './sections/accounting/UnpaidOverdueInvoices'
-import { UpliftReport } from './sections/accounting/UpliftReport'
-import { useRoles } from './hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 
 function DtoIndexRedirect() {
   const { hasAccess } = useRoles()
@@ -139,16 +101,12 @@ export default function AppRoutes() {
         </Route>
         <Route path='/club'>
           <Route index element={<Members />} />
-          <Route path='members/roles' element={<Roles />} />
-          <Route path='members/trash' element={<MemberTrash />} />
-          <Route
-            path='members/changelog'
-            element={
-              <RequirePermission permissions={[MIKPermissions.MEMBER_ADMIN]}>
-                <MemberChangeLog />
-              </RequirePermission>
-            }
-          />
+          {/* members/roles, members/trash and members/changelog moved to
+              apps/admin (#1233). They are caught by the redirect below rather
+              than listed here, so the three old URLs still resolve. */}
+          <Route path='members/roles' element={<AdminAppRedirect />} />
+          <Route path='members/trash' element={<AdminAppRedirect />} />
+          <Route path='members/changelog' element={<AdminAppRedirect />} />
           <Route path='members/:memberId' element={<Member />} />
           <Route path='instructor-status' element={<InstructorStatus />} />
           <Route path='billing' element={<Billing />} />
@@ -168,120 +126,9 @@ export default function AppRoutes() {
           <Route path=':id' element={<ExpenseClaimDetail />} />
           <Route path=':id/edit' element={<ExpenseClaimForm />} />
         </Route>
-        <Route path='/accounting'>
-          <Route
-            index
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <InvoicingAdminDashboard />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='invoicing'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <FlightInvoicing />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='items'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <InvoiceItemsPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='tools'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <ToolsPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='tax-report'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <TaxReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='traficom-report'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <TraficomReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='uplift-report'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <UpliftReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='instructor-worktime'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <InstructorWorktimeReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='unpaid-overdue'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
-                <UnpaidOverdueInvoices />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='expenses'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
-                <ExpenseApproval />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='expenses/:id'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
-                <ExpenseClaimAdminDetail />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='mileage-allowances'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
-                <MileageAllowancesPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='tulorekisteri-report'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_HETU_ADMIN]}>
-                <MileageTulorekisteriReport />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='cost-centres'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
-                <CostCentresPage />
-              </RequirePermission>
-            }
-          />
-        </Route>
+        {/* Ported to apps/admin (#1233), like /admin/* below. Both prefixes are
+            kept verbatim over there, so an old bookmark is a prefix swap. */}
+        <Route path='/accounting/*' element={<AdminAppRedirect />} />
         <Route path='/shop'>
           <Route index element={<ShopPage />} />
           <Route path='products/:id' element={<ProductPage />} />
@@ -297,177 +144,11 @@ export default function AppRoutes() {
           <Route path='review/:attemptId' element={<ExamReviewPage />} />
           <Route path='history' element={<MyExamHistoryPage />} />
         </Route>
-        <Route path='/admin'>
-          <Route index element={<Navigate to='outbox' replace />} />
-          <Route
-            path='outbox'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.OUTBOX_ADMIN]}>
-                <Outbox />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='non-renewals'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.MEMBER_ADMIN]}>
-                <NonRenewals />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='notification-banner'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.MEMBER_ADMIN]}>
-                <NotificationBannerAdmin />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='shop'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
-                <ShopAdminDashboard />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='shop/products'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
-                <ProductsAdmin />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='shop/categories'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
-                <CategoriesAdmin />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='shop/orders'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
-                <OrdersAdmin />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='shop/orders/:orderId'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
-                <OrderDetailAdmin />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='shop/discount-codes'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
-                <DiscountCodesAdmin />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='shop/flight-packages'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
-                <FlightPackagesAdmin />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='events'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EVENTS_ADMIN]}>
-                <EventsAdmin />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='exams'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXAM_ADMIN]}>
-                <ExamsAdminPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='exams/versions/:versionId'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXAM_ADMIN]}>
-                <ExamVersionEditorPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='exams/attempts'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.EXAM_ADMIN]}>
-                <AttemptsAdminPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='dto'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.DTO_ADMIN]}>
-                <DtoProgramsAdminPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='dto/syllabi/:syllabusId'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.DTO_ADMIN]}>
-                <DtoSyllabusEditorPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='dto/programs/:programId/import'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.DTO_ADMIN]}>
-                <DtoImportPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='phone-numbers'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.MEMBER_ADMIN]}>
-                <UsefulPhoneNumbersAdminPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='inventory'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.INVENTORY_ADMIN]}>
-                <InventoryAdminPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='ame'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.AME_ADMIN]}>
-                <AmeAdminList />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path='meetings'
-            element={
-              <RequirePermission adminModeOnly permissions={[MIKPermissions.MEETING_ADMIN]}>
-                <MeetingsAdminPage />
-              </RequirePermission>
-            }
-          />
-        </Route>
+        {/* Ported to apps/admin (#1233). Deep links and bookmarks to the old
+            in-app admin pages are redirected to the same path in the admin app,
+            rather than 404ing — the sub-paths were kept identical for exactly
+            this reason. */}
+        <Route path='/admin/*' element={<AdminAppRedirect />} />
         <Route path='/dto'>
           <Route index element={<DtoIndexRedirect />} />
           <Route path='my-training' element={<DtoMyTrainingPage />} />

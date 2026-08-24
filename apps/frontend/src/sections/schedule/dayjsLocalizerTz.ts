@@ -1,6 +1,6 @@
 import { dayjsLocalizer } from 'react-big-calendar'
 import type { DateLocalizer } from 'react-big-calendar'
-import { dayjs, HELSINKI_TIMEZONE } from '../../utils/date'
+import { dayjs, HELSINKI_TIMEZONE } from '@mik/ui/utils/date'
 
 /**
  * Custom merge function that properly combines date + time in Helsinki timezone.

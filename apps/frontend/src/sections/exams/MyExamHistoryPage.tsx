@@ -13,9 +13,9 @@ import {
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { Title } from '../../components/Title'
-import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
+import useApi from '@mik/ui/hooks/useApi'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { AttemptListResponse } from '@mik/contracts/exams'
 import dayjs from 'dayjs'
 

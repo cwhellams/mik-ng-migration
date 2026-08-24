@@ -43,8 +43,8 @@ import {
   FlightLogStatus,
   FlightType,
 } from '@mik/contracts/flight-log'
-import useApi, { api } from '../../hooks/useApi'
-import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
+import useApi, { api } from '@mik/ui/hooks/useApi'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '@mik/ui/hooks/useSnackbar'
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { FUEL_TYPES } from '@mik/contracts/expenses'
 import { MemberListResponse } from '@mik/contracts/members'
@@ -54,7 +54,7 @@ import { buildFlightLogResolver } from './formResolver'
 import { FlightLogEntryWizard } from './wizard/FlightLogEntryWizard'
 import { MobileFlightLogView } from './MobileFlightLogView'
 import { flightTypes } from './constants'
-import { useMe } from '../../hooks/useMe'
+import { useMe } from '@mik/ui/hooks/useMe'
 import { FlightTime } from './components/FlightTime'
 import { TxtField } from './components/TxtField'
 import { MinutesField } from './components/MinutesField'
@@ -66,20 +66,20 @@ import { Fuel } from './components/Fuel'
 import { FuelUplift } from './components/FuelUplift'
 import { OilUplift } from './components/OilUplift'
 import { StatusDisplay } from './components/StatusDisplay'
-import { RemoteContent } from '../../components/RemoteContent'
-import { useRoles } from '../../hooks/useRoles'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { SelectMember } from '../../components/SelectMember'
-import { SnackAlert } from '../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
-import { SaveButton } from '../../components/SaveButton'
-import { Title } from '../../components/Title'
+import { SaveButton } from '@mik/ui/components/SaveButton'
+import { Title } from '@mik/ui/components/Title'
 import {
   getMemberSyllabus,
   getFlightAttempt,
   createFlightAttempt,
   updateFlightAttempt,
   type MemberSyllabusDetail,
-} from '../dto/dtoApi'
+} from '@mik/ui/api/dtoApi'
 import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
 import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'

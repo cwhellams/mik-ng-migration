@@ -7,7 +7,7 @@ import {
   countryCodeToFlagEmoji,
   formatLocalPhoneNumber,
   type PhoneCountry,
-} from '../data/callingCodes'
+} from '@mik/ui/data/callingCodes'
 
 interface PhoneNumberInputProps {
   value: string

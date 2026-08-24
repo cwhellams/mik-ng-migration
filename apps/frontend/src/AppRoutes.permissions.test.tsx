@@ -9,7 +9,6 @@ import { aMember } from './test/fixtures'
 import {
   GATED_ROUTES,
   isForbidden,
-  OWN_GATES,
   PUBLIC_PATHS,
   ROUTES,
   UNGATED_ROUTES,
@@ -37,7 +36,7 @@ describe('route table', () => {
     const gatesInSource = source.match(/<RequirePermission/g) ?? []
 
     // If this fails, a route was added, removed or re-gated — update routeMatrix.tsx.
-    expect(gatesInSource).toHaveLength(OWN_GATES.length)
+    expect(gatesInSource).toHaveLength(GATED_ROUTES.length)
   })
 
   it('gives every gated route at least one permission', () => {
@@ -50,14 +49,24 @@ describe('route table', () => {
     expect(new Set(ROUTES.map((route) => route.path)).size).toBe(ROUTES.length)
   })
 
-  it('is dominated by ungated routes, which rely on page- and API-level checks', () => {
-    // Recorded deliberately: only 36 of the 92 routes carry a route-level gate
-    // of their own, so the matrix is not on its own a complete authorisation
-    // audit — most of the app is guarded further in, at the page or the API.
-    expect(ROUTES).toHaveLength(93)
-    expect(OWN_GATES).toHaveLength(36)
-    expect(GATED_ROUTES).toHaveLength(37)
-    expect(UNGATED_ROUTES).toHaveLength(56)
+  it('has no route-level permission gates left at all', () => {
+    // The headline number of the split, and the reason the four signed-in runs
+    // of this matrix now assert only that every page renders for everyone.
+    //
+    // 93 routes / 37 gated on main. #1233 moved the 21 /admin/* pages, then the
+    // 14 /accounting/* pages and the three admin-only member screens, to
+    // apps/admin — whose own matrix gates all 38 of them. Every gate this app
+    // had went with them.
+    //
+    // That is the intended end state for the member app, not an oversight: what
+    // is left is for any signed-in member, and `RequirePermission` stays in the
+    // tree (with its own tests) for the day a member-facing route needs a gate
+    // again. If one is added, add its row to routeMatrix.tsx and this
+    // expectation changes with it — `covers every gate in AppRoutes.tsx` above
+    // is what forces that.
+    expect(ROUTES).toHaveLength(59)
+    expect(GATED_ROUTES).toHaveLength(0)
+    expect(UNGATED_ROUTES).toHaveLength(59)
   })
 
   it('opens nothing to the public beyond the sign-in routes and the 404', () => {
@@ -93,6 +102,10 @@ describe('route table', () => {
     }
   })
 
+  // The next three range over `GATED_ROUTES`, which is currently empty (see
+  // above), so they pass vacuously. They are kept rather than deleted because
+  // they encode the rules a *new* member-app gate would have to satisfy, and
+  // the count assertion above is what stops the emptiness going unnoticed.
   it('demands an admin permission on every gated route', () => {
     // This is what makes "the ordinary member sees Forbidden" a real assertion
     // rather than a restatement of the rule under test.
@@ -130,13 +143,13 @@ describe('route table', () => {
     }
   })
 
-  it('gates all but one route on admin mode as well as a permission', () => {
-    // /club/members/changelog is the lone gate without `adminModeOnly`, so an
-    // admin reaches it without switching admin mode on — `hasAccess` is not
-    // sudo-downgraded, only the `isXAdmin` flags are.
+  it('would gate on admin mode as well as a permission', () => {
+    // /club/members/changelog used to be the lone gate without `adminModeOnly`;
+    // it has moved to apps/admin, so every remaining gate — of which there are
+    // none — must set it.
     const withoutAdminMode = GATED_ROUTES.filter((route) => !route.adminModeOnly)
 
-    expect(withoutAdminMode.map((route) => route.path)).toEqual(['/club/members/changelog'])
+    expect(withoutAdminMode.map((route) => route.path)).toEqual([])
   })
 })
 

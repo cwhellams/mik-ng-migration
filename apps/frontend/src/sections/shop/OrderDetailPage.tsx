@@ -15,13 +15,13 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import type { Order } from '@mik/contracts/shop'
 import { useParams, Link } from 'react-router'
-import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { ORDER_STATUS_COLOR } from './orderStatusColor'
-import { useLocalisedText, type UiLanguage } from '../../utils/localisedText'
+import useApi from '@mik/ui/hooks/useApi'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { ORDER_STATUS_COLOR } from '@mik/ui/utils/orderStatusColor'
+import { useLocalisedText, type UiLanguage } from '@mik/ui/utils/localisedText'
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()

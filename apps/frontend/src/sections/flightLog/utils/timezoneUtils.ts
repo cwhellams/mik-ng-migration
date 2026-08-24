@@ -4,7 +4,7 @@ import type { Dayjs } from 'dayjs'
 // exists once the utc plugin has been registered, and utils/date is where that
 // happens. Importing plain dayjs worked only as a side effect of App.tsx pulling
 // utils/date in first, which is not something this module should rely on.
-import { dayjs } from '../../../utils/date'
+import { dayjs } from '@mik/ui/utils/date'
 
 /**
  * Returns the current time as an example, either in UTC or in the local offset

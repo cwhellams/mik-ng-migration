@@ -129,7 +129,9 @@ Where the tests go:
 | -------------------- | ----------------------------------------------------- |
 | `apps/backend`       | `test/`, mirroring `src/routes/<domain>/`             |
 | `apps/frontend`      | colocated `*.test.ts` / `*.test.tsx` next to the code |
+| `apps/admin`         | colocated `*.test.ts` / `*.test.tsx` next to the code |
 | `packages/contracts` | `packages/contracts/test/`                            |
+| `packages/ui`        | colocated, next to the component or util              |
 
 Rules that follow from it:
 
@@ -188,9 +190,11 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 ```
 ├── apps/
 │   ├── backend/          # Node.js/Express API with TypeScript
-│   └── frontend/         # React/Vite application
+│   ├── frontend/         # React/Vite — the member app (intra.mik.fi)
+│   └── admin/            # React/Vite — the back-office app (twr.mik.fi, see below)
 ├── packages/
-│   └── contracts/        # @mik/contracts — API models shared by both apps (see below)
+│   ├── contracts/        # @mik/contracts — API models shared by every app (see below)
+│   └── ui/               # @mik/ui — components, utils and i18n shared by the two frontends (see below)
 ├── simplbooks/           # Cloudflare Worker — mock SimplBooks API (see below)
 ├── sql/                  # Database migrations and test data
 ├── scripts/              # Utility scripts for development
@@ -209,7 +213,160 @@ Always check these locations when working on the codebase:
 - `simplbooks/src/worker/` - Cloudflare Worker source for the SimplBooks mock API
 - `simplbooks/wrangler.toml` - Cloudflare Worker configuration (must set real `database_id` before first deploy)
 - `packages/contracts/src/<domain>.ts` - Shared request/response models (see below)
+- `packages/ui/src/**` - Components, utils, API clients and the i18n bundle shared by both frontends (see below)
+- `apps/admin/src/config/navItems.ts` - The admin sidebar; must agree with `AppRoutes.tsx`'s gates
 - Package files: `package.json`, `apps/*/package.json`, `packages/*/package.json`
+
+## The Two Frontends
+
+`apps/frontend` is the member app (`intra.mik.fi` / `beta.mik.fi`); `apps/admin` is the
+back-office app (`twr.mik.fi` / `beta-twr.mik.fi`), served by the same DigitalOcean app as
+a second `static_sites` component with its own domain — routed by an `authority`-matched
+ingress rule (see `.do/mik-intranet-{prod,test}.yaml`), not a path prefix. The split is
+issue #1233: the member UI had accumulated enough back-office functionality that both
+audiences were badly served by it.
+
+Because the two apps are genuine subdomains rather than paths on one origin, the admin
+app's calls to the backend are cross-origin from the member app's. That is made to work
+by two things, both set on the backend service in the DO spec: `COOKIE_DOMAIN=.mik.fi`
+(shares the auth session across every mik.fi subdomain — see
+`apps/backend/src/routes/auth/token.ts`) and `CORS_ALLOWED_ORIGINS` including the admin
+subdomain (a GitHub Actions var, not in this repo — see the comment beside it in the DO
+spec). DNS for `twr.mik.fi`/`beta-twr.mik.fi` is likewise external to this repo, same as
+for the existing `intra.mik.fi`/`beta.mik.fi`.
+
+- **No sudo toggle in `apps/admin`.** The member app's `AdminToggle` exists so that
+  someone who merely _holds_ an admin permission doesn't see admin UI by accident.
+  Reaching the admin app is itself that deliberate step, so its `useApi` always sends
+  `x-sudo: true` and `useRoles().hasSudoAccess === hasAccess`. A `RequirePermission` there
+  takes `permissions` and no `adminModeOnly`.
+- **The apps never import from each other.** Anything both need goes in `@mik/ui` (or
+  `@mik/contracts`, if the backend needs it too).
+- **Admin pages live in `apps/admin`, instructor pages stay in `apps/frontend`.** The
+  dividing line from #1233: back-office work moves, but anything a flight instructor uses
+  during a lesson stays in the member app, because they are on a phone or tablet on the
+  apron, not at a desk. When in doubt, ask which device the person is holding.
+
+  The calls already made, so they don't get relitigated page by page:
+
+  | Stayed in the member app                                                    | Moved to the admin app                                 |
+  | --------------------------------------------------------------------------- | ------------------------------------------------------ |
+  | Flight-log validation and correction (`LogbookPage`) — done at the aircraft | The four admin dashboard widgets — queues of desk work |
+  | Occurrence/safety-report processing — reports are chased in the field       | Commercial flight-time reporting (out of `Stats`)      |
+  | `RecentFuelings` — a log for the members who did the fuelling               | Fuel-price and local-price editing                     |
+  | Document _browsing_                                                         | Document upload, edit and delete                       |
+  | Inventory browsing                                                          | Low-stock warnings and the item audit trail            |
+
+  A page that keeps an admin branch keeps it deliberately; if you are adding one, say in
+  the code why the device argument puts it on that side.
+
+- **Crossing between the apps** is `AdminAppRedirect` (member → admin, by rewriting the
+  path prefix) and `MemberAppLink` (admin → member, for the flight-log links the admin
+  dashboard still needs). Both do a full page load, because the destination is a separate
+  bundle. Neither app should ever `<Link to>` a route the other owns.
+
+- **The environment badge next to the logo is shared logic, app-local wiring.**
+  `apps/frontend`'s `Header` and `apps/admin`'s `AdminLayout` sidebar each show
+  `envLabel(import.meta.env.VITE_API_TARGET)` next to the MIK logo — hidden in production
+  (`'intra'`), shown otherwise (`'beta'`, `'local'`, or whatever else the target resolves
+  to). Compute it inside the component, not at module scope: `import.meta.env.VITE_*` is
+  read live under Vitest, so a module-level constant is captured once at first import and
+  never sees a later `vi.stubEnv` in a test — this bit both apps once already.
+
+  Both resolve the other app's base URL themselves from `VITE_API_TARGET` — the one env
+  var already set per environment, identical in both apps, whose host **is** the member
+  app's own domain (`intra`/`beta`) and maps to the admin app's differently-named one
+  (`twr`/`beta-twr`) via a small table in `@mik/ui/utils/deploymentEnv`. In development
+  `VITE_API_TARGET` is unset, so both fall back to the other app's Vite port — `pnpm dev`
+  at the repo root starts the backend and **both** front ends for that reason, since with
+  only one running, every cross-app link lands on the running app's 404 page.
+  `VITE_ADMIN_URL`/`VITE_MEMBER_URL` override the derived value if you ever need to.
+
+- **Moving a route means moving its menu entry.** They are separate edits and the second
+  one is easy to forget: #1233 removed the `/accounting` routes three PRs before anyone
+  noticed the member app still offered thirteen invoicing menu items that 404'd on click.
+  `apps/frontend/src/config/menuItems.test.ts` now fails on a menu item that matches no
+  route, _and_ on one that matches only an `AdminAppRedirect` route — the second check is
+  the one that catches this, since a redirect makes a dead link look alive.
+  `apps/admin`'s equivalent lives in its `AppRoutes.permissions.test.tsx`.
+- **Where a page is genuinely shared, the capability is a prop.** `DocumentsPage` takes
+  `canManage`; `apps/frontend` renders it with the default `false` and cannot turn it on,
+  `apps/admin` passes its permission check. That is what "removed from the member UI"
+  means for a screen both audiences use — not a second copy of the page.
+- **`apps/admin`'s paths mirror the member app's old ones** — `/admin/shop/orders` →
+  `/shop/orders`, `/accounting/items` → `/accounting/items` unchanged — so
+  `AdminAppRedirect` in the member app forwards an old bookmark by rewriting the prefix
+  and nothing else. Keep that correspondence when adding a route that used to exist over
+  there, and add a case to that component if a new prefix needs a different mapping.
+- **The sidebar and the route gates must agree.** `apps/admin/src/config/navItems.ts`
+  lists each item's permissions and `AppRoutes.tsx` gates the route; a test in
+  `AppRoutes.permissions.test.tsx` fails if they diverge, because a visible menu item that
+  leads to a 403 is worse than no item at all.
+- **Both apps run a route permission matrix**: every route visited by every identity,
+  asserting the gate. `apps/frontend` uses five identities (its four plus sudo-off);
+  `apps/admin` uses five without the sudo axis — notably `clubAdmin`, who holds the club's
+  real ADMIN role and so is _not_ a superuser (that role grants `MEMBER_ADMIN` but not
+  `STORE_ADMIN`, `EXAM_ADMIN`, `DTO_ADMIN` …). Add a route, add its row.
+
+## Shared Frontend Code (`@mik/ui`)
+
+`packages/ui` holds what both frontends render: generic MUI components, browser-side
+utils, the domain API clients, and the i18n bundle. It is the presentation-layer sibling
+of `@mik/contracts` and follows the same conventions — subpath exports, no barrel file,
+no build step, TypeScript source consumed directly by Vite and Vitest.
+
+```ts
+import Title from '@mik/ui/components/Title'
+import { formatDateInTz } from '@mik/ui/utils/date'
+import * as dtoApi from '@mik/ui/api/dtoApi'
+```
+
+|                              | `@mik/contracts`          | `@mik/ui`         |
+| ---------------------------- | ------------------------- | ----------------- |
+| Shared with                  | backend **and** both apps | the two apps only |
+| May import React / MUI / DOM | no                        | yes               |
+| May import Node builtins     | no                        | no                |
+
+Rules:
+
+- **Nothing app-specific.** A component belongs there only if both apps render it
+  unchanged. `Header`, `Footer`, `AdminToggle`, each app's `theme/` and each app's
+  `menuItems`/`navItems` are app-local because they encode one app's identity.
+- **`useApi` lives here, and so do the identity hooks.** There is one implementation for
+  both apps; what they disagree on comes from two contexts each app provides at its root:
+
+  | Context             | Supplies                            | `apps/frontend`    | `apps/admin`       |
+  | ------------------- | ----------------------------------- | ------------------ | ------------------ |
+  | `ApiConfigProvider` | whether requests carry admin rights | the sudo toggle    | constant `true`    |
+  | `TimezoneProvider`  | UTC or local timestamps             | its `ThemeContext` | its `ThemeContext` |
+
+  Both throw when the provider is missing rather than defaulting: a silent fallback for
+  `sudo` would either lose admin rights everywhere or grant them everywhere, and both are
+  far worse to diagnose than a throw. `useRoles`'s `hasSudoAccess` reads the _same_ flag
+  `useApi` sends as `x-sudo`, so the UI can never offer an action the request would then
+  be refused for.
+
+  This is what makes a self-fetching component shareable at all — `LineItemsTable`,
+  `SelectMember`, `InvoicePdfLink` and `FlightListEntry` all needed it. Follow the same
+  pattern for anything else that differs per app: one implementation, the difference in a
+  context.
+
+- **No Node builtins and no `process`.** `tsconfig.json` omits `@types/node` and
+  `eslint.config.js` blocks the globals by name, the same two-layer guard
+  `packages/contracts` uses. Environment values come from `import.meta.env`.
+- **Its test harness is deliberately minimal** — i18n plus MUI's _default_ theme, not
+  either app's. A component that only renders correctly under `apps/frontend`'s palette is
+  app-specific and does not belong there.
+- **Member and role fixtures live there too** (`@mik/ui/test/fixtures/{cast,roles,members}`),
+  because a permission-gate test needs the same cast on both sides. App-specific fixtures
+  (aircraft, bookings, flight logs) stay in the app that uses them.
+- **`components/expenseShared.tsx` and `api/{dtoApi,examApi}.ts` have no tests.** They
+  never had any in `apps/frontend` either — they sat under its 43% `src/sections` bar —
+  and between them they are ~310 statements, which is why `src/components` and `src/api`
+  carry the low bars they do in `vitest.config.ts`. They are the next thing to earn a
+  raise, not a precedent.
+- CI holds `packages/ui` at **zero** ESLint errors and runs it as its own job in
+  `intra-frontend-review.yml`, since a break there breaks both apps.
 
 ## Shared Contracts (`@mik/contracts`)
 
@@ -430,7 +587,8 @@ When asked to generate a changelog:
 
 The GitHub Actions workflows require:
 
-- ESLint error count below each project's ratchet (frontend 15, backend 79, `packages/contracts` 0)
+- ESLint error count below each project's ratchet (frontend 5, admin 0, backend 79,
+  `packages/contracts` 0, `packages/ui` 0)
 - Prettier formatting compliance (`pnpm format:check`)
 - Successful build completion
 - PostgreSQL service for backend tests

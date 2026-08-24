@@ -6,7 +6,7 @@ import { useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import AppRoutes from '../AppRoutes'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { authScenarios, renderAs, signInAs, type AuthScenario } from './auth'
 import { apiUrl, problemResponse } from './msw/handlers'
 import { server } from './msw/server'
@@ -33,11 +33,6 @@ export interface RouteUnderTest {
   permissions?: MIKPermissions[]
   /** Whether the gate also requires admin (sudo) mode. */
   adminModeOnly?: boolean
-  /**
-   * Set when the route carries no gate of its own but redirects to one that
-   * does, so a visitor still ends up at `<Forbidden />`.
-   */
-  redirectsTo?: string
 }
 
 export const ROUTES: RouteUnderTest[] = [
@@ -54,13 +49,11 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/logs/occurrences', url: '/logs/occurrences' },
   { path: '/logs/occurrences/:reportId', url: '/logs/occurrences/occ-1' },
   { path: '/club', url: '/club' },
+  // Roles, trash and changelog moved to apps/admin in #1233; what is left at
+  // these three URLs is the redirect that forwards a bookmark there.
   { path: '/club/members/roles', url: '/club/members/roles' },
   { path: '/club/members/trash', url: '/club/members/trash' },
-  {
-    path: '/club/members/changelog',
-    url: '/club/members/changelog',
-    permissions: [MIKPermissions.MEMBER_ADMIN],
-  },
+  { path: '/club/members/changelog', url: '/club/members/changelog' },
   { path: '/club/members/:memberId', url: '/club/members/Matti1' },
   { path: '/club/instructor-status', url: '/club/instructor-status' },
   { path: '/club/billing', url: '/club/billing' },
@@ -80,90 +73,8 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/expenses/new', url: '/expenses/new' },
   { path: '/expenses/:id', url: '/expenses/1' },
   { path: '/expenses/:id/edit', url: '/expenses/1/edit' },
-  {
-    path: '/accounting',
-    url: '/accounting',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/invoicing',
-    url: '/accounting/invoicing',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/items',
-    url: '/accounting/items',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/tools',
-    url: '/accounting/tools',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/tax-report',
-    url: '/accounting/tax-report',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/traficom-report',
-    url: '/accounting/traficom-report',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/uplift-report',
-    url: '/accounting/uplift-report',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/instructor-worktime',
-    url: '/accounting/instructor-worktime',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/unpaid-overdue',
-    url: '/accounting/unpaid-overdue',
-    permissions: [MIKPermissions.INVOICING_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/expenses',
-    url: '/accounting/expenses',
-    permissions: [MIKPermissions.EXPENSE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/expenses/:id',
-    url: '/accounting/expenses/1',
-    permissions: [MIKPermissions.EXPENSE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/mileage-allowances',
-    url: '/accounting/mileage-allowances',
-    permissions: [MIKPermissions.EXPENSE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/tulorekisteri-report',
-    url: '/accounting/tulorekisteri-report',
-    permissions: [MIKPermissions.EXPENSE_HETU_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/accounting/cost-centres',
-    url: '/accounting/cost-centres',
-    permissions: [MIKPermissions.EXPENSE_ADMIN],
-    adminModeOnly: true,
-  },
+  // The 14 /accounting/* pages moved to apps/admin in #1233, like /admin/*.
+  { path: '/accounting/*', url: '/accounting/invoicing' },
   { path: '/shop', url: '/shop' },
   { path: '/shop/products/:id', url: '/shop/products/1' },
   { path: '/shop/cart', url: '/shop/cart' },
@@ -175,139 +86,11 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/exams/attempt/:attemptId', url: '/exams/attempt/att-1' },
   { path: '/exams/review/:attemptId', url: '/exams/review/att-1' },
   { path: '/exams/history', url: '/exams/history' },
-  {
-    path: '/admin',
-    url: '/admin',
-    permissions: [MIKPermissions.OUTBOX_ADMIN],
-    adminModeOnly: true,
-    redirectsTo: '/admin/outbox',
-  },
-  {
-    path: '/admin/outbox',
-    url: '/admin/outbox',
-    permissions: [MIKPermissions.OUTBOX_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/non-renewals',
-    url: '/admin/non-renewals',
-    permissions: [MIKPermissions.MEMBER_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/notification-banner',
-    url: '/admin/notification-banner',
-    permissions: [MIKPermissions.MEMBER_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/shop',
-    url: '/admin/shop',
-    permissions: [MIKPermissions.STORE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/shop/products',
-    url: '/admin/shop/products',
-    permissions: [MIKPermissions.STORE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/shop/categories',
-    url: '/admin/shop/categories',
-    permissions: [MIKPermissions.STORE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/shop/orders',
-    url: '/admin/shop/orders',
-    permissions: [MIKPermissions.STORE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/shop/orders/:orderId',
-    url: '/admin/shop/orders/1',
-    permissions: [MIKPermissions.STORE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/shop/discount-codes',
-    url: '/admin/shop/discount-codes',
-    permissions: [MIKPermissions.STORE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/shop/flight-packages',
-    url: '/admin/shop/flight-packages',
-    permissions: [MIKPermissions.STORE_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/events',
-    url: '/admin/events',
-    permissions: [MIKPermissions.EVENTS_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/exams',
-    url: '/admin/exams',
-    permissions: [MIKPermissions.EXAM_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/exams/versions/:versionId',
-    url: '/admin/exams/versions/ver-1',
-    permissions: [MIKPermissions.EXAM_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/exams/attempts',
-    url: '/admin/exams/attempts',
-    permissions: [MIKPermissions.EXAM_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/dto',
-    url: '/admin/dto',
-    permissions: [MIKPermissions.DTO_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/dto/syllabi/:syllabusId',
-    url: '/admin/dto/syllabi/syl-1',
-    permissions: [MIKPermissions.DTO_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/dto/programs/:programId/import',
-    url: '/admin/dto/programs/prog-1/import',
-    permissions: [MIKPermissions.DTO_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/phone-numbers',
-    url: '/admin/phone-numbers',
-    permissions: [MIKPermissions.MEMBER_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/inventory',
-    url: '/admin/inventory',
-    permissions: [MIKPermissions.INVENTORY_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/ame',
-    url: '/admin/ame',
-    permissions: [MIKPermissions.AME_ADMIN],
-    adminModeOnly: true,
-  },
-  {
-    path: '/admin/meetings',
-    url: '/admin/meetings',
-    permissions: [MIKPermissions.MEETING_ADMIN],
-    adminModeOnly: true,
-  },
+  // The 21 /admin/* pages moved to apps/admin in #1233. What is left is the
+  // redirect that forwards an old bookmark there; it is ungated on purpose —
+  // the admin app applies the permission check, and a 403 from this app would
+  // only tell an attacker which admin pages exist.
+  { path: '/admin/*', url: '/admin/shop/orders' },
   { path: '/dto', url: '/dto' },
   { path: '/dto/my-training', url: '/dto/my-training' },
   { path: '/dto/progress', url: '/dto/progress' },
@@ -324,8 +107,10 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/*', url: '/no-such-page' },
 ]
 
-/** Gated routes carrying a `RequirePermission` of their own, rather than inheriting one via a redirect. */
-export const OWN_GATES = ROUTES.filter((route) => route.permissions && !route.redirectsTo)
+// Every gated route now carries a `RequirePermission` of its own. The
+// `redirectsTo` case — a route that inherited its gate by redirecting to one —
+// only ever described `/admin`, which moved to apps/admin in #1233; `OWN_GATES`
+// went with it.
 export const GATED_ROUTES = ROUTES.filter((route) => route.permissions)
 export const UNGATED_ROUTES = ROUTES.filter((route) => !route.permissions)
 

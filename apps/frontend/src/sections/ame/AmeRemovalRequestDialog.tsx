@@ -8,7 +8,7 @@ import {
   TextField,
 } from '@mui/material'
 import { useState } from 'react'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { AmeEntry } from '@mik/contracts/ame'
 
 export function AmeRemovalRequestDialog({

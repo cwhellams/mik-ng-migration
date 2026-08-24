@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { MIKLang } from '@mik/contracts/members'
 import LanguageSelector from '../../components/LanguageSelector'
 import { validateInternalPath } from '@mik/contracts/sanitizers'
-import { TurnstileWidget } from '../../components/TurnstileWidget'
+import { TurnstileWidget } from '@mik/ui/components/TurnstileWidget'
 import {
   loginWithPasskey,
   loginWithPasskeyDiscoverable,

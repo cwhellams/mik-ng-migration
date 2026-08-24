@@ -2,13 +2,13 @@ import { Box, Button, Typography, Chip, Alert } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
-import { Title } from '../../components/Title'
-import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
+import useApi from '@mik/ui/hooks/useApi'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { ExamWithVersion } from '@mik/contracts/exams'
-import { startAttempt } from './examApi'
+import { startAttempt } from '@mik/ui/api/examApi'
 import { useState } from 'react'
-import { getPreferredExamLanguage, resolveExamUiLanguage } from './language'
+import { getPreferredExamLanguage, resolveExamUiLanguage } from '@mik/ui/utils/examLanguage'
 
 export default function ExamDetailPage() {
   const { examId } = useParams<{ examId: string }>()

@@ -1,12 +1,12 @@
 import { Box, Grid, Button, Typography, useTheme } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useState } from 'react'
-import { Title } from '../../components/Title'
-import { ResponsiveTable } from '../../components/ResponsiveTable'
+import { Title } from '@mik/ui/components/Title'
+import { ResponsiveTable } from '@mik/ui/components/ResponsiveTable'
 import {
   Occurrence,
   OccurrenceFilters,
@@ -14,12 +14,12 @@ import {
   OccurrenceStatus,
 } from '@mik/contracts/occurrences'
 import { MIKPermissions } from '@mik/contracts/members'
-import { useTimezone } from '../../hooks/useTimezone'
-import { useScrollOnRender } from '../../hooks/useScrollOnRender'
-import { useRoles } from '../../hooks/useRoles'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
+import { useScrollOnRender } from '@mik/ui/hooks/useScrollOnRender'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
 import { OccurrenceStatusChip, OccurrenceStatusFilter } from './components/OccurrenceStatusChip'
-import { formatDuration, getDurationInMinutes } from '../flightLog/utils/timeUtils'
+import { formatDuration, getDurationInMinutes } from '@mik/ui/utils/duration'
 
 export const Occurrences = () => {
   const { t } = useTranslation()

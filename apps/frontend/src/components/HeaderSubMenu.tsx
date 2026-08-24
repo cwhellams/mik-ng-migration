@@ -2,7 +2,7 @@ import { Tabs, Tab, Box, useTheme, useMediaQuery } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router'
 import { t } from 'i18next'
 import { MenuItem } from '../config/menuItems'
-import { useRoles } from '../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
 import { MIKPermissions } from '@mik/contracts/members'
 

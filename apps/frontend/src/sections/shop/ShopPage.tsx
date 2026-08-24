@@ -18,13 +18,13 @@ import {
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import type { Product, Category, Cart } from '@mik/contracts/shop'
 import { Link } from 'react-router'
-import useApi from '../../hooks/useApi'
-import { useSnackbar } from '../../hooks/useSnackbar'
-import { useLocalisedText } from '../../utils/localisedText'
-import { RemoteContent } from '../../components/RemoteContent'
+import useApi from '@mik/ui/hooks/useApi'
+import { useSnackbar } from '@mik/ui/hooks/useSnackbar'
+import { useLocalisedText } from '@mik/ui/utils/localisedText'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 
 function formatPrice(price: number, vatPercent: number) {
   return `€${(price * (1 + vatPercent / 100)).toFixed(2)}`

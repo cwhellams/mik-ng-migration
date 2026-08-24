@@ -15,11 +15,11 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type { Secret, SecretsListResponse, SecretClass } from '@mik/contracts/secrets'
-import useApi from '../../hooks/useApi'
-import { SaveButton } from '../../components/SaveButton'
+import useApi from '@mik/ui/hooks/useApi'
+import { SaveButton } from '@mik/ui/components/SaveButton'
 import { Problem } from '@mik/contracts/problem'
-import { SnackAlert } from '../../components/SnackAlert'
-import { useRoles } from '../../hooks/useRoles'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 
 interface SecretDialogProps {
   open: boolean

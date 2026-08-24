@@ -30,23 +30,23 @@ import {
   type ExpenseClaimReceipt,
   ExpenseClaimStatus,
 } from '@mik/contracts/expenses'
-import useApi from '../../hooks/useApi'
-import { sharedApi } from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
-import { getExpenseCategoryLabel, isExpenseEditable } from './expenseUi'
+import useApi from '@mik/ui/hooks/useApi'
+import { sharedApi } from '@mik/ui/hooks/useApi'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
+import { getExpenseCategoryLabel, isExpenseEditable } from '@mik/ui/utils/expenseUi'
 import {
   AttachmentsUploadZone,
   BankDetailsFields,
   LineItemsTable,
   ReceiptUploadZone,
-} from './expenseShared'
+} from '@mik/ui/components/expenseShared'
 import {
   type EditableLineItem,
   defaultUnitForCategory,
   makeDefaultLineItem,
-} from './expenseHelpers'
-import { validateHetu } from './validation'
+} from '@mik/ui/utils/expenseHelpers'
+import { validateHetu } from '@mik/ui/utils/expenseValidation'
 import {
   MILEAGE_MAX_KM,
   MileageLegsEditor,

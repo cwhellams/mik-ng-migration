@@ -1,4 +1,4 @@
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import {
   Typography,
   useMediaQuery,
@@ -12,17 +12,17 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router'
-import { RemoteContent } from '../../../components/RemoteContent'
-import { useMe } from '../../../hooks/useMe'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { useMe } from '@mik/ui/hooks/useMe'
 import { FlightLogStatsFilter, FlightLogStatsResponse } from '@mik/contracts/flight-log'
 import { t } from 'i18next'
-import { useTimezone } from '../../../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { useState } from 'react'
 import theme from '../../../theme/theme'
-import { ResponsiveTable } from '../../../components/ResponsiveTable'
-import { formatHHMM } from '../../../utils/format'
-import { FormField } from '../../../components/FormField'
-import { Title } from '../../../components/Title'
+import { ResponsiveTable } from '@mik/ui/components/ResponsiveTable'
+import { formatHHMM } from '@mik/ui/utils/format'
+import { FormField } from '@mik/ui/components/FormField'
+import { Title } from '@mik/ui/components/Title'
 
 export const FlightLogUserDashboard = () => {
   const { me } = useMe()

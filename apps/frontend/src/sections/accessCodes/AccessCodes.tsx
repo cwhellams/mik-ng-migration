@@ -12,14 +12,14 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { useRoles } from '../../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { SecretDialog } from './SecretDialog'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import type { Secret, SecretsListResponse } from '@mik/contracts/secrets'
-import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
-import { ResponsiveTable } from '../../components/ResponsiveTable'
+import useApi from '@mik/ui/hooks/useApi'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
+import { ResponsiveTable } from '@mik/ui/components/ResponsiveTable'
 
 // Pie-style countdown timer component
 interface CountdownTimerProps {

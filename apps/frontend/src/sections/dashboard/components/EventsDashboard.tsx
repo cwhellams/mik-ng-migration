@@ -19,12 +19,12 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import dayjs from 'dayjs'
 import { useState } from 'react'
-import useApi from '../../../hooks/useApi'
-import { RemoteContent } from '../../../components/RemoteContent'
+import useApi from '@mik/ui/hooks/useApi'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { ClubEvent, EventListResponse } from '@mik/contracts/events'
 import { downloadEventIcs, generateEventGoogleCalendarLink } from '../../../utils/eventCalendar'
 import { getEventDisplayText } from '../../events/eventLanguage'
-import { useTimezone } from '../../../hooks/useTimezone'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
   const { t, i18n } = useTranslation()

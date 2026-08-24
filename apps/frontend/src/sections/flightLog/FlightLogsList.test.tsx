@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { authScenarios, renderAs } from '../../test/auth'
 import { aFlightLogListEntry, aFlightLogListResponse } from '../../test/fixtures'
-import { INSTRUCTOR_MEMBER_ID, MEMBER_ID } from '../../test/fixtures/cast'
+import { INSTRUCTOR_MEMBER_ID, MEMBER_ID } from '@mik/ui/test/fixtures/cast'
 import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import FlightLogsList from './FlightLogsList'

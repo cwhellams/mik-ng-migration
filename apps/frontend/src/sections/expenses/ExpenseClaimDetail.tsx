@@ -17,16 +17,16 @@ import {
 import { Icon } from '@iconify/react'
 import type { ExpenseClaim } from '@mik/contracts/expenses'
 import { ExpenseClaimStatus } from '@mik/contracts/expenses'
-import useApi, { sharedApi } from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
+import useApi, { sharedApi } from '@mik/ui/hooks/useApi'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
 import {
-  ExpenseStatusChip,
   formatExpenseAmount,
   formatExpenseUnitPrice,
   getExpenseCategoryLabel,
   isExpenseEditable,
-} from './expenseUi'
+} from '@mik/ui/utils/expenseUi'
+import { ExpenseStatusChip } from '@mik/ui/components/ExpenseStatusChip'
 
 type HetuAccessLogEntry = { accessedAt: string; accessedByName: string }
 

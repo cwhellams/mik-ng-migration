@@ -1,7 +1,7 @@
 import { Alert, Box, Card, CardContent, Switch, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FormTitle } from '../../../components/FormTitle'
+import { FormTitle } from '@mik/ui/components/FormTitle'
 import {
   disablePushNotifications,
   enablePushNotifications,

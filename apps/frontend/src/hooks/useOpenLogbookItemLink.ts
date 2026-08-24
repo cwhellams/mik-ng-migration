@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router'
-import useApi from './useApi'
+import useApi from '@mik/ui/hooks/useApi'
 
 interface LogbookItemRef {
   ajlbSeqNo: number

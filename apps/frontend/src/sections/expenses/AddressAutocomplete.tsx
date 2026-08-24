@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Autocomplete, TextField } from '@mui/material'
 import type { AddressSearchResponse, AddressSearchResult } from '@mik/contracts/mileage-geo'
-import { api } from '../../hooks/useApi'
+import { api } from '@mik/ui/hooks/useApi'
 
 // lat/lon are optional: when the address-search service is unavailable, the member can
 // still type an address by hand — it's kept as free text with no coordinates, which

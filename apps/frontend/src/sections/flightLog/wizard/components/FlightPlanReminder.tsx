@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import useApi from '../../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import type { UsefulPhoneNumber } from '@mik/contracts/useful-phone-numbers'
 
 // Yellow-and-black "C" panel-style badge — the visual marker this club uses on

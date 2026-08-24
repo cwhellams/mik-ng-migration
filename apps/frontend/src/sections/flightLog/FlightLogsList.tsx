@@ -15,20 +15,24 @@ import {
   Divider,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { Icon } from '@iconify/react'
 import AirplaneTicketOutlinedIcon from '@mui/icons-material/AirplaneTicketOutlined'
 import { Link, useSearchParams } from 'react-router'
 import { FlightLog, FlightLogFilters, FlightLogListResponse } from '@mik/contracts/flight-log'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { FlightLogQuery } from './components/FlightLogQuery'
-import { useRoles } from '../../hooks/useRoles'
-import { useScrollOnRender } from '../../hooks/useScrollOnRender'
+import { useRoles } from '@mik/ui/hooks/useRoles'
+import { useScrollOnRender } from '@mik/ui/hooks/useScrollOnRender'
 import { useEffect, useState } from 'react'
 import { StatusButton } from './components/StatusButton'
-import { Title } from '../../components/Title'
-import { FlightLogBanner, FlightLogDate, FlightLogTimeline } from './components/FlightListEntry'
-import { ResponsiveTable } from '../../components/ResponsiveTable'
+import { Title } from '@mik/ui/components/Title'
+import {
+  FlightLogBanner,
+  FlightLogDate,
+  FlightLogTimeline,
+} from '@mik/ui/components/FlightListEntry'
+import { ResponsiveTable } from '@mik/ui/components/ResponsiveTable'
 import { FlightLogExportDialog } from './components/FlightLogExportDialog'
 import { canOpenFlightRow } from './utils/crew'
 

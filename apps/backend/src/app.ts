@@ -7,6 +7,7 @@ import helmet from 'helmet'
 // import compression from "compression";
 import morgan from 'morgan'
 import logger from './lib/logger.ts'
+import { corsOrigins } from './util/corsOrigins.ts'
 import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
 import { router as aircraftDocumentRoutes } from './routes/aircraft-documents/api.ts'
 import { router as aircraftPricingRoutes } from './routes/aircraft-pricing/api.ts'
@@ -120,34 +121,6 @@ app.use((req, res, next) => {
   }
   fallbackContentSecurityPolicy(req, res, next)
 })
-
-// Parse CORS allowed origins from comma-separated environment variable.
-// Wildcard ('*') is explicitly rejected — it cannot be used with credentialed requests
-// (httpOnly cookies) as required by the CORS spec.
-const rawOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-      .map((origin) => origin.trim())
-      .filter((origin) => origin.length > 0 && origin !== '*')
-  : []
-
-let corsOrigins: string[]
-
-if (rawOrigins.length === 0) {
-  if (process.env.NODE_ENV === 'production') {
-    logger.error(
-      'CORS_ALLOWED_ORIGINS is not configured — cross-origin requests will be rejected. ' +
-        'Set it to your frontend origin (e.g. https://intra.mik.fi).',
-    )
-    corsOrigins = []
-  } else {
-    logger.warn(
-      'CORS_ALLOWED_ORIGINS not set — defaulting to http://localhost:5173 (local dev only)',
-    )
-    corsOrigins = ['http://localhost:5173']
-  }
-} else {
-  corsOrigins = rawOrigins
-}
 
 app.use(
   cors({

@@ -1,6 +1,6 @@
 import { Box, Link, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import useApi from '../../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { endpoints } from '../../../api/endpoints'
 import type { MemberListResponse } from '@mik/contracts/members'
 

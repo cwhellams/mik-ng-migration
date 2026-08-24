@@ -13,7 +13,7 @@ import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import MikLogo from '../assets/mik-blue.svg'
 import MikLogoWhite from '../assets/mik-white.svg'
-import useApi from '../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import { useState, useEffect } from 'react'
 import { Icon } from '@iconify/react'
 

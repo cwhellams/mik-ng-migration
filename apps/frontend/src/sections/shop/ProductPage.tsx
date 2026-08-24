@@ -20,10 +20,10 @@ import { useTranslation } from 'react-i18next'
 import type { Product, Cart, Category } from '@mik/contracts/shop'
 import type { MemberPackage, PrepaidPackage } from '@mik/contracts/prepaid-hours'
 import { useParams, Link } from 'react-router'
-import useApi from '../../hooks/useApi'
-import { useSnackbar } from '../../hooks/useSnackbar'
-import { useLocalisedText } from '../../utils/localisedText'
-import { RemoteContent } from '../../components/RemoteContent'
+import useApi from '@mik/ui/hooks/useApi'
+import { useSnackbar } from '@mik/ui/hooks/useSnackbar'
+import { useLocalisedText } from '@mik/ui/utils/localisedText'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>()

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { validateHetu, validateIban } from './validation'
+import { validateHetu, validateIban } from '@mik/ui/utils/expenseValidation'
 
 describe('validateIban', () => {
   it.each([

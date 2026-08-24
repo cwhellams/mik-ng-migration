@@ -22,7 +22,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 // https://github.com/jquense/react-big-calendar/issues/2739
 import './styles.css'
 
-import { dayjs, HELSINKI_TIMEZONE } from '../../utils/date'
+import { dayjs, HELSINKI_TIMEZONE } from '@mik/ui/utils/date'
 import { useTranslation } from 'react-i18next'
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import {
@@ -32,7 +32,7 @@ import {
   BookingStatus,
   BookingType,
 } from '@mik/contracts/bookings'
-import useApi from '../../hooks/useApi'
+import useApi from '@mik/ui/hooks/useApi'
 import {
   Box,
   Typography,
@@ -46,13 +46,13 @@ import {
 } from '@mui/material'
 import { BookingEditor, BookingFlags } from './components/EditBookingModal'
 import { Upsert } from '@mik/contracts/schema'
-import { useRoles } from '../../hooks/useRoles'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import { Dayjs } from 'dayjs'
 import { useSearchParams } from 'react-router'
-import { RemoteContent } from '../../components/RemoteContent'
-import { SnackAlert } from '../../components/SnackAlert'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { Icon } from '@iconify/react'
 import { bookingFlags, bookingMinDate } from './helpers'
 import { endpoints } from '../../api/endpoints'

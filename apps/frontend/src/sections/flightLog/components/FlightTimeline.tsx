@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
 import { Icon } from '@iconify/react'
 import { getTimezoneDisplay } from '../utils/timezoneUtils'
-import { formatDuration, splitTime } from '../utils/timeUtils'
+import { formatDuration, splitTime } from '@mik/ui/utils/duration'
 import { HoursAndMinutes } from './HoursAndMinutes'
 
 interface Props {

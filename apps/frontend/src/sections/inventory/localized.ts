@@ -1,22 +1,9 @@
-// Inventory-specific helper (condition-colour mapping) plus re-exports of the
-// app-wide localised-text helpers under their original names, so existing
-// inventory call sites don't need to change.
+// Re-exports of the shared localised-text and condition-colour helpers under
+// the names inventory call sites already use.
 
-import { localText, resolveLanguage, type UiLanguage } from '../../utils/localisedText'
+import { localText, resolveLanguage, type UiLanguage } from '@mik/ui/utils/localisedText'
 
 export type { UiLanguage }
 export { resolveLanguage }
+export { conditionColor } from '@mik/ui/utils/inventoryCondition'
 export const localName = localText
-
-export function conditionColor(condition: string): 'success' | 'warning' | 'error' | 'default' {
-  switch (condition) {
-    case 'GOOD':
-      return 'success'
-    case 'FAIR':
-      return 'warning'
-    case 'POOR':
-      return 'error'
-    default:
-      return 'default'
-  }
-}
