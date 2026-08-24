@@ -5,7 +5,12 @@ import bcrypt from 'bcryptjs'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import dayjs from 'dayjs'
 
-import { buildMagicLinkHref, generateMagicLinkToken, generateLoginCode } from './magiclink.ts'
+import {
+  buildMagicLinkHref,
+  generateMagicLinkToken,
+  generateLoginCode,
+  resolveMagicLinkOrigin,
+} from './magiclink.ts'
 import { MIKRegistrationVerificationStrategy } from './registration-verification.ts'
 import {
   LoginRequestSchema,
@@ -92,7 +97,8 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
   const { token: linkToken, tokenHash: linkTokenHash } = generateMagicLinkToken()
   const code = generateLoginCode()
   const displayCode = getRandomInt(10000, 99999)
-  const href = buildMagicLinkHref(linkToken, target)
+  const origin = resolveMagicLinkOrigin(req.get('origin'))
+  const href = buildMagicLinkHref(linkToken, origin, target)
 
   // Invalidate any previous pending attempts and store the new hashed code in the DB.
   // The raw code is never persisted; only a bcrypt hash is stored.

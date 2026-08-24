@@ -5,10 +5,12 @@ import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
 import { LoginRequest, LoginResponse } from '@mik/contracts/auth'
 import { validateInternalPath } from '@mik/contracts/sanitizers'
+import { TurnstileWidget } from '@mik/ui/components/TurnstileWidget'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const navigate = useNavigate()
   const location = useLocation()
@@ -27,7 +29,11 @@ const Login = () => {
     }
 
     const safeTarget = validateInternalPath(location.state?.target ?? null)
-    const { error } = await trigger({ email })
+    const { error } = await trigger({
+      email,
+      target: safeTarget,
+      turnstileToken: turnstileToken ?? undefined,
+    })
 
     if (error) {
       setEmailError(error?.detail ?? error?.title ?? 'Failed to send login link')
@@ -55,6 +61,12 @@ const Login = () => {
         />
 
         {emailError && <Alert severity='error'>{emailError}</Alert>}
+
+        <TurnstileWidget
+          onSuccess={(token) => setTurnstileToken(token)}
+          onError={() => setTurnstileToken(null)}
+          disabled={isMutating}
+        />
 
         <Button
           type='submit'

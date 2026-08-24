@@ -387,6 +387,10 @@ static_sites:
         value: '${VITE_API_TARGET}'
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
+      - key: VITE_TURNSTILE_SITE_KEY
+        value: '${VITE_TURNSTILE_SITE_KEY}'
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
       - key: DEPLOY_TIMESTAMP
         value: '${DEPLOY_TIMESTAMP}'
         type: GENERAL

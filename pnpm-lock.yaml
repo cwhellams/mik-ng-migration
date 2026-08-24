@@ -464,9 +464,6 @@ importers:
       '@iconify/react':
         specifier: ^6.0.2
         version: 6.0.2(react@19.2.8)
-      '@marsidev/react-turnstile':
-        specifier: ^1.5.5
-        version: 1.6.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@mik/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -722,6 +719,9 @@ importers:
       '@iconify/react':
         specifier: ^6.0.2
         version: 6.0.2(react@19.2.8)
+      '@marsidev/react-turnstile':
+        specifier: ^1.5.5
+        version: 1.6.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@mik/contracts':
         specifier: workspace:*
         version: link:../contracts
