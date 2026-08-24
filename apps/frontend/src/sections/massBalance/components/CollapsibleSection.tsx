@@ -30,10 +30,12 @@ const CollapsibleSection = ({ title, defaultExpanded, children }: CollapsibleSec
     elevation={2}
     sx={{ mb: 3, '&:before': { display: 'none' } }}
   >
-    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 3 }}>
+    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: { xs: 2, sm: 3 } }}>
       <Typography variant='h6'>{title}</Typography>
     </AccordionSummary>
-    <AccordionDetails sx={{ px: 3, pt: 0, pb: 3 }}>{children}</AccordionDetails>
+    <AccordionDetails sx={{ px: { xs: 2, sm: 3 }, pt: 0, pb: { xs: 2, sm: 3 } }}>
+      {children}
+    </AccordionDetails>
   </Accordion>
 )
 
