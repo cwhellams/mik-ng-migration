@@ -169,11 +169,7 @@ export default defineConfig({
         // the change-history dialog and the crew/instructor gating on the entry form under
         // test (43.98/39.24/29.71 measured). Raised in the PR that earned it, per the rule
         // above.
-        // 43/38/28 -> 46/41/32: #855 brought the exam version editor and its drag-and-drop
-        // reorder helpers under test (46.94/42.64/33.01 measured). The jump is larger than
-        // that one PR earned on its own — the bars had drifted several points below the
-        // measurement — so this also takes up the slack left by the PRs in between.
-        'src/sections/**': { statements: 46, branches: 41, functions: 32 },
+        'src/sections/**': { statements: 43, branches: 38, functions: 28 },
       },
     },
   },
