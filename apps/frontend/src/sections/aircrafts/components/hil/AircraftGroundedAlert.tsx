@@ -1,7 +1,8 @@
 import React from 'react'
-import { Alert, AlertTitle, Button, Link, Stack, Typography } from '@mui/material'
+import { Alert, AlertTitle, Button, Stack, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
+import { OpenDefectLink } from './OpenDefectLink'
 import { useAircraftHil } from './useAircraftHil'
 import { useOpenDefectLink } from './useOpenDefectLink'
 
@@ -39,21 +40,12 @@ export const AircraftGroundedAlert: React.FC<AircraftGroundedAlertProps> = ({
   )
 
   const openDefectLinks = openDefects.map((defect) => (
-    <Link
+    <OpenDefectLink
       key={defect.defectId}
-      component='button'
-      type='button'
-      color='inherit'
+      defect={defect}
       onClick={() => handleOpenDefect(defect)}
-      variant='body2'
-      sx={{ display: 'flex', alignItems: 'center', gap: 0.5, textAlign: 'left' }}
-    >
-      <Icon icon='mdi:book-open-page-variant' width={16} />
-      {t('aircraft.hil.openLogbook', {
-        ajlbSeqNo: defect.ajlbSeqNo,
-        description: defect.description,
-      })}
-    </Link>
+      context='banner'
+    />
   ))
 
   if (!isGrounded) {
