@@ -77,17 +77,22 @@ export function reorderIntentFromDrop(
  * Sends an intent to whichever reorder endpoint it belongs to. Lives here rather
  * than in the page so the mapping from intent to request — which list of ids, to
  * which parent — is testable without completing a real drag.
+ *
+ * Returns the endpoint's response — the full, freshly-reordered version detail —
+ * so the caller can update its cache directly instead of firing a second GET.
  */
-export async function commitReorder(intent: ReorderIntent, versionId: string): Promise<void> {
+export function commitReorder(
+  intent: ReorderIntent,
+  versionId: string,
+): Promise<ExamVersionDetail> {
   if (intent.kind === 'questions') {
-    await adminReorderQuestions(
+    return adminReorderQuestions(
       versionId,
       intent.questions.map((q) => q.questionId),
     )
-    return
   }
 
-  await adminReorderChoices(
+  return adminReorderChoices(
     intent.questionId,
     intent.choices.map((c) => c.choiceId),
   )

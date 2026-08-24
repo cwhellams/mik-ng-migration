@@ -83,9 +83,8 @@ const editorApi = (version: ExamVersionDetail = aVersion()) => {
 const renderEditor = (version?: ExamVersionDetail) => {
   const state = editorApi(version)
   const rendered = renderWithProviders(<ExamVersionEditorPage />, {
-    route: `/admin/exams/versions/${VERSION_ID}`,
-    path: '/admin/exams/versions/:versionId',
-    sudo: true,
+    route: `/exams/versions/${VERSION_ID}`,
+    path: '/exams/versions/:versionId',
   })
   return { ...rendered, state }
 }

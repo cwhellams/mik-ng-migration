@@ -1,3 +1,5 @@
+import { sql } from 'kysely'
+
 import { auditCreate, auditUpdate } from './audit.ts'
 import { db, type DbRow } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -759,15 +761,14 @@ export async function reorderQuestions(versionId: string, questionIds: string[])
     })
   }
 
-  await db.transaction().execute(async (trx) => {
-    for (const [index, questionId] of questionIds.entries()) {
-      await trx
-        .updateTable('exam.questions')
-        .set({ sortOrder: index })
-        .where('questionId', '=', questionId)
-        .execute()
-    }
-  })
+  await sql`
+    UPDATE exam.questions AS q
+    SET sort_order = v.sort_order
+    FROM (VALUES ${sql.join(
+      questionIds.map((id, index) => sql`(${id}::varchar(9), ${index}::int)`),
+    )}) AS v(question_id, sort_order)
+    WHERE q.question_id = v.question_id
+  `.execute(db)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -864,15 +865,14 @@ export async function reorderChoices(questionId: string, choiceIds: string[]): P
     })
   }
 
-  await db.transaction().execute(async (trx) => {
-    for (const [index, choiceId] of choiceIds.entries()) {
-      await trx
-        .updateTable('exam.choices')
-        .set({ sortOrder: index })
-        .where('choiceId', '=', choiceId)
-        .execute()
-    }
-  })
+  await sql`
+    UPDATE exam.choices AS c
+    SET sort_order = v.sort_order
+    FROM (VALUES ${sql.join(
+      choiceIds.map((id, index) => sql`(${id}::varchar(9), ${index}::int)`),
+    )}) AS v(choice_id, sort_order)
+    WHERE c.choice_id = v.choice_id
+  `.execute(db)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

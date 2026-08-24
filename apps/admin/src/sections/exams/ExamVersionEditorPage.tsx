@@ -257,6 +257,8 @@ interface QuestionCardProps {
    * `Droppable`. Published versions get neither: the backend rejects the edit.
    */
   drag?: DraggableProvided
+  /** True while a previous drag's reorder request hasn't resolved yet — see `handleDragEnd`. */
+  dragDisabled: boolean
   onChanged: () => void
 }
 
@@ -266,6 +268,7 @@ function QuestionCard({
   index,
   languages,
   drag,
+  dragDisabled,
   onChanged,
 }: Readonly<QuestionCardProps>) {
   const { t } = useTranslation()
@@ -446,7 +449,12 @@ function QuestionCard({
           {(dropProvided) => (
             <Box ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
               {question.choices.map((choice, choiceIndex) => (
-                <Draggable key={choice.choiceId} draggableId={choice.choiceId} index={choiceIndex}>
+                <Draggable
+                  key={choice.choiceId}
+                  draggableId={choice.choiceId}
+                  index={choiceIndex}
+                  isDragDisabled={dragDisabled}
+                >
                   {(dragProvided) => (
                     <Box ref={dragProvided.innerRef} {...dragProvided.draggableProps}>
                       {choiceRow(choice, dragProvided.dragHandleProps)}
@@ -623,13 +631,18 @@ export default function ExamVersionEditorPage() {
           ),
     )
     try {
-      await commitReorder(intent, versionId)
+      const updated = await commitReorder(intent, versionId)
+      // The PUT already returns the freshly-reordered version, so update the
+      // cache from it directly rather than firing a second GET for the same data.
+      await mutate((current) => (current ? { ...current, data: updated } : current), {
+        revalidate: false,
+      })
     } catch {
       setReorderError(t('exams.admin.reorderFailed'))
-    } finally {
-      // Either way the server is now the authority: a success confirms the new
-      // order, a failure discards the optimistic one.
+      // The optimistic order may be wrong, and the response above didn't run —
+      // fall back to the server as the authority.
       await mutate()
+    } finally {
       setPendingQuestions(null)
     }
   }
@@ -909,7 +922,12 @@ export default function ExamVersionEditorPage() {
                   {(dropProvided) => (
                     <Box ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
                       {questions.map((q, idx) => (
-                        <Draggable key={q.questionId} draggableId={q.questionId} index={idx}>
+                        <Draggable
+                          key={q.questionId}
+                          draggableId={q.questionId}
+                          index={idx}
+                          isDragDisabled={pendingQuestions !== null}
+                        >
                           {(dragProvided) => (
                             <QuestionCard
                               versionId={version.versionId}
@@ -917,6 +935,7 @@ export default function ExamVersionEditorPage() {
                               index={idx}
                               languages={versionLanguages}
                               drag={dragProvided}
+                              dragDisabled={pendingQuestions !== null}
                               onChanged={() => mutate()}
                             />
                           )}
@@ -935,6 +954,7 @@ export default function ExamVersionEditorPage() {
                   question={q}
                   index={idx}
                   languages={versionLanguages}
+                  dragDisabled={false}
                   onChanged={() => mutate()}
                 />
               ))
