@@ -4,7 +4,6 @@ import {
   Chip,
   Divider,
   FormControlLabel,
-  Link,
   Paper,
   Stack,
   Switch,
@@ -22,6 +21,7 @@ import useApi from '@mik/ui/hooks/useApi'
 import { AddHilExtensionModal } from './AddHilExtensionModal'
 import { EditHilModal, type HilEditMode } from './EditHilModal'
 import { HilAuditDialog } from './HilAuditDialog'
+import { OpenDefectLink } from './OpenDefectLink'
 import { useAircraftHil } from './useAircraftHil'
 import { useOpenDefectLink } from './useOpenDefectLink'
 
@@ -206,20 +206,11 @@ const HilEntry = ({
             </>
           )}
           {hil.defects.map((defect) => (
-            <Link
+            <OpenDefectLink
               key={defect.defectId}
-              component='button'
-              type='button'
+              defect={defect}
               onClick={() => handleOpenDefect(defect)}
-              variant='body2'
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, textAlign: 'left' }}
-            >
-              <Icon icon='mdi:book-open-page-variant' width={16} />
-              {t('aircraft.hil.openLogbook', {
-                ajlbSeqNo: defect.ajlbSeqNo,
-                description: defect.description,
-              })}
-            </Link>
+            />
           ))}
         </Box>
       </Stack>

@@ -60,7 +60,12 @@ export default defineConfig({
         'src/api/**': { statements: 84, branches: 99, functions: 79 },
         'src/components/**': { statements: 89, branches: 81, functions: 79 },
         'src/layouts/**': { statements: 79, branches: 84, functions: 69 },
-        'src/sections/**': { statements: 50, branches: 45, functions: 39 },
+        // 50/45/39 -> 51/46/39: #1255 brought NonRenewals under test (it had no
+        // tests) and extended the events and phone-number delete confirmations.
+        // 51.98/46.02/40.00 -> 52.74/47.01/40.78 measured. Functions moved less
+        // than a point, so its bar stays where it is rather than being set with
+        // no headroom.
+        'src/sections/**': { statements: 51, branches: 46, functions: 39 },
         'src/{*,hooks/**,theme/**,config/**}': { statements: 74, branches: 36, functions: 50 },
       },
     },
