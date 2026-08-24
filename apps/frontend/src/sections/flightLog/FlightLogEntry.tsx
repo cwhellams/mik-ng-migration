@@ -44,7 +44,7 @@ import {
   FlightType,
 } from '@mik/contracts/flight-log'
 import useApi, { api } from '@mik/ui/hooks/useApi'
-import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '@mik/ui/hooks/useSnackbar'
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { FUEL_TYPES } from '@mik/contracts/expenses'
 import { MemberListResponse } from '@mik/contracts/members'

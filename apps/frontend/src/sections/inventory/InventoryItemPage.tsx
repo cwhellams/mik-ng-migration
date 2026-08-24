@@ -1,25 +1,10 @@
-import {
-  Alert,
-  Box,
-  Chip,
-  Divider,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material'
+import { Box, Chip, Divider, Paper, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { useParams, Link } from 'react-router'
 import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import { useRoles } from '@mik/ui/hooks/useRoles'
-import type { InventoryItem, InventoryAuditLogEntry } from '@mik/contracts/inventory'
-import { MIKPermissions } from '@mik/contracts/members'
+import type { InventoryItem } from '@mik/contracts/inventory'
 import { resolveLanguage, localName, conditionColor } from './localized'
 
 export default function InventoryItemPage() {
@@ -28,16 +13,14 @@ export default function InventoryItemPage() {
   const lang = resolveLanguage(i18n.language)
   // Sudo-gated: the audit log and low-stock cue are admin-only and only shown
   // once the admin has entered admin mode, consistent with the rest of the app.
-  const { hasSudoAccess } = useRoles()
-  const isAdmin = hasSudoAccess(MIKPermissions.INVENTORY_ADMIN)
 
-  const { data, isLoading, error } = useApi<{
-    item: InventoryItem
-    auditLog?: InventoryAuditLogEntry[]
-  }>({ url: `v1/inventory/items/${id}` })
+  // The endpoint also returns `auditLog`; this page no longer reads it — the
+  // trail is shown in the admin app instead (#1233).
+  const { data, isLoading, error } = useApi<{ item: InventoryItem }>({
+    url: `v1/inventory/items/${id}`,
+  })
 
   const item = data?.item
-  const auditLog = data?.auditLog
 
   const name = item ? localName(item.name as Record<string, string>, lang) : ''
   const description = item
@@ -102,11 +85,9 @@ export default function InventoryItemPage() {
                   label={`${t('inventory.qty')}: ${item.quantity}`}
                   size='small'
                   color={
-                    isAdmin &&
-                    item.lowStockThreshold != null &&
-                    item.quantity <= item.lowStockThreshold
-                      ? 'warning'
-                      : 'default'
+                    // See InventoryPage: the low-stock warning moved to the
+                    // admin app with the rest of the restocking workflow.
+                    'default'
                   }
                 />
               ) : (
@@ -196,53 +177,6 @@ export default function InventoryItemPage() {
                 </>
               )}
             </Box>
-
-            {isAdmin && auditLog && auditLog.length > 0 && (
-              <>
-                <Typography variant='h6' gutterBottom>
-                  {t('inventory.auditLog')}
-                </Typography>
-                <TableContainer component={Paper} variant='outlined'>
-                  <Table size='small'>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>{t('common.date')}</TableCell>
-                        <TableCell>{t('inventory.changeType')}</TableCell>
-                        <TableCell>{t('inventory.changedBy')}</TableCell>
-                        <TableCell>{t('inventory.notes')}</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {auditLog.map((entry) => (
-                        <TableRow key={entry.logId}>
-                          <TableCell>{new Date(entry.createdAt).toLocaleString()}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={t(`inventory.changeTypes.${entry.changeType}`, {
-                                defaultValue: entry.changeType,
-                              })}
-                              size='small'
-                            />
-                          </TableCell>
-                          <TableCell>{entry.memberId}</TableCell>
-                          <TableCell>
-                            {entry.newValue &&
-                            typeof entry.newValue === 'object' &&
-                            'notes' in entry.newValue
-                              ? String(entry.newValue.notes ?? '')
-                              : (entry.notes ?? '')}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </>
-            )}
-
-            {isAdmin && auditLog?.length === 0 && (
-              <Alert severity='info'>{t('inventory.noAuditLog')}</Alert>
-            )}
           </>
         )}
       </RemoteContent>

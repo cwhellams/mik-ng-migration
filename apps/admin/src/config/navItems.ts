@@ -173,6 +173,16 @@ export const navGroups: NavGroup[] = [
         permissions: [MIKPermissions.INVOICING_ADMIN],
       },
       {
+        label: 'admin.nav.commercialFlightTime',
+        icon: 'mdi:chart-bar',
+        path: '/stats/commercial',
+        permissions: [
+          MIKPermissions.FLIGHTLOG_ADMIN,
+          MIKPermissions.AIRCRAFT_ADMIN,
+          MIKPermissions.INVOICING_ADMIN,
+        ],
+      },
+      {
         label: 'admin.nav.tulorekisteriReport',
         icon: 'mdi:bank-transfer',
         path: '/accounting/tulorekisteri-report',
@@ -247,6 +257,18 @@ export const navGroups: NavGroup[] = [
   {
     label: 'admin.nav.groups.operations',
     items: [
+      {
+        label: 'admin.nav.fuelPrices',
+        icon: 'mdi:gas-station',
+        path: '/fuel-prices',
+        permissions: [MIKPermissions.FUEL_PRICES_ADMIN],
+      },
+      {
+        label: 'admin.nav.documents',
+        icon: 'mdi:file-document-multiple',
+        path: '/documents',
+        permissions: [MIKPermissions.DOCUMENT_ADMIN],
+      },
       {
         label: 'admin.nav.ame',
         icon: 'mdi:doctor',

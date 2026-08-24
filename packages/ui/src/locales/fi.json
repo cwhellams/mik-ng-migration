@@ -3074,7 +3074,21 @@
       "tulorekisteriReport": "Tulorekisteri-raportti",
       "expenseApproval": "Kulukorvausten hyväksyntä",
       "mileageAllowances": "Kilometrikorvaukset",
-      "costCentres": "Kustannuspaikat"
+      "costCentres": "Kustannuspaikat",
+      "fuelPrices": "Polttoaineen hinnat",
+      "documents": "Dokumentit",
+      "commercialFlightTime": "Kaupallinen lentoaika"
+    },
+    "dashboard": {
+      "welcome": "Tervetuloa takaisin, {{name}}",
+      "subtitle": "Kaikki sinua odottava yhdessä paikassa.",
+      "nothingWaiting": "Mikään ei odota sinua juuri nyt. Käytä sivupalkkia hallinnoimiisi osioihin."
+    },
+    "stats": {
+      "commercialFlightTime": "Kaupallinen lentoaika ilma-aluksittain (viimeiset 12 kk)",
+      "noCommercialFlights": "Viimeisen 12 kuukauden ajalta ei ole kirjattu kaupallisia lentoja.",
+      "month": "Kuukausi",
+      "commercialHours": "Kaupalliset tunnit"
     }
   }
 }

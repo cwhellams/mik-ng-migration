@@ -15,7 +15,7 @@ import axios, { type AxiosRequestConfig, type AxiosResponse, type AxiosError } f
 import type { Problem } from '@mik/contracts/problem'
 import { useLocation, useNavigate } from 'react-router'
 import useSWRMutation, { type SWRMutationConfiguration } from 'swr/mutation'
-import { useApiConfig } from './apiConfig'
+import { sudoHeader, useApiConfig } from './apiConfig'
 import { validateApiPath } from '@mik/contracts/sanitizers'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
@@ -181,10 +181,7 @@ export default function useApi<
       api.request<Data>({
         ...request,
         // globally allow admin permissions with sudo mode
-        headers: {
-          ...request.headers,
-          'x-sudo': sudo || request.alwaysSudo ? 'true' : 'false',
-        },
+        headers: { ...request.headers, ...sudoHeader(Boolean(sudo || request.alwaysSudo)) },
       }),
     {
       ...config,
@@ -261,10 +258,7 @@ export default function useApi<
           : `${sanitizedUrl}/${sanitizedPath}`
         : sanitizedUrl,
       // globally allow admin permissions with sudo mode
-      headers: {
-        ...request.headers,
-        'x-sudo': sudo || request.alwaysSudo ? 'true' : 'false',
-      },
+      headers: { ...request.headers, ...sudoHeader(Boolean(sudo || request.alwaysSudo)) },
       method: arg.method,
       data: arg.payload,
     })

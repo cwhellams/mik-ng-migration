@@ -3,11 +3,11 @@ import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import type { RecentRemark } from '@mik/contracts/remarks'
 
-import { aFlightLog, anAdmin } from '../../../test/fixtures'
-import { signInAs } from '../../../test/auth'
-import { apiUrl } from '../../../test/msw/handlers'
-import { server } from '../../../test/msw/server'
-import { renderWithProviders } from '../../../test/renderWithProviders'
+import { aFlightLog, anAdmin } from '../../test/fixtures'
+import { signInAs } from '../../test/auth'
+import { apiUrl } from '../../test/msw/handlers'
+import { server } from '../../test/msw/server'
+import { renderWithProviders } from '../../test/renderWithProviders'
 import { FlightLogAdminDashboard } from './FlightLogAdminDashboard'
 
 const aRecentRemark = (overrides: Partial<RecentRemark> = {}): RecentRemark => ({

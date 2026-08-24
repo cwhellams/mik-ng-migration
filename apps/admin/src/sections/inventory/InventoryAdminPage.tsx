@@ -31,8 +31,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '@mik/ui/components/Title'
 import useApi from '@mik/ui/hooks/useApi'
-import { useSnackbar } from '../../hooks/useSnackbar'
+import { useSnackbar } from '@mik/ui/hooks/useSnackbar'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+
+import { InventoryItemHistory } from './InventoryItemHistory'
 import { LocalisedTextField, withLocalisedField } from '@mik/ui/components/LocalisedTextField'
 import type { InventoryItem, InventoryCategory, InventoryLocation } from '@mik/contracts/inventory'
 import { localText as localName, resolveLanguage } from '@mik/ui/utils/localisedText'
@@ -387,6 +389,9 @@ function ItemsTab() {
 
   // quantity adjustment dialog
   const [adjustDialog, setAdjustDialog] = useState<{ itemId: string; name: string } | null>(null)
+  // The audit trail moved here from the member app's item page (#1233), where it
+  // sat behind an isAdmin branch on a page every member can open.
+  const [historyDialog, setHistoryDialog] = useState<{ itemId: string; name: string } | null>(null)
   const [adjustDelta, setAdjustDelta] = useState('')
   const [adjustNotes, setAdjustNotes] = useState('')
   const { mutation: adjustMutation } = useApi<InventoryItem>({ url: '', skipFetch: true })
@@ -561,6 +566,14 @@ function ItemsTab() {
                       )}
                       <IconButton
                         size='small'
+                        title={t('inventory.auditLog')}
+                        aria-label={`${t('inventory.auditLog')} ${name}`}
+                        onClick={() => setHistoryDialog({ itemId: item.itemId, name })}
+                      >
+                        <Icon icon='mdi:history' />
+                      </IconButton>
+                      <IconButton
+                        size='small'
                         aria-label={`${t('common.edit')} ${name}`}
                         onClick={() => openEdit(item)}
                       >
@@ -584,6 +597,22 @@ function ItemsTab() {
           </Table>
         </TableContainer>
       </RemoteContent>
+
+      {/* Item history */}
+      <Dialog
+        open={historyDialog !== null}
+        onClose={() => setHistoryDialog(null)}
+        maxWidth='md'
+        fullWidth
+      >
+        <DialogTitle>{historyDialog?.name}</DialogTitle>
+        <DialogContent sx={{ pt: '8px !important' }}>
+          {historyDialog && <InventoryItemHistory itemId={historyDialog.itemId} />}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setHistoryDialog(null)}>{t('common.close')}</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Item upsert dialog */}
       <Dialog open={dialogOpen} onClose={close} maxWidth='sm' fullWidth>

@@ -20,9 +20,7 @@ import { Link } from 'react-router'
 import { Title } from '@mik/ui/components/Title'
 import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
-import { useRoles } from '@mik/ui/hooks/useRoles'
 import type { InventoryItem, InventoryCategory, InventoryLocation } from '@mik/contracts/inventory'
-import { MIKPermissions } from '@mik/contracts/members'
 import { resolveLanguage, localName, conditionColor } from './localized'
 
 export default function InventoryPage() {
@@ -30,8 +28,6 @@ export default function InventoryPage() {
   const lang = resolveLanguage(i18n.language)
   // Sudo-gated: admin-only cues (low-stock highlight) stay hidden until the
   // admin explicitly enters admin mode, consistent with the rest of the app.
-  const { hasSudoAccess } = useRoles()
-  const isAdmin = hasSudoAccess(MIKPermissions.INVENTORY_ADMIN)
 
   const [categoryId, setCategoryId] = useState('')
   const [locationId, setLocationId] = useState('')
@@ -125,11 +121,10 @@ export default function InventoryPage() {
               const locationName = item.location
                 ? localName(item.location.name as Record<string, string>, lang)
                 : ''
-              const isLowStock =
-                isAdmin &&
-                item.itemType === 'CONSUMABLE' &&
-                item.lowStockThreshold != null &&
-                item.quantity <= item.lowStockThreshold
+              // Low stock is a restocking signal for the inventory admin, not
+              // something a member browsing the shelf list acts on, so it is
+              // shown in the admin app's inventory page instead (#1233).
+              const isLowStock = false
 
               return (
                 <Grid key={item.itemId} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>

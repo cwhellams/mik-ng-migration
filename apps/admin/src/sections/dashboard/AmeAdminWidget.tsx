@@ -48,7 +48,7 @@ export function AmeAdminWidget() {
           </Alert>
           <Button
             component={Link}
-            to='/admin/ame'
+            to='/ame'
             variant='contained'
             color='warning'
             size='small'

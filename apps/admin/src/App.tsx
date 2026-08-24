@@ -5,7 +5,7 @@ import { ApiConfigProvider } from '@mik/ui/hooks/apiConfig'
 import { TimezoneProvider } from '@mik/ui/hooks/useTimezone'
 import { useMemo } from 'react'
 import { ThemeProvider, useThemeMode } from './theme/ThemeContext'
-import { SnackbarProvider } from './hooks/useSnackbar'
+import { SnackbarProvider } from '@mik/ui/hooks/useSnackbar'
 import AppRoutes from './AppRoutes'
 
 /**

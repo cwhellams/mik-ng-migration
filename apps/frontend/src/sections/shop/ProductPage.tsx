@@ -21,7 +21,7 @@ import type { Product, Cart, Category } from '@mik/contracts/shop'
 import type { MemberPackage, PrepaidPackage } from '@mik/contracts/prepaid-hours'
 import { useParams, Link } from 'react-router'
 import useApi from '@mik/ui/hooks/useApi'
-import { useSnackbar } from '../../hooks/useSnackbar'
+import { useSnackbar } from '@mik/ui/hooks/useSnackbar'
 import { useLocalisedText } from '@mik/ui/utils/localisedText'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 

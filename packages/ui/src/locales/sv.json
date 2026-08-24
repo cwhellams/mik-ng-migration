@@ -3041,7 +3041,21 @@
       "tulorekisteriReport": "Inkomstregisterrapport",
       "expenseApproval": "Godkännande av utlägg",
       "mileageAllowances": "Milersättning",
-      "costCentres": "Kostnadsställen"
+      "costCentres": "Kostnadsställen",
+      "fuelPrices": "Bränslepriser",
+      "documents": "Dokument",
+      "commercialFlightTime": "Kommersiell flygtid"
+    },
+    "dashboard": {
+      "welcome": "Välkommen tillbaka, {{name}}",
+      "subtitle": "Allt som väntar på dig, på ett ställe.",
+      "nothingWaiting": "Ingenting väntar på dig just nu. Använd sidofältet för att nå de avsnitt du administrerar."
+    },
+    "stats": {
+      "commercialFlightTime": "Kommersiell flygtid per flygplan (senaste 12 månaderna)",
+      "noCommercialFlights": "Inga kommersiella flygningar registrerade de senaste 12 månaderna.",
+      "month": "Månad",
+      "commercialHours": "Kommersiella timmar"
     }
   }
 }

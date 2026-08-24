@@ -18,10 +18,10 @@ import { ResponsiveCalendar } from '@nivo/calendar'
 import { ResponsivePie } from '@nivo/pie'
 import { useTranslation } from 'react-i18next'
 import useApi from '@mik/ui/hooks/useApi'
-import { useRoles } from '@mik/ui/hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
+import { monthKey, monthlySeriesByAircraft } from '@mik/ui/utils/monthlySeries'
+
 import { useNivoTheme } from './useNivoTheme'
-import { MIKPermissions } from '@mik/contracts/members'
 import {
   TotalFlightTimeByAcYrFt,
   TotalFlightTimeByPilotYr,
@@ -29,7 +29,6 @@ import {
   TotalFlightTimeByAcYrMth,
   MemberCountByType,
   VisitedAirfieldsByAc,
-  CommercialFlightTimeByAcYrMth,
   TotalLandingsByAcYr,
   PobDistributionByAcYr,
 } from '@mik/contracts/stats'
@@ -81,22 +80,16 @@ const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
 export const Stats = () => {
   const { t } = useTranslation()
   const [viewMode, setViewMode] = useState<ViewMode>('aircraft')
-  const { hasAccess: hasAdminAccess } = useRoles()
-  const { sudo, mode } = useThemeMode()
+  const { mode } = useThemeMode()
 
   const nivoTheme = useNivoTheme()
 
   const arcLinkLabelsTextColor = mode === 'dark' ? '#cccccc' : '#333333'
   const legendHoverTextColor = mode === 'dark' ? '#ffffff' : '#000000'
 
-  // Check if user has admin permissions for commercial data AND is in admin view mode
-  const hasCommercialAccess =
-    sudo &&
-    hasAdminAccess(
-      MIKPermissions.FLIGHTLOG_ADMIN,
-      MIKPermissions.AIRCRAFT_ADMIN,
-      MIKPermissions.INVOICING_ADMIN,
-    )
+  // The commercial flight-time panel that used to sit behind a sudo-gated
+  // permission check here moved to the admin app in #1233 — revenue reporting
+  // is desk work. What is left on this page is the same for every member.
 
   // Get year range from env var (default 5 years)
   const statsYearRange = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
@@ -229,25 +222,6 @@ export const Stats = () => {
     },
   )
 
-  // Fetch commercial flight time data (admin only)
-  const {
-    data: commercialData,
-    error: commercialError,
-    isLoading: commercialLoading,
-  } = useApi<CommercialFlightTimeByAcYrMth[]>(
-    {
-      url: 'v1/stats/commercial/flight-time/aircraft/year/month',
-      params: {
-        yrFrom: monthlyYrFrom,
-        yrTo: monthlyYrTo,
-      },
-      skipFetch: !hasCommercialAccess,
-    },
-    {
-      refreshInterval: 0,
-    },
-  )
-
   // Fetch landings by aircraft per year
   const {
     data: landingsYearlyData,
@@ -358,54 +332,24 @@ export const Stats = () => {
   }, [calendarData])
 
   // Transform monthly data by aircraft for stacked bar chart
-  const monthlyDataByAircraft = useMemo(() => {
-    if (!monthlyData) return []
-
-    const now = new Date()
-    const last12Months: string[] = []
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      last12Months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
-    }
-
-    const aircraftMap = new Map<string, any[]>()
-
-    monthlyData.forEach((item) => {
-      const monthKey = `${item.yr}-${String(item.mth).padStart(2, '0')}`
-      if (!last12Months.includes(monthKey)) return
-
-      if (!aircraftMap.has(item.aircraftRegistration)) {
-        aircraftMap.set(item.aircraftRegistration, [])
-      }
-
-      const existingMonth = aircraftMap
-        .get(item.aircraftRegistration)!
-        .find((d) => d.month === monthKey)
-
-      if (existingMonth) {
-        existingMonth[item.flightType] = Math.round(
-          (existingMonth[item.flightType] || 0) + item.totalFlightMins / 60,
-        )
-      } else {
-        aircraftMap.get(item.aircraftRegistration)!.push({
-          month: monthKey,
-          [item.flightType]: Math.round(item.totalFlightMins / 60),
-        })
-      }
-    })
-
-    // Fill in missing months with zero values
-    const result: Array<{ aircraft: string; data: any[] }> = []
-    aircraftMap.forEach((data, aircraft) => {
-      const filledData = last12Months.map((month) => {
-        const existing = data.find((d) => d.month === month)
-        return existing || { month }
-      })
-      result.push({ aircraft, data: filledData })
-    })
-
-    return result
-  }, [monthlyData])
+  const monthlyDataByAircraft = useMemo(
+    () =>
+      monthlySeriesByAircraft<TotalFlightTimeByAcYrMth, { month: string }>(monthlyData ?? [], {
+        aircraftOf: (item) => item.aircraftRegistration,
+        keyOf: (item) => monthKey(item.yr, item.mth),
+        // One row per flight type per month, so the hours accumulate onto the
+        // entry rather than replacing it — that is why `merge` takes `existing`.
+        merge: (existing, item, month) => ({
+          ...(existing ?? { month }),
+          [item.flightType]: Math.round(
+            ((existing as Record<string, number> | undefined)?.[item.flightType] ?? 0) +
+              item.totalFlightMins / 60,
+          ),
+        }),
+        empty: (month) => ({ month }),
+      }),
+    [monthlyData],
+  )
 
   // Get all unique flight types for stacked bar chart
   const flightTypes = useMemo(() => {
@@ -413,46 +357,6 @@ export const Stats = () => {
     const types = new Set(monthlyData.map((d) => d.flightType))
     return Array.from(types).sort()
   }, [monthlyData])
-
-  // Transform commercial flight time data for bar chart
-  const commercialBarData = useMemo(() => {
-    if (!commercialData) return []
-
-    const now = new Date()
-    const last12Months: string[] = []
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      last12Months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
-    }
-
-    const aircraftMap = new Map<string, any[]>()
-
-    commercialData.forEach((item) => {
-      const monthKey = `${item.yr}-${String(item.mth).padStart(2, '0')}`
-      if (!last12Months.includes(monthKey)) return
-
-      if (!aircraftMap.has(item.aircraftRegistration)) {
-        aircraftMap.set(item.aircraftRegistration, [])
-      }
-
-      aircraftMap.get(item.aircraftRegistration)!.push({
-        month: monthKey,
-        hours: Math.round(item.totalCommercialFlightMins / 60),
-      })
-    })
-
-    // Fill in missing months with zero values
-    const result: Array<{ aircraft: string; data: any[] }> = []
-    aircraftMap.forEach((data, aircraft) => {
-      const filledData = last12Months.map((month) => {
-        const existing = data.find((d) => d.month === month)
-        return existing || { month, hours: 0 }
-      })
-      result.push({ aircraft, data: filledData })
-    })
-
-    return result
-  }, [commercialData])
 
   // Transform landings data for bar chart
   const landingsBarData = useMemo(() => {
@@ -987,80 +891,6 @@ export const Stats = () => {
                                 ],
                               },
                             ]}
-                          />
-                        </Box>
-                      </Box>
-                    ))}
-                  </Box>
-                </CardContent>
-              </Card>
-            </RemoteContent>
-          )}
-
-          {/* Commercial Flight Time by Aircraft (Admin Only) */}
-          {viewMode === 'aircraft' && hasCommercialAccess && (
-            <RemoteContent isLoading={commercialLoading} error={commercialError}>
-              <Card sx={{ mb: 3 }}>
-                <CardContent>
-                  <Typography variant='h6' gutterBottom>
-                    Commercial Flight Time by Aircraft (Last 12 Months)
-                  </Typography>
-                  <Box>
-                    {commercialBarData.map((aircraftData) => (
-                      <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
-                        <Typography
-                          variant='subtitle1'
-                          gutterBottom
-                          sx={{
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {aircraftData.aircraft}
-                        </Typography>
-                        <Box sx={{ height: 300 }}>
-                          <ResponsiveBar
-                            data={aircraftData.data}
-                            keys={['hours']}
-                            indexBy='month'
-                            margin={{
-                              top: 20,
-                              right: 30,
-                              bottom: 50,
-                              left: 60,
-                            }}
-                            padding={0.3}
-                            valueScale={{ type: 'linear' }}
-                            colors={{ scheme: 'set2' }}
-                            borderColor={{
-                              from: 'color',
-                              modifiers: [['darker', 1.6]],
-                            }}
-                            axisTop={null}
-                            axisRight={null}
-                            axisBottom={{
-                              tickSize: 5,
-                              tickPadding: 5,
-                              tickRotation: -45,
-                              legend: 'Month',
-                              legendPosition: 'middle',
-                              legendOffset: 40,
-                            }}
-                            axisLeft={{
-                              tickSize: 5,
-                              tickPadding: 5,
-                              tickRotation: 0,
-                              legend: 'Commercial Hours',
-                              legendPosition: 'middle',
-                              legendOffset: -50,
-                            }}
-                            labelSkipWidth={12}
-                            labelSkipHeight={12}
-                            labelTextColor={{
-                              from: 'color',
-                              modifiers: [['darker', 1.6]],
-                            }}
-                            theme={nivoTheme}
-                            enableLabel={true}
                           />
                         </Box>
                       </Box>

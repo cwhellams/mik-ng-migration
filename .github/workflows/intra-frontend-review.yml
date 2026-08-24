@@ -74,10 +74,12 @@ jobs:
           ERROR_COUNT=$(jq '[.[] | .errorCount] | add // 0' eslint-results.json)
           echo "Total ESLint errors: $ERROR_COUNT"
 
-          # Define your threshold. 15 -> 10: #1233 moved sections/admin to
-          # apps/admin, and five of the backlog's errors went with it. Ratchets
-          # only ever come down, so it comes down in the PR that earned it.
-          THRESHOLD=10
+          # Define your threshold. 15 -> 10 -> 7 -> 5 across #1233's ports: each
+          # batch of pages that left for apps/admin took some of the backlog
+          # with it, and extracting the shared monthly-series helper removed the
+          # last two `any`s in Stats.tsx. Ratchets only ever come down, in the
+          # PR that earned it.
+          THRESHOLD=5
 
           # Check if error count exceeds threshold
           if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then

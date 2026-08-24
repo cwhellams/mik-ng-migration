@@ -5,3 +5,4 @@
 export * from './fixtures/cast'
 export * from './fixtures/roles'
 export * from './fixtures/members'
+export * from './fixtures/flightLogs'

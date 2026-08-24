@@ -10,18 +10,16 @@ import {
   ListItemText,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Link } from 'react-router'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { FlightLogListResponse, FlightLogStatus } from '@mik/contracts/flight-log'
 import type { RecentRemarksResponse } from '@mik/contracts/remarks'
-import { useThemeMode } from '../../../theme/ThemeContext'
+import { MemberAppLink } from '../../components/MemberAppLink'
 import { useTranslation } from 'react-i18next'
 import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 export const FlightLogAdminDashboard = () => {
   const { t } = useTranslation()
   // enable sudo mode when navigating to flight details
-  const { toggleSudo } = useThemeMode()
   const { formatDate } = useTimezone()
 
   // fetch list of aircraft journey log books
@@ -148,9 +146,9 @@ export const FlightLogAdminDashboard = () => {
                 <ListItem key={item.key}>
                   <ListItemText
                     primary={
-                      <Link to={`/logs/flights/${item.flightId}`} onClick={() => toggleSudo(true)}>
+                      <MemberAppLink to={`/logs/flights/${item.flightId}`}>
                         {item.aircraftRegistration} - {formatDate(item.takeoffTimeUtc)}
-                      </Link>
+                      </MemberAppLink>
                     }
                     secondary={item.text}
                   />
@@ -175,12 +173,11 @@ export const FlightLogAdminDashboard = () => {
                 <ListItem key={`${ajlb.aircraftRegistration}-${ajlb.seqNo}`}>
                   <ListItemText
                     primary={
-                      <Link
+                      <MemberAppLink
                         to={`/logs/books/${ajlb.aircraftRegistration}/${ajlb.seqNo}?page=${ajlb.view?.newFlightsPage}`}
-                        onClick={() => toggleSudo(true)}
                       >
                         {ajlb.aircraftRegistration} - {ajlb.seqNo}
-                      </Link>
+                      </MemberAppLink>
                     }
                     secondary={t('dashboard.newFlightsSince', {
                       count: ajlb.view?.newFlightsCount,

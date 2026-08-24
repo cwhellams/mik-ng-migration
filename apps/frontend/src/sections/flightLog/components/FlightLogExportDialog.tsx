@@ -24,7 +24,7 @@ import type { Dayjs } from 'dayjs'
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { FlightLogExportFormat, type FlightLogExportCountResponse } from '@mik/contracts/flight-log'
 import useApi, { sharedApi } from '@mik/ui/hooks/useApi'
-import { useThemeMode } from '../../../theme/ThemeContext'
+import { sudoHeader, useApiConfig } from '@mik/ui/hooks/apiConfig'
 import { AxiosError } from 'axios'
 import { endpoints } from '../../../api/endpoints'
 
@@ -47,7 +47,10 @@ type Props = {
 
 export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistration }: Props) => {
   const { t } = useTranslation()
-  const { sudo } = useThemeMode()
+  // The same flag useApi sends, from the same place — this dialog talks to
+  // sharedApi directly (a debounced count and a blob download) rather than
+  // through the hook, so it has to ask for the header rather than assume it.
+  const { sudo } = useApiConfig()
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null)
   const [endDate, setEndDate] = useState<Dayjs | null>(null)
@@ -88,7 +91,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       try {
         const res = await sharedApi.get<FlightLogExportCountResponse>(
           'v1/flight-logs/export/count',
-          { params, headers: { 'x-sudo': sudo ? 'true' : 'false' } },
+          { params, headers: sudoHeader(sudo) },
         )
         setCount(res.data.count)
       } catch {
@@ -114,7 +117,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       const res = await sharedApi.get('v1/flight-logs/export', {
         params,
         responseType: 'blob',
-        headers: { 'x-sudo': sudo ? 'true' : 'false' },
+        headers: sudoHeader(sudo),
       })
 
       const disposition: string = res.headers['content-disposition'] ?? ''

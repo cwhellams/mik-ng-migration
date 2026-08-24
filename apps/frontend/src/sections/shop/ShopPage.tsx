@@ -22,7 +22,7 @@ import { Title } from '@mik/ui/components/Title'
 import type { Product, Category, Cart } from '@mik/contracts/shop'
 import { Link } from 'react-router'
 import useApi from '@mik/ui/hooks/useApi'
-import { useSnackbar } from '../../hooks/useSnackbar'
+import { useSnackbar } from '@mik/ui/hooks/useSnackbar'
 import { useLocalisedText } from '@mik/ui/utils/localisedText'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 

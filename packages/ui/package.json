@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Presentation-layer code (generic MUI components, browser utils and the i18n bundle) shared by apps/frontend and apps/admin",
   "exports": {
+    "./hooks/useSnackbar": "./src/hooks/useSnackbar.tsx",
     "./components/*": "./src/components/*.tsx",
     "./locales/*": "./src/locales/*.json",
     "./*": "./src/*.ts"
@@ -37,6 +38,7 @@
     "dayjs": "^1.11.21",
     "i18next": "^26.3.6",
     "i18next-browser-languagedetector": "^8.2.1",
+    "react-dropzone": "^15.0.0",
     "react-i18next": "^17.0.11",
     "react-router": "^8.3.0",
     "swr": "^2.5.0"

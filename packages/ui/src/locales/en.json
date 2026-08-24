@@ -3068,7 +3068,21 @@
       "tulorekisteriReport": "Tulorekisteri report",
       "expenseApproval": "Expense approval",
       "mileageAllowances": "Mileage allowances",
-      "costCentres": "Cost centres"
+      "costCentres": "Cost centres",
+      "fuelPrices": "Fuel prices",
+      "documents": "Documents",
+      "commercialFlightTime": "Commercial flight time"
+    },
+    "dashboard": {
+      "welcome": "Welcome back, {{name}}",
+      "subtitle": "Everything waiting on you, in one place.",
+      "nothingWaiting": "Nothing is waiting on you right now. Use the sidebar to reach the sections you administer."
+    },
+    "stats": {
+      "commercialFlightTime": "Commercial flight time by aircraft (last 12 months)",
+      "noCommercialFlights": "No commercial flights recorded in the last 12 months.",
+      "month": "Month",
+      "commercialHours": "Commercial hours"
     }
   }
 }

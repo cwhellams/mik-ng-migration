@@ -10,18 +10,16 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box } from '@mui/system'
-import { Link } from 'react-router'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import useApi from '@mik/ui/hooks/useApi'
-import { useThemeMode } from '../../../theme/ThemeContext'
+import { MemberAppLink } from '../../components/MemberAppLink'
 import { useTranslation } from 'react-i18next'
-import { endpoints } from '../../../api/endpoints'
+import { endpoints } from '../../api/endpoints'
 
 export const MemberAdminDashboard = () => {
   const { t } = useTranslation()
 
   // enable sudo mode when navigating to member details
-  const { toggleSudo } = useThemeMode()
 
   const unapprovedUsersFilter: MemberListFilters = {
     showUnapproved: true,
@@ -50,12 +48,9 @@ export const MemberAdminDashboard = () => {
                 <ListItem key={member.memberId}>
                   <ListItemText
                     primary={
-                      <Link
-                        to={`/club/members/${member.memberId}`}
-                        onClick={() => toggleSudo(true)}
-                      >
+                      <MemberAppLink to={`/club/members/${member.memberId}`}>
                         {member.first} {member.last}
-                      </Link>
+                      </MemberAppLink>
                     }
                     secondary={member.email}
                   />

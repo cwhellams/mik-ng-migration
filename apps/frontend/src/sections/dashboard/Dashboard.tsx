@@ -2,8 +2,6 @@ import { Box, IconButton, Stack, Tooltip } from '@mui/material'
 import SettingsIcon from '@mui/icons-material/Settings'
 import { useState, useMemo, JSX } from 'react'
 import { useRoles } from '@mik/ui/hooks/useRoles'
-import { FlightLogAdminDashboard } from './components/FlightLogAdminDashboard'
-import { MemberAdminDashboard } from './components/MemberAdminDashboard'
 import { BookingUserDashboard } from './components/BookingUserDashboard'
 import { EquipmentFeeBanner } from './components/EquipmentFeeBanner'
 import { OverdueInvoiceBanner } from './components/OverdueInvoiceBanner'
@@ -18,8 +16,6 @@ import { ExpiryWarningBanner } from './components/ExpiryWarningBanner'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
 import { DtoInstructorWidget } from './components/DtoInstructorWidget'
-import { ExpenseAdminWidget } from './components/ExpenseAdminWidget'
-import { AmeAdminWidget } from './components/AmeAdminWidget'
 import { EventsDashboard } from './components/EventsDashboard'
 import useApi from '@mik/ui/hooks/useApi'
 import type { DashboardSettings, DashboardComponent } from './types'
@@ -32,8 +28,6 @@ const createComponentMap = (
   bookingUser: boolean,
   flyingUser: boolean,
   me: ReturnType<typeof useRoles>['me'],
-  hasAccess: ReturnType<typeof useRoles>['hasAccess'],
-  hasSudoAccess: ReturnType<typeof useRoles>['hasSudoAccess'],
   isDtoInstructor: boolean,
 ): Record<string, () => JSX.Element | null> => ({
   reservationsSuspended: () => (isMember ? <ReservationsSuspendedBanner /> : null),
@@ -48,16 +42,15 @@ const createComponentMap = (
   events: () => (isMember ? <EventsDashboard /> : null),
   bookingUser: () => (bookingUser ? <BookingUserDashboard /> : null),
   flightLogUser: () => (flyingUser ? <FlightLogUserDashboard /> : null),
-  memberAdmin: () => (hasAccess(MIKPermissions.MEMBER_ADMIN) ? <MemberAdminDashboard /> : null),
-  flightLogAdmin: () =>
-    hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) ? <FlightLogAdminDashboard /> : null,
+  // memberAdmin, flightLogAdmin, expenseAdmin and ameAdmin were here until
+  // #1233. They are queues of work an admin does at a desk, and they now make
+  // up the admin app's dashboard — see apps/admin/src/sections/dashboard.
+  // `dtoInstructor` deliberately stayed: an instructor uses it during a lesson.
   dtoInstructor: () => (isDtoInstructor ? <DtoInstructorWidget /> : null),
-  expenseAdmin: () => (hasSudoAccess(MIKPermissions.EXPENSE_ADMIN) ? <ExpenseAdminWidget /> : null),
-  ameAdmin: () => (hasSudoAccess(MIKPermissions.AME_ADMIN) ? <AmeAdminWidget /> : null),
 })
 
 const Dashboard = () => {
-  const { hasAccess, hasSudoAccess, me, isDtoInstructor } = useRoles()
+  const { hasAccess, me, isDtoInstructor } = useRoles()
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
 
   const isMember = hasAccess(MIKPermissions.MEMBER)
@@ -87,15 +80,7 @@ const Dashboard = () => {
   }
 
   // Component mapping - returns null if component should not be shown based on permissions
-  const componentMap = createComponentMap(
-    isMember,
-    bookingUser,
-    flyingUser,
-    me,
-    hasAccess,
-    hasSudoAccess,
-    isDtoInstructor,
-  )
+  const componentMap = createComponentMap(isMember, bookingUser, flyingUser, me, isDtoInstructor)
   const alwaysVisibleComponentIds: readonly string[] = ALWAYS_VISIBLE_COMPONENTS
   const customizableComponentIds = useMemo(
     () => Object.keys(componentMap).filter((id) => !alwaysVisibleComponentIds.includes(id)),
@@ -205,8 +190,6 @@ const Dashboard = () => {
             {isMember && <EventsDashboard />}
             {bookingUser && <BookingUserDashboard />}
             {flyingUser && <FlightLogUserDashboard />}
-            {hasAccess(MIKPermissions.MEMBER_ADMIN) && <MemberAdminDashboard />}
-            {hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) && <FlightLogAdminDashboard />}
           </>
         )}
 

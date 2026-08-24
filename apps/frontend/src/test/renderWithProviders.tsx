@@ -16,7 +16,7 @@ import { ApiConfigProvider } from '@mik/ui/hooks/apiConfig'
 import { TimezoneProvider } from '@mik/ui/hooks/useTimezone'
 
 import { ServerClockProvider } from '../hooks/useServerClock'
-import { SnackbarProvider } from '../hooks/useSnackbar'
+import { SnackbarProvider } from '@mik/ui/hooks/useSnackbar'
 import i18n from '@mik/ui/i18n'
 import { ThemeProvider, useThemeMode } from '../theme/ThemeContext'
 

@@ -34,7 +34,7 @@ import { Icon } from '@iconify/react'
 import dayjs from 'dayjs'
 import { DocumentUploadArea } from './AircraftDocumentUploadArea'
 import useApi from '@mik/ui/hooks/useApi'
-import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../../hooks/useSnackbar'
+import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '@mik/ui/hooks/useSnackbar'
 import {
   AircraftDocument,
   AircraftDocumentAuditable,

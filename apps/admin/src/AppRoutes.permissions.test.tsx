@@ -51,12 +51,12 @@ describe('route table', () => {
     // split: over there most routes carry no route-level gate because most
     // pages are for every member. Here the only ungated routes are `/` (a
     // redirect), the dashboard, the four sign-in routes and the 404.
-    expect(ROUTES).toHaveLength(45)
-    // 21 from the /admin/* subtree, 14 from /accounting/* and 3 member-admin
-    // screens. (21 rather than the member app's 22: its /admin index route was
-    // a bare redirect to /admin/outbox, which this app does not need — `/` goes
-    // to the dashboard instead.)
-    expect(GATED_ROUTES).toHaveLength(38)
+    expect(ROUTES).toHaveLength(48)
+    // 21 from the /admin/* subtree, 14 from /accounting/*, 3 member-admin
+    // screens, and 3 split out of interleaved member pages. (21 rather than the
+    // member app's 22: its /admin index route was a bare redirect to
+    // /admin/outbox, which this app does not need — `/` goes to the dashboard.)
+    expect(GATED_ROUTES).toHaveLength(41)
     expect(UNGATED_ROUTES.map((route) => route.path).sort()).toEqual(
       ['/', '/*', '/dashboard', '/login', '/login/sent', '/login/validate', '/logout'].sort(),
     )

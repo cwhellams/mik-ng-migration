@@ -1,78 +1,66 @@
-import { Box, Grid, Card, CardContent, Typography } from '@mui/material'
-import { Icon } from '@iconify/react'
+import { Alert, Box, Stack, Typography } from '@mui/material'
+import { MIKPermissions } from '@mik/contracts/members'
+import { useTranslation } from 'react-i18next'
 import { useMe } from '@mik/ui/hooks/useMe'
 import { useRoles } from '@mik/ui/hooks/useRoles'
 
-const StatCard = ({ title, icon, color }: { title: string; icon: string; color: string }) => (
-  <Card>
-    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      <Box
-        sx={{
-          width: 48,
-          height: 48,
-          borderRadius: 2,
-          bgcolor: `${color}20`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icon icon={icon} width={24} color={color} />
-      </Box>
-      <Typography variant='body1' sx={{ fontWeight: 500 }}>
-        {title}
-      </Typography>
-    </CardContent>
-  </Card>
-)
+import { AmeAdminWidget } from './AmeAdminWidget'
+import { ExpenseAdminWidget } from './ExpenseAdminWidget'
+import { FlightLogAdminDashboard } from './FlightLogAdminDashboard'
+import { MemberAdminDashboard } from './MemberAdminDashboard'
 
+/**
+ * The admin landing page: every queue of work waiting on this admin, and
+ * nothing else.
+ *
+ * These four widgets sat on the *member* dashboard until #1233, mixed in with
+ * weather, bookings and the member's own logbook. That was the clearest example
+ * of the overload the issue describes — an admin had to scroll past their own
+ * flying to find the approvals waiting for them, and a member with no admin
+ * permissions still paid for the code.
+ *
+ * Each is permission-gated individually, so a treasurer sees expense approvals
+ * and nothing else. Unlike the member dashboard there is no reordering or
+ * settings modal: this is a work list, and its order is by urgency rather than
+ * by preference.
+ */
 const Dashboard = () => {
   const { me } = useMe()
-  const { permissions } = useRoles()
+  const { hasAccess } = useRoles()
+  const { t } = useTranslation()
+
+  // One entry per queue, in the order an admin should work through them. Kept
+  // as data rather than four inline `{cond && <X/>}` so that "is anything
+  // waiting" is derived from the same list that renders, instead of a second
+  // condition that has to be remembered when a fifth queue is added.
+  const widgets = [
+    { show: hasAccess(MIKPermissions.MEMBER_ADMIN), node: <MemberAdminDashboard /> },
+    { show: hasAccess(MIKPermissions.EXPENSE_ADMIN), node: <ExpenseAdminWidget /> },
+    { show: hasAccess(MIKPermissions.AME_ADMIN), node: <AmeAdminWidget /> },
+    { show: hasAccess(MIKPermissions.FLIGHTLOG_ADMIN), node: <FlightLogAdminDashboard /> },
+  ].filter((widget) => widget.show)
 
   return (
     <Box>
       <Typography variant='h4' sx={{ fontWeight: 700, mb: 1 }}>
-        Welcome back, {me?.firstName ?? 'Admin'}
+        {t('admin.dashboard.welcome', { name: me?.firstName ?? '' })}
       </Typography>
       <Typography variant='body1' color='text.secondary' sx={{ mb: 4 }}>
-        MIK Admin Panel — manage club operations from here.
+        {t('admin.dashboard.subtitle')}
       </Typography>
 
-      <Grid container spacing={3}>
-        {permissions.length > 0 && (
-          <Grid size={{ xs: 12 }}>
-            <Typography variant='h6' sx={{ fontWeight: 600, mb: 1 }}>
-              Quick access
-            </Typography>
-          </Grid>
-        )}
-
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <StatCard title='Members' icon='mdi:account-group' color='#002385' />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <StatCard title='Aircraft' icon='mdi:airplane' color='#535bf2' />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <StatCard title='Accounting' icon='mdi:cash-multiple' color='#2e7d32' />
-        </Grid>
-      </Grid>
-
-      <Box
-        sx={{
-          mt: 6,
-          p: 3,
-          bgcolor: 'background.paper',
-          borderRadius: 2,
-          border: '1px dashed',
-          borderColor: 'divider',
-        }}
-      >
-        <Typography variant='body1' color='text.secondary' sx={{ textAlign: 'center' }}>
-          Admin sections are being migrated here progressively. More features coming soon.
-        </Typography>
-      </Box>
+      {widgets.length === 0 ? (
+        // Reachable: every route in this app is gated, so an admin whose
+        // permissions cover none of these queues would otherwise land on a
+        // blank page and assume it had failed to load.
+        <Alert severity='info'>{t('admin.dashboard.nothingWaiting')}</Alert>
+      ) : (
+        <Stack spacing={3}>
+          {widgets.map((widget, index) => (
+            <Box key={index}>{widget.node}</Box>
+          ))}
+        </Stack>
+      )}
     </Box>
   )
 }

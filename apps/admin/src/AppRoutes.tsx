@@ -49,6 +49,9 @@ import { TraficomReport } from './sections/accounting/TraficomReport'
 import { UnpaidOverdueInvoices } from './sections/accounting/UnpaidOverdueInvoices'
 import { UpliftReport } from './sections/accounting/UpliftReport'
 
+import CommercialFlightTime from './sections/stats/CommercialFlightTime'
+import DocumentsAdmin from './sections/documents/DocumentsAdmin'
+import FuelPricesAdmin from './sections/fuelPrices/FuelPricesAdmin'
 import MemberChangeLog from './sections/members/MemberChangeLog'
 import MemberTrash from './sections/members/MemberTrash'
 import Roles from './sections/members/Roles'
@@ -383,6 +386,39 @@ const AppRoutes = () => {
           element={
             <RequirePermission permissions={[MIKPermissions.MEMBER_ADMIN]}>
               <MemberChangeLog />
+            </RequirePermission>
+          }
+        />
+
+        {/* Split out of member-app pages in #1233: each was an admin branch on
+            an otherwise member-facing screen. */}
+        <Route
+          path='/documents'
+          element={
+            <RequirePermission permissions={[MIKPermissions.DOCUMENT_ADMIN]}>
+              <DocumentsAdmin />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/fuel-prices'
+          element={
+            <RequirePermission permissions={[MIKPermissions.FUEL_PRICES_ADMIN]}>
+              <FuelPricesAdmin />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/stats/commercial'
+          element={
+            <RequirePermission
+              permissions={[
+                MIKPermissions.FLIGHTLOG_ADMIN,
+                MIKPermissions.AIRCRAFT_ADMIN,
+                MIKPermissions.INVOICING_ADMIN,
+              ]}
+            >
+              <CommercialFlightTime />
             </RequirePermission>
           }
         />

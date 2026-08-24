@@ -27,6 +27,8 @@
     "@mui/system": "9.2.0",
     "@mui/utils": "^9.3.0",
     "@mui/x-date-pickers": "^9.11.0",
+    "@nivo/bar": "^0.99.0",
+    "@nivo/core": "^0.99.0",
     "@types/papaparse": "^5.5.2",
     "axios": "^1.19.0",
     "dayjs": "^1.11.21",

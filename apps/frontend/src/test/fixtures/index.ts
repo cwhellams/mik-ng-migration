@@ -16,6 +16,6 @@
 export * from '@mik/ui/test/fixtures/cast'
 export * from '@mik/ui/test/fixtures/roles'
 export * from '@mik/ui/test/fixtures/members'
+export * from '@mik/ui/test/fixtures/flightLogs'
 export * from './aircraft'
 export * from './bookings'
-export * from './flightLogs'

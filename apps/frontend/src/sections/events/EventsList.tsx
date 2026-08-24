@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Chip,
   Divider,
   IconButton,
@@ -12,15 +11,11 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { Link as RouterLink } from 'react-router'
 import type { ClubEvent, EventListResponse } from '@mik/contracts/events'
 import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
-import { useRoles } from '@mik/ui/hooks/useRoles'
-import { useThemeMode } from '../../theme/ThemeContext'
 import { useTimezone } from '@mik/ui/hooks/useTimezone'
-import { MIKPermissions } from '@mik/contracts/members'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { downloadEventIcs, generateEventGoogleCalendarLink } from '../../utils/eventCalendar'
@@ -258,10 +253,6 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
 
 const EventsList = () => {
   const { t } = useTranslation()
-  const { hasAccess } = useRoles()
-  const { sudo } = useThemeMode()
-  const isEventsAdmin = hasAccess(MIKPermissions.EVENTS_ADMIN)
-  const canManageEvents = isEventsAdmin && sudo
 
   const { data, isLoading, error } = useApi<EventListResponse>({
     url: 'v1/events',
@@ -274,18 +265,10 @@ const EventsList = () => {
 
   return (
     <>
-      <Title label={t('events.title')}>
-        {canManageEvents && (
-          <Button
-            component={RouterLink}
-            to='/admin/events'
-            variant='contained'
-            startIcon={<Icon icon='mdi:plus' />}
-          >
-            {t('events.manage')}
-          </Button>
-        )}
-      </Title>
+      {/* The 'manage events' button was here until #1233. It only ever linked
+          to /admin/events, which is now a page in the admin app — an events
+          admin goes there directly rather than via the member calendar. */}
+      <Title label={t('events.title')} />
       <RemoteContent isLoading={isLoading} error={error}>
         {events.length === 0 ? (
           <Typography

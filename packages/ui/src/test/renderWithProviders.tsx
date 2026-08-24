@@ -14,6 +14,7 @@ import { SWRConfig } from 'swr'
 
 import i18n from '../i18n'
 import { ApiConfigProvider } from '../hooks/apiConfig'
+import { SnackbarProvider } from '../hooks/useSnackbar'
 import { TimezoneProvider } from '../hooks/useTimezone'
 import type { TimezonePreference } from '../utils/timezoneFormatters'
 
@@ -60,8 +61,10 @@ export interface ProviderOptions {
  * true.
  *
  * What this harness deliberately lacks, compared with either app's: a server
- * clock, a snackbar and a date-picker localisation provider. Nothing shared
- * needs them, and a component that did would be reaching for app scaffolding.
+ * clock and a date-picker localisation provider. Nothing shared needs them, and
+ * a component that did would be reaching for app scaffolding. The snackbar is
+ * here because `useSnackbar` itself is shared — a component that toasts is not
+ * reaching for either app, it is using this package.
  */
 const theme = createTheme()
 
@@ -96,7 +99,9 @@ const Providers = ({ children, options }: { children: ReactNode; options: Provid
                 shouldRetryOnError: false,
               }}
             >
-              <MemoryRouter initialEntries={[route]}>{routed}</MemoryRouter>
+              <MemoryRouter initialEntries={[route]}>
+                <SnackbarProvider>{routed}</SnackbarProvider>
+              </MemoryRouter>
             </SWRConfig>
           </ThemeProvider>
         </I18nextProvider>

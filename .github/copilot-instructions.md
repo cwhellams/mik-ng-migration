@@ -235,6 +235,28 @@ back-office functionality that both audiences were badly served by it.
   dividing line from #1233: back-office work moves, but anything a flight instructor uses
   during a lesson stays in the member app, because they are on a phone or tablet on the
   apron, not at a desk. When in doubt, ask which device the person is holding.
+
+  The calls already made, so they don't get relitigated page by page:
+
+  | Stayed in the member app                                                    | Moved to the admin app                                 |
+  | --------------------------------------------------------------------------- | ------------------------------------------------------ |
+  | Flight-log validation and correction (`LogbookPage`) — done at the aircraft | The four admin dashboard widgets — queues of desk work |
+  | Occurrence/safety-report processing — reports are chased in the field       | Commercial flight-time reporting (out of `Stats`)      |
+  | `RecentFuelings` — a log for the members who did the fuelling               | Fuel-price and local-price editing                     |
+  | Document _browsing_                                                         | Document upload, edit and delete                       |
+  | Inventory browsing                                                          | Low-stock warnings and the item audit trail            |
+
+  A page that keeps an admin branch keeps it deliberately; if you are adding one, say in
+  the code why the device argument puts it on that side.
+
+- **Crossing between the apps** is `AdminAppRedirect` (member → admin, by rewriting the
+  path prefix) and `MemberAppLink` (admin → member, for the flight-log links the admin
+  dashboard still needs). Both do a full page load, because the destination is a separate
+  bundle. Neither app should ever `<Link to>` a route the other owns.
+- **Where a page is genuinely shared, the capability is a prop.** `DocumentsPage` takes
+  `canManage`; `apps/frontend` renders it with the default `false` and cannot turn it on,
+  `apps/admin` passes its permission check. That is what "removed from the member UI"
+  means for a screen both audiences use — not a second copy of the page.
 - **`apps/admin`'s paths mirror the member app's old ones** — `/admin/shop/orders` →
   `/shop/orders`, `/accounting/items` → `/accounting/items` unchanged — so
   `AdminAppRedirect` in the member app forwards an old bookmark by rewriting the prefix
@@ -529,7 +551,7 @@ When asked to generate a changelog:
 
 The GitHub Actions workflows require:
 
-- ESLint error count below each project's ratchet (frontend 10, admin 0, backend 79,
+- ESLint error count below each project's ratchet (frontend 5, admin 0, backend 79,
   `packages/contracts` 0, `packages/ui` 0)
 - Prettier formatting compliance (`pnpm format:check`)
 - Successful build completion

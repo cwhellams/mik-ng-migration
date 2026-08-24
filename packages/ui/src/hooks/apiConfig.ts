@@ -39,3 +39,14 @@ export const useApiConfig = (): ApiConfig => {
   }
   return config
 }
+
+/**
+ * The header `useApi` puts on every request, exposed for the handful of call
+ * sites that bypass the hook and use `sharedApi` directly (a blob download, a
+ * debounced count). Those still have to agree with the hook about what admin
+ * context means, and a hand-written `'x-sudo': sudo ? 'true' : 'false'` next to
+ * the one in useApi is how the two drift apart.
+ */
+export const sudoHeader = (sudo: boolean): { 'x-sudo': 'true' | 'false' } => ({
+  'x-sudo': sudo ? 'true' : 'false',
+})
