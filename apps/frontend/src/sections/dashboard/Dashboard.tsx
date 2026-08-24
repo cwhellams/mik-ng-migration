@@ -10,7 +10,7 @@ import { OverdueInvoiceBanner } from './components/OverdueInvoiceBanner'
 import { ReservationsSuspendedBanner } from './components/ReservationsSuspendedBanner'
 import { WeatherTabs } from './components/WeatherTabs'
 import { MIKMemberTypes, MIKPermissions } from '@mik/contracts/members'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { t } from 'i18next'
 import { FlightLogUserDashboard } from './components/FlightLogUserDashboard'
 import { PendingReviewBanner } from './components/PendingReviewBanner'
@@ -24,7 +24,7 @@ import { EventsDashboard } from './components/EventsDashboard'
 import useApi from '../../hooks/useApi'
 import type { DashboardSettings, DashboardComponent } from './types'
 import { ALWAYS_VISIBLE_COMPONENTS } from './types'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 
 // Component factory function - moved outside to avoid React linting issues
 const createComponentMap = (

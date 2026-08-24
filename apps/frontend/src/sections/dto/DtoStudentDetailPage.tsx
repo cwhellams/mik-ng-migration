@@ -16,12 +16,12 @@ import {
 import { Icon } from '@iconify/react'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { Title } from '../../components/Title'
-import { RemoteContent } from '../../components/RemoteContent'
-import { MarkdownContent } from '../../components/MarkdownContent'
+import { Title } from '@mik/ui/components/Title'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { MarkdownContent } from '@mik/ui/components/MarkdownContent'
 import useApi from '../../hooks/useApi'
 import type { SyllabusFlight } from '@mik/contracts/dto'
-import type { StudentProgressDetail, AttemptWithOutcomes } from './dtoApi'
+import type { StudentProgressDetail, AttemptWithOutcomes } from '@mik/ui/api/dtoApi'
 
 function flightStatus(
   flight: SyllabusFlight,

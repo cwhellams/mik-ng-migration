@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useState } from 'react'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import {
   Occurrence,

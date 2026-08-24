@@ -1,9 +1,15 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "target": "ES2020",
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    /* "node" is here for the test files only: AppRoutes.permissions.test.tsx
+       reads AppRoutes.tsx off disk to check the route table still matches the
+       source. apps/frontend gets the same types implicitly, via a transitive
+       reference from one of its other @types packages; stating it here keeps
+       this app's program from depending on that accident. */
+    "types": ["vite/client", "node"],
     "module": "ESNext",
     "skipLibCheck": true,
 

@@ -16,8 +16,8 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import useApi, { api } from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
 
 interface MileageAllowance {
   id: number

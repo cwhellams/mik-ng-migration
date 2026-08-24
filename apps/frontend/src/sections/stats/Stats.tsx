@@ -33,7 +33,7 @@ import {
   TotalLandingsByAcYr,
   PobDistributionByAcYr,
 } from '@mik/contracts/stats'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { PilotStatistics as PilotStatisticsView } from './components/PilotStatistics'
 import { ReservationEfficiency as ReservationEfficiencyView } from './components/ReservationEfficiency'
 import { YearOnYearReport } from './components/YearOnYearReport'

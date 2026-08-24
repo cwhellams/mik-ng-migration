@@ -21,8 +21,8 @@ import {
   type ExpenseClaimListResponse,
 } from '@mik/contracts/expenses'
 import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
 import {
   ExpenseStatusChip,
   formatExpenseAmount,

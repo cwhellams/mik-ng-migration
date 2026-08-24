@@ -12,7 +12,7 @@ import {
 import { ResponsiveBar } from '@nivo/bar'
 import useApi from '../../../hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
 import type {
   AirfieldEfficiencyByYr,

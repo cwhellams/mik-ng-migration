@@ -25,7 +25,7 @@ import { useDefects } from '../../hooks/useDefects'
 import type { MaintenanceNote } from '@mik/contracts/maintenance-notes'
 import type { AircraftHil } from '@mik/contracts/aircraft-hil'
 import { SaveButton } from '../../components/SaveButton'
-import { SnackAlert } from '../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 import {
   MaintenanceNoteFormSchema,

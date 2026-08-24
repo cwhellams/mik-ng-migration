@@ -17,7 +17,7 @@ import type { AircraftHilDetail } from '@mik/contracts/aircraft-hil'
 import type { Problem } from '@mik/contracts/problem'
 import { EditDialogTitle } from '../../../../components/EditDialogTitle'
 import { SaveButton } from '../../../../components/SaveButton'
-import { SnackAlert } from '../../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import useApi from '../../../../hooks/useApi'
 import { refreshAircraftHil } from './useAircraftHil'
 

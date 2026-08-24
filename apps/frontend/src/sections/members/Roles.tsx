@@ -7,9 +7,9 @@ import { EditButton } from '../../components/EditButton'
 import { MemberRole, MIKLang } from '@mik/contracts/members'
 import { useState } from 'react'
 import { MemberRoleEditor } from './components/EditRoleModal'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Upsert } from '@mik/contracts/schema'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 
 const Roles = () => {

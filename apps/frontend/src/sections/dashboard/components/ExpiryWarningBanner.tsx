@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useMe } from '../../../hooks/useMe'
 import dayjs from 'dayjs'
-import { getEffectiveMedicalExpiry } from '../../../utils/date'
+import { getEffectiveMedicalExpiry } from '@mik/ui/utils/date'
 
 const EXPIRY_WARNING_DAYS = 30
 

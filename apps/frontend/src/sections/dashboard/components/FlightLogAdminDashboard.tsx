@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { FlightLogListResponse, FlightLogStatus } from '@mik/contracts/flight-log'
 import type { RecentRemarksResponse } from '@mik/contracts/remarks'
 import { useThemeMode } from '../../../theme/ThemeContext'

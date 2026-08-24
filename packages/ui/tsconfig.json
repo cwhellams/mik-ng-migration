@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    /* Browser-only by design — unlike packages/contracts this package may use
+       React, MUI and the DOM. It may NOT use Node builtins: there is no
+       @types/node here, so a stray `process.env` or `Buffer` is a compile
+       error rather than a crash in whichever app bundles it. Anything
+       environment-derived comes from `import.meta.env` (see i18n.ts) or is a
+       parameter the app passes in. */
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "jsx": "react-jsx",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
+}

@@ -16,7 +16,7 @@ import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { SaveButton } from '../../../components/SaveButton'
 import { Problem } from '@mik/contracts/problem'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import dayjs, { Dayjs } from 'dayjs'
 import { AircraftCard, AircraftCardAuditable } from '@mik/contracts/aircraft-cards'
 

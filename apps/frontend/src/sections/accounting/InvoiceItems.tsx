@@ -12,10 +12,10 @@ import {
 import RefreshIcon from '@mui/icons-material/Refresh'
 import type { Item, ItemListResponse } from '@mik/contracts/invoicing'
 import useApi from '../../hooks/useApi'
-import { eurFormatter } from '../../utils/format'
-import { RemoteContent } from '../../components/RemoteContent'
+import { eurFormatter } from '@mik/ui/utils/format'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { t } from 'i18next'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import Grid from '@mui/system/Grid'
 

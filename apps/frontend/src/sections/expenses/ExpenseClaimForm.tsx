@@ -32,8 +32,8 @@ import {
 } from '@mik/contracts/expenses'
 import useApi from '../../hooks/useApi'
 import { sharedApi } from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
 import { getExpenseCategoryLabel, isExpenseEditable } from './expenseUi'
 import {
   AttachmentsUploadZone,

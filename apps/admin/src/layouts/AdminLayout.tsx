@@ -18,26 +18,33 @@ import {
   MenuItem,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
+import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate, useLocation, Link } from 'react-router'
+import { ListSubheader } from '@mui/material'
 import { useMe } from '../hooks/useMe'
 import { useAuth } from '../hooks/useAuth'
+import { useRoles } from '../hooks/useRoles'
+import { navGroups } from '../config/navItems'
 
 const DRAWER_WIDTH = 240
 
-interface NavItem {
-  label: string
-  icon: string
-  path: string
-}
-
-const navItems: NavItem[] = [{ label: 'Dashboard', icon: 'mdi:view-dashboard', path: '/dashboard' }]
-
 const AdminLayout = () => {
   const { me } = useMe()
+  const { hasAccess } = useRoles()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const { trigger: triggerLogout } = useAuth('logout')
+
+  // Drop the items this admin may not reach, then the groups that emptied as a
+  // result — a heading over nothing reads as a broken page.
+  const visibleGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => hasAccess(...item.permissions)),
+    }))
+    .filter((group) => group.items.length > 0)
 
   const handleLogout = async () => {
     setAnchorEl(null)
@@ -104,33 +111,60 @@ const AdminLayout = () => {
         </Toolbar>
 
         {/* Navigation items */}
-        <List sx={{ pt: 1, flex: 1 }}>
-          {navItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path)
-            return (
-              <ListItem key={item.path} disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to={item.path}
+        <List sx={{ pt: 1, flex: 1, overflowY: 'auto' }}>
+          {visibleGroups.map((group) => (
+            <Box key={group.label ?? 'top'} component='li' sx={{ listStyle: 'none' }}>
+              {group.label && (
+                <ListSubheader
+                  disableSticky
                   sx={{
-                    mx: 1,
-                    borderRadius: 1,
-                    bgcolor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+                    bgcolor: 'transparent',
+                    color: 'rgba(255,255,255,0.55)',
+                    fontSize: '0.7rem',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    lineHeight: 2.4,
                   }}
                 >
-                  <ListItemIcon sx={{ color: 'primary.contrastText', minWidth: 36 }}>
-                    <Icon icon={item.icon} width={20} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.label}
-                    slotProps={{ primary: { sx: { fontSize: '0.875rem' } } }}
-                    sx={{ color: 'primary.contrastText' }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            )
-          })}
+                  {t(group.label)}
+                </ListSubheader>
+              )}
+              <List disablePadding>
+                {group.items.map((item) => {
+                  // Exact match, not `startsWith`: /shop would otherwise light up
+                  // for every /shop/* page and the sidebar would show two
+                  // selected items at once.
+                  const isActive = location.pathname === item.path
+                  return (
+                    <ListItem key={item.path} disablePadding>
+                      <ListItemButton
+                        component={Link}
+                        to={item.path}
+                        selected={isActive}
+                        sx={{
+                          mx: 1,
+                          borderRadius: 1,
+                          bgcolor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+                          '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+                          '&.Mui-selected': { bgcolor: 'rgba(255,255,255,0.15)' },
+                          '&.Mui-selected:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                        }}
+                      >
+                        <ListItemIcon sx={{ color: 'primary.contrastText', minWidth: 36 }}>
+                          <Icon icon={item.icon} width={20} />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={t(item.label)}
+                          slotProps={{ primary: { sx: { fontSize: '0.875rem' } } }}
+                          sx={{ color: 'primary.contrastText' }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  )
+                })}
+              </List>
+            </Box>
+          ))}
         </List>
 
         <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />

@@ -1,5 +1,5 @@
 import useApi from '../../hooks/useApi'
-import type { MemberSyllabusDetail } from './dtoApi'
+import type { MemberSyllabusDetail } from '@mik/ui/api/dtoApi'
 
 /**
  * Fetches the active DTO syllabus assignment for the currently authenticated

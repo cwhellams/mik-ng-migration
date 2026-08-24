@@ -1,0 +1,554 @@
+import {
+  Box,
+  Button,
+  Checkbox,
+  Chip,
+  IconButton,
+  LinearProgress,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+  Paper,
+} from '@mui/material'
+import { Icon } from '@iconify/react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useApi from '../hooks/useApi'
+import { useMultiSelect } from '@mik/ui/hooks/useMultiSelect'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
+import { formatPhoneNumber } from '@mik/ui/utils/format'
+import type { Problem } from '@mik/contracts/problem'
+import type { NonRenewalListResponse, NonRenewalMember } from '@mik/contracts/members'
+import { useTimezone } from '../hooks/useTimezone'
+import { absolute, endpoints } from '../api/endpoints'
+
+export default function NonRenewals() {
+  const { t } = useTranslation()
+  const { formatDate, formatDateTime } = useTimezone()
+
+  const [problem, setProblem] = useState<Problem | undefined>()
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  const [bulkLoading, setBulkLoading] = useState(false)
+
+  const { data, isLoading, error, mutate } = useApi<NonRenewalListResponse>({
+    url: endpoints.members.nonRenewals,
+  })
+
+  const { mutation } = useApi<void, void>({ url: endpoints.members.nonRenewals })
+
+  const year = data?.year ?? new Date().getFullYear()
+  const members = data?.members ?? []
+
+  // ── selection helpers ──────────────────────────────────────────────────────
+  // Only members with no billable flights this year may be selected.
+  const selectableIds = members.filter((m) => m.billableFlightCount === 0).map((m) => m.memberId)
+  const { selectedIds, isSelected, isAllSelected, isIndeterminate, toggle, toggleAll, clear } =
+    useMultiSelect(selectableIds)
+
+  // ── single-row handlers ────────────────────────────────────────────────────
+  const handleCopyEmail = async (email: string) => {
+    try {
+      await navigator.clipboard.writeText(email)
+      setProblem({ status: 200, detail: t('member.nonRenewalsEmailCopied') })
+    } catch {
+      // clipboard not available in some environments
+    }
+  }
+
+  const handleSendReminder = async (member: NonRenewalMember) => {
+    const name = `${member.firstName} ${member.lastName}`
+    if (!globalThis.confirm(t('member.nonRenewalsSendReminderConfirm', { name }))) {
+      return
+    }
+
+    setActionLoadingId(`reminder-${member.memberId}`)
+    const { error: mutErr } = await mutation.trigger(
+      'POST',
+      {},
+      absolute(endpoints.members.sendRenewalReminder(member.memberId)),
+    )
+    setActionLoadingId(null)
+
+    if (mutErr) {
+      return setProblem(mutErr)
+    }
+
+    setProblem({
+      status: 200,
+      detail: t('member.nonRenewalsSendReminderSuccess', { name }),
+    })
+
+    mutate()
+  }
+
+  const handleRemoveMember = async (member: NonRenewalMember) => {
+    const name = `${member.firstName} ${member.lastName}`
+    if (!globalThis.confirm(t('member.nonRenewalsRemoveMemberConfirm', { name }))) {
+      return
+    }
+
+    setActionLoadingId(`remove-${member.memberId}`)
+    const { error: mutErr } = await mutation.trigger(
+      'POST',
+      { reason: 'Membership deactivated due to non-renewal of annual fee' },
+      absolute(endpoints.members.deactivate(member.memberId)),
+    )
+    setActionLoadingId(null)
+
+    if (mutErr) {
+      return setProblem(mutErr)
+    }
+
+    setProblem({
+      status: 200,
+      detail: t('member.nonRenewalsRemoveMemberSuccess', { name }),
+    })
+
+    mutate()
+  }
+
+  // ── bulk handlers ──────────────────────────────────────────────────────────
+  const handleBulkSendReminder = async () => {
+    const count = selectedIds.length
+    if (!globalThis.confirm(t('member.nonRenewalsBulkSendReminderConfirm', { count }))) {
+      return
+    }
+
+    setBulkLoading(true)
+    const ids = selectedIds
+    let successCount = 0
+    let firstError: Problem | undefined
+
+    for (const memberId of ids) {
+      const { error: mutErr } = await mutation.trigger(
+        'POST',
+        {},
+        absolute(endpoints.members.sendRenewalReminder(memberId)),
+      )
+      if (mutErr) {
+        firstError = mutErr
+      } else {
+        successCount++
+      }
+    }
+
+    setBulkLoading(false)
+    clear()
+    mutate()
+
+    if (firstError && successCount === 0) {
+      setProblem(firstError)
+    } else {
+      setProblem({
+        status: 200,
+        detail: t('member.nonRenewalsBulkSendReminderSuccess', {
+          count: successCount,
+        }),
+      })
+    }
+  }
+
+  const handleBulkRemove = async () => {
+    // Safety net: never deactivate members who have flights this year (selectedIds
+    // is already restricted to selectable members, but keep the guard explicit).
+    const ids = selectedIds.filter((id) => {
+      const member = members.find((m) => m.memberId === id)
+      return member && member.billableFlightCount === 0
+    })
+    const count = ids.length
+    if (count === 0) return
+    if (!globalThis.confirm(t('member.nonRenewalsBulkRemoveConfirm', { count }))) {
+      return
+    }
+
+    setBulkLoading(true)
+    let successCount = 0
+    let firstError: Problem | undefined
+
+    for (const memberId of ids) {
+      const { error: mutErr } = await mutation.trigger(
+        'POST',
+        { reason: 'Membership deactivated due to non-renewal of annual fee' },
+        absolute(endpoints.members.deactivate(memberId)),
+      )
+      if (mutErr) {
+        firstError = mutErr
+      } else {
+        successCount++
+      }
+    }
+
+    setBulkLoading(false)
+    clear()
+    mutate()
+
+    if (firstError && successCount === 0) {
+      setProblem(firstError)
+    } else {
+      setProblem({
+        status: 200,
+        detail: t('member.nonRenewalsBulkRemoveSuccess', {
+          count: successCount,
+        }),
+      })
+    }
+  }
+
+  const isBusy = bulkLoading || actionLoadingId !== null
+
+  return (
+    <Box>
+      <SnackAlert problem={problem} />
+      <Title
+        label={t('member.nonRenewalsTitle', 'Members Without Annual Fee {{year}}', { year })}
+      />
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
+        {t('member.nonRenewalsSubtitle')}
+      </Typography>
+      <RemoteContent error={error} isLoading={isLoading}>
+        {members.length === 0 ? (
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {t('member.nonRenewalsEmpty', { year })}
+          </Typography>
+        ) : (
+          <>
+            {/* Bulk action toolbar — visible only when rows are selected */}
+            {selectedIds.length > 0 && (
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  alignItems: 'center',
+                  mb: 1,
+                  px: 2,
+                  py: 1,
+                  bgcolor: 'action.selected',
+                  borderRadius: 1,
+                }}
+              >
+                <Typography variant='body2' sx={{ flexGrow: 1 }}>
+                  {t('member.nonRenewalsBulkSelected', {
+                    count: selectedIds.length,
+                  })}
+                </Typography>
+
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='primary'
+                  disabled={isBusy}
+                  startIcon={<Icon icon='mdi:email-send-outline' />}
+                  onClick={handleBulkSendReminder}
+                >
+                  {t('member.nonRenewalsBulkSendReminder', 'Send Reminders ({{count}})', {
+                    count: selectedIds.length,
+                  })}
+                </Button>
+
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='error'
+                  disabled={isBusy}
+                  startIcon={<Icon icon='mdi:account-remove-outline' />}
+                  onClick={handleBulkRemove}
+                >
+                  {t('member.nonRenewalsBulkRemove', 'Remove Members ({{count}})', {
+                    count: selectedIds.length,
+                  })}
+                </Button>
+              </Stack>
+            )}
+
+            {bulkLoading && <LinearProgress sx={{ mb: 1 }} />}
+
+            <TableContainer component={Paper} variant='outlined'>
+              <Table size='small'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell padding='checkbox'>
+                      <Checkbox
+                        size='small'
+                        checked={isAllSelected}
+                        indeterminate={isIndeterminate}
+                        onChange={toggleAll}
+                        disabled={isBusy}
+                        slotProps={{
+                          input: { 'aria-label': 'select all members' },
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>{t('member.name', 'Name')}</TableCell>
+                    <TableCell>{t('member.emailPhone', 'Email / Phone')}</TableCell>
+                    <TableCell>{t('member.nonRenewalsAutoRenew', 'Opted In')}</TableCell>
+                    <TableCell>{t('member.nonRenewalsFeeStatus', 'Fee Status')}</TableCell>
+                    <TableCell align='center'>
+                      {t('member.nonRenewalsFlights', 'Flights')}
+                    </TableCell>
+                    <TableCell align='right'>{t('member.nonRenewalsActions', 'Actions')}</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {members.map((member) => {
+                    const fullName = `${member.firstName} ${member.lastName}`
+                    const isReminderLoading = actionLoadingId === `reminder-${member.memberId}`
+                    const isRemoveLoading = actionLoadingId === `remove-${member.memberId}`
+                    const isChecked = isSelected(member.memberId)
+                    const hasFlightsThisYear = member.billableFlightCount > 0
+                    const lastReminderDate = formatDateTime(member.lastReminderSentAt)
+
+                    return (
+                      <TableRow
+                        key={member.memberId}
+                        hover
+                        selected={isChecked}
+                        onClick={() => !isBusy && toggle(member.memberId)}
+                        sx={{
+                          cursor: isBusy || hasFlightsThisYear ? 'default' : 'pointer',
+                        }}
+                      >
+                        <TableCell padding='checkbox' onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            size='small'
+                            checked={isChecked}
+                            onChange={() => toggle(member.memberId)}
+                            disabled={isBusy || hasFlightsThisYear}
+                            slotProps={{
+                              input: { 'aria-label': `select ${fullName}` },
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              fontWeight: 'medium',
+                            }}
+                          >
+                            {fullName}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
+                            {member.memberId}
+                          </Typography>
+                        </TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Stack
+                            direction='row'
+                            spacing={0.5}
+                            sx={{
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Typography variant='body2'>{member.email}</Typography>
+                            <Tooltip title={t('member.nonRenewalsEmailCopied', 'Copy email')}>
+                              <IconButton
+                                size='small'
+                                onClick={() => handleCopyEmail(member.email)}
+                                aria-label='copy email'
+                              >
+                                <Icon icon='mdi:content-copy' width={14} />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
+                            {member.phoneNumber ? formatPhoneNumber(member.phoneNumber) : '—'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {member.autoRenewAnnualMembership === false ? (
+                            <Chip
+                              label={t('member.nonRenewalsAutoRenewOff', 'Opted Out')}
+                              size='small'
+                              color='warning'
+                              variant='outlined'
+                            />
+                          ) : (
+                            <Chip
+                              label={t('member.nonRenewalsAutoRenewOn', 'Opted In')}
+                              size='small'
+                              color='success'
+                              variant='outlined'
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {member.feeStatus === 'unpaid' ? (
+                            <Stack spacing={0.25}>
+                              <Chip
+                                label={t('member.nonRenewalsInvoiceUnpaid', 'Invoice Unpaid')}
+                                size='small'
+                                color='warning'
+                                variant='filled'
+                              />
+                              {member.invoiceSentAt && (
+                                <Typography
+                                  variant='caption'
+                                  sx={{
+                                    color: 'text.secondary',
+                                  }}
+                                >
+                                  {t('member.nonRenewalsInvoicedOn', 'Invoiced: {{date}}', {
+                                    date: formatDate(member.invoiceSentAt),
+                                  })}
+                                </Typography>
+                              )}
+                              {member.invoiceDueAt && (
+                                <Typography
+                                  variant='caption'
+                                  color={
+                                    new Date(member.invoiceDueAt) < new Date()
+                                      ? 'error'
+                                      : 'text.secondary'
+                                  }
+                                >
+                                  {t('member.nonRenewalsInvoiceDueOn', 'Due: {{date}}', {
+                                    date: formatDate(member.invoiceDueAt),
+                                  })}
+                                </Typography>
+                              )}
+                            </Stack>
+                          ) : (
+                            <Chip
+                              label={t('member.nonRenewalsNoFeeRecord', 'No Fee Record')}
+                              size='small'
+                              color='default'
+                              variant='outlined'
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell align='center' onClick={(e) => e.stopPropagation()}>
+                          {hasFlightsThisYear ? (
+                            <Chip
+                              label={member.billableFlightCount}
+                              size='small'
+                              color='error'
+                              variant='filled'
+                            />
+                          ) : (
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
+                              0
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell align='right' onClick={(e) => e.stopPropagation()}>
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{
+                              justifyContent: 'flex-end',
+                              alignItems: 'flex-start',
+                            }}
+                          >
+                            <Stack
+                              spacing={0.25}
+                              sx={{
+                                alignItems: 'center',
+                              }}
+                            >
+                              <Button
+                                size='small'
+                                variant='outlined'
+                                color='primary'
+                                disabled={isBusy}
+                                startIcon={
+                                  isReminderLoading ? (
+                                    <Icon icon='mdi:loading' className='spin' />
+                                  ) : (
+                                    <Icon icon='mdi:email-send-outline' />
+                                  )
+                                }
+                                onClick={() => handleSendReminder(member)}
+                              >
+                                {lastReminderDate
+                                  ? t('member.nonRenewalsSendReminderAgain', 'Send Reminder Again')
+                                  : t('member.nonRenewalsSendReminder', 'Send Reminder')}
+                              </Button>
+                              {lastReminderDate && (
+                                <Typography
+                                  variant='caption'
+                                  sx={{
+                                    color: 'text.secondary',
+                                  }}
+                                >
+                                  {t('member.nonRenewalsReminderSentOn', 'Sent: {{date}}', {
+                                    date: lastReminderDate,
+                                  })}
+                                </Typography>
+                              )}
+                            </Stack>
+
+                            <Tooltip
+                              title={t(
+                                'member.nonRenewalsRemoveDisabledFlights',
+                                'Members with flights in the current year cannot be removed or have their membership cancelled',
+                              )}
+                              disableHoverListener={!hasFlightsThisYear}
+                              disableFocusListener={!hasFlightsThisYear}
+                              disableTouchListener={!hasFlightsThisYear}
+                            >
+                              <span>
+                                <Button
+                                  size='small'
+                                  variant='outlined'
+                                  color='error'
+                                  disabled={isBusy || hasFlightsThisYear}
+                                  startIcon={
+                                    isRemoveLoading ? (
+                                      <Icon icon='mdi:loading' className='spin' />
+                                    ) : (
+                                      <Icon icon='mdi:account-remove-outline' />
+                                    )
+                                  }
+                                  onClick={() => handleRemoveMember(member)}
+                                >
+                                  {t('member.nonRenewalsRemoveMember', 'Remove')}
+                                </Button>
+                              </span>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
+      </RemoteContent>
+    </Box>
+  )
+}

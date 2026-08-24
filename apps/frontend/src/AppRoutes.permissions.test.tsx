@@ -9,7 +9,6 @@ import { aMember } from './test/fixtures'
 import {
   GATED_ROUTES,
   isForbidden,
-  OWN_GATES,
   PUBLIC_PATHS,
   ROUTES,
   UNGATED_ROUTES,
@@ -37,7 +36,7 @@ describe('route table', () => {
     const gatesInSource = source.match(/<RequirePermission/g) ?? []
 
     // If this fails, a route was added, removed or re-gated — update routeMatrix.tsx.
-    expect(gatesInSource).toHaveLength(OWN_GATES.length)
+    expect(gatesInSource).toHaveLength(GATED_ROUTES.length)
   })
 
   it('gives every gated route at least one permission', () => {
@@ -51,13 +50,17 @@ describe('route table', () => {
   })
 
   it('is dominated by ungated routes, which rely on page- and API-level checks', () => {
-    // Recorded deliberately: only 36 of the 92 routes carry a route-level gate
-    // of their own, so the matrix is not on its own a complete authorisation
-    // audit — most of the app is guarded further in, at the page or the API.
-    expect(ROUTES).toHaveLength(93)
-    expect(OWN_GATES).toHaveLength(36)
-    expect(GATED_ROUTES).toHaveLength(37)
-    expect(UNGATED_ROUTES).toHaveLength(56)
+    // Recorded deliberately: only 15 of the 72 routes carry a route-level gate,
+    // so the matrix is not on its own a complete authorisation audit — most of
+    // the app is guarded further in, at the page or the API.
+    //
+    // Was 93 routes / 37 gated before #1233 moved the 21 /admin/* pages to
+    // apps/admin (whose own matrix now covers them) and replaced them with one
+    // ungated redirect. The share of gated routes fell with them, which is the
+    // point of the split: what is left here is the member app.
+    expect(ROUTES).toHaveLength(72)
+    expect(GATED_ROUTES).toHaveLength(15)
+    expect(UNGATED_ROUTES).toHaveLength(57)
   })
 
   it('opens nothing to the public beyond the sign-in routes and the 404', () => {

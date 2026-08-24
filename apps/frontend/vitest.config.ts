@@ -125,16 +125,35 @@ export default defineConfig({
         // there is no reason for it ever to leave.
         'src/api/**': { statements: 99, branches: 99, functions: 99 },
         'src/hooks/**': { statements: 97, branches: 93, functions: 99 },
-        'src/components/**': { statements: 92, branches: 88, functions: 86 },
+        // 92/88/86 -> 91/86/86, and src/utils below 61/55/76 -> 54/43/66.
+        //
+        // The only time these bars move down. #1233 moved five well-covered
+        // components (Title, RemoteContent, LocalisedTextField, SnackAlert,
+        // MarkdownContent) and three fully-covered utils (date, format,
+        // localisedText) out to `packages/ui`, so both directories lost
+        // numerator and denominator together and what is left reads lower —
+        // 91.86/87.42/86.99 and 55.43/44.88/67.50 measured. Nothing became less
+        // tested: the same tests moved with the code and now run against
+        // `packages/ui`'s own ratchet, which starts at 95/90/95 precisely
+        // because that code arrived already covered.
+        //
+        // A denominator change is the one thing "may only ever be raised"
+        // cannot absorb, and pinning the bars at the old numbers would have
+        // meant either deleting the moved tests' subjects from the report or
+        // leaving a red build. Both are worse than saying so here.
+        'src/components/**': { statements: 91, branches: 86, functions: 86 },
         'src/{*,lib/**,layouts/**,theme/**,config/**}': {
           statements: 71,
           branches: 46,
           functions: 68,
         },
-        // 53/49/65 -> 61/55/76: #1115 finding 8 brought the two calendar modules
-        // and the extracted icsDownload under test (54.5% -> 62.9% statements for
-        // the directory). Raised in the PR that earned it, per the rule above.
-        'src/utils/**': { statements: 61, branches: 55, functions: 76 },
+        // 53/49/65 -> 61/55/76 in #1115 (finding 8 brought the two calendar
+        // modules and the extracted icsDownload under test), then 61/55/76 ->
+        // 54/43/66 in #1233 for the denominator reason explained above — date,
+        // format and localisedText were three of this directory's four
+        // fully-covered modules and they now live in `packages/ui`. What is
+        // left here is the browser-API wrappers that were always the gap.
+        'src/utils/**': { statements: 54, branches: 43, functions: 66 },
         // 40/34/26 -> 43/38/28: #1019 brought the flight-log list, the crew-role helper,
         // the change-history dialog and the crew/instructor gating on the entry form under
         // test (43.98/39.24/29.71 measured). Raised in the PR that earned it, per the rule

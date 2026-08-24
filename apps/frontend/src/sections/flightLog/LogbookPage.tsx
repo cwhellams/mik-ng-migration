@@ -26,7 +26,7 @@ import {
   FlightLogStatus,
   PageItemRow,
 } from '@mik/contracts/flight-log'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import { AircraftJourneyLogBook } from '@mik/contracts/ajlb'
@@ -35,8 +35,8 @@ import { EditButton } from '../../components/EditButton'
 import { Problem } from '@mik/contracts/problem'
 import { StatusButton } from './components/StatusButton'
 import { FlightLogValidation } from './components/FlightLogValidation'
-import { SnackAlert } from '../../components/SnackAlert'
-import { Title } from '../../components/Title'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
+import { Title } from '@mik/ui/components/Title'
 import {
   FlightLogTimeline,
   ViewFlightDate,

@@ -20,7 +20,7 @@ import UserAvatar from '../sections/members/components/UserAvatar'
 import useApi from '../hooks/useApi'
 import { Member, MIKLang } from '@mik/contracts/members'
 import { useTimezone } from '../hooks/useTimezone'
-import { getOffsetLabelInTz } from '../utils/date'
+import { getOffsetLabelInTz } from '@mik/ui/utils/date'
 import { endpoints } from '../api/endpoints'
 
 const User = () => {

@@ -66,20 +66,20 @@ import { Fuel } from './components/Fuel'
 import { FuelUplift } from './components/FuelUplift'
 import { OilUplift } from './components/OilUplift'
 import { StatusDisplay } from './components/StatusDisplay'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import { SelectMember } from '../../components/SelectMember'
-import { SnackAlert } from '../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 import { SaveButton } from '../../components/SaveButton'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import {
   getMemberSyllabus,
   getFlightAttempt,
   createFlightAttempt,
   updateFlightAttempt,
   type MemberSyllabusDetail,
-} from '../dto/dtoApi'
+} from '@mik/ui/api/dtoApi'
 import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
 import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'

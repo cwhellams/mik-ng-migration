@@ -19,7 +19,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useServerClock } from '../../../hooks/useServerClock'
-import { formatTimeInTz, getOffsetLabelInTz } from '../../../utils/date'
+import { formatTimeInTz, getOffsetLabelInTz } from '@mik/ui/utils/date'
 import { FlightLog, FlightLogUpsertRequest } from '@mik/contracts/flight-log'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'

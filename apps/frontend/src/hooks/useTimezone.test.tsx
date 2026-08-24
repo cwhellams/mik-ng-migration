@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { renderHookWithProviders } from '../test/renderWithProviders'
-import { dayjs } from '../utils/date'
+import { dayjs } from '@mik/ui/utils/date'
 import { useTimezone } from './useTimezone'
 
 // Tests run with TZ=Europe/Helsinki (see vitest.config.ts): UTC+3 in summer.

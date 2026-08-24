@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
 import { Member } from '@mik/contracts/members'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { endpoints } from '../../api/endpoints'
 
 const EmailChangeVerify = () => {

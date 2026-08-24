@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
 import { SNACKBAR_ANCHOR_BOTTOM_CENTER, useSnackbar } from '../../hooks/useSnackbar'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { EditButton } from '../../components/EditButton'
 import { useRoles } from '../../hooks/useRoles'
 import UploadDocumentModal from './UploadDocumentModal'
@@ -36,7 +36,7 @@ import type {
   DownloadDocument,
 } from '@mik/contracts/documents'
 import { MIKPermissions } from '@mik/contracts/members'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
 

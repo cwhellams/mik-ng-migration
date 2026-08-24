@@ -18,7 +18,7 @@ import useApi from '../../hooks/useApi'
 import type { Defect } from '@mik/contracts/defects'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { SaveButton } from '../../components/SaveButton'
-import { SnackAlert } from '../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'
 

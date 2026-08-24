@@ -18,7 +18,7 @@ import type { Secret, SecretsListResponse, SecretClass } from '@mik/contracts/se
 import useApi from '../../hooks/useApi'
 import { SaveButton } from '../../components/SaveButton'
 import { Problem } from '@mik/contracts/problem'
-import { SnackAlert } from '../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { useRoles } from '../../hooks/useRoles'
 
 interface SecretDialogProps {

@@ -15,7 +15,7 @@ import { SWRConfig } from 'swr'
 
 import { ServerClockProvider } from '../hooks/useServerClock'
 import { SnackbarProvider } from '../hooks/useSnackbar'
-import i18n from '../i18n'
+import i18n from '@mik/ui/i18n'
 import { ThemeProvider, useThemeMode } from '../theme/ThemeContext'
 
 export interface ProviderOptions {

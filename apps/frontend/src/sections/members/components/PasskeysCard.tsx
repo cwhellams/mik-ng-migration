@@ -17,7 +17,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../../hooks/useApi'
 import { FormTitle } from '../../../components/FormTitle'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 import { endpoints } from '../../../api/endpoints'
 import {

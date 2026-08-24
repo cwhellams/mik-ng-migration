@@ -17,13 +17,13 @@ import {
 } from '@mui/material'
 import { Grid } from '@mui/system'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { dayjs } from '../../utils/date'
+import { dayjs } from '@mik/ui/utils/date'
 import type { Dayjs } from 'dayjs'
 import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import Papa from 'papaparse'
 import { Download } from '@mui/icons-material'
-import { formatDecimalHours } from '../../utils/format'
+import { formatDecimalHours } from '@mik/ui/utils/format'
 
 interface TaxReportEntry {
   month: string

@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useMe } from '../../../hooks/useMe'
 import { FlightLogStatsFilter, FlightLogStatsResponse } from '@mik/contracts/flight-log'
 import { t } from 'i18next'
@@ -20,9 +20,9 @@ import { useTimezone } from '../../../hooks/useTimezone'
 import { useState } from 'react'
 import theme from '../../../theme/theme'
 import { ResponsiveTable } from '../../../components/ResponsiveTable'
-import { formatHHMM } from '../../../utils/format'
+import { formatHHMM } from '@mik/ui/utils/format'
 import { FormField } from '../../../components/FormField'
-import { Title } from '../../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 
 export const FlightLogUserDashboard = () => {
   const { me } = useMe()

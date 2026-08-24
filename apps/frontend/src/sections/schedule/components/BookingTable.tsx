@@ -14,7 +14,7 @@ import { Booking } from '@mik/contracts/bookings'
 import { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { formatDuration } from '../../flightLog/utils/timeUtils'
-import { toHelsinki } from '../../../utils/date'
+import { toHelsinki } from '@mik/ui/utils/date'
 
 export const BookingTable = ({
   bookings,

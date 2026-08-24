@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { dayjs } from './utils/date'
+import { dayjs } from '@mik/ui/utils/date'
 import { Snackbar, Button, Box } from '@mui/material'
 import SplashScreen from './components/SplashScreen'
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate'

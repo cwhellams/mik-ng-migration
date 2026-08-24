@@ -22,15 +22,15 @@ import {
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { FlightItemOutcome, SyllabusFlight, SyllabusFlightItem } from '@mik/contracts/dto'
 import {
   verifyAttempt,
   type PendingVerificationItem,
   type AttemptWithFlightLogData,
-} from './dtoApi'
+} from '@mik/ui/api/dtoApi'
 
 type AttemptWithOutcomes = AttemptWithFlightLogData & {
   itemOutcomes: FlightItemOutcome[]

@@ -9,7 +9,7 @@ import { Member, MemberListResponse, MIKLang, MIKMemberTypes } from '@mik/contra
 import type { MemberEditMode } from './EditMemberModal'
 import type { APIMutation } from '../../../hooks/useApi'
 import { EditMemberModal } from './EditMemberModal'
-import '../../../i18n'
+import '@mik/ui/i18n'
 
 // The modal fetches the instructor list through useApi; stub it out so no HTTP
 // (or SWR cache) is involved. The mutation API is injected as a prop, so the

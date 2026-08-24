@@ -1,7 +1,7 @@
 import { Alert, AlertTitle, Box, Button, Chip, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { useMailbox } from '../../hooks/useMailbox'
 
 export default function Mailbox() {

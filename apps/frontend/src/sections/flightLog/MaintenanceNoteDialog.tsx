@@ -29,7 +29,7 @@ import { useAircraftHil } from '../aircrafts/components/hil/useAircraftHil'
 import { useOpenDefectLink } from '../aircrafts/components/hil/useOpenDefectLink'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { SaveButton } from '../../components/SaveButton'
-import { SnackAlert } from '../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 
 interface MaintenanceNoteDialogProps {

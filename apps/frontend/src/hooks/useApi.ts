@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router'
 import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
 import { useThemeMode } from '../theme/ThemeContext'
 import { validateApiPath } from '@mik/contracts/sanitizers'
+import { setHttpClient } from '@mik/ui/api/http'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 
@@ -117,6 +118,12 @@ export type ExtendedAxiosConfig = AxiosRequestConfig & {
 }
 
 export { api as sharedApi }
+
+// Hand the instance to @mik/ui, whose shared API modules (dtoApi, examApi)
+// issue their requests through whichever client the running app registers.
+// Done here rather than in main.tsx so it is impossible to import one of those
+// modules without the client that serves it — including from a test.
+setHttpClient(api)
 
 export default function useApi<
   // returned data type

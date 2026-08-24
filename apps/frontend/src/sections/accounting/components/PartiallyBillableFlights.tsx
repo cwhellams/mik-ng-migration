@@ -16,13 +16,13 @@ import {
   InvoicableFlights,
   FlightCredit,
 } from '@mik/contracts/flight-log'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useTimezone } from '../../../hooks/useTimezone'
 import { useScrollOnRender } from '../../../hooks/useScrollOnRender'
 import { useState } from 'react'
 import { Problem } from '@mik/contracts/problem'
 import { t } from 'i18next'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Grid } from '@mui/system'
 import {
   ViewMobileCrew,

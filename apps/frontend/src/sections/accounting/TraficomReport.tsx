@@ -21,12 +21,12 @@ import {
   TextField,
 } from '@mui/material'
 import { Grid } from '@mui/system'
-import { dayjs } from '../../utils/date'
+import { dayjs } from '@mik/ui/utils/date'
 import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import Papa from 'papaparse'
 import { Download } from '@mui/icons-material'
-import { formatHHMM } from '../../utils/format'
+import { formatHHMM } from '@mik/ui/utils/format'
 
 const FILTER_OPTIONS = ['ALL', 'PRIVATE', 'SCHOOL', 'DTO_SCHOOL', 'NON_DTO_SCHOOL'] as const
 type TraficomFilter = (typeof FILTER_OPTIONS)[number]

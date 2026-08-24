@@ -11,7 +11,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box } from '@mui/system'
 import { Link } from 'react-router'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import useApi from '../../../hooks/useApi'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'

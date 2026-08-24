@@ -30,7 +30,7 @@ import { FormField } from '../../../components/FormField'
 import { FlightLogListResponse, FlightLogStatus } from '@mik/contracts/flight-log'
 import { FlightTable } from './FlightTable'
 import { Problem } from '@mik/contracts/problem'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
 

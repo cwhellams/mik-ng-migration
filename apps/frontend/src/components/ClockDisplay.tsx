@@ -1,7 +1,7 @@
 import { Box, Tooltip, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useServerClock } from '../hooks/useServerClock'
-import { formatTimeInTz, getOffsetLabelInTz } from '../utils/date'
+import { formatTimeInTz, getOffsetLabelInTz } from '@mik/ui/utils/date'
 import { useTimezone } from '../hooks/useTimezone'
 
 interface ClockDisplayProps {

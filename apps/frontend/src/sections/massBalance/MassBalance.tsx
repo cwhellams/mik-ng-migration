@@ -21,7 +21,7 @@ import { loadAircraftSpecs, AircraftSpecs, CONVERSIONS } from './components/spec
 import WeightBalanceEnvelope from './components/WeightBalanceEnvelope'
 import WeightSlider from './components/WeightSlider'
 import { useMassBalanceState } from '../../hooks/useMassBalanceState'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import {
   calculateMassBalance,
   getWeightBalanceStatus,

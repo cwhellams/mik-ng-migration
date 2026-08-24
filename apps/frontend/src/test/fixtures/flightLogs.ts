@@ -6,7 +6,12 @@ import {
   type FlightLogListResponse,
 } from '@mik/contracts/flight-log'
 
-import { AIRCRAFT_REGISTRATION, auditFields, INSTRUCTOR_MEMBER_ID, MEMBER_ID } from './cast'
+import {
+  AIRCRAFT_REGISTRATION,
+  auditFields,
+  INSTRUCTOR_MEMBER_ID,
+  MEMBER_ID,
+} from '@mik/ui/test/fixtures/cast'
 
 /** 2025-06-02: off block 09:00Z, takeoff 09:10Z, landing 10:50Z, on block 11:00Z. */
 const OFF_BLOCK = Date.UTC(2025, 5, 2, 9, 0, 0)

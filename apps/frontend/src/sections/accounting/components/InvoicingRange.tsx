@@ -1,11 +1,11 @@
 import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Select } from '@mui/material'
 import useApi from '../../../hooks/useApi'
 import { InvoicableFlightFilters } from '@mik/contracts/flight-log'
-import { dayjs } from '../../../utils/date'
+import { dayjs } from '@mik/ui/utils/date'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { AjlbListResponse } from '@mik/contracts/ajlb'
 import { t } from 'i18next'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 
 export const InvoicingRange = ({
   filters,

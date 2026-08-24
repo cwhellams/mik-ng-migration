@@ -9,8 +9,8 @@ import type {
 } from '@mik/contracts/flight-log'
 
 import { ResponsiveTable } from '../../../components/ResponsiveTable'
-import { RemoteContent } from '../../../components/RemoteContent'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import useApi from '../../../hooks/useApi'
 
 import { t } from 'i18next'

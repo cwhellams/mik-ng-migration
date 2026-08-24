@@ -5,7 +5,7 @@ import {
   INSTRUCTOR_MEMBER_ID,
   MEMBER_ID,
   NO_PERMISSIONS_MEMBER_ID,
-} from '../../../test/fixtures/cast'
+} from '@mik/ui/test/fixtures/cast'
 import { canOpenFlightRow, myCrewRoleOn } from './crew'
 
 describe('myCrewRoleOn', () => {

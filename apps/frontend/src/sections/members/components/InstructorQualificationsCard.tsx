@@ -28,7 +28,7 @@ import { FormTitle } from '../../../components/FormTitle'
 import { EditButton } from '../../../components/EditButton'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { SaveButton } from '../../../components/SaveButton'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import type { Problem } from '@mik/contracts/problem'
 import type {
   InstructorQualification,

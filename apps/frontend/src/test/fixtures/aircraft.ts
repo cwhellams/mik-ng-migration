@@ -5,7 +5,7 @@ import {
   type AircraftStatus,
 } from '@mik/contracts/aircrafts'
 
-import { AIRCRAFT_REGISTRATION, auditFields } from './cast'
+import { AIRCRAFT_REGISTRATION, auditFields } from '@mik/ui/test/fixtures/cast'
 
 /**
  * `OH-STL` — the club's Diamond DA40, mirroring `sql/schema/static_data/V20__AircraftData.sql`.

@@ -37,7 +37,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { EditButton } from '../../../components/EditButton'
 import { SaveButton } from '../../../components/SaveButton'
 import { Problem } from '@mik/contracts/problem'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { HoursAndMinutes } from '../../flightLog/components/HoursAndMinutes'
 import { endpoints } from '../../../api/endpoints'
 

@@ -15,7 +15,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import type { FlightLogAuditResponse } from '@mik/contracts/flight-log'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import useApi from '../../../hooks/useApi'
 import { useTimezone } from '../../../hooks/useTimezone'
 

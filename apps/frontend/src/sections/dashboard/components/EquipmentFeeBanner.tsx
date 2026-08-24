@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next'
 import useApi from '../../../hooks/useApi'
 import { EquipmentFee, EquipmentFeeStatus } from '@mik/contracts/invoicing'
 import { useState } from 'react'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 
 export const EquipmentFeeBanner = () => {
   const { t } = useTranslation()

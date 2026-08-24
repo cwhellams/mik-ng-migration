@@ -5,7 +5,12 @@ import {
   type BookingListResponse,
 } from '@mik/contracts/bookings'
 
-import { AIRCRAFT_REGISTRATION, auditFields, INSTRUCTOR_MEMBER_ID, MEMBER_ID } from './cast'
+import {
+  AIRCRAFT_REGISTRATION,
+  auditFields,
+  INSTRUCTOR_MEMBER_ID,
+  MEMBER_ID,
+} from '@mik/ui/test/fixtures/cast'
 
 /** 2025-06-02 09:00–11:00 UTC. Fixed so schedule rendering is deterministic. */
 const START = Date.UTC(2025, 5, 2, 9, 0, 0)

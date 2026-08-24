@@ -1,22 +1,28 @@
 /**
  * API endpoints registry for the admin app.
  *
- * Only the paths the admin app currently calls are registered here. Grow this
- * as admin sections are ported from apps/frontend.
+ * Same rules as `apps/frontend/src/api/endpoints.ts`: no leading slash, no
+ * query string (those go in `params`, which `useApi` folds into the SWR cache
+ * key), and anything variable is a function so a caller cannot forget a
+ * segment.
+ *
+ * Only paths the admin app actually calls are registered. An entry nothing
+ * calls is dead code that reads as API surface, so it is added when its first
+ * caller is — the ported sections still address most of their endpoints as
+ * inline `'v1/…'` literals, and migrating them domain by domain is the same
+ * exercise #1115 §6 is working through on the member side.
  */
 export const endpoints = {
   members: {
     root: 'v1/members',
     me: 'v1/members/me',
     roles: 'v1/members/roles',
-    byId: (memberId: string) => `v1/members/${memberId}`,
-    trash: 'v1/members/trash',
-    changelog: 'v1/members/changelog',
     nonRenewals: 'v1/members/non-renewals',
+    deactivate: (memberId: string) => `v1/members/${memberId}/deactivate`,
+    sendRenewalReminder: (memberId: string) => `v1/members/${memberId}/send-renewal-reminder`,
   },
   aircrafts: {
     root: 'v1/aircrafts',
-    byId: (aircraftId: string) => `v1/aircrafts/${aircraftId}`,
   },
 }
 

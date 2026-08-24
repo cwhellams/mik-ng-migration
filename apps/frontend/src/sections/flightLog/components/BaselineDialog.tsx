@@ -17,7 +17,7 @@ import { Icon } from '@iconify/react/dist/iconify.js'
 import { Problem } from '@mik/contracts/problem'
 import useApi from '../../../hooks/useApi'
 import { SaveButton } from '../../../components/SaveButton'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 
 export const BaselineDialog = ({
   registration,

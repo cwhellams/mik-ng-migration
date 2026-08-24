@@ -13,8 +13,8 @@ import {
 } from '@mui/material'
 import type { FuelReportResponse } from '@mik/contracts/fuel-report'
 import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
 
 const litresFormatter = new Intl.NumberFormat('fi-FI', { maximumFractionDigits: 1 })
 const priceFormatter = new Intl.NumberFormat('fi-FI', {

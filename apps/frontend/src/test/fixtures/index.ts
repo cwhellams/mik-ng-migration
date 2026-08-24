@@ -8,11 +8,14 @@
  * const expired = aMember({ medicalExpiry: '2020-01-01' })
  * ```
  *
- * The entities mirror the backend's seeded test data — see `./cast.ts`.
+ * The entities mirror the backend's seeded test data — see `@mik/ui`'s
+ * `test/fixtures/cast.ts`. The member/role builders live in `@mik/ui` because
+ * apps/admin's permission-gate tests need the same ones; the rest are
+ * member-app specific and stay here.
  */
-export * from './cast'
-export * from './roles'
-export * from './members'
+export * from '@mik/ui/test/fixtures/cast'
+export * from '@mik/ui/test/fixtures/roles'
+export * from '@mik/ui/test/fixtures/members'
 export * from './aircraft'
 export * from './bookings'
 export * from './flightLogs'

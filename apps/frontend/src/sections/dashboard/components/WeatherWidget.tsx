@@ -25,7 +25,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useState, useEffect, useRef } from 'react'
 import { WindRose, type RunwaySpec } from './WindRose'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useTimezone } from '../../../hooks/useTimezone'
 
 dayjs.extend(utc)

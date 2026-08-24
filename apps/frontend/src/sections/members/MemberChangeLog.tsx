@@ -30,10 +30,10 @@ import {
   type MemberChangeLogResponse,
 } from '@mik/contracts/members'
 import useApi from '../../hooks/useApi'
-import { dayjs } from '../../utils/date'
-import { RemoteContent } from '../../components/RemoteContent'
+import { dayjs } from '@mik/ui/utils/date'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { useTimezone } from '../../hooks/useTimezone'
 import { endpoints } from '../../api/endpoints'
 

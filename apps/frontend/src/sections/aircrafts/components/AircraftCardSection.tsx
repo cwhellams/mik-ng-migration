@@ -17,7 +17,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import useApi from '../../../hooks/useApi'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { AircraftCardListResponse } from '@mik/contracts/aircraft-cards'
 import { EditCardModal, type CardEditMode } from './EditCardModal'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'

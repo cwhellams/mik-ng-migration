@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import type { RecurringFeesProcessing, AnnualBillingResponse } from '@mik/contracts/invoicing'
 import type { AnnualMembershipStats } from '@mik/contracts/members'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { endpoints } from '../../api/endpoints'
 
 export default function ToolsPage() {

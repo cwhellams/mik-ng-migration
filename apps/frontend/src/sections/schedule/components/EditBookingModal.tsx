@@ -50,7 +50,7 @@ import { useAppConfig } from '../../../hooks/useAppConfig'
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { MemberListResponse } from '@mik/contracts/members'
 import { BookingTable } from './BookingTable'
-import { SnackAlert } from '../../../components/SnackAlert'
+import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
@@ -59,7 +59,7 @@ import {
   getOffsetLabelInTz,
   HELSINKI_TIMEZONE,
   getEffectiveMedicalExpiry,
-} from '../../../utils/date'
+} from '@mik/ui/utils/date'
 import { generateGoogleCalendarLink } from '@mik/contracts/calendar'
 import { downloadIcs } from '../../../utils/calendarEvent'
 import { SelectMember } from '../../../components/SelectMember'

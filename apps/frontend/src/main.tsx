@@ -6,7 +6,7 @@ import '@fontsource/poppins/400.css' // Regular
 import '@fontsource/poppins/500.css' // Medium
 import '@fontsource/poppins/700.css' // Bold
 import './index.css'
-import './i18n' // Import i18n configuration
+import '@mik/ui/i18n' // Import i18n configuration
 import App from './App.tsx'
 import { ThemeProvider } from './theme/ThemeContext'
 

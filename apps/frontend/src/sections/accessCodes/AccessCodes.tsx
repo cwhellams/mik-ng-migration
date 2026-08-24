@@ -17,8 +17,8 @@ import { SecretDialog } from './SecretDialog'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import type { Secret, SecretsListResponse } from '@mik/contracts/secrets'
 import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 
 // Pie-style countdown timer component

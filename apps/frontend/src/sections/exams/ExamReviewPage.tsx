@@ -3,9 +3,9 @@ import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { Attempt, AttemptAnswer, ExamVersionDetail } from '@mik/contracts/exams'
-import { getPreferredExamLanguage } from './language'
+import { getPreferredExamLanguage } from '@mik/ui/utils/examLanguage'
 
 export default function ExamReviewPage() {
   const { attemptId } = useParams<{ attemptId: string }>()

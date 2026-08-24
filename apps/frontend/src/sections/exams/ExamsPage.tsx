@@ -12,11 +12,11 @@ import {
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import useApi from '../../hooks/useApi'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import type { ExamWithVersion } from '@mik/contracts/exams'
-import { getPreferredExamLanguage } from './language'
+import { getPreferredExamLanguage } from '@mik/ui/utils/examLanguage'
 
 export default function ExamsPage() {
   const { t, i18n } = useTranslation()

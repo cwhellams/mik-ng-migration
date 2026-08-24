@@ -40,7 +40,7 @@ import {
 import type { FlightLogListEntry, FlightLogListResponse } from '@mik/contracts/flight-log'
 import useApi, { sharedApi } from '../../hooks/useApi'
 import { useMe } from '../../hooks/useMe'
-import { Title } from '../../components/Title'
+import { Title } from '@mik/ui/components/Title'
 import { getExpenseCategoryLabel } from './expenseUi'
 import { AttachmentsUploadZone, BankDetailsFields, LineItemsTable } from './expenseShared'
 import {

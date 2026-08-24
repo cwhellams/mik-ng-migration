@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import useApi from '../../../hooks/useApi'
 import { InvoiceListResponse } from '@mik/contracts/invoicing'
-import { RemoteContent } from '../../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 
 export const OverdueInvoiceBanner = () => {

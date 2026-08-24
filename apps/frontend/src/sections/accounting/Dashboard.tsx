@@ -2,7 +2,7 @@ import { AjlbListResponse } from '@mik/contracts/ajlb'
 import useApi from '../../hooks/useApi'
 import { Card, CardContent, Typography, List, ListItem, ListItemText } from '@mui/material'
 import { Link } from 'react-router'
-import { RemoteContent } from '../../components/RemoteContent'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { formatDuration, splitTime } from '../flightLog/utils/timeUtils'
 import { t } from 'i18next'
 

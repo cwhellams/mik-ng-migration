@@ -27,8 +27,8 @@ import useApi, { sharedApi } from '../../hooks/useApi'
 import { useMe } from '../../hooks/useMe'
 import { useRoles } from '../../hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
-import { RemoteContent } from '../../components/RemoteContent'
-import { Title } from '../../components/Title'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { Title } from '@mik/ui/components/Title'
 import {
   ExpenseStatusChip,
   formatExpenseAmount,

@@ -13,13 +13,13 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { Title } from '../../components/Title'
-import { RemoteContent } from '../../components/RemoteContent'
-import { MarkdownContent } from '../../components/MarkdownContent'
+import { Title } from '@mik/ui/components/Title'
+import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { MarkdownContent } from '@mik/ui/components/MarkdownContent'
 import useApi from '../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
 import type { SyllabusFlight, SyllabusFlightAttempt, HilEntry } from '@mik/contracts/dto'
-import type { MemberSyllabusDetail } from './dtoApi'
+import type { MemberSyllabusDetail } from '@mik/ui/api/dtoApi'
 
 export default function DtoMyTrainingPage() {
   const { t } = useTranslation()
