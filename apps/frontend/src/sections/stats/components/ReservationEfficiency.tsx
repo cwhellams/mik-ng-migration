@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Card,
@@ -15,6 +17,9 @@ import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
 import { getMonthlyRange, getYearRange } from '../statsUtils'
+import { efficiencyColor, formatEfficiency } from '../../../utils/efficiency'
+import { SelectMember } from '../../../components/SelectMember'
+import { useRoles } from '@mik/ui/hooks/useRoles'
 import type {
   ReservationEfficiencyByYr,
   ReservationEfficiencyByYrMth,
@@ -41,18 +46,6 @@ type AcMthRow = ReservationEfficiencyByAcYrMth | SchoolFlightEfficiencyByAcYrMth
 type EntityRow = ReservationEfficiencyByMemberYr | SchoolFlightEfficiencyByInstructorYr
 type EntityMthRow = ReservationEfficiencyByMemberYrMth | SchoolFlightEfficiencyByInstructorYrMth
 
-const formatEfficiency = (pct: number | null) => {
-  if (pct == null) return '—'
-  return `${Number(pct).toFixed(1)}%`
-}
-
-const getEfficiencyColor = (pct: number | null) => {
-  if (pct == null) return 'default' as const
-  if (pct >= 75) return 'success' as const
-  if (pct >= 50) return 'warning' as const
-  return 'error' as const
-}
-
 // School flight rows report `totalBlockMins` (block time) instead of `totalFlightMins`
 // (airtime) — see issue #1081.
 const getNumeratorMins = (
@@ -64,6 +57,9 @@ const getEntityId = (d: EntityRow | EntityMthRow): string | null =>
   ('member' in d ? d.member : d.instructor) ?? null
 
 export const ReservationEfficiency = () => {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { isMembersAdmin } = useRoles()
   const [flightScope, setFlightScope] = useState<FlightScope>('all')
   const [groupBy, setGroupBy] = useState<GroupBy>('overall')
   const [period, setPeriod] = useState<Period>('year')
@@ -549,6 +545,26 @@ export const ReservationEfficiency = () => {
           </Card>
         </RemoteContent>
       )}
+      {/* Named-member drill-down — the aggregate tables above stay anonymised (#1174) */}
+      {groupBy === 'member' && !isSchool && isMembersAdmin && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant='h6' gutterBottom>
+              {t('member.efficiency.pickMember')}
+            </Typography>
+            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+              {t('member.efficiency.pickMemberHelp')}
+            </Typography>
+            <SelectMember
+              label={t('member.efficiency.memberField')}
+              value={null}
+              onChange={(selected) =>
+                selected?.id && navigate(`/club/members/${selected.id}/efficiency`)
+              }
+            />
+          </CardContent>
+        </Card>
+      )}
       {/* Member/instructor view */}
       {groupBy === 'member' && period === 'year' && (
         <RemoteContent isLoading={byEntityYrLoading} error={byEntityYrError}>
@@ -622,7 +638,7 @@ export const ReservationEfficiency = () => {
                           <td style={{ padding: '8px', textAlign: 'right' }}>
                             <Chip
                               label={formatEfficiency(row.efficiencyPct)}
-                              color={getEfficiencyColor(row.efficiencyPct)}
+                              color={efficiencyColor(row.efficiencyPct)}
                               size='small'
                             />
                           </td>

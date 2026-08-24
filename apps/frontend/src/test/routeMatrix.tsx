@@ -54,6 +54,14 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/club/members/roles', url: '/club/members/roles' },
   { path: '/club/members/trash', url: '/club/members/trash' },
   { path: '/club/members/changelog', url: '/club/members/changelog' },
+  // The one gated route left in this app (#1174) — see AppRoutes.tsx. No
+  // `adminModeOnly`: its own API call passes `alwaysSudo`, so an admin reaches
+  // it with admin mode off and it works the same either way.
+  {
+    path: '/club/members/:memberId/efficiency',
+    url: '/club/members/Matti1/efficiency',
+    permissions: [MIKPermissions.MEMBER_ADMIN],
+  },
   { path: '/club/members/:memberId', url: '/club/members/Matti1' },
   { path: '/club/instructor-status', url: '/club/instructor-status' },
   { path: '/club/billing', url: '/club/billing' },

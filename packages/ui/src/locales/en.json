@@ -465,6 +465,63 @@
       "type": "Type",
       "instructor": "Instructor / FE"
     },
+    "efficiency": {
+      "title": "Reservation Efficiency",
+      "description": "How much of each reservation was actually flown.",
+      "descriptionFor": "How much of each of {{name}}'s reservations was actually flown, and how that compares with the club as a whole.",
+      "backToProfile": "Back to profile",
+      "noBookings": "No reservations in this period",
+      "noReasonGiven": "No reason given",
+      "cancelledNotice": "{{hours}} h notice",
+      "cancelledAfterStart": "Cancelled after the reservation had started",
+      "underusedExplanation": "The aircraft stood idle {{head}} before the first flight and {{tail}} after the last. Flagged above {{headLimit}} min at the start or {{tailLimit}} min at the end.",
+      "pickMember": "Look up a single member",
+      "pickMemberHelp": "The table above is anonymised. Members admins can open the full reservation history of one named member.",
+      "memberField": "Member",
+      "errors": {
+        "required": "Both dates are required",
+        "startAfterEnd": "The start date cannot be after the end date"
+      },
+      "filters": {
+        "from": "From",
+        "to": "To"
+      },
+      "summary": {
+        "memberEfficiency": "Member efficiency",
+        "clubEfficiency": "Club average",
+        "bookings": "Reservations",
+        "cancelled": "Cancellations",
+        "underused": "Underuse flags",
+        "noShow": "No-shows",
+        "flownOfReserved": "{{flown}} flown of {{reserved}} reserved",
+        "samePeriod": "Same period",
+        "inPeriod": "In this period"
+      },
+      "state": {
+        "flown": "Flown",
+        "underused": "Underused",
+        "noFlight": "Not flown",
+        "cancelled": "Cancelled"
+      },
+      "table": {
+        "date": "Date",
+        "aircraft": "Aircraft",
+        "reserved": "Reserved",
+        "reservedTime": "Duration",
+        "flightTime": "Flight time",
+        "efficiency": "Efficiency",
+        "status": "Status",
+        "notes": "Notes"
+      },
+      "card": {
+        "title": "Reservation Efficiency",
+        "subtitle": "Last {{months}} months",
+        "vsClub": "Club average {{pct}}",
+        "flags": "{{cancelled}} cancelled · {{underused}} underused · {{noShow}} not flown",
+        "viewReport": "View full report",
+        "noBookings": "No reservations in the last {{months}} months"
+      }
+    },
     "applicationData": {
       "title": "Membership Application",
       "coverLetter": "About the Applicant",

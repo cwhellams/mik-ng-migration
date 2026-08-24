@@ -75,6 +75,27 @@ const maskLandingTotals = <T extends Record<string, unknown>>(row: T): T => ({
       : row.acTotalLandings,
 })
 
+/**
+ * V330's `eff*` flights are dated relative to `CURRENT_DATE` so the member
+ * efficiency report has something inside its default six-month window whenever
+ * the database is baselined. That makes their four timestamps move with the
+ * baseline date, which a snapshot cannot hold — so mask them, the same way
+ * `maskLandingTotals` masks the running landing count above. Their shape and
+ * their derived minutes are still asserted; only the wall-clock times are not.
+ */
+const SEED_RELATIVE_TIME = '<relative to CURRENT_DATE>'
+
+const maskSeedRelativeTimes = <T extends Record<string, unknown>>(row: T): T =>
+  typeof row.flightId === 'string' && row.flightId.startsWith('eff')
+    ? {
+        ...row,
+        offBlockTimeUtc: SEED_RELATIVE_TIME,
+        takeoffTimeUtc: SEED_RELATIVE_TIME,
+        landingTimeUtc: SEED_RELATIVE_TIME,
+        onBlockTimeUtc: SEED_RELATIVE_TIME,
+      }
+    : row
+
 describe('GET /flight-log', () => {
   it('should only return data for the logged in user when not admin', async () => {
     const response = await request(app)
@@ -106,8 +127,9 @@ describe('GET /flight-log', () => {
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(46)
-    expect(response.body.logs.map(maskLandingTotals)).toMatchSnapshot()
+    // +3 for V330's eff1fl/eff2fl/eff4fl (all OH-STL, ajlb_seq_no 3).
+    expect(response.body.logs).toHaveLength(49)
+    expect(response.body.logs.map(maskLandingTotals).map(maskSeedRelativeTimes)).toMatchSnapshot()
   })
 
   it('should return 200 with valid query params', async () => {

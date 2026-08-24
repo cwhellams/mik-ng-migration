@@ -26,10 +26,12 @@ describe('stats-queries: getMyStatistics', () => {
     `.execute(db)
     const expectedTotalLandings = Number(landingsRow.rows[0]?.totalLandings ?? 0)
 
+    // V330 added one more OH-STL flight for Pekka1 (eff2fl, 220 flight mins / 230 block
+    // mins), on top of the 201 baseline mass-data flights.
     expect(result.totals).toEqual({
-      flightCount: 201,
-      totalFlightMins: 21190,
-      totalBlockMins: 23232,
+      flightCount: 202,
+      totalFlightMins: 21410,
+      totalBlockMins: 23462,
       totalLandings: expectedTotalLandings,
       uniqueAirports: 1,
     })
@@ -53,7 +55,8 @@ describe('stats-queries: getMyStatistics', () => {
       memberId: MEMBER_ID,
       aircraftRegistration: 'OH-STL',
     })
-    expect(matching.totals.flightCount).toBe(201)
+    // +1 for eff2fl (V330); see the note above.
+    expect(matching.totals.flightCount).toBe(202)
 
     const nonMatching = await getMyStatistics({
       memberId: MEMBER_ID,

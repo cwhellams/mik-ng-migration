@@ -164,7 +164,14 @@ export default defineConfig({
         // format and localisedText were three of this directory's four
         // fully-covered modules and they now live in `packages/ui`. What is
         // left here is the browser-API wrappers that were always the gap.
-        'src/utils/**': { statements: 54, branches: 43, functions: 66 },
+        //
+        // 54/43/66 -> 57/48/69: #1174 extracted the efficiency percentage
+        // helpers shared by the club-wide and per-member reports into
+        // efficiency.ts and covered them (57.34/48.14/69.04 measured). The
+        // branch that added them measured 64.26/58.47/78.68 against the old,
+        // larger denominator; re-measured here after the #1233 move, which is
+        // why this raise looks smaller than that PR's did.
+        'src/utils/**': { statements: 57, branches: 48, functions: 69 },
         // 40/34/26 -> 43/38/28: #1019 brought the flight-log list, the crew-role helper,
         // the change-history dialog and the crew/instructor gating on the entry form under
         // test (43.98/39.24/29.71 measured). Raised in the PR that earned it, per the rule
