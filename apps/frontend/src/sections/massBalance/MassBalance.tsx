@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Typography,
   Paper,
@@ -14,12 +17,16 @@ import {
   Card,
   CardContent,
   Button,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import WarningIcon from '@mui/icons-material/Warning'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useTranslation } from 'react-i18next'
 import { loadAircraftSpecs, AircraftSpecs, CONVERSIONS } from './components/specsParser'
 import WeightBalanceEnvelope from './components/WeightBalanceEnvelope'
 import WeightSlider from './components/WeightSlider'
+import CollapsibleSection from './components/CollapsibleSection'
 import { useMassBalanceState } from '../../hooks/useMassBalanceState'
 import { Title } from '@mik/ui/components/Title'
 import {
@@ -29,11 +36,11 @@ import {
   type WeightBalanceStatus,
 } from './lib/massBalanceCalculations'
 
-const STATUS_DISPLAY: Record<WeightBalanceStatus, { message: string; color: string }> = {
-  unknown: { message: 'Calculating...', color: 'grey.500' },
-  over: { message: 'Over Limits', color: 'error.main' },
-  near: { message: 'Near Limits', color: 'warning.main' },
-  within: { message: 'Within Limits', color: 'success.main' },
+const STATUS_DISPLAY: Record<WeightBalanceStatus, { messageKey: string; color: string }> = {
+  unknown: { messageKey: 'massBalance.status.calculating', color: 'grey.500' },
+  over: { messageKey: 'massBalance.status.overLimits', color: 'error.main' },
+  near: { messageKey: 'massBalance.status.nearLimits', color: 'warning.main' },
+  within: { messageKey: 'massBalance.status.withinLimits', color: 'success.main' },
 }
 
 /**
@@ -50,6 +57,12 @@ const STATUS_DISPLAY: Record<WeightBalanceStatus, { message: string; color: stri
  */
 const MassBalance: React.FC = () => {
   const { t } = useTranslation()
+
+  // #382: the read-only blocks wrapped around the inputs are several screens
+  // tall on a phone, which put the first input field below the fold. Under
+  // `sm` they start folded shut; from `sm` up the page is as it was.
+  const muiTheme = useTheme()
+  const isSmUp = useMediaQuery(muiTheme.breakpoints.up('sm'))
 
   // Use custom hook for persistent state management
   const {
@@ -214,34 +227,59 @@ const MassBalance: React.FC = () => {
   }
 
   return (
-    <Box sx={{ py: 4 }}>
+    <Box sx={{ py: { xs: 2, sm: 4 } }}>
       <Title label={t('massBalance.title')} />
       <Typography
         variant='body1'
         sx={{
           color: 'text.secondary',
-          mb: 4,
+          mb: { xs: 2, sm: 4 },
         }}
       >
         {t('massBalance.description')}
       </Typography>
-      {/* Disclaimer */}
+      {/* Disclaimer. The warning banner and its heading stay visible at every
+          width -- only the body text folds away on a phone. */}
       <Alert
         severity='warning'
         icon={<WarningIcon fontSize='large' />}
-        sx={{ mb: 4, fontWeight: 500 }}
+        sx={{
+          mb: { xs: 2, sm: 4 },
+          fontWeight: 500,
+          '& .MuiAlert-message': { width: '100%', py: 0 },
+        }}
       >
-        <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
-          {t('massBalance.disclaimer.title')}
-        </Typography>
-        <Typography variant='body2'>{t('massBalance.disclaimer.text')}</Typography>
+        <Accordion
+          key={isSmUp ? 'expanded' : 'collapsed'}
+          defaultExpanded={isSmUp}
+          disableGutters
+          elevation={0}
+          sx={{
+            bgcolor: 'transparent',
+            color: 'inherit',
+            '&:before': { display: 'none' },
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ color: 'inherit' }} />}
+            sx={{ p: 0, minHeight: 0, '& .MuiAccordionSummary-content': { my: 1 } }}
+          >
+            <Typography variant='subtitle1' sx={{ fontWeight: 'bold' }}>
+              {t('massBalance.disclaimer.title')}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0, pb: 1 }}>
+            <Typography variant='body2'>{t('massBalance.disclaimer.text')}</Typography>
+          </AccordionDetails>
+        </Accordion>
       </Alert>
-      {/* Aircraft Selection */}
-      <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant='h6' gutterBottom>
+      {/* Aircraft Selection. Never collapsed -- the selector is itself an input
+          -- just trimmed of its heading and data-origin chip on a phone. */}
+      <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
+        <Typography variant='h6' gutterBottom sx={{ display: { xs: 'none', sm: 'block' } }}>
           {t('massBalance.aircraftSelection')}
         </Typography>
-        <FormControl fullWidth sx={{ mb: 2 }}>
+        <FormControl fullWidth sx={{ mb: { xs: 0, sm: 2 } }}>
           <InputLabel>{t('massBalance.selectAircraft')}</InputLabel>
           <Select
             value={selectedAircraftId}
@@ -261,10 +299,13 @@ const MassBalance: React.FC = () => {
 
         {selectedAircraft && (
           <Chip
-            label={`Data: ${selectedAircraft.dataOrigin}`}
+            label={`${t('massBalance.dataOrigin')}: ${selectedAircraft.dataOrigin}`}
             size='small'
             variant='outlined'
             sx={{
+              // Repeated as "Data Source" in Aircraft Specifications, so on a
+              // phone it costs three lines above the inputs for nothing new.
+              display: { xs: 'none', sm: 'inline-flex' },
               height: 'auto',
               '& .MuiChip-label': {
                 display: 'block',
@@ -276,11 +317,11 @@ const MassBalance: React.FC = () => {
       </Paper>
       {/* Weight Summary Section */}
       {selectedAircraft && results && (
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-          <Typography variant='h6' gutterBottom>
-            Weight Summary
-          </Typography>
-
+        <CollapsibleSection
+          key={isSmUp ? 'expanded' : 'collapsed'}
+          title={t('massBalance.weightSummary')}
+          defaultExpanded={isSmUp}
+        >
           {/* Basic Empty Weight - Full Width */}
           <Box sx={{ mb: 3 }}>
             <Card
@@ -298,7 +339,7 @@ const MassBalance: React.FC = () => {
                     color: 'text.secondary',
                   }}
                 >
-                  Basic Empty Weight
+                  {t('massBalance.basicEmptyWeight')}
                 </Typography>
                 <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 0.5 }}>
                   {selectedAircraft.weightLimits.basicEmptyWeight} kg
@@ -330,7 +371,7 @@ const MassBalance: React.FC = () => {
               >
                 <CardContent>
                   <Typography variant='h6' component='div'>
-                    Zero Fuel Weight
+                    {t('massBalance.zeroFuelWeight')}
                   </Typography>
                   <Typography variant='h4'>{results.zeroFuelWeight.toFixed(1)} kg</Typography>
                   <Typography variant='body2'>
@@ -349,7 +390,7 @@ const MassBalance: React.FC = () => {
               >
                 <CardContent>
                   <Typography variant='h6' component='div'>
-                    Ramp Weight
+                    {t('massBalance.rampWeight')}
                   </Typography>
                   <Typography variant='h4'>{results.rampWeight.toFixed(1)} kg</Typography>
                   <Typography variant='body2'>
@@ -382,14 +423,14 @@ const MassBalance: React.FC = () => {
               >
                 <CardContent>
                   <Typography variant='h6' component='div'>
-                    Takeoff Weight
+                    {t('massBalance.takeoffWeight')}
                   </Typography>
                   <Typography variant='h4'>{results.takeoffWeight.toFixed(1)} kg</Typography>
                   <Typography variant='body2'>
                     ({(results.takeoffWeight * CONVERSIONS.KG_TO_LBS).toFixed(1)} lbs)
                   </Typography>
                   <Typography variant='caption' sx={{ display: 'block', mt: 1, opacity: 0.8 }}>
-                    Max: {selectedAircraft.weightLimits.maxTakeoff} kg
+                    {t('massBalance.max')}: {selectedAircraft.weightLimits.maxTakeoff} kg
                   </Typography>
                 </CardContent>
               </Card>
@@ -424,7 +465,7 @@ const MassBalance: React.FC = () => {
               >
                 <CardContent>
                   <Typography variant='h6' component='div'>
-                    Landing Weight
+                    {t('massBalance.landingWeight')}
                   </Typography>
                   <Typography variant='h4'>{results.landingWeight.toFixed(1)} kg</Typography>
                   <Typography variant='body2'>
@@ -457,7 +498,7 @@ const MassBalance: React.FC = () => {
               >
                 <CardContent>
                   <Typography variant='h6' component='div'>
-                    Available Weight
+                    {t('massBalance.availableWeight')}
                   </Typography>
                   <Typography variant='h4'>
                     {Math.max(
@@ -486,7 +527,7 @@ const MassBalance: React.FC = () => {
               <Card sx={{ height: '100%' }}>
                 <CardContent>
                   <Typography variant='h6' component='div'>
-                    Total Fuel Burn
+                    {t('massBalance.totalFuelBurn')}
                   </Typography>
                   <Typography variant='h4'>{results.totalFuelBurnLitres.toFixed(1)} L</Typography>
                   <Typography variant='body2'>
@@ -500,7 +541,7 @@ const MassBalance: React.FC = () => {
               <Card sx={{ height: '100%' }}>
                 <CardContent>
                   <Typography variant='h6' component='div'>
-                    Endurance
+                    {t('massBalance.endurance')}
                   </Typography>
                   <Typography variant='h4'>{results?.endurance.toFixed(1) || '0.0'} h</Typography>
                   <Typography variant='body2'>
@@ -510,7 +551,7 @@ const MassBalance: React.FC = () => {
               </Card>
             </Grid>
           </Grid>
-        </Paper>
+        </CollapsibleSection>
       )}
       <Grid container spacing={3}>
         {/* Loading Section */}
@@ -775,7 +816,7 @@ const MassBalance: React.FC = () => {
                   <Grid size={{ xs: 6 }}>
                     <TextField
                       fullWidth
-                      label='Fuel Volume (L)'
+                      label={`${t('massBalance.fuelVolume')} (L)`}
                       type='number'
                       value={fuel.litres === 0 ? '0' : fuel.litres}
                       onChange={(e) =>
@@ -795,7 +836,7 @@ const MassBalance: React.FC = () => {
                   <Grid size={{ xs: 6 }}>
                     <TextField
                       fullWidth
-                      label='Fuel Weight'
+                      label={t('massBalance.fuelWeight')}
                       type='number'
                       value={fuel.weight.toFixed(1)}
                       size='small'
@@ -818,7 +859,8 @@ const MassBalance: React.FC = () => {
                       return (
                         <>
                           <Typography variant='caption' sx={{ mb: 1, display: 'block' }}>
-                            Current Load: {fuel.litres} L / Max Load: {maxLitres} L (
+                            {t('massBalance.currentLoad')}: {fuel.litres} L /{' '}
+                            {t('massBalance.maxLoad')}: {maxLitres} L (
                             {(fuel.litres * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG)
                           </Typography>
                           <WeightSlider
@@ -866,14 +908,15 @@ const MassBalance: React.FC = () => {
                   flexShrink: 0,
                 }}
               >
-                Reset to Defaults
+                {t('massBalance.resetToDefaults')}
               </Button>
             </Box>
 
             {/* Taxi Fuel */}
             <Box sx={{ mb: 2 }}>
               <Typography variant='caption' sx={{ mb: 1, display: 'block' }}>
-                Taxi Fuel: {taxiFuel} L ({(taxiFuel * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG)
+                {t('massBalance.taxiFuel')}: {taxiFuel} L (
+                {(taxiFuel * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG)
               </Typography>
               <WeightSlider
                 value={taxiFuel}
@@ -887,7 +930,8 @@ const MassBalance: React.FC = () => {
             {/* Fuel Flow */}
             <Box sx={{ mb: 2 }}>
               <Typography variant='caption' sx={{ mb: 1, display: 'block' }}>
-                Fuel Flow: {fuelFlow} L/h ({(fuelFlow * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG/h)
+                {t('massBalance.fuelFlow')}: {fuelFlow} L/h (
+                {(fuelFlow * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG/h)
               </Typography>
               <WeightSlider
                 value={fuelFlow}
@@ -901,7 +945,8 @@ const MassBalance: React.FC = () => {
             {/* Flight Time */}
             <Box sx={{ mb: 2 }}>
               <Typography variant='caption' sx={{ mb: 1, display: 'block' }}>
-                Planned Flight Time: {(flightTime / 60).toFixed(1)} hours ({flightTime} mins)
+                {t('massBalance.plannedFlightTime')}: {(flightTime / 60).toFixed(1)}{' '}
+                {t('massBalance.hours')} ({flightTime} mins)
               </Typography>
               <WeightSlider
                 value={flightTime}
@@ -915,8 +960,8 @@ const MassBalance: React.FC = () => {
             {/* Consumed Fuel */}
             <Box sx={{ mb: 2 }}>
               <Typography variant='caption' sx={{ mb: 1, display: 'block', fontWeight: 'bold' }}>
-                Consumed Fuel: {(results?.totalFuelBurnLitres ?? 0).toFixed(1)} L (
-                {((results?.totalFuelBurnLitres ?? 0) * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG) -{' '}
+                {t('massBalance.consumedFuel')}: {(results?.totalFuelBurnLitres ?? 0).toFixed(1)} L
+                ({((results?.totalFuelBurnLitres ?? 0) * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG) -{' '}
                 {(results?.totalFuelBurnWeight ?? 0).toFixed(1)} kg
               </Typography>
               <Typography
@@ -927,7 +972,8 @@ const MassBalance: React.FC = () => {
                   fontStyle: 'italic',
                 }}
               >
-                Taxi: {taxiFuel} L + Flight: {(results?.flightFuelLitres ?? 0).toFixed(1)} L
+                {t('massBalance.taxi')}: {taxiFuel} L + {t('massBalance.flight')}:{' '}
+                {(results?.flightFuelLitres ?? 0).toFixed(1)} L
               </Typography>
             </Box>
           </Paper>
@@ -937,7 +983,7 @@ const MassBalance: React.FC = () => {
         <Grid size={{ xs: 12, lg: 3 }}>
           <Paper elevation={2} sx={{ p: 3, mb: 3, height: 'fit-content' }}>
             <Typography variant='h6' gutterBottom>
-              Weight & Balance Status
+              {t('massBalance.weightBalanceStatus')}
             </Typography>
             {(() => {
               const status = STATUS_DISPLAY[getWeightBalanceStatus(results, selectedAircraft)]
@@ -952,22 +998,22 @@ const MassBalance: React.FC = () => {
                 >
                   <CardContent>
                     <Typography variant='h5' component='div' sx={{ fontWeight: 'bold' }}>
-                      {status.message}
+                      {t(status.messageKey)}
                     </Typography>
                     {results && selectedAircraft && (
                       <Box sx={{ mt: 2 }}>
                         <Typography variant='body2' sx={{ opacity: 0.9 }}>
-                          Takeoff: {results.takeoffWeight.toFixed(1)} /{' '}
+                          {t('massBalance.takeoff')}: {results.takeoffWeight.toFixed(1)} /{' '}
                           {selectedAircraft.weightLimits.maxTakeoff} kg
                         </Typography>
                         <Typography variant='body2' sx={{ opacity: 0.9 }}>
-                          Landing: {results.landingWeight.toFixed(1)} /{' '}
+                          {t('massBalance.landing')}: {results.landingWeight.toFixed(1)} /{' '}
                           {selectedAircraft.weightLimits.maxLanding ||
                             selectedAircraft.weightLimits.maxTakeoff}{' '}
                           kg
                         </Typography>
                         <Typography variant='body2' sx={{ opacity: 0.9 }}>
-                          CG: {results.takeoffCG.toFixed(1)} cm
+                          {t('massBalance.cg')}: {results.takeoffCG.toFixed(1)} cm
                         </Typography>
                       </Box>
                     )}
@@ -993,10 +1039,11 @@ const MassBalance: React.FC = () => {
       {/* Aircraft Base Data Grid - Moved to Bottom */}
       <Box sx={{ mt: 4 }}>
         {selectedAircraft && (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant='h6' gutterBottom>
-              Aircraft Specifications - {selectedAircraft.registration}
-            </Typography>
+          <CollapsibleSection
+            key={isSmUp ? 'expanded' : 'collapsed'}
+            title={`${t('massBalance.aircraftSpecifications')} - ${selectedAircraft.registration}`}
+            defaultExpanded={isSmUp}
+          >
             <Typography
               variant='caption'
               sx={{
@@ -1005,7 +1052,7 @@ const MassBalance: React.FC = () => {
                 display: 'block',
               }}
             >
-              Data Source: {selectedAircraft.dataOrigin}
+              {t('massBalance.dataSource')}: {selectedAircraft.dataOrigin}
             </Typography>
 
             <Grid container spacing={2}>
@@ -1014,7 +1061,7 @@ const MassBalance: React.FC = () => {
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
                     <Typography variant='subtitle1' gutterBottom sx={{ fontWeight: 'bold' }}>
-                      Weight Information
+                      {t('massBalance.weightInformation')}
                     </Typography>
                     <Box
                       sx={{
@@ -1026,19 +1073,25 @@ const MassBalance: React.FC = () => {
                       }}
                     >
                       <div>
-                        <Typography variant='body2'>Basic Empty Weight:</Typography>
+                        <Typography variant='body2'>
+                          {t('massBalance.basicEmptyWeight')}:
+                        </Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.weightLimits.basicEmptyWeight} kg
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>Max Takeoff Weight:</Typography>
+                        <Typography variant='body2'>
+                          {t('massBalance.maxTakeoffWeight')}:
+                        </Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.weightLimits.maxTakeoff} kg
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>Max Landing Weight:</Typography>
+                        <Typography variant='body2'>
+                          {t('massBalance.maxLandingWeight')}:
+                        </Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.weightLimits.maxLanding ||
                             selectedAircraft.weightLimits.maxTakeoff}{' '}
@@ -1046,7 +1099,7 @@ const MassBalance: React.FC = () => {
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>CG Range:</Typography>
+                        <Typography variant='body2'>{t('massBalance.cgRange')}:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.cgLimits.forward} - {selectedAircraft.cgLimits.aft} cm
                         </Typography>
@@ -1061,7 +1114,7 @@ const MassBalance: React.FC = () => {
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
                     <Typography variant='subtitle1' gutterBottom sx={{ fontWeight: 'bold' }}>
-                      Moment Arms (Fixed)
+                      {t('massBalance.momentArmsFixed')}
                     </Typography>
                     <Box
                       sx={{
@@ -1073,33 +1126,35 @@ const MassBalance: React.FC = () => {
                       }}
                     >
                       <div>
-                        <Typography variant='body2'>Basic Empty Weight:</Typography>
+                        <Typography variant='body2'>
+                          {t('massBalance.basicEmptyWeight')}:
+                        </Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.loadPoints.basicEmptyWeight.momentArm} cm
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>Pilot/Co-pilot:</Typography>
+                        <Typography variant='body2'>{t('massBalance.pilotCopilot')}:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.loadPoints.pilot.momentArm} cm
                         </Typography>
                       </div>
                       {selectedAircraft.loadPoints.rearSeat && (
                         <div>
-                          <Typography variant='body2'>Rear Seat:</Typography>
+                          <Typography variant='body2'>{t('massBalance.rearSeat')}:</Typography>
                           <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                             {selectedAircraft.loadPoints.rearSeat.momentArm} cm
                           </Typography>
                         </div>
                       )}
                       <div>
-                        <Typography variant='body2'>Fuel Tank:</Typography>
+                        <Typography variant='body2'>{t('massBalance.fuelTank')}:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.loadPoints.fuel.momentArm} cm
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>Baggage:</Typography>
+                        <Typography variant='body2'>{t('massBalance.baggage')}:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.loadPoints.baggage.momentArm} cm
                         </Typography>
@@ -1109,16 +1164,17 @@ const MassBalance: React.FC = () => {
                 </Card>
               </Grid>
             </Grid>
-          </Paper>
+          </CollapsibleSection>
         )}
       </Box>
       {/* Conversion Factors */}
       <Box sx={{ mt: 3 }}>
         {selectedAircraft && (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant='h6' gutterBottom>
-              Conversion Factors
-            </Typography>
+          <CollapsibleSection
+            key={isSmUp ? 'expanded' : 'collapsed'}
+            title={t('massBalance.conversionFactors')}
+            defaultExpanded={isSmUp}
+          >
             <Typography
               variant='caption'
               sx={{
@@ -1127,7 +1183,7 @@ const MassBalance: React.FC = () => {
                 display: 'block',
               }}
             >
-              Unit conversion factors used in calculations
+              {t('massBalance.unitConversionFactorsDescription')}
             </Typography>
 
             <Grid container spacing={2}>
@@ -1136,7 +1192,7 @@ const MassBalance: React.FC = () => {
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
                     <Typography variant='subtitle1' gutterBottom sx={{ fontWeight: 'bold' }}>
-                      Standard Conversions
+                      {t('massBalance.standardConversions')}
                     </Typography>
                     <Box
                       sx={{
@@ -1148,19 +1204,19 @@ const MassBalance: React.FC = () => {
                       }}
                     >
                       <div>
-                        <Typography variant='body2'>Weight (kg to lbs):</Typography>
+                        <Typography variant='body2'>{t('massBalance.weightKgToLbs')}:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           × {CONVERSIONS.KG_TO_LBS.toFixed(5)}
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>Volume (L to USG):</Typography>
+                        <Typography variant='body2'>{t('massBalance.volumeLToUsg')}:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           × {CONVERSIONS.LTR_TO_USG.toFixed(5)}
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>Length (m to inches):</Typography>
+                        <Typography variant='body2'>{t('massBalance.lengthMToInches')}:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           × {CONVERSIONS.M_TO_INCHES.toFixed(5)}
                         </Typography>
@@ -1175,7 +1231,7 @@ const MassBalance: React.FC = () => {
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
                     <Typography variant='subtitle1' gutterBottom sx={{ fontWeight: 'bold' }}>
-                      Aircraft-Specific Conversions
+                      {t('massBalance.aircraftSpecificConversions')}
                     </Typography>
                     <Box
                       sx={{
@@ -1187,13 +1243,15 @@ const MassBalance: React.FC = () => {
                       }}
                     >
                       <div>
-                        <Typography variant='body2'>Fuel Density (L to kg):</Typography>
+                        <Typography variant='body2'>
+                          {t('massBalance.fuelDensityLToKg')}:
+                        </Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           × {selectedAircraft.fuelConversion.litre2Kilo.toFixed(2)} kg/L
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>Fuel Type:</Typography>
+                        <Typography variant='body2'>{t('massBalance.fuelType')}:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.fuelConversion.litre2Kilo === 0.72
                             ? 'AVGAS 100LL / 98E5'
@@ -1202,10 +1260,12 @@ const MassBalance: React.FC = () => {
                         </Typography>
                       </div>
                       <div>
-                        <Typography variant='body2'>Warning Threshold:</Typography>
+                        <Typography variant='body2'>
+                          {t('massBalance.warningThreshold')}:
+                        </Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
-                          {(selectedAircraft.warningThresholds.nearLimitPercent * 100).toFixed(0)}%
-                          of max weight
+                          {(selectedAircraft.warningThresholds.nearLimitPercent * 100).toFixed(0)}%{' '}
+                          {t('massBalance.ofMaxWeight')}
                         </Typography>
                       </div>
                     </Box>
@@ -1213,7 +1273,7 @@ const MassBalance: React.FC = () => {
                 </Card>
               </Grid>
             </Grid>
-          </Paper>
+          </CollapsibleSection>
         )}
       </Box>
     </Box>
