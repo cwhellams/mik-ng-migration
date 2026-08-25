@@ -2,6 +2,7 @@
   "header": {
     "dashboard": "Tietopaneeli",
     "schedule": "Aikataulu",
+    "aircraftReservations": "Lentokonevaraukset",
     "fly": "Lennä",
     "aircrafts": "Lentokoneet",
     "members": "Jäsenet",

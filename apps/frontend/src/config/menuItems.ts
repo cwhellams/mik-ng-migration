@@ -26,7 +26,38 @@ export const menuItems: MenuItem[] = [
   {
     path: '/schedule',
     label: 'header.schedule',
-    requiredRoles: [MIKPermissions.BOOKING_USER, MIKPermissions.BOOKING_ADMIN],
+    // The union of both calendars' permissions, with each sub-item carrying its
+    // own gate below. Nesting the item calendar under here must not take it away
+    // from someone who may reserve equipment but not aircraft: V2010 grants
+    // `inventory_reservation.user` to MEMBER as well as FLYING_MEMBER, while
+    // `booking.user` only reaches the latter.
+    requiredRoles: [
+      MIKPermissions.BOOKING_USER,
+      MIKPermissions.BOOKING_ADMIN,
+      MIKPermissions.INVENTORY_RESERVATION_USER,
+      MIKPermissions.INVENTORY_RESERVATION_ADMIN,
+    ],
+    subItems: [
+      // The index tab, so clicking Schedule still lands on the aircraft
+      // calendar — that is what "reservations" means to almost everyone here,
+      // and the equipment calendar is the sibling you go looking for.
+      {
+        path: '',
+        label: 'header.aircraftReservations',
+        requiredRoles: [MIKPermissions.BOOKING_USER, MIKPermissions.BOOKING_ADMIN],
+      },
+      // Absolute rather than relative, so the page keeps the URL it already has
+      // and an existing bookmark still works — the same arrangement `/exams`
+      // has under `/club`.
+      {
+        path: '/inventory-reservations',
+        label: 'header.itemReservations',
+        requiredRoles: [
+          MIKPermissions.INVENTORY_RESERVATION_USER,
+          MIKPermissions.INVENTORY_RESERVATION_ADMIN,
+        ],
+      },
+    ],
   },
   {
     path: '/fly',
@@ -141,14 +172,6 @@ export const menuItems: MenuItem[] = [
     path: '/inventory',
     label: 'header.inventory',
     requiredRoles: [MIKPermissions.INVENTORY_USER, MIKPermissions.INVENTORY_ADMIN],
-  },
-  {
-    path: '/inventory-reservations',
-    label: 'header.itemReservations',
-    requiredRoles: [
-      MIKPermissions.INVENTORY_RESERVATION_USER,
-      MIKPermissions.INVENTORY_RESERVATION_ADMIN,
-    ],
   },
   {
     path: '/dto',

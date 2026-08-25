@@ -25,7 +25,7 @@ import MikLogoWhite from '../assets/mik-white.svg'
 import { useTranslation } from 'react-i18next'
 import User from './User'
 import { Icon } from '@iconify/react'
-import { menuItems } from '../config/menuItems'
+import { menuItems, type MenuItem } from '../config/menuItems'
 import { useSwipeable } from 'react-swipeable'
 import ThemeToggle from './ThemeToggle'
 import AdminToggle from './AdminToggle'
@@ -127,6 +127,26 @@ const Header = (props: HeaderProps) => {
     }
     return hasAccess(...(item.requiredRoles ?? []))
   })
+
+  /**
+   * Whether a top-level entry is the section the member is currently looking at.
+   *
+   * A path-segment match rather than a bare `startsWith`: `/inventory` is a
+   * prefix of `/inventory-reservations`, so Inventory used to light up while the
+   * member was in the item reservation calendar. Absolute sub-items count as
+   * their parent's section, which is what makes Schedule highlight on
+   * `/inventory-reservations` and Club on `/exams` — both live under a parent
+   * whose path they do not start with, and neither highlighted anything before.
+   */
+  const isCurrentSection = (item: MenuItem) => {
+    const isUnder = (path: string) =>
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
+
+    return (
+      isUnder(item.path) ||
+      (item.subItems ?? []).some((sub) => sub.path.startsWith('/') && isUnder(sub.path))
+    )
+  }
 
   const Logo = () => (
     <>
@@ -248,7 +268,7 @@ const Header = (props: HeaderProps) => {
                   color='inherit'
                   sx={{
                     color: theme.palette.text.primary,
-                    fontWeight: location.pathname.startsWith(item.path) ? 'bold' : 'normal',
+                    fontWeight: isCurrentSection(item) ? 'bold' : 'normal',
                   }}
                 >
                   {t(item.label)}

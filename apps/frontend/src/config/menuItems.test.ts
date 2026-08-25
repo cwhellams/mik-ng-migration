@@ -1,3 +1,4 @@
+import { MIKPermissions } from '@mik/contracts/members'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { matchPath } from 'react-router'
@@ -100,5 +101,44 @@ describe('header menu', () => {
   it('has no duplicate destinations', () => {
     const paths = all.map(({ path }) => path)
     expect(paths.length - new Set(paths).size).toBe(0)
+  })
+
+  /**
+   * The top row is the scarcest space in the app and it was already full, so the
+   * item reservation calendar sits under Schedule with the aircraft calendar
+   * rather than beside it. Asserted on the structure and not just on the
+   * destinations above, because both arrangements point at the same two URLs —
+   * the whole difference is where they appear.
+   */
+  it('keeps the item reservation calendar under Schedule rather than in the top row', () => {
+    expect(menuItems.map((item) => item.path)).not.toContain('/inventory-reservations')
+
+    const schedule = menuItems.find((item) => item.path === '/schedule')
+
+    // Order matters: the empty path is the index tab, so the aircraft calendar
+    // is what clicking Schedule still lands on.
+    expect(schedule?.subItems?.map((sub) => sub.path)).toEqual(['', '/inventory-reservations'])
+  })
+
+  /**
+   * A parent gate is a prerequisite for everything under it, so widening it is
+   * how the move avoids costing someone the page. `inventory_reservation.user`
+   * reaches MEMBER as well as FLYING_MEMBER (V2010); `booking.user` only the
+   * latter, so a Schedule gated on booking alone would have hidden the
+   * equipment calendar from every non-flying member.
+   */
+  it('gates Schedule on either calendar’s permissions, and each tab on its own', () => {
+    const schedule = menuItems.find((item) => item.path === '/schedule')
+
+    expect(schedule?.requiredRoles).toEqual(
+      expect.arrayContaining([
+        MIKPermissions.BOOKING_USER,
+        MIKPermissions.INVENTORY_RESERVATION_USER,
+      ]),
+    )
+
+    const [aircraft, items] = schedule?.subItems ?? []
+    expect(aircraft?.requiredRoles).not.toContain(MIKPermissions.INVENTORY_RESERVATION_USER)
+    expect(items?.requiredRoles).not.toContain(MIKPermissions.BOOKING_USER)
   })
 })

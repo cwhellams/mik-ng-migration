@@ -48,6 +48,78 @@ describe('Header navigation', () => {
 
     await waitFor(() => expect(screen.queryByRole('link', { name: /Schedule/i })).toBeNull())
   })
+
+  it('does not spend a top-row slot on the item reservation calendar', async () => {
+    // It lives under Schedule instead — the top row was already full.
+    signInWithPermissions(MIKPermissions.INVENTORY_RESERVATION_USER)
+
+    renderHeader()
+
+    await screen.findByRole('link', { name: /Schedule/i })
+    expect(screen.queryByRole('link', { name: /Item Reservations/i })).toBeNull()
+  })
+})
+
+/**
+ * Which top-row entry is shown as the current one.
+ *
+ * Two things made this wrong before the item calendar moved under Schedule:
+ * `/inventory` is a string prefix of `/inventory-reservations`, so Inventory lit
+ * up on a page that is not under it; and an absolute sub-item was not credited
+ * to its parent, so Schedule stayed unlit on the very page its own tab was
+ * showing.
+ */
+describe('Header current section', () => {
+  // jsdom resolves the `bold` keyword to its numeric weight but leaves `normal`
+  // as written, so both spellings are accepted rather than asserting on one.
+  const isBold = (name: RegExp) => {
+    const weight = globalThis.getComputedStyle(screen.getByRole('link', { name })).fontWeight
+    return weight === 'bold' || weight === '700'
+  }
+
+  it('marks the section the member is in', async () => {
+    signInWithPermissions(MIKPermissions.BOOKING_USER)
+
+    renderHeader({ route: '/schedule' })
+
+    await screen.findByRole('link', { name: /Schedule/i })
+    expect(isBold(/Schedule/i)).toBe(true)
+  })
+
+  it('credits an absolute sub-item to its parent section', async () => {
+    signInWithPermissions(
+      MIKPermissions.BOOKING_USER,
+      MIKPermissions.INVENTORY_RESERVATION_USER,
+      MIKPermissions.INVENTORY_USER,
+    )
+
+    renderHeader({ route: '/inventory-reservations' })
+
+    await screen.findByRole('link', { name: /Schedule/i })
+    expect(isBold(/Schedule/i)).toBe(true)
+  })
+
+  it('does not mark a section whose path is merely a prefix of the current one', async () => {
+    signInWithPermissions(
+      MIKPermissions.BOOKING_USER,
+      MIKPermissions.INVENTORY_RESERVATION_USER,
+      MIKPermissions.INVENTORY_USER,
+    )
+
+    renderHeader({ route: '/inventory-reservations' })
+
+    await screen.findByRole('link', { name: /Inventory$/i })
+    expect(isBold(/Inventory$/i)).toBe(false)
+  })
+
+  it('still marks a section from a route nested under it', async () => {
+    signInWithPermissions(MIKPermissions.AIRCRAFT_USER)
+
+    renderHeader({ route: '/fly/mass-balance' })
+
+    await screen.findByRole('link', { name: /Fly/i })
+    expect(isBold(/Fly/i)).toBe(true)
+  })
 })
 
 describe('Header shop basket', () => {

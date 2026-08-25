@@ -2,6 +2,7 @@
   "header": {
     "dashboard": "Dashboard",
     "schedule": "Schedule",
+    "aircraftReservations": "Aircraft Reservations",
     "fly": "Fly",
     "aircrafts": "Aircraft",
     "members": "Members",

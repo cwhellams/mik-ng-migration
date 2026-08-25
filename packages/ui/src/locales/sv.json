@@ -2,6 +2,7 @@
   "header": {
     "dashboard": "Instrumentpanel",
     "schedule": "Schema",
+    "aircraftReservations": "Flygplansbokningar",
     "fly": "Flyga",
     "aircrafts": "Flygplan",
     "members": "Medlemmar",
