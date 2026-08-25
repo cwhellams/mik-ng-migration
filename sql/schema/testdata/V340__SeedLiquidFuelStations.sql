@@ -3,7 +3,7 @@
 -- ============================================================
 -- liquid.fuel_provider.default_airport and the liquid.fuel_station rows both
 -- reference static.airfields, which is seeded by this same data phase rather
--- than by a schema migration. The schema migration (V2010) therefore creates the
+-- than by a schema migration. The schema migration (V2030) therefore creates the
 -- tables and seeds everything that has no airport in it, and this fills in the
 -- rest.
 --

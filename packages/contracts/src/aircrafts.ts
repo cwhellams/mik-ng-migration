@@ -38,7 +38,7 @@ export enum Severity {
  * `MOGAS 98E5`; `expenses.ts` independently declared
  * `['100LL', 'JetA1', 'mogas']`; and the issue itself introduced `BE98`. The
  * club's answer was to consolidate on the reference table, so `BE98` is
- * `MOGAS 98E5`, `JetA1` is `JET A-1`, and `V2040` renamed the stored values to
+ * `MOGAS 98E5`, `JetA1` is `JET A-1`, and `V2060` renamed the stored values to
  * match — with foreign keys, so they cannot drift apart again.
  *
  * The full reference table has four more entries (`JET A`, `JP-8`,
