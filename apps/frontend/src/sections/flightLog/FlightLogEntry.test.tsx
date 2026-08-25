@@ -260,6 +260,7 @@ const classicFormApi = (
   existingDefects: Defect[] = [],
   existingRemarks: Remark[] = [],
   flightOverrides: Partial<ReturnType<typeof aFlightLog>> = {},
+  linkedRecords: ReturnType<typeof aFuelRecord>[] = [],
 ) => {
   const state = { patches: 0, defects: [] as unknown[] }
 
@@ -275,6 +276,13 @@ const classicFormApi = (
     http.get(apiUrl('v1/useful-phone-numbers/flight-plan-centre'), () =>
       HttpResponse.json(null, { status: 404 }),
     ),
+    // FuelOilSection fetches this by flightLogId once the flight is editable.
+    http.get(apiUrl('v1/liquid/records'), ({ request }) => {
+      const flightLogId = new URL(request.url).searchParams.get('flightLogId')
+      return HttpResponse.json({
+        records: linkedRecords.filter((r) => r.flightLogId === flightLogId),
+      })
+    }),
     http.get(apiUrl('v1/defects'), () => HttpResponse.json(existingDefects)),
     http.post(apiUrl('v1/defects'), async ({ request }) => {
       state.defects.push(await request.json())
@@ -351,6 +359,40 @@ describe('FlightLogEntry (classic form) already-reported defects', () => {
       'href',
       'tel:0409998888',
     )
+  })
+})
+
+describe('FlightLogEntry (classic form) already-linked fuel/oil records', () => {
+  it('shows a fuel record linked in an earlier session, with no stale "none added" checkbox', async () => {
+    classicFormApi([], [], {}, [aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: 'fi_inst1' })])
+
+    renderClassicForm()
+
+    // The real link is shown directly, and "none added" no longer applies to
+    // fuel -- Add/Link remain available since bundling a second fuelling onto
+    // the same flight is intentionally allowed.
+    expect(await screen.findByText(/JET A-1/)).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'No fuel added' })).toBeNull()
+    // Oil is unaffected -- still unresolved and offered normally.
+    expect(screen.getByRole('checkbox', { name: 'No oil added' })).toBeInTheDocument()
+  })
+
+  it('unlinks a record via the real API, not just local state', async () => {
+    const unlinkCalls: string[] = []
+    classicFormApi([], [], {}, [aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: 'fi_inst1' })])
+    server.use(
+      http.post(apiUrl('v1/liquid/records/:recordId/unlink'), ({ params }) => {
+        unlinkCalls.push(String(params.recordId))
+        return HttpResponse.json(aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: null }))
+      }),
+    )
+
+    const { user } = renderClassicForm()
+    await screen.findByText(/JET A-1/)
+
+    await user.click(screen.getByRole('button', { name: 'Detach from this flight' }))
+
+    await waitFor(() => expect(unlinkCalls).toEqual(['rec-fuel-1']))
   })
 })
 

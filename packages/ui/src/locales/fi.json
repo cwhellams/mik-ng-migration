@@ -1208,9 +1208,8 @@
         "airports": "Lähtö- ja saapumislentopaikka",
         "landings": "Laskut",
         "nightIfr": "Yölento ja mittarilento",
-        "fuelUplift": "Tankattu polttoaine",
+        "fuelUplift": "Polttoaine ja öljy",
         "fuelRemaining": "Polttoainetta jäljellä",
-        "oil": "Öljy",
         "notes": "Muistiinpanot",
         "review": "Yhteenveto"
       },
@@ -1531,7 +1530,9 @@
       "noSuggestions": "Ei liittämättömiä kirjauksia ilma-alukselle {{aircraft}}. Lisää kirjaus yllä tai tee se tankkauspisteen QR-koodista.",
       "legacyRecord": "Kirjattu ennen polttoaine-/öljykirjausjärjestelmää — säilytetään sellaisenaan.",
       "fuelLinkFailed": "Lento tallennettiin, mutta polttoainekirjausta ei saatu liitettyä: {{detail}} Voit liittää sen alla käsin.",
-      "oilLinkFailed": "Lento tallennettiin, mutta öljykirjausta ei saatu liitettyä: {{detail}} Voit liittää sen alla käsin."
+      "oilLinkFailed": "Lento tallennettiin, mutta öljykirjausta ei saatu liitettyä: {{detail}} Voit liittää sen alla käsin.",
+      "fuelLabel": "Polttoaine",
+      "oilLabel": "Öljy"
     }
   },
   "invoicing": {

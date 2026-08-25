@@ -1209,9 +1209,8 @@
         "airports": "Avgång & ankomst",
         "landings": "Landningar",
         "nightIfr": "Nattflygning & IFR",
-        "fuelUplift": "Tankad bränslemängd",
+        "fuelUplift": "Bränsle och olja",
         "fuelRemaining": "Bränsle kvar",
-        "oil": "Olja",
         "notes": "Anteckningar",
         "review": "Sammanfattning"
       },
@@ -1532,7 +1531,9 @@
       "noSuggestions": "Inga okopplade poster för {{aircraft}}. Lägg till en ovan, eller rapportera från tankstationens QR-kod.",
       "legacyRecord": "Registrerat före bränsle-/oljesystemet — behålls som det är.",
       "fuelLinkFailed": "Flygningen sparades, men bränsleposten kunde inte kopplas: {{detail}} Du kan koppla den manuellt nedan.",
-      "oilLinkFailed": "Flygningen sparades, men oljeposten kunde inte kopplas: {{detail}} Du kan koppla den manuellt nedan."
+      "oilLinkFailed": "Flygningen sparades, men oljeposten kunde inte kopplas: {{detail}} Du kan koppla den manuellt nedan.",
+      "fuelLabel": "Bränsle",
+      "oilLabel": "Olja"
     }
   },
   "invoicing": {

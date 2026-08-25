@@ -24,7 +24,7 @@ export const buildFlightLogResolver = (
   // existed, and requiring it on every editable entry would block fixing an unrelated
   // field on them until the user fabricates a value for a flight that already happened.
   isNew: boolean,
-  // A record picked to link, or freshly created, via LiquidUpliftField — satisfies
+  // A record picked to link, or freshly created, via FuelOilSection — satisfies
   // the requirement in place of the legacy litres number, which a new entry can no
   // longer enter directly. Ignored once `isNew` is false, same as the litres check.
   pending: { fuelRecordId?: string; oilRecordId?: string } = {},

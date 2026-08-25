@@ -20,7 +20,7 @@ import { renderWithProviders } from '../../../test/renderWithProviders'
 import { FlightLogEntryWizard } from './FlightLogEntryWizard'
 
 /**
- * The mobile flight log wizard (#1115 §11). Twelve steps, each gated on its own
+ * The mobile flight log wizard (#1115 §11). Eleven steps, each gated on its own
  * fields, over a form that autosaves to localStorage so an iOS Safari-killed tab
  * can resume. The tests here concentrate on the parts that lose a pilot's work
  * if they go wrong: step gating, the draft lifecycle, and the save itself.
@@ -58,7 +58,11 @@ const anExistingRemark = (overrides: Partial<Remark> = {}): Remark => ({
   ...overrides,
 })
 
-const wizardApi = (existingDefects: Defect[] = [], existingRemarks: Remark[] = []) => {
+const wizardApi = (
+  existingDefects: Defect[] = [],
+  existingRemarks: Remark[] = [],
+  linkedRecords: ReturnType<typeof aFuelRecord>[] = [],
+) => {
   const state = {
     writes: [] as Write[],
     defects: [] as unknown[],
@@ -71,6 +75,14 @@ const wizardApi = (existingDefects: Defect[] = [], existingRemarks: Remark[] = [
       const { flightLogId } = (await request.json()) as { flightLogId: string }
       state.linkCalls.push({ recordId: String(params.recordId), flightLogId })
       return HttpResponse.json(aFuelRecord())
+    }),
+    // A brand new entry never fetches this (no flightLogId to fetch by); an
+    // existing flight's already-linked fuel/oil is served from here.
+    http.get(apiUrl('v1/liquid/records'), ({ request }) => {
+      const flightLogId = new URL(request.url).searchParams.get('flightLogId')
+      return HttpResponse.json({
+        records: linkedRecords.filter((r) => r.flightLogId === flightLogId),
+      })
     }),
     http.get(apiUrl('v1/aircrafts'), () => HttpResponse.json(anAircraftListResponse())),
     http.get(apiUrl('v1/members'), () => HttpResponse.json(aMemberListResponse())),
@@ -141,7 +153,7 @@ describe('FlightLogEntryWizard step gating', () => {
     renderWizard()
 
     expect(await screen.findByText('Aircraft & flight type')).toBeInTheDocument()
-    expect(screen.getByText('Step 1 of 12')).toBeInTheDocument()
+    expect(screen.getByText('Step 1 of 11')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
   })
 
@@ -158,7 +170,7 @@ describe('FlightLogEntryWizard step gating', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }))
 
     expect(await screen.findByText('Crew')).toBeInTheDocument()
-    expect(screen.getByText('Step 2 of 12')).toBeInTheDocument()
+    expect(screen.getByText('Step 2 of 11')).toBeInTheDocument()
   })
 
   it('offers no Back on the first step', async () => {
@@ -192,28 +204,18 @@ describe('FlightLogEntryWizard step gating', () => {
     renderWizard({ flightId: 'fi_inst1', initialData: anEditableLog(), initialStep: 'review' })
 
     expect(await screen.findByText('Review')).toBeInTheDocument()
-    expect(screen.getByText('Step 12 of 12')).toBeInTheDocument()
+    expect(screen.getByText('Step 11 of 11')).toBeInTheDocument()
   })
 
-  it('holds back Next on a new entry until fuel is resolved, then accepts "none added"', async () => {
+  it('holds back Next on a new entry until both fuel and oil are resolved, then accepts "none added"', async () => {
     wizardApi()
 
     const { user } = renderWizard({ initialStep: 'fuelUplift' })
-    await screen.findByText('Fuel uplift')
+    await screen.findByText('Fuel and oil')
 
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
 
     await user.click(screen.getByRole('checkbox', { name: 'No fuel added' }))
-
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled())
-  })
-
-  it('holds back Next on a new entry until oil is resolved, then accepts "none added"', async () => {
-    wizardApi()
-
-    const { user } = renderWizard({ initialStep: 'oil' })
-    await screen.findByText('Oil')
-
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
 
     await user.click(screen.getByRole('checkbox', { name: 'No oil added' }))
@@ -229,11 +231,34 @@ describe('FlightLogEntryWizard step gating', () => {
       initialData: anEditableLog({ fuelUpliftLitres: 40, oilUpliftLitres: 0.3 }),
       initialStep: 'fuelUplift',
     })
-    await screen.findByText('Fuel uplift')
+    await screen.findByText('Fuel and oil')
 
     // Read-only history, not the checkbox/link/create controls a new entry gets.
     expect(screen.queryByRole('checkbox', { name: 'No fuel added' })).toBeNull()
+    expect(screen.queryByRole('checkbox', { name: 'No oil added' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled()
+  })
+
+  it('shows a fuel record already linked from an earlier session, and lets Next through without re-linking', async () => {
+    wizardApi(undefined, undefined, [
+      aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: 'fi_inst1' }),
+    ])
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog({ fuelUpliftLitres: null, oilUpliftLitres: 0 }),
+      initialStep: 'fuelUplift',
+    })
+    await screen.findByText('Fuel and oil')
+
+    // The already-linked record is shown directly, with no "none added"
+    // checkbox for fuel any more (that question no longer applies).
+    // Add/Link stay available -- bundling a second fuelling onto the same
+    // flight is intentionally allowed.
+    expect(await screen.findByText(/JET A-1/)).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'No fuel added' })).toBeNull()
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled())
   })
 })
 
@@ -274,7 +299,7 @@ describe('FlightLogEntryWizard drafts', () => {
 
     expect(await screen.findByText('Resumed your unfinished entry.')).toBeInTheDocument()
     // Resumed onto the step it was left on, not back at the beginning.
-    expect(screen.getByText('Step 2 of 12')).toBeInTheDocument()
+    expect(screen.getByText('Step 2 of 11')).toBeInTheDocument()
   })
 
   it('shows no banner when there was nothing to resume', async () => {
@@ -500,7 +525,9 @@ describe('FlightLogEntryWizard saving', () => {
     // suggestions are scoped to), so seed a draft that has one and is already on
     // the fuel step rather than clicking through the aircraft step first.
     seedDraft('new', {
-      values: { aircraftRegistration: 'OH-STL' },
+      // Oil is pre-resolved so this test can isolate fuel-linking behaviour;
+      // otherwise Next would stay disabled on the unresolved oil row too.
+      values: { aircraftRegistration: 'OH-STL', oilUpliftLitres: 0 },
       stepIndex: 7,
       flightDateIso: new Date().toISOString(),
       nightOrIfr: null,
@@ -509,10 +536,11 @@ describe('FlightLogEntryWizard saving', () => {
     })
 
     const { user } = renderWizard()
-    await screen.findByText('Fuel uplift')
+    await screen.findByText('Fuel and oil')
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-    await user.click(screen.getByRole('button', { name: 'Link an existing record' }))
+    // Both the fuel and oil rows offer this button; the fuel row is first.
+    await user.click(screen.getAllByRole('button', { name: 'Link an existing record' })[0])
     await user.click(await screen.findByRole('button', { name: 'Link' }))
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled())
@@ -527,7 +555,7 @@ describe('FlightLogEntryWizard saving', () => {
 
     seedDraft('new', {
       values: { ...validValues, fuelUpliftLitres: null, oilUpliftLitres: null },
-      stepIndex: 11,
+      stepIndex: 10,
       // Must match the date already baked into validValues' epoch fields, or the
       // wizard's re-anchor-to-flightDate effect shifts them onto today and the
       // "no future times" validator rejects the entry.

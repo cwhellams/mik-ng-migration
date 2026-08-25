@@ -21,7 +21,11 @@ import {
 } from '@mik/contracts/flight-log'
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { MemberListResponse } from '@mik/contracts/members'
-import type { LiquidRecordWithLock } from '@mik/contracts/liquid'
+import {
+  LiquidType,
+  type LiquidRecordListResponse,
+  type LiquidRecordWithLock,
+} from '@mik/contracts/liquid'
 import useApi from '@mik/ui/hooks/useApi'
 import { useDefects } from '../../../hooks/useDefects'
 import { useRemarks } from '../../../hooks/useRemarks'
@@ -46,9 +50,8 @@ import { TimeStep } from './steps/TimeStep'
 import { AirportsStep } from './steps/AirportsStep'
 import { LandingsStep } from './steps/LandingsStep'
 import { NightIfrStep } from './steps/NightIfrStep'
-import { FuelUpliftStep } from './steps/FuelUpliftStep'
+import { FuelAndOilStep } from './steps/FuelAndOilStep'
 import { FuelRemainingStep } from './steps/FuelRemainingStep'
-import { OilStep } from './steps/OilStep'
 import { NotesStep } from './steps/NotesStep'
 import { ReviewStep } from './steps/ReviewStep'
 import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
@@ -217,6 +220,22 @@ const FlightLogEntryWizardInner = ({
   )
   const [pendingOilRecord, setPendingOilRecord] = useState<LiquidRecordWithLock | undefined>(
     () => persistedDraft?.pendingOilRecord,
+  )
+
+  // Editing an existing flight: FuelAndOilStep manages its own live
+  // link/unlink once it has a flightId, but canGoNext() below also needs to
+  // know a record is already linked so it doesn't keep blocking Next for a
+  // flight that was resolved in an earlier session.
+  const { data: linkedLiquidRecordsData } = useApi<LiquidRecordListResponse>({
+    url: endpoints.liquid.records,
+    params: { flightLogId: flightId },
+    skipFetch: !isEditing || !flightId,
+  })
+  const hasLinkedFuelRecord = (linkedLiquidRecordsData?.records ?? []).some(
+    (r) => r.liquidType === LiquidType.FUEL,
+  )
+  const hasLinkedOilRecord = (linkedLiquidRecordsData?.records ?? []).some(
+    (r) => r.liquidType === LiquidType.OIL,
   )
 
   const resolver = buildFlightLogResolver(t, memberList, !isEditing, {
@@ -492,14 +511,15 @@ const FlightLogEntryWizardInner = ({
       case 'nightIfr':
         return nightOrIfr !== null
       case 'fuelUplift':
-        // null means unresolved: no litres figure (0 = "none added" is fine) and
-        // no record linked/created yet, whether fresh or (for an old flight) a
-        // still-unset legacy value.
-        return watch('fuelUpliftLitres') != null || !!pendingFuelRecord
+        // null means unresolved: no litres figure (0 = "none added" is fine),
+        // no record linked/created yet, and (for an existing flight) no record
+        // already linked server-side from an earlier session.
+        return (
+          (watch('fuelUpliftLitres') != null || !!pendingFuelRecord || hasLinkedFuelRecord) &&
+          (watch('oilUpliftLitres') != null || !!pendingOilRecord || hasLinkedOilRecord)
+        )
       case 'fuelRemaining':
         return (watch('fuelRemainingLitres') ?? 0) > 0
-      case 'oil':
-        return watch('oilUpliftLitres') != null || !!pendingOilRecord
       case 'notes':
       case 'review':
         return true
@@ -739,23 +759,18 @@ const FlightLogEntryWizardInner = ({
         <NightIfrStep {...formProps} nightOrIfr={nightOrIfr} onNightOrIfrChange={setNightOrIfr} />
       )}
       {currentStep === 'fuelUplift' && (
-        <FuelUpliftStep
+        <FuelAndOilStep
           {...formProps}
           aircraftRegistration={registration}
-          pendingRecord={pendingFuelRecord}
-          onPendingRecordChange={setPendingFuelRecord}
+          flightId={isEditing ? flightId : undefined}
+          pendingFuelRecord={pendingFuelRecord}
+          pendingOilRecord={pendingOilRecord}
+          onPendingFuelRecordChange={setPendingFuelRecord}
+          onPendingOilRecordChange={setPendingOilRecord}
         />
       )}
       {currentStep === 'fuelRemaining' && (
         <FuelRemainingStep {...formProps} usableFuelLitres={aircraft?.usableFuelLitres ?? 100} />
-      )}
-      {currentStep === 'oil' && (
-        <OilStep
-          {...formProps}
-          aircraftRegistration={registration}
-          pendingRecord={pendingOilRecord}
-          onPendingRecordChange={setPendingOilRecord}
-        />
       )}
       {currentStep === 'notes' && (
         <NotesStep

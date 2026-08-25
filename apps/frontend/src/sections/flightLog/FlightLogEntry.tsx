@@ -63,9 +63,8 @@ import { shouldShowFieldError } from '../../utils/formErrors'
 import { PersonsOnBoard } from './components/PersonsOnBoard'
 import { NumberOfLandings } from './components/NumberOfLandings'
 import { Fuel } from './components/Fuel'
-import { LiquidUpliftField } from './components/LiquidUpliftField'
-import { LiquidRecordsSection } from './components/LiquidRecordsSection'
-import { LiquidType, type LiquidRecordWithLock } from '@mik/contracts/liquid'
+import { FuelOilSection } from './components/FuelOilSection'
+import type { LiquidRecordWithLock } from '@mik/contracts/liquid'
 import { StatusDisplay } from './components/StatusDisplay'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useRoles } from '@mik/ui/hooks/useRoles'
@@ -210,9 +209,9 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
     },
   )
 
-  // Staged by LiquidUpliftField: a record the member picked or just created to
-  // cover this flight's fuel/oil, not yet linked because a brand new flight
-  // has no real flightId until the save below succeeds.
+  // Staged by FuelOilSection for a brand new entry: a record the member picked
+  // or just created to cover this flight's fuel/oil, not yet linked because a
+  // brand new flight has no real flightId until the save below succeeds.
   const [pendingFuelRecord, setPendingFuelRecord] = useState<LiquidRecordWithLock>()
   const [pendingOilRecord, setPendingOilRecord] = useState<LiquidRecordWithLock>()
 
@@ -323,7 +322,7 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
   }, [me, setValue, isNew])
 
   // Picking/creating a pending record doesn't itself change fuelUpliftLitres or
-  // oilUpliftLitres (LiquidUpliftField sets them to the null they already were),
+  // oilUpliftLitres (FuelOilSection sets them to the null they already were),
   // so RHF's own onChange-triggered validation never re-runs for them and the
   // "required" error set while the field was still unresolved would otherwise
   // sit in formState.errors forever, keeping Save disabled after the member has
@@ -628,7 +627,7 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
         ])
       }
 
-      // Link whatever was staged in LiquidUpliftField -- the flight only
+      // Link whatever was staged in FuelOilSection -- the flight only
       // just got a real id, so this couldn't happen any earlier. The two
       // are independent: one failing must not stop the other from linking.
       const linkErrors: string[] = []
@@ -655,7 +654,7 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
 
       if (linkErrors.length > 0) {
         // The flight itself saved fine -- stay on it (now in edit mode, with
-        // a real flightId) so LiquidRecordsSection is there to retry from,
+        // a real flightId) so FuelOilSection can retry the link live,
         // rather than losing the member on a page they can't get back to.
         setProblem({ status: 0, detail: linkErrors.join(' ') })
         if (isNew && savedFlightId) navigate(`/logs/flights/${savedFlightId}`, { replace: true })
@@ -1038,30 +1037,12 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
               <MinutesField name='instrumentFlyingMins' control={control} disabled={!isEditable} />
             </Grid>
 
-            {/* Fuel and Oil */}
-            <Grid size={12}>
-              <Typography sx={{ mt: 4 }} variant='h6'>
-                {t('flightLog.fuelInfo')}
-              </Typography>
-            </Grid>
-
             <Grid offset={1} size={{ xs: 10, md: 10 }}>
               <Fuel
                 control={control}
                 disabled={!isEditable}
                 usableFuelLitres={aircraft?.usableFuelLitres ?? 100}
                 required
-              />
-            </Grid>
-
-            <Grid size={12}>
-              <LiquidUpliftField
-                liquidType={LiquidType.FUEL}
-                control={control}
-                disabled={!isEditable}
-                aircraftRegistration={registration}
-                pendingRecord={pendingFuelRecord}
-                onPendingRecordChange={setPendingFuelRecord}
               />
             </Grid>
 
@@ -1112,32 +1093,17 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
             )}
 
             <Grid size={12}>
-              <LiquidUpliftField
-                liquidType={LiquidType.OIL}
+              <FuelOilSection
                 control={control}
                 disabled={!isEditable}
                 aircraftRegistration={registration}
-                pendingRecord={pendingOilRecord}
-                onPendingRecordChange={setPendingOilRecord}
+                flightId={isNew ? undefined : flightId}
+                pendingFuelRecord={pendingFuelRecord}
+                pendingOilRecord={pendingOilRecord}
+                onPendingFuelRecordChange={setPendingFuelRecord}
+                onPendingOilRecordChange={setPendingOilRecord}
               />
             </Grid>
-
-            {/* The first-class fuel/oil records (#1119), for reviewing or
-                unlinking what LiquidUpliftField above already resolved (or,
-                for a flight logged before this change, a legacy litres
-                figure with nothing linked at all). A brand new entry's own
-                pick is only linked once the flight itself has been saved
-                (see doSave) — a liquid record's FK needs a real flightId, and
-                this section only renders once one exists. */}
-            {!isNew && flightId && registration && (
-              <Grid size={12}>
-                <LiquidRecordsSection
-                  flightId={flightId}
-                  aircraftRegistration={registration}
-                  isEditable={isEditable}
-                />
-              </Grid>
-            )}
 
             {/* Defects and Remarks */}
             <Grid size={12}>
