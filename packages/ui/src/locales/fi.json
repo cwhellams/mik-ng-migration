@@ -3070,7 +3070,9 @@
       "tabUnits": "Yksilöt",
       "selectItem": "Tuote",
       "selectItemFirst": "Valitse tuote, jonka yksilöitä haluat hallita.",
-      "onlyReservableItems": "Vain varattaviksi merkityt tuotteet näytetään."
+      "onlyReservableItems": "Vain varattaviksi merkityt tuotteet näytetään.",
+      "reservableNoUnits": "Merkitty varattavaksi, mutta tuotteella ei ole käytössä olevia yksilöitä — kaikki varaukset hylätään. Lisää yksilöitä Yksilöt-välilehdellä.",
+      "reservableAddUnitsAfterSaving": "Tallenna tuote ensin ja lisää sen yksilöt Yksilöt-välilehdellä — tuotetta, jolla ei ole yksilöitä, ei voi varata."
     },
     "isReservable": "Varattavissa",
     "isReservableHint": "Näytä tämä tuote kalustovarauskalenterissa",

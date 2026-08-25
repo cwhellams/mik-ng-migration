@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -413,6 +414,27 @@ function ItemsTab() {
   const [adjustNotes, setAdjustNotes] = useState('')
   const { mutation: adjustMutation } = useApi<InventoryItem>({ url: '', skipFetch: true })
 
+  // Ticking "reservable" is only half of making an item reservable: capacity is
+  // counted from the item's units, so one with none is offered in the
+  // reservation calendar's item picker and then refuses every reservation with
+  // "0 of 0 units are free for that time". The editor over there already warns
+  // about it; without the same warning here, the tab the admin never opened is
+  // the one thing not on screen.
+  //
+  // Only fetched while the dialog is open on an existing item that is ticked —
+  // a brand-new item has no id to ask about, and gets the "after saving" note
+  // below instead.
+  const { data: unitData } = useApi<ItemUnitListResponse>({
+    url: endpoints.inventoryUnits.forItem(editing?.itemId ?? 'no-item'),
+    skipFetch: !dialogOpen || !editing || !form.isReservable,
+  })
+
+  // `unitData &&` rather than `?? 0`: while the request is in flight the count
+  // is unknown, not zero, and warning first and retracting it reads as a bug.
+  const reservableWithoutUnits =
+    form.isReservable && !!editing && !!unitData && unitData.inServiceCount === 0
+  const reservableBeforeSaving = form.isReservable && !editing
+
   const nameError = attemptedSubmit && !form.nameEn.trim()
   const categoryError = attemptedSubmit && !form.categoryId
   const imageUrlError = !isValidImageUrl(form.imageUrl)
@@ -763,6 +785,18 @@ function ItemsTab() {
             label={t('inventory.isReservable')}
           />
           <FormHelperText>{t('inventory.isReservableHint')}</FormHelperText>
+
+          {reservableWithoutUnits && (
+            <Alert severity='warning' sx={{ mt: 2 }}>
+              {t('inventory.admin.reservableNoUnits')}
+            </Alert>
+          )}
+
+          {reservableBeforeSaving && (
+            <Alert severity='info' sx={{ mt: 2 }}>
+              {t('inventory.admin.reservableAddUnitsAfterSaving')}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={close}>{t('common.cancel')}</Button>

@@ -791,4 +791,63 @@ describe('InventoryAdminPage reservable flag', () => {
     await waitFor(() => expect(state.writes).toHaveLength(1))
     expect(state.writes[0].body).toMatchObject({ isReservable: false })
   })
+
+  /**
+   * Ticking the box is only half of making an item reservable — capacity comes
+   * from its units. An item ticked but unstocked is offered in the reservation
+   * calendar's picker and then refuses every reservation with "0 of 0 units are
+   * free", and nothing on this side of the app said so (#1260 review).
+   */
+  it('warns that a reservable item with no units can never be reserved', async () => {
+    inventoryApi(
+      [anItem({ isReservable: true })],
+      [aCategory()],
+      [aLocation()],
+      anItemUnitListResponse([], 0),
+    )
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await user.click(await screen.findByRole('button', { name: 'Edit Oil 15W50' }))
+
+    expect(await screen.findByText(/no units in service/)).toBeInTheDocument()
+  })
+
+  it('stays quiet when the reservable item does have units', async () => {
+    inventoryApi(
+      [anItem({ isReservable: true })],
+      [aCategory()],
+      [aLocation()],
+      anItemUnitListResponse([anItemUnit({ tag: 'LV-001' })], 1),
+    )
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await user.click(await screen.findByRole('button', { name: 'Edit Oil 15W50' }))
+
+    await screen.findByRole('dialog')
+    await waitFor(() => expect(screen.queryByText(/no units in service/)).toBeNull())
+  })
+
+  it('says nothing about units for an item nobody can reserve', async () => {
+    inventoryApi([anItem({ isReservable: false })], [aCategory()], [aLocation()])
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    await user.click(await screen.findByRole('button', { name: 'Edit Oil 15W50' }))
+
+    await screen.findByRole('dialog')
+    expect(screen.queryByText(/no units in service/)).toBeNull()
+    expect(screen.queryByText(/Save the item first/)).toBeNull()
+  })
+
+  it('tells the admin where to add units when ticking the box on a new item', async () => {
+    inventoryApi()
+
+    const { user } = renderWithProviders(<InventoryAdminPage />)
+    const dialog = await openItemDialog(user)
+
+    expect(within(dialog).queryByText(/Save the item first/)).toBeNull()
+
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Reservable' }))
+
+    expect(await within(dialog).findByText(/Save the item first/)).toBeInTheDocument()
+  })
 })

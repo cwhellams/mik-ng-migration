@@ -21,6 +21,7 @@ import {
   getCommittedQuantity,
   getReservationById,
   getReservations,
+  hasUnitConflict,
   insertReservation,
   updateReservation,
 } from '../../db/item-reservation-queries.ts'
@@ -32,6 +33,7 @@ import { validateUser } from '../../middleware/authMiddleware.ts'
 import { itemReservationEmailVars } from '../../templates/itemReservationEmailHelpers.ts'
 import { renderEmail } from '../../templates/renderEmail.ts'
 import { type JWTUser } from '../auth/token.ts'
+import { onlySent } from '../patchBody.ts'
 import { problem } from '../response.ts'
 
 /**
@@ -104,8 +106,15 @@ const validateReservationRefs = async (draft: ReservationDraft, holdsCapacity: b
     return problem({ status: 400, detail: 'This item cannot be reserved' })
   }
 
+  // Independent of each other once the item is known, so one round trip rather
+  // than two on the create/patch path — which already pays for the capacity
+  // check after this.
+  const [unit, linkedBooking] = await Promise.all([
+    draft.unitId ? getUnitById(draft.unitId) : undefined,
+    draft.linkedBookingId ? getBookingById(draft.linkedBookingId) : undefined,
+  ])
+
   if (draft.unitId) {
-    const unit = await getUnitById(draft.unitId)
     if (!unit || unit.itemId !== draft.itemId) {
       return problem({ status: 400, detail: 'Unit does not belong to this item' })
     }
@@ -123,7 +132,7 @@ const validateReservationRefs = async (draft: ReservationDraft, holdsCapacity: b
     }
   }
 
-  if (draft.linkedBookingId && !(await getBookingById(draft.linkedBookingId))) {
+  if (draft.linkedBookingId && !linkedBooking) {
     return problem({ status: 400, detail: `Booking '${draft.linkedBookingId}' does not exist` })
   }
 }
@@ -136,9 +145,16 @@ const validateReservationRefs = async (draft: ReservationDraft, holdsCapacity: b
  * that says how many units are actually free. A concurrent reservation can
  * still slip in between this read and the write, which is exactly why the
  * trigger exists — `ReservationCapacityError` covers that race.
+ *
+ * Both of the trigger's rules, in the trigger's order: a reservation naming a
+ * specific unit must not collide with another naming that unit, and must still
+ * fit in the item's pool. Checking only the pool half would let a member who
+ * picked "the tank with the full gauge" past a message counting free units, and
+ * then fail on the other rule at the write — a clean 400 either way, but about
+ * something the pre-check had just called fine.
  */
 const checkCapacity = async (draft: ReservationDraft, excludeReservationId?: string) => {
-  const [inService, committed] = await Promise.all([
+  const [inService, committed, unitTaken] = await Promise.all([
     getInServiceUnitCount(draft.itemId),
     getCommittedQuantity(
       draft.itemId,
@@ -146,7 +162,24 @@ const checkCapacity = async (draft: ReservationDraft, excludeReservationId?: str
       draft.endTimeEpoch,
       excludeReservationId,
     ),
+    draft.unitId
+      ? hasUnitConflict(
+          draft.unitId,
+          draft.startTimeEpoch,
+          draft.endTimeEpoch,
+          excludeReservationId,
+        )
+      : Promise.resolve(false),
   ])
+
+  // Worded exactly as the trigger words it, so the race-loser's 400 and this
+  // one don't describe the same collision two different ways.
+  if (unitTaken) {
+    return problem({
+      status: 400,
+      detail: 'This unit is already reserved for an overlapping time',
+    })
+  }
 
   const available = inService - committed
   if (draft.quantity > available) {
@@ -274,7 +307,11 @@ router.get('/:id', async (req: Request<Record<string, string>>, res: Response) =
 // Update a reservation
 router.patch('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const reservationId = req.params.id
-  const patch = ItemReservationUpsertSchema.partial().parse(req.body)
+  // `onlySent` because Zod re-applies `quantity`'s `.default(1)` even under
+  // `.partial()`: without it the calendar's drag-and-resize PATCH, which sends
+  // nothing but the two timestamps, arrives claiming `quantity: 1` and
+  // collapses a three-vest reservation to one. See routes/patchBody.ts.
+  const patch = onlySent(ItemReservationUpsertSchema.partial().parse(req.body), req.body)
 
   const reservation = await getReservationById(reservationId)
   if (!reservation) {

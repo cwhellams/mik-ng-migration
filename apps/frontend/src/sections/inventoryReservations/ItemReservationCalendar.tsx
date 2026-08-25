@@ -12,21 +12,18 @@ import {
   Typography,
 } from '@mui/material'
 import type { Dayjs } from 'dayjs'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   Calendar,
   Views,
   type DateRangeFormatFunction,
   type Event,
   type EventPropGetter,
-  type Messages,
   type SlotInfo,
-  type View,
 } from 'react-big-calendar'
 import withDragAndDropImport from 'react-big-calendar/lib/addons/dragAndDrop'
 import type { withDragAndDropProps } from 'react-big-calendar/lib/addons/dragAndDrop'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
@@ -50,7 +47,8 @@ import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Title } from '@mik/ui/components/Title'
 import useApi from '@mik/ui/hooks/useApi'
 import { useRoles } from '@mik/ui/hooks/useRoles'
-import { dayjs, HELSINKI_TIMEZONE } from '@mik/ui/utils/date'
+import { dayjs } from '@mik/ui/utils/date'
+import { useCalendarViewState } from '../../hooks/useCalendarViewState'
 import { localName, resolveLanguage } from '../inventory/localized'
 import { dayjsLocalizerTz } from '../schedule/dayjsLocalizerTz'
 import {
@@ -64,10 +62,11 @@ import { itemColor, itemReservationFlags, reservationMinDate, reservationTitle }
  *
  * A separate page from `sections/schedule`, which is the whole point of the
  * issue: oxygen tanks and life vests were never going to share the plane
- * calendar without burying it. The two share the `react-big-calendar` stack and
- * the Helsinki localizer, and nothing else — an item reservation overlapping
- * another is normal (that is what having eight vests means), so there is no
- * overlap check here, only a capacity one, and it lives in the editor.
+ * calendar without burying it. The two share the `react-big-calendar` stack,
+ * the Helsinki localizer and `useCalendarViewState` — the widget, not the
+ * domain. An item reservation overlapping another is normal (that is what
+ * having eight vests means), so there is no overlap check here, only a capacity
+ * one, and it lives in the editor.
  */
 
 const withDragAndDrop = ((
@@ -92,7 +91,6 @@ const ItemReservationCalendar = () => {
   const { t, i18n } = useTranslation()
   const lang = resolveLanguage(i18n.language)
   const { me, hasAccess, hasSudoAccess } = useRoles()
-  const [searchParams, setSearchParams] = useSearchParams()
 
   const isReservationAdmin = hasSudoAccess(MIKPermissions.INVENTORY_RESERVATION_ADMIN)
   const canReserve =
@@ -128,69 +126,18 @@ const ItemReservationCalendar = () => {
     params: filters,
   })
 
-  const [currentView, setCurrentView] = useState<View>(
-    searchParams.has('day') ? Views.DAY : Views.WEEK,
+  // View, date, the `?day=`/`?week=` sync and the from/to window are the same
+  // calendar-widget plumbing the plane calendar runs, and are shared with it —
+  // only the i18n block of react-big-calendar labels differs.
+  const { currentView, onView, currentDate, onNavigate, calendarOpts } = useCalendarViewState(
+    'itemReservations.calendarMessages',
+    setFilters,
   )
-  const onView = useCallback((view: View) => setCurrentView(view), [])
-
-  const [currentDate, setCurrentDate] = useState<Date | undefined>(
-    searchParams.has('day')
-      ? new Date(searchParams.get('day')!)
-      : searchParams.has('week')
-        ? new Date(searchParams.get('week')!)
-        : new Date(),
-  )
-  const onNavigate = useCallback((date: Date) => setCurrentDate(date), [])
 
   const [editMode, setEditMode] = useState<
     Upsert<ItemReservation & ItemReservationFlags> | undefined
   >()
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
-
-  const calendarOpts = useMemo(
-    () => ({
-      messages: t('itemReservations.calendarMessages', { returnObjects: true }) as Messages,
-      min: dayjs.tz('2000-01-01T07:00:00', HELSINKI_TIMEZONE).toDate(),
-      max: dayjs.tz('2000-01-01T22:00:00', HELSINKI_TIMEZONE).toDate(),
-    }),
-    [t],
-  )
-
-  // Show times in Helsinki regardless of where the member is, as the plane
-  // calendar does — the equipment is in a hangar in Finland.
-  useEffect(() => {
-    dayjs.tz.setDefault(HELSINKI_TIMEZONE)
-    return () => {
-      dayjs.tz.setDefault()
-    }
-  }, [])
-
-  useEffect(() => {
-    const date = dayjs(currentDate)
-
-    const { from, to } =
-      currentView === Views.AGENDA
-        ? {
-            from: date.startOf('day').toISOString(),
-            to: date.add(1, 'month').endOf('day').toISOString(),
-          }
-        : {
-            from: date.startOf('month').startOf('week').toISOString(),
-            to: date.endOf('month').endOf('week').toISOString(),
-          }
-
-    if (filters.from !== from || filters.to !== to) {
-      setFilters((previous) => ({ ...previous, from, to }))
-    }
-
-    if (currentView === Views.DAY) {
-      setSearchParams({ day: date.format('YYYY-MM-DD') })
-    } else if (currentView === Views.WEEK) {
-      setSearchParams({ week: date.format('YYYY-MM-DD') })
-    } else {
-      setSearchParams({})
-    }
-  }, [currentDate, currentView, filters, setSearchParams])
 
   const itemNameFor = useCallback(
     (reservation: ItemReservation) =>

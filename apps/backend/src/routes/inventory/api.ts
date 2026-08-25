@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '@mik/contracts/members'
+import { onlySent } from '../patchBody.ts'
 import { problem } from '../response.ts'
 import { HttpStatusCode } from 'axios'
 import {
@@ -188,10 +189,19 @@ router.put(
     const existing = await getItemById(req.params.id)
     if (!existing) return problem({ status: 404, detail: 'Item not found' })
 
-    const data = InventoryItemUpsertSchema.partial().parse({
+    // Zod re-applies a field's `.default()` even under `.partial()`, so the
+    // parsed body asserts `itemType: 'CONSUMABLE'`, `condition: 'UNKNOWN'`,
+    // `tags: []`, `isActive: true` and `isReservable: false` whether the caller
+    // sent them or not — and `upsertItem` writes every field that is defined.
+    // A PUT that only meant to correct a name would quietly un-reserve the
+    // item, un-retire it and drop its tags. `onlySent` keeps the patch to the
+    // fields the caller actually sent.
+    const parsed = InventoryItemUpsertSchema.partial().parse({
       ...req.body,
       itemId: req.params.id,
     })
+    const data = { ...onlySent(parsed, req.body), itemId: req.params.id }
+
     const refError = await validateItemRefs(data)
     if (refError) return problem({ status: 400, detail: refError })
     const item = await upsertItem(data as any, req.user!)
@@ -253,8 +263,14 @@ router.get('/items/:id/units', async (req: Request<Record<string, string>>, res:
 
   // A retired unit is history an admin needs and a member does not — the same
   // split as inactive items on the listing above.
-  const units = await getUnitsByItemId(req.params.id, admin)
-  const inServiceCount = await getInServiceUnitCount(req.params.id)
+  //
+  // Both keyed only on the item, so one round trip: this endpoint backs the
+  // reservation editor's unit picker as well as the admin units tab, and there
+  // is nothing in the count that depends on the list.
+  const [units, inServiceCount] = await Promise.all([
+    getUnitsByItemId(req.params.id, admin),
+    getInServiceUnitCount(req.params.id),
+  ])
 
   res.json(<ItemUnitListResponse>{ units, inServiceCount })
 })
@@ -292,25 +308,21 @@ router.put(
     const existing = await getUnitById(req.params.unitId)
     if (!existing) return problem({ status: 404, detail: 'Unit not found' })
 
-    const body = (req.body ?? {}) as Record<string, unknown>
-    const data = ItemUnitUpsertSchema.partial().parse({
-      ...body,
+    // Zod re-applies a field's `.default()` even under `.partial()`, so the
+    // parsed body carries `condition: 'UNKNOWN'` and `isActive: true` whether
+    // or not the caller sent them — which would quietly reset a unit's
+    // condition, and un-retire it, on a PUT that only meant to add a note.
+    // `onlySent` keeps the patch to the fields actually present in the body;
+    // the two ids come from the path, so they are added back after it.
+    const parsed = ItemUnitUpsertSchema.partial().parse({
+      ...((req.body ?? {}) as Record<string, unknown>),
       itemId: existing.itemId,
       unitId: req.params.unitId,
     })
-
-    // Zod re-applies a field's `.default()` even under `.partial()`, so `data`
-    // carries `condition: 'UNKNOWN'` and `isActive: true` whether or not the
-    // caller sent them — which would quietly reset a unit's condition, and
-    // un-retire it, on a PUT that only meant to add a note. Forward only the
-    // fields actually present in the body.
     const patch = {
+      ...onlySent(parsed, req.body),
       itemId: existing.itemId,
       unitId: req.params.unitId,
-      ...('tag' in body ? { tag: data.tag } : {}),
-      ...('condition' in body ? { condition: data.condition } : {}),
-      ...('notes' in body ? { notes: data.notes } : {}),
-      ...('isActive' in body ? { isActive: data.isActive } : {}),
     }
 
     try {

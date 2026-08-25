@@ -3037,7 +3037,9 @@
       "tabUnits": "Enheter",
       "selectItem": "Artikel",
       "selectItemFirst": "Välj en artikel för att hantera dess enheter.",
-      "onlyReservableItems": "Endast artiklar markerade som bokningsbara visas."
+      "onlyReservableItems": "Endast artiklar markerade som bokningsbara visas.",
+      "reservableNoUnits": "Markerad som bokningsbar, men artikeln har inga enheter i tjänst — alla bokningar avvisas. Lägg till enheter på fliken Enheter.",
+      "reservableAddUnitsAfterSaving": "Spara artikeln först och lägg sedan till dess enheter på fliken Enheter — en artikel utan enheter kan inte bokas."
     },
     "isReservable": "Bokningsbar",
     "isReservableHint": "Visa denna artikel i bokningskalendern för utrustning",

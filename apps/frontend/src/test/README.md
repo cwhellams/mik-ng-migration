@@ -203,10 +203,10 @@ actually achieves:
 | Directory                                      | Statements | Branches | Functions |
 | ---------------------------------------------- | ---------- | -------- | --------- |
 | `src/api/**`                                   | 99         | 99       | 99        |
-| `src/hooks/**`                                 | 97         | 93       | 99        |
-| `src/components/**`                            | 92         | 88       | 86        |
-| `src/{*,lib/**,layouts/**,theme/**,config/**}` | 71         | 46       | 68        |
-| `src/utils/**`                                 | 61         | 55       | 76        |
+| `src/hooks/**`                                 | 97         | 90       | 99        |
+| `src/components/**`                            | 91         | 86       | 86        |
+| `src/{*,lib/**,layouts/**,theme/**,config/**}` | 64         | 46       | 62        |
+| `src/utils/**`                                 | 57         | 48       | 69        |
 | `src/sections/**`                              | 46         | 43       | 32        |
 | _(all files, as a backstop)_                   | 44         | 37       | 31        |
 

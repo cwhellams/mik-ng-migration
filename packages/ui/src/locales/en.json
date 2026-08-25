@@ -3064,7 +3064,9 @@
       "tabUnits": "Units",
       "selectItem": "Item",
       "selectItemFirst": "Choose an item to manage its units.",
-      "onlyReservableItems": "Only items marked reservable are listed."
+      "onlyReservableItems": "Only items marked reservable are listed.",
+      "reservableNoUnits": "Reservable, but this item has no units in service — every reservation will be refused. Add units on the Units tab.",
+      "reservableAddUnitsAfterSaving": "Save the item first, then add its units on the Units tab — an item with no units cannot be reserved."
     },
     "isReservable": "Reservable",
     "isReservableHint": "Show this item in the item reservation calendar",

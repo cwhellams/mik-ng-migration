@@ -30,8 +30,19 @@ const jwt: JWTUser = {
 }
 
 /** A window far enough out that no seeded reservation overlaps it. */
+/**
+ * A window `dayOffset` days out, pinned to 20:00 rather than derived from the
+ * clock.
+ *
+ * `startOf('hour')` on `dayjs()` looked harmless and was not: V340 seeds resv1
+ * at day 40, 09:00–11:00, holding two of INV_VEST's four units, so the day-40
+ * cases landed on top of it for exactly the two hours a day the suite happened
+ * to run then — a suite that passes or fails by the clock, the same trap the
+ * seeded `stl%` bookings set for the worker suites. Every seeded reservation is
+ * done by 18:00, so an evening window is clear of all of them whatever the hour.
+ */
 const window = (dayOffset: number, hours = 2) => {
-  const start = dayjs().add(dayOffset, 'day').startOf('hour')
+  const start = dayjs().add(dayOffset, 'day').startOf('day').add(20, 'hour')
   return {
     startTimeEpoch: start.unix().toString(),
     endTimeEpoch: start.add(hours, 'hour').unix().toString(),
@@ -303,6 +314,78 @@ describe('cancelReservation', () => {
   })
 })
 
+/**
+ * The client-side twin of the trigger's `same_unit_conflicts` check, which is
+ * the half of `check_reservation_capacity()` the app's friendly pre-check used
+ * not to mirror at all.
+ */
+describe('hasUnitConflict', () => {
+  it('sees an overlapping reservation on the same unit', async () => {
+    const slot = window(50)
+    await reserve({ ...slot, unitId: 'VEST1' })
+
+    await expect(
+      reservations.hasUnitConflict('VEST1', slot.startTimeEpoch, slot.endTimeEpoch),
+    ).resolves.toBe(true)
+  })
+
+  it('ignores a reservation on a different unit of the same item', async () => {
+    const slot = window(51)
+    await reserve({ ...slot, unitId: 'VEST1' })
+
+    await expect(
+      reservations.hasUnitConflict('VEST2', slot.startTimeEpoch, slot.endTimeEpoch),
+    ).resolves.toBe(false)
+  })
+
+  it('ignores a pooled reservation, which names no unit', async () => {
+    const slot = window(52)
+    await reserve({ ...slot, quantity: 2 })
+
+    await expect(
+      reservations.hasUnitConflict('VEST1', slot.startTimeEpoch, slot.endTimeEpoch),
+    ).resolves.toBe(false)
+  })
+
+  it('ignores a cancelled reservation, which holds nothing', async () => {
+    const slot = window(53)
+    const reservation = await reserve({ ...slot, unitId: 'VEST1' })
+    await reservations.cancelReservation(reservation.reservationId, jwt)
+
+    await expect(
+      reservations.hasUnitConflict('VEST1', slot.startTimeEpoch, slot.endTimeEpoch),
+    ).resolves.toBe(false)
+  })
+
+  it('treats a handover on the hour as no conflict, half-open like the trigger', async () => {
+    const slot = window(54)
+    await reserve({ ...slot, unitId: 'VEST1' })
+
+    // Starts exactly where the other ends.
+    await expect(
+      reservations.hasUnitConflict(
+        'VEST1',
+        slot.endTimeEpoch,
+        (Number(slot.endTimeEpoch) + 3600).toString(),
+      ),
+    ).resolves.toBe(false)
+  })
+
+  it('does not count the reservation being edited against itself', async () => {
+    const slot = window(55)
+    const reservation = await reserve({ ...slot, unitId: 'VEST1' })
+
+    await expect(
+      reservations.hasUnitConflict(
+        'VEST1',
+        slot.startTimeEpoch,
+        slot.endTimeEpoch,
+        reservation.reservationId,
+      ),
+    ).resolves.toBe(false)
+  })
+})
+
 describe('updateReservation', () => {
   it('returns undefined for an unknown reservation', async () => {
     await expect(
@@ -324,5 +407,42 @@ describe('updateReservation', () => {
       cancelledBy: 'k1mnimda',
     })
     expect(updated?.cancelledAt).toEqual(expect.any(String))
+  })
+
+  it('clears the cancellation trio when the status moves back off CANCELLED', async () => {
+    const reservation = await reserve(window(44))
+    await reservations.cancelReservation(reservation.reservationId, jwt, 'Weather')
+
+    // `cancelled_audit_check` requires all three to be NULL while the status is
+    // not CANCELLED, and Kysely drops `undefined` keys from the SET clause — so
+    // leaving them out would throw rather than clear them.
+    const updated = await reservations.updateReservation(
+      reservation.reservationId,
+      { status: ItemReservationStatus.CONFIRMED },
+      jwt,
+    )
+
+    expect(updated).toMatchObject({ status: ItemReservationStatus.CONFIRMED })
+    expect(updated?.cancelledAt).toBeUndefined()
+    expect(updated?.cancelledBy).toBeNull()
+    expect(updated?.cancellationNote).toBeUndefined()
+  })
+
+  it('leaves the cancellation trio alone on a patch that does not touch the status', async () => {
+    const reservation = await reserve(window(45))
+    await reservations.cancelReservation(reservation.reservationId, jwt, 'Weather')
+
+    const updated = await reservations.updateReservation(
+      reservation.reservationId,
+      { description: 'Rebooked by phone' },
+      jwt,
+    )
+
+    expect(updated).toMatchObject({
+      status: ItemReservationStatus.CANCELLED,
+      cancelledBy: 'k1mnimda',
+      cancellationNote: 'Weather',
+      description: 'Rebooked by phone',
+    })
   })
 })

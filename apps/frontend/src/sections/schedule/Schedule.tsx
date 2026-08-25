@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import {
   Calendar,
   type DateRangeFormatFunction,
@@ -6,9 +6,7 @@ import {
   Event,
   EventProps,
   EventPropGetter,
-  Messages,
   SlotInfo,
-  View,
   Views,
 } from 'react-big-calendar'
 import { dayjsLocalizerTz } from './dayjsLocalizerTz'
@@ -22,7 +20,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 // https://github.com/jquense/react-big-calendar/issues/2739
 import './styles.css'
 
-import { dayjs, HELSINKI_TIMEZONE } from '@mik/ui/utils/date'
+import { dayjs } from '@mik/ui/utils/date'
 import { useTranslation } from 'react-i18next'
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import {
@@ -48,7 +46,6 @@ import { BookingEditor, BookingFlags } from './components/EditBookingModal'
 import { Upsert } from '@mik/contracts/schema'
 import { useRoles } from '@mik/ui/hooks/useRoles'
 import { Dayjs } from 'dayjs'
-import { useSearchParams } from 'react-router'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
@@ -56,6 +53,7 @@ import { Title } from '@mik/ui/components/Title'
 import { Icon } from '@iconify/react'
 import { bookingFlags, bookingMinDate } from './helpers'
 import { endpoints } from '../../api/endpoints'
+import { useCalendarViewState } from '../../hooks/useCalendarViewState'
 
 const withDragAndDrop = ((
   withDragAndDropImport as unknown as { default?: typeof withDragAndDropImport }
@@ -101,7 +99,6 @@ const CalendarEvent = ({ event }: EventProps<BookingEvent>) => {
 
 const Schedule = () => {
   const { me, isBookingAdmin } = useRoles()
-  const [searchParams, setSearchParams] = useSearchParams()
   const { t } = useTranslation()
 
   const canMakeReservations = me?.canMakeReservations == true
@@ -187,76 +184,13 @@ const Schedule = () => {
 
   const { i18n } = useTranslation()
 
-  const [currentView, setCurrentView] = useState<View>(
-    searchParams.has('day') ? Views.DAY : Views.WEEK,
+  // View, date, the ?day=/?week= sync, the Helsinki display timezone and the
+  // from/to window the list request asks for — all of it shared with the item
+  // reservation calendar, which ran a verbatim copy until #1260's review.
+  const { currentView, onView, currentDate, onNavigate, calendarOpts } = useCalendarViewState(
+    'schedule.calendarMessages',
+    setFilters,
   )
-
-  // it's recommended to memoize callbacks and values passed to the calendar
-  // https://jquense.github.io/react-big-calendar/examples/index.html?path=/docs/about-our-examples--page
-  const onView = useCallback((newView: View) => setCurrentView(newView), [setCurrentView])
-
-  const [currentDate, setCurrentDate] = useState<Date | undefined>(
-    searchParams.has('day')
-      ? new Date(searchParams.get('day')!)
-      : searchParams.has('week')
-        ? new Date(searchParams.get('week')!)
-        : new Date(),
-  )
-  const onNavigate = useCallback((newDate: Date) => setCurrentDate(newDate), [setCurrentDate])
-
-  // memoize calendar options to avoid unnecessary rerenders
-  const calendarOpts = useMemo(
-    () => ({
-      messages: t('schedule.calendarMessages', {
-        returnObjects: true,
-      }) as Messages,
-      min: dayjs.tz('2000-01-01T07:00:00', HELSINKI_TIMEZONE).toDate(),
-      max: dayjs.tz('2000-01-01T22:00:00', HELSINKI_TIMEZONE).toDate(),
-    }),
-    [t],
-  )
-
-  // show calendar events always in Helsinki timezone
-  useEffect(() => {
-    dayjs.tz.setDefault(HELSINKI_TIMEZONE)
-    return () => {
-      dayjs.tz.setDefault() // reset to browser TZ on unmount
-    }
-  }, [])
-
-  useEffect(() => {
-    const date = dayjs(currentDate)
-
-    const { from, to } =
-      currentView == Views.AGENDA
-        ? {
-            // show one month of events in agenda view
-            from: date.startOf('day').toISOString(),
-            to: date.add(1, 'month').endOf('day').toISOString(),
-          }
-        : {
-            // show the whole weeks of the current month
-            from: date.startOf('month').startOf('week').toISOString(),
-            to: date.endOf('month').endOf('week').toISOString(),
-          }
-
-    if (filters.from != from || filters.to != to) {
-      setFilters((filters) => ({
-        ...filters,
-        from,
-        to,
-      }))
-    }
-
-    // update url to match the current view
-    if (currentView == Views.DAY) {
-      setSearchParams({ day: date.format('YYYY-MM-DD') })
-    } else if (currentView == Views.WEEK) {
-      setSearchParams({ week: date.format('YYYY-MM-DD') })
-    } else {
-      setSearchParams({})
-    }
-  }, [currentDate, currentView, filters, setFilters, setSearchParams])
 
   const [events, setEvents] = useState<BookingEvent[]>([])
 

@@ -261,6 +261,14 @@ export const insertReservation = async (
  * Patch a reservation. `status` is patchable — moving it to CANCELLED through
  * here is what the calendar's delete does — so the cancellation audit trio is
  * filled in at the same time, the way `updateBooking` does it.
+ *
+ * A patch moving the status the *other* way has to clear that trio, because
+ * `cancelled_audit_check` (V2020) ties it to the status: all three set when
+ * CANCELLED, all three NULL when not. Leaving them out would not do it —
+ * Kysely drops `undefined` keys from the SET clause entirely, so the columns
+ * would keep the values the earlier cancellation wrote and Postgres would
+ * reject the update. That exception is not one `CAPACITY_ERRORS` recognises, so
+ * it reached the route as an unhandled 500.
  */
 export const updateReservation = async (
   reservationId: string,
@@ -269,6 +277,7 @@ export const updateReservation = async (
 ): Promise<ItemReservation | undefined> => {
   const now = new Date()
   const cancelling = patch.status === ItemReservationStatus.CANCELLED
+  const uncancelling = patch.status !== undefined && !cancelling
 
   const updated = await translateCapacityErrors(() =>
     db
@@ -284,8 +293,13 @@ export const updateReservation = async (
         endTimeEpoch: patch.endTimeEpoch,
         description: patch.description,
         ...auditUpdate(jwt.memberId, now),
-        cancelledAt: cancelling ? now : undefined,
-        cancelledBy: cancelling ? jwt.memberId : undefined,
+        cancelledAt: cancelling ? now : uncancelling ? null : undefined,
+        cancelledBy: cancelling ? jwt.memberId : uncancelling ? null : undefined,
+        // Not covered by the CHECK constraint, but a re-confirmed reservation
+        // showing "cancelled because the tank was empty" in the editor's
+        // details card would be describing something that no longer happened.
+        // The audit table keeps the note either way.
+        cancellationNote: uncancelling ? null : undefined,
       })
       .where('reservationId', '=', reservationId)
       .executeTakeFirst(),
@@ -348,4 +362,40 @@ export const getCommittedQuantity = async (
 
   const row = await query.executeTakeFirst()
   return Number(row?.committed ?? 0)
+}
+
+/**
+ * Whether one named unit is already spoken for in a window.
+ *
+ * `check_reservation_capacity()` runs two checks, not one: a reservation naming
+ * a specific unit must not collide with another naming that same unit, *and*
+ * still consumes one of the item's units. `getCommittedQuantity` above mirrors
+ * the second; this mirrors the first. Without it the friendly pre-check would
+ * wave through a clash on "the tank with the full gauge" whenever the pool as a
+ * whole still had room, and the member would get the trigger's message about a
+ * reservation the pre-check had just called free.
+ *
+ * Advisory in the same way: the trigger decides, this is what makes the 400 say
+ * which of the two rules was broken.
+ */
+export const hasUnitConflict = async (
+  unitId: string,
+  startTimeEpoch: string,
+  endTimeEpoch: string,
+  excludeReservationId?: string,
+): Promise<boolean> => {
+  let query = db
+    .selectFrom('inventory.reservations')
+    .select('reservationId')
+    .where('unitId', '=', unitId)
+    .where('reservationStatus', '=', ItemReservationStatus.CONFIRMED)
+    .where('startTimeEpoch', '<', endTimeEpoch)
+    .where('endTimeEpoch', '>', startTimeEpoch)
+    .limit(1)
+
+  if (excludeReservationId) {
+    query = query.where('reservationId', '!=', excludeReservationId)
+  }
+
+  return (await query.executeTakeFirst()) !== undefined
 }

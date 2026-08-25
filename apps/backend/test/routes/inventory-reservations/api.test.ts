@@ -276,6 +276,52 @@ describe('POST /inventory-reservations', () => {
     const response = await post(draft({ unitId: 'VEST1', quantity: 2 }))
     expect(response.status).toBe(400)
   })
+
+  it('names the unit clash rather than the pool when both rules are broken', async () => {
+    // INV_VEST has four in-service units. Filling three of them from the pool
+    // and pinning VEST1 with the fourth leaves a window where a second VEST1
+    // reservation breaks *both* of the trigger's rules at once. The pooled
+    // arithmetic is not the useful half of that answer: the member asked for
+    // one particular vest, and that vest is out.
+    const window = slot(70)
+    await post(draft({ ...window, quantity: 3 }))
+    await post(draft({ ...window, unitId: 'VEST1' }))
+
+    const response = await post(draft({ ...window, unitId: 'VEST1' }))
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toBe('This unit is already reserved for an overlapping time')
+  })
+
+  it('reports a same-unit clash while the pool still has room', async () => {
+    // The pool half of the check would wave this through — three of the four
+    // vests are free — so it is the specific-unit rule doing the work. Wording
+    // matched to the trigger's, which is what answers the same request if it
+    // loses the race between the pre-check and the write.
+    const window = slot(71)
+    await post(draft({ ...window, unitId: 'VEST2' }))
+
+    const response = await post(draft({ ...window, unitId: 'VEST2' }))
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toBe('This unit is already reserved for an overlapping time')
+  })
+
+  it('lets a handover keep the same unit, half-open like the trigger', async () => {
+    const window = slot(72)
+    await post(draft({ ...window, unitId: 'VEST3' }))
+
+    // Starts exactly where the other ends: a handover, not a clash.
+    const response = await post(
+      draft({
+        unitId: 'VEST3',
+        startTimeEpoch: window.endTimeEpoch,
+        endTimeEpoch: (Number(window.endTimeEpoch) + 3600).toString(),
+      }),
+    )
+
+    expect(response.status).toBe(201)
+  })
 })
 
 describe('GET /inventory-reservations', () => {
@@ -422,6 +468,71 @@ describe('PATCH /inventory-reservations/:id', () => {
       .send({ quantity: 1 })
 
     expect(response.status).toBe(404)
+  })
+
+  it('keeps a quantity the body never mentioned', async () => {
+    const { body } = await post(draft({ ...slot(65), quantity: 3 }))
+    const moved = slot(66)
+
+    // Exactly what the calendar's drag and resize send: the two timestamps and
+    // nothing else. Zod re-applies `quantity`'s `.default(1)` even under
+    // `.partial()`, so without stripping the keys the caller never sent, three
+    // vests silently became one.
+    const response = await request(app)
+      .patch(`/inventory-reservations/${body.reservationId}`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(moved)
+
+    expect(response.status).toBe(200)
+    expect(response.body.quantity).toBe(3)
+    expect(response.body.startTimeEpoch).toBe(moved.startTimeEpoch)
+  })
+
+  it('re-confirms a cancelled reservation instead of failing on the audit constraint', async () => {
+    const { body } = await post(draft({ ...slot(67) }))
+
+    const cancelled = await request(app)
+      .patch(`/inventory-reservations/${body.reservationId}`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ status: ItemReservationStatus.CANCELLED })
+    expect(cancelled.status).toBe(200)
+
+    // `cancelled_audit_check` ties the cancellation trio to the status, and
+    // Kysely drops `undefined` keys from the SET clause — so a status moving
+    // back off CANCELLED has to clear them explicitly or Postgres rejects the
+    // update with a constraint violation nothing translates into a 400.
+    const response = await request(app)
+      .patch(`/inventory-reservations/${body.reservationId}`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ status: ItemReservationStatus.CONFIRMED })
+
+    expect(response.status).toBe(200)
+    expect(response.body.status).toBe(ItemReservationStatus.CONFIRMED)
+    expect(response.body.cancelledAt ?? null).toBeNull()
+    expect(response.body.cancelledBy ?? null).toBeNull()
+    expect(response.body.cancellationNote ?? null).toBeNull()
+  })
+
+  it('re-checks capacity when a cancelled reservation is re-confirmed', async () => {
+    const window = slot(68)
+    const { body } = await post(draft({ ...window, quantity: 4 }))
+
+    await request(app)
+      .patch(`/inventory-reservations/${body.reservationId}`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ status: ItemReservationStatus.CANCELLED })
+
+    // The pool it used to hold has been taken in the meantime, so coming back
+    // is a capacity question like any other.
+    await post(draft({ ...window, quantity: 4 }))
+
+    const response = await request(app)
+      .patch(`/inventory-reservations/${body.reservationId}`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ status: ItemReservationStatus.CONFIRMED })
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toContain('units are free for that time')
   })
 
   it('still cancels a reservation whose unit has left service since', async () => {
