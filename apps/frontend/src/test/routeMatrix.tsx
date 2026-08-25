@@ -155,6 +155,23 @@ export const PUBLIC_PATHS = new Set([
   '/*',
 ])
 
+/**
+ * How long a route is given to settle, per route.
+ *
+ * Deliberately not the 1 s that `waitFor`/`findBy*` default to. Most routes here
+ * settle in tens of milliseconds, but the two calendar pages render a whole
+ * react-big-calendar month grid — 24 rows × 7 days, with the drag-and-drop
+ * addon over it — before anything they are waiting on resolves, and they measure
+ * 700–970 ms doing it on a developer machine. Against a 1 s bound that is not a
+ * margin, it is a coin toss, and it came up tails on CI (#1260) on a route that
+ * had been passing at 966 ms.
+ *
+ * Raising the bound cannot mask a real failure: a leaked page never settles at
+ * all, so a genuine break still fails, just ten seconds later. The `testTimeout`
+ * in `vitest.config.ts` is 20 s, which this stays inside.
+ */
+const SETTLE_TIMEOUT = { timeout: 10_000 }
+
 /** Catches a page that cannot cope with the stubbed API, so the gate stays testable. */
 class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
@@ -194,7 +211,7 @@ export const visitRoute = async (scenario: AuthScenario, url: string) => {
     { route: url, serverClock: false },
   )
 
-  await screen.findByTestId('roles-settled')
+  await screen.findByTestId('roles-settled', undefined, SETTLE_TIMEOUT)
 }
 
 /** `<Forbidden />` renders a 403 heading above the "Access denied" message. */
@@ -355,11 +372,13 @@ export const runAnonymousRouteMatrix = () => {
           ? 'boundary'
           : null
 
-    await waitFor(() =>
-      expect(
-        settled(),
-        `${route.url} served a signed-out visitor instead of sending them to /login`,
-      ).not.toBeNull(),
+    await waitFor(
+      () =>
+        expect(
+          settled(),
+          `${route.url} served a signed-out visitor instead of sending them to /login`,
+        ).not.toBeNull(),
+      SETTLE_TIMEOUT,
     )
 
     // Counted rather than asserted: nothing leaked, but the gate went unobserved.
