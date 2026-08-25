@@ -20,7 +20,8 @@ import {
   type LoginResponse,
   type RegisterRequest,
 } from '@mik/contracts/auth'
-import { clearAuthCookies, decodeRefreshToken, respondWithAccessAndRefreshToken } from './token.ts'
+import { decodeRefreshToken, respondWithAccessAndRefreshToken, type JWTUser } from './token.ts'
+import { clearAuthCookies, readRefreshToken } from './cookies.ts'
 import { generateJWTUser } from './token.ts'
 import {
   addMember,
@@ -288,12 +289,22 @@ router.post('/register/verify', async (req: Request, res: Response) => {
 })
 
 router.post('/refresh', async (req: Request, res: Response, next: NextFunction) => {
-  const refreshToken = req.cookies?.refreshToken
+  const refreshToken = readRefreshToken(req)
   if (!refreshToken) {
     return problem({ status: 401, detail: 'Refresh token not found' })
   }
 
-  const payload = decodeRefreshToken(refreshToken)
+  // A refresh token this deployment cannot verify is an expired or foreign
+  // session, not a server fault: answer 401 so the client redirects to the
+  // login screen instead of surfacing a 500 from the error handler.
+  let payload: JWTUser
+  try {
+    payload = decodeRefreshToken(refreshToken)
+  } catch {
+    clearAuthCookies(res)
+    return problem({ status: 401, detail: 'Refresh token is not valid' })
+  }
+
   const user = await getMemberById(payload.memberId)
   if (user) {
     const jwtUser = generateJWTUser(user)
@@ -305,9 +316,11 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
 })
 
 router.post('/logout', async (_req: Request, res: Response) => {
-  // Clears the host-only *and* the COOKIE_DOMAIN-scoped variants. Clearing only
-  // the host-only one left the shared '.mik.fi' session cookie alive, so logging
-  // out of either app logged you out of neither.
+  // Clears every name and scope this backend has ever set an auth cookie under
+  // — see ./cookies.ts. Clearing only the host-only variant left the shared
+  // '.mik.fi' session alive, so logging out of either app logged you out of
+  // neither; leaving the legacy unprefixed names behind would strand cookies
+  // the browser keeps sending forever.
   clearAuthCookies(res)
   res.status(200).json({})
 })

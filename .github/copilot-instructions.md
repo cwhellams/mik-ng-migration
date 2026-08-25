@@ -237,12 +237,27 @@ audiences were badly served by it.
 
 Because the two apps are genuine subdomains rather than paths on one origin, the admin
 app's calls to the backend are cross-origin from the member app's. That is made to work
-by two things, both set on the backend service in the DO spec: `COOKIE_DOMAIN=.mik.fi`
-(shares the auth session across every mik.fi subdomain — see
-`apps/backend/src/routes/auth/token.ts`) and `CORS_ALLOWED_ORIGINS` including the admin
-subdomain (a GitHub Actions var, not in this repo — see the comment beside it in the DO
-spec). DNS for `twr.mik.fi`/`beta-twr.mik.fi` is likewise external to this repo, same as
-for the existing `intra.mik.fi`/`beta.mik.fi`.
+by three things, all set on the backend service in the DO spec: `COOKIE_DOMAIN=.mik.fi`
+(shares the auth session across every mik.fi subdomain), `COOKIE_PREFIX` (`intra_` in
+production, `beta_` in test) and `CORS_ALLOWED_ORIGINS` including the admin subdomain (a
+GitHub Actions var, not in this repo — see the comment beside it in the DO spec). DNS for
+`twr.mik.fi`/`beta-twr.mik.fi` is likewise external to this repo, same as for the existing
+`intra.mik.fi`/`beta.mik.fi`.
+
+**`COOKIE_PREFIX` is not optional decoration — it is the only thing separating the two
+environments' sessions.** A cookie's identity is `(name, domain, path)`, and the narrowest
+domain covering `intra.mik.fi` _and_ `twr.mik.fi` is `mik.fi` — the same narrowest domain
+that covers `beta.mik.fi` and `beta-twr.mik.fi`, because `beta-twr` is a _sibling_ label of
+`beta`, not a child of it. So without a distinguishing name both environments write one
+cookie, `('accessToken', '.mik.fi', '/')`, and whichever you signed into last owns it: the
+other then holds a token signed with a secret it does not have, answers 401 to everything,
+and bounces the member back to the login screen — where signing in steals the cookie back
+and breaks the first environment in turn. That outage reached production without a line of
+production code changing. `assertAuthCookieConfig()` in
+`apps/backend/src/routes/auth/cookies.ts` refuses to boot when `COOKIE_DOMAIN` is set and
+`COOKIE_PREFIX` is not; **any new deployment under `mik.fi` needs its own prefix.** All
+cookie naming, scoping and eviction lives in that one file — read its header before
+touching auth cookies anywhere.
 
 - **No sudo toggle in `apps/admin`.** The member app's `AdminToggle` exists so that
   someone who merely _holds_ an admin permission doesn't see admin UI by accident.

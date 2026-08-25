@@ -62,8 +62,14 @@ import meetingRoutes from './routes/meetings/api.ts'
 import { router as pricesRoutes } from './routes/prices/api.ts'
 import { startAllWorkers, stopAllWorkers } from './workers/registry.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
+import { assertAuthCookieConfig } from './routes/auth/cookies.ts'
 import { testConnection, closeDb } from './db/connection.ts'
 import { closeEventStore } from './lib/eventStore.ts'
+
+// Before anything else: a shared COOKIE_DOMAIN with no COOKIE_PREFIX makes this
+// deployment overwrite the auth cookies of every other deployment under that
+// domain. Refuse to start rather than sign members out of the other environment.
+assertAuthCookieConfig()
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000

@@ -217,10 +217,20 @@ services:
         # below for the other half of making that a shared session.
         value: '${CORS_ALLOWED_ORIGINS}'
         type: SECRET
+      - key: COOKIE_PREFIX
+        # Literal, not templated, and MUST differ from every other deployment
+        # that shares COOKIE_DOMAIN. 'beta.mik.fi / beta-twr.mik.fi' and the production
+        # hosts share only 'mik.fi' as a common suffix, so COOKIE_DOMAIN alone
+        # cannot keep the two environments apart — both would write one cookie
+        # named 'accessToken' on '.mik.fi' and steal each other's sessions.
+        # The name is what separates them. The backend refuses to start if
+        # COOKIE_DOMAIN is set and this is not.
+        value: 'beta_'
+        type: GENERAL
       - key: COOKIE_DOMAIN
         # Literal, not templated: shares the auth cookies across every
         # mik.fi subdomain (beta.mik.fi, beta-twr.mik.fi) so signing in on
-        # one authenticates the other. See apps/backend/src/routes/auth/token.ts.
+        # one authenticates the other. See apps/backend/src/routes/auth/cookies.ts.
         value: '.mik.fi'
         type: GENERAL
       - key: SIMPLBOOKS_MEMBER_SYNC_ENABLED

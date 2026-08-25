@@ -7,6 +7,7 @@ import dayjs from 'dayjs'
 
 import { MIKPermissions, type Member } from '@mik/contracts/members'
 import { problem } from '../response.ts'
+import { setAuthCookies } from './cookies.ts'
 
 export const MIK_ISS = 'mik'
 export const API_AUD = 'api'
@@ -66,73 +67,21 @@ export const decodeRefreshToken = (refreshToken: string): JWTUser =>
     audience: REFRESH_AUD,
   }) as JWTUser
 
-const REFRESH_COOKIE_PATH = '/api/auth/refresh'
-const ACCESS_COOKIE_PATH = '/'
-
-// Read at call time, not module load: tests flip NODE_ENV/COOKIE_DOMAIN per case.
-const baseCookieOptions = () => ({
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
-})
-
-/**
- * When COOKIE_DOMAIN is set (e.g. '.mik.fi'), cookies are shared across all
- * subdomains so both intra.mik.fi and twr.mik.fi (admin) use one auth session.
- */
-const cookieDomain = (): string | undefined => process.env.COOKIE_DOMAIN || undefined
-
-/**
- * Delete both variants of the auth cookies: the domain-scoped ones we set now,
- * and the host-only ones this backend set before COOKIE_DOMAIN existed.
- *
- * A cookie's identity is (name, domain, path), so those two are *different*
- * cookies that the browser happily stores side by side and sends together on
- * every request. `cookie-parser` then keeps whichever came first in the header
- * — by RFC 6265 the older one, i.e. the stale host-only leftover — so
- * `req.cookies.accessToken` is an expired token and `validateUser` answers 401
- * no matter how many times the member signs in. That is the login loop.
- */
-export const clearAuthCookies = (res: Response): void => {
-  const domain = cookieDomain()
-  for (const scope of domain ? [{}, { domain }] : [{}]) {
-    res.clearCookie('refreshToken', {
-      ...baseCookieOptions(),
-      path: REFRESH_COOKIE_PATH,
-      ...scope,
-    })
-    res.clearCookie('accessToken', { ...baseCookieOptions(), path: ACCESS_COOKIE_PATH, ...scope })
-  }
-}
-
 /**
  * Set httpOnly access + refresh cookies on the response and return a minimal
  * success body. Used by all login flows (magic-link, verify-code, passkey,
- * registration, token-refresh) so cookie flags/paths stay consistent.
+ * registration, token-refresh) so cookie flags/paths/names stay consistent.
+ *
+ * Cookie naming and scoping — including why the name carries the environment —
+ * lives in ./cookies.ts.
  */
 export const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): void => {
-  const domain = cookieDomain()
-
-  // Evict any host-only leftovers first — see clearAuthCookies. Without this a
-  // member who last signed in before COOKIE_DOMAIN was deployed can never sign
-  // in again: the new cookie is set correctly and then shadowed on every read.
-  if (domain) {
-    res.clearCookie('refreshToken', { ...baseCookieOptions(), path: REFRESH_COOKIE_PATH })
-    res.clearCookie('accessToken', { ...baseCookieOptions(), path: ACCESS_COOKIE_PATH })
-  }
-
-  res.cookie('refreshToken', generateRefreshToken(user), {
-    ...baseCookieOptions(),
-    expires: dayjs()
+  setAuthCookies(res, {
+    accessToken: generateAccessToken(user),
+    refreshToken: generateRefreshToken(user),
+    refreshExpires: dayjs()
       .add(ms(process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
       .toDate(),
-    path: REFRESH_COOKIE_PATH,
-    ...(domain ? { domain } : {}),
-  })
-  res.cookie('accessToken', generateAccessToken(user), {
-    ...baseCookieOptions(),
-    path: ACCESS_COOKIE_PATH,
-    ...(domain ? { domain } : {}),
   })
   res.json({ ok: true })
 }

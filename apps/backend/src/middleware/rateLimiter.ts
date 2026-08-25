@@ -1,5 +1,6 @@
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
+import { readAccessToken } from '../routes/auth/cookies.ts'
 
 // Increased limit to 40 points in 3 seconds to accommodate dashboard parallel requests.
 // Dashboard can fire 25-35+ parallel requests on load, which was exceeding the previous
@@ -24,7 +25,7 @@ export const rateLimiterMiddleware: RequestHandler = (
     return next()
   }
 
-  const unauthenticated = !req.cookies?.accessToken
+  const unauthenticated = !readAccessToken(req)
 
   // Calculate points to consume based on authentication and request type:
   // - Unauthenticated users: 3 points (limiting to ~13 requests in 3 seconds)

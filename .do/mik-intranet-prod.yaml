@@ -212,10 +212,20 @@ services:
         # other half of making that a shared session rather than two logins.
         value: '${CORS_ALLOWED_ORIGINS}'
         type: SECRET
+      - key: COOKIE_PREFIX
+        # Literal, not templated, and MUST differ from every other deployment
+        # that shares COOKIE_DOMAIN. 'intra.mik.fi / twr.mik.fi' and the beta
+        # hosts share only 'mik.fi' as a common suffix, so COOKIE_DOMAIN alone
+        # cannot keep the two environments apart — both would write one cookie
+        # named 'accessToken' on '.mik.fi' and steal each other's sessions.
+        # The name is what separates them. The backend refuses to start if
+        # COOKIE_DOMAIN is set and this is not.
+        value: 'intra_'
+        type: GENERAL
       - key: COOKIE_DOMAIN
         # Literal, not templated: shares the auth cookies across every
         # mik.fi subdomain (intra.mik.fi, twr.mik.fi) so signing in on one
-        # authenticates the other. See apps/backend/src/routes/auth/token.ts.
+        # authenticates the other. See apps/backend/src/routes/auth/cookies.ts.
         value: '.mik.fi'
         type: GENERAL
       - key: WEATHER_API_BASE_URL

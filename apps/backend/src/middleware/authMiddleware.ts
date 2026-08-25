@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 
 import logger from '../lib/logger.ts'
 import { API_AUD, MIK_ISS, type JWTUser } from '../routes/auth/token.ts'
+import { readAccessToken } from '../routes/auth/cookies.ts'
 import { MIKPermissions, downgradePermission } from '@mik/contracts/members'
 import type { Problem } from '@mik/contracts/problem'
 
@@ -12,7 +13,7 @@ import { problem } from '../routes/response.ts'
 export const validateUser = (...permissions: MIKPermissions[]): RequestHandler[] => [
   // first middleware validates the JWT from the httpOnly cookie
   (req: Request, res: Response<Problem>, next: NextFunction): void => {
-    const token = req.cookies?.accessToken
+    const token = readAccessToken(req)
     if (!token) {
       return problem({ status: 401, detail: 'Unauthorized' })
     }
