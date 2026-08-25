@@ -70,11 +70,21 @@ export default defineConfig({
         // split hadn't yet existed when that PR was written) with the tests that
         // came with them — 55.79/50.17/44.29 measured. Left with headroom rather
         // than set at the ceiling.
-        // Unchanged at 55/50/44, now measuring 56.47/50.79/44.98: #1139's review
+        // Unchanged at 55/50/44, then measuring 56.47/50.79/44.98: #1139's review
         // round added the inventory item form's "reservable but no units" warning
         // and four tests over it. Under a point of movement on every column once
-        // the usual headroom is taken off, so the bars stay where they are.
-        'src/sections/**': { statements: 55, branches: 50, functions: 44 },
+        // the usual headroom is taken off, so the bars stayed where they were.
+        //
+        // 55/50/44 -> 56/50/44: #1119's liquid admin screens (AssignQrCode,
+        // LiquidRecordsAdmin, OilInventoryAdmin, QrCodesAdmin, liquidFormat.ts)
+        // had never had tests, including before the #1233 port that moved them
+        // here — 57.25/51.51/45.6 measured against this glob (on top of #1139's
+        // own improvement above). Only the statements bar moved: branches and
+        // functions already had more headroom than this change used up, and the
+        // rest of src/sections (accounting, ame, fuelPrices/FuelPriceComparison.tsx)
+        // is still well below this bar, so it stays conservative rather than set
+        // at the ceiling.
+        'src/sections/**': { statements: 56, branches: 50, functions: 44 },
         'src/{*,hooks/**,theme/**,config/**}': { statements: 74, branches: 36, functions: 50 },
       },
     },
