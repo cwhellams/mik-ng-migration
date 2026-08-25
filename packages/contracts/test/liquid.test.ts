@@ -722,13 +722,11 @@ describe('QR schemas and links', () => {
   })
 
   it('accepts only the target types that exist', () => {
+    const targetId = '11111111-1111-1111-1111-111111111111'
     expect(
-      AssignQrCodeSchema.safeParse({ targetType: QrTargetType.OIL_CANISTER, targetId: 'x' })
-        .success,
+      AssignQrCodeSchema.safeParse({ targetType: QrTargetType.OIL_CANISTER, targetId }).success,
     ).toBe(true)
-    expect(AssignQrCodeSchema.safeParse({ targetType: 'AIRCRAFT', targetId: 'x' }).success).toBe(
-      false,
-    )
+    expect(AssignQrCodeSchema.safeParse({ targetType: 'AIRCRAFT', targetId }).success).toBe(false)
   })
 
   it('encodes only the code in the scan path, never the target', () => {
