@@ -1724,7 +1724,15 @@ describe('crew flights in a member own flight log', () => {
         .set('Cookie', `accessToken=${mattiToken}`)
 
       expect(audit.status).toBe(200)
-      expect(audit.body.entries[0]).toMatchObject({
+      // Not entries[0]: 'mikify' is also the shared fixture NEW_JET_FLIGHT that the
+      // liquid test suite links/deletes records against (test/routes/liquid/
+      // testSupport.ts), and since #1119 those now legitimately show up in this
+      // same merged trail too -- newest-first no longer means "this test's own
+      // change" once other sources can be more recent.
+      const flightEntries = audit.body.entries.filter(
+        (entry: { source: string }) => entry.source === 'flightLog',
+      )
+      expect(flightEntries[0]).toMatchObject({
         operationType: 'UPDATE',
         changedBy: 'Jukka1',
         changes: [
@@ -1839,5 +1847,88 @@ describe('crew flights in a member own flight log', () => {
 
       expect(response.status).toBe(404)
     })
+
+    // The trail used to be flight.logs_audit alone. A remark (#1226) and a fuel/oil
+    // record (#1119) each carry their own audit trail on their own table, and these
+    // prove the merge actually surfaces them here rather than only on their own
+    // domain's screens -- writing straight to the base table (not through its own
+    // API) so the real database trigger, not a mock, is what produces the row.
+    it('includes a remark logged against the flight', async () => {
+      const inserted = await db
+        .insertInto('flight.remark')
+        .values({
+          flightId: 'da40tndra',
+          description: 'Merged-audit test remark',
+          createdBy: 'Jukka1',
+          updatedBy: 'Jukka1',
+        })
+        .returning('remarkId')
+        .executeTakeFirstOrThrow()
+
+      const response = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.entries).toContainEqual(
+        expect.objectContaining({
+          source: 'remark',
+          operationType: 'INSERT',
+          changedBy: 'Jukka1',
+        }),
+      )
+
+      await db.deleteFrom('flight.remark').where('remarkId', '=', inserted.remarkId).execute()
+    })
+
+    it('includes an oil record linked to the flight', async () => {
+      const record = await db
+        .insertInto('liquid.record')
+        .values({
+          liquidType: 'OIL',
+          aircraftRegistration: 'OH-P28',
+          memberId: 'Jukka1',
+          quantityLitres: 0.5,
+          oilSource: 'OTHER',
+          oilMake: 'Aeroshell',
+          oilModelViscosity: 'W100',
+          oilBatchNumber: 'B-merge-test',
+          createdBy: 'Jukka1',
+          updatedBy: 'Jukka1',
+        })
+        .returning('recordId')
+        .executeTakeFirstOrThrow()
+
+      // Linking is its own UPDATE (see FuelOilSection.tsx): flightLogId starts
+      // null, so this is the transition the merged trail needs to catch.
+      await db
+        .updateTable('liquid.record')
+        .set({ flightLogId: 'da40tndra', updatedBy: 'Jukka1' })
+        .where('recordId', '=', record.recordId)
+        .execute()
+
+      const response = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.entries).toContainEqual(
+        expect.objectContaining({
+          source: 'liquid',
+          operationType: 'UPDATE',
+          changes: [expect.objectContaining({ field: 'oilRecord', before: null })],
+        }),
+      )
+
+      await db.deleteFrom('liquid.record').where('recordId', '=', record.recordId).execute()
+    })
+
+    // Blocked on fixture setup: a defect (#1223) needs an ajlb_seq_no referencing an
+    // existing flight.aircraft_journey_log_book row, and this file has no seeded
+    // logbook page to reference without duplicating a large chunk of baseline data.
+    // The remark and liquid tests above already prove the merge mechanism itself
+    // (diffSnapshots / buildLiquidChanges / the cross-table sort) works; a defect
+    // entry goes through the exact same generic diffSnapshots path as remark does.
+    it.todo('includes a defect reported against the flight')
   })
 })

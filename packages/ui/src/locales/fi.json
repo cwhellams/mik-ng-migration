@@ -1214,7 +1214,9 @@
         "review": "Yhteenveto"
       },
       "question": {
-        "nightOrIfr": "Sisälsikö lento yölentoa tai mittarilentoa?"
+        "nightOrIfr": "Sisälsikö lento yölentoa tai mittarilentoa?",
+        "fuelAdded": "Tankkasitko polttoainetta?",
+        "oilAdded": "Lisäsitkö öljyä?"
       },
       "stepCounter": "Vaihe {{current}}/{{total}}",
       "useClassicForm": "Käytä täyttä lomaketta",
@@ -1474,9 +1476,15 @@
       "operations": {
         "INSERT": "Luotu",
         "UPDATE": "Muokattu",
-        "DELETE": "Poistettu"
+        "DELETE": "Poistettu",
+        "SOFT_DELETE": "Poistettu"
       },
       "fields": {
+        "description": "Kuvaus",
+        "hilId": "HIL-merkintä",
+        "resolvedNoteId": "Ratkaistu huoltomerkinnällä",
+        "fuelRecord": "Polttoainekirjaus",
+        "oilRecord": "Öljykirjaus",
         "aircraftRegistration": "Ilma-alus",
         "flightType": "Lentolaji",
         "billableMemberId": "Laskutetaan",
@@ -1522,12 +1530,15 @@
       "title": "Polttoaine- ja öljykirjaukset",
       "addFuel": "Lisää polttoaine",
       "addOil": "Lisää öljy",
+      "addAnotherFuel": "Lisää toinen polttoainekirjaus",
+      "addAnotherOil": "Lisää toinen öljykirjaus",
       "linkExisting": "Liitä aiempi kirjaus",
-      "linkTitle": "Liitä aiemmin tekemäsi kirjaus",
+      "linkAdditional": "Liitä toinen kirjaus",
+      "linkTitle": "Liitä ilma-aluksen olemassa oleva kirjaus",
       "link": "Liitä",
       "unlink": "Irrota tästä lennosta",
       "none": "Tähän lentoon ei ole liitetty polttoaine- tai öljykirjauksia.",
-      "noSuggestions": "Ei liittämättömiä kirjauksia ilma-alukselle {{aircraft}}. Lisää kirjaus yllä tai tee se tankkauspisteen QR-koodista.",
+      "noSuggestions": "Ei liittämättömiä kirjauksia ilma-alukselle {{aircraft}}. Lisää kirjaus yllä.",
       "legacyRecord": "Kirjattu ennen polttoaine-/öljykirjausjärjestelmää — säilytetään sellaisenaan.",
       "fuelLinkFailed": "Lento tallennettiin, mutta polttoainekirjausta ei saatu liitettyä: {{detail}} Voit liittää sen alla käsin.",
       "oilLinkFailed": "Lento tallennettiin, mutta öljykirjausta ei saatu liitettyä: {{detail}} Voit liittää sen alla käsin.",

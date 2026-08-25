@@ -29,5 +29,6 @@ export const FuelAndOilStep = ({
     pendingOilRecord={pendingOilRecord}
     onPendingFuelRecordChange={onPendingFuelRecordChange}
     onPendingOilRecordChange={onPendingOilRecordChange}
+    variant='plain'
   />
 )

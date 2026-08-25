@@ -19,6 +19,7 @@ const anEntry = (
   overrides: Partial<FlightLogAuditResponse['entries'][number]> = {},
 ): FlightLogAuditResponse['entries'][number] => ({
   auditId: 1,
+  source: 'flightLog',
   operationType: 'UPDATE',
   changedBy: 'Jukka1',
   changedByName: 'Jukka Nieminen',
@@ -77,6 +78,38 @@ describe('FlightLogAuditDialog', () => {
     renderWithProviders(<FlightLogAuditDialog flightId={FLIGHT_ID} open onClose={vi.fn()} />)
 
     expect(await screen.findByText('Created')).toBeInTheDocument()
+  })
+
+  it('renders entries merged in from a related entity alongside the flight’s own', async () => {
+    // getFlightLogAuditTrail merges flight.logs_audit with defect/remark/liquid
+    // audit trails; auditId is only unique within its own source table, so a
+    // flight-sourced and a liquid-sourced row can legitimately share one.
+    trail([
+      anEntry({ auditId: 7, source: 'flightLog' }),
+      anEntry({
+        auditId: 7,
+        source: 'liquid',
+        operationType: 'UPDATE',
+        changes: [{ field: 'oilRecord', before: null, after: '0.5 l' }],
+      }),
+    ])
+    renderWithProviders(<FlightLogAuditDialog flightId={FLIGHT_ID} open onClose={vi.fn()} />)
+
+    expect(await screen.findByText(/Landings: 1 → 3/)).toBeInTheDocument()
+    expect(await screen.findByText(/Oil record: – → 0\.5 l/)).toBeInTheDocument()
+  })
+
+  it('shows a soft-deleted liquid record as deleted, same wording as a hard delete', async () => {
+    trail([
+      anEntry({
+        source: 'liquid',
+        operationType: 'SOFT_DELETE',
+        changes: [{ field: 'fuelRecord', before: '150 l JET A-1', after: null }],
+      }),
+    ])
+    renderWithProviders(<FlightLogAuditDialog flightId={FLIGHT_ID} open onClose={vi.fn()} />)
+
+    expect(await screen.findByText('Deleted')).toBeInTheDocument()
   })
 
   it('surfaces a refusal instead of an empty table', async () => {

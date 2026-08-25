@@ -1207,7 +1207,9 @@
         "review": "Review"
       },
       "question": {
-        "nightOrIfr": "Did this flight involve night flying or IFR?"
+        "nightOrIfr": "Did this flight involve night flying or IFR?",
+        "fuelAdded": "Did you add fuel?",
+        "oilAdded": "Did you add oil?"
       },
       "stepCounter": "Step {{current}} of {{total}}",
       "useClassicForm": "Use full form instead",
@@ -1467,9 +1469,15 @@
       "operations": {
         "INSERT": "Created",
         "UPDATE": "Edited",
-        "DELETE": "Deleted"
+        "DELETE": "Deleted",
+        "SOFT_DELETE": "Deleted"
       },
       "fields": {
+        "description": "Description",
+        "hilId": "HIL entry",
+        "resolvedNoteId": "Resolved by note",
+        "fuelRecord": "Fuel record",
+        "oilRecord": "Oil record",
         "aircraftRegistration": "Aircraft",
         "flightType": "Flight type",
         "billableMemberId": "Billed to",
@@ -1515,12 +1523,15 @@
       "title": "Fuel and oil records",
       "addFuel": "Add fuel",
       "addOil": "Add oil",
+      "addAnotherFuel": "Add another fuel record",
+      "addAnotherOil": "Add another oil record",
       "linkExisting": "Link an existing record",
-      "linkTitle": "Link a record you already reported",
+      "linkAdditional": "Link an additional record",
+      "linkTitle": "Link an existing record for this aircraft",
       "link": "Link",
       "unlink": "Detach from this flight",
       "none": "No fuel or oil records are attached to this flight.",
-      "noSuggestions": "No unattached records for {{aircraft}}. Add one above, or report it from the pump’s QR code.",
+      "noSuggestions": "No unattached records for {{aircraft}}. Add one above.",
       "legacyRecord": "Recorded before the fuel/oil record system — kept as-is.",
       "fuelLinkFailed": "The flight saved, but the fuel record could not be linked: {{detail}} You can link it manually below.",
       "oilLinkFailed": "The flight saved, but the oil record could not be linked: {{detail}} You can link it manually below.",

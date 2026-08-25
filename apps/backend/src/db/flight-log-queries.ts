@@ -620,20 +620,59 @@ const renderAuditValue = (value: unknown): string | null => {
 
 type AuditSnapshot = Record<string, unknown> | null
 
+/** Common shape every `*_audit` table's row selection has, whichever entity it's about. */
+interface RelatedAuditRow {
+  auditId: number
+  operationType: string
+  changedAt: Date
+  changedBy: string
+  changedData: unknown
+  newData: unknown
+  changedByFirstName: string | null
+  changedByLastName: string | null
+}
+
+const changedByNameOf = (row: RelatedAuditRow): string | null =>
+  row.changedByFirstName && row.changedByLastName
+    ? `${row.changedByFirstName} ${row.changedByLastName}`
+    : null
+
 /**
- * A flight log's change history, newest first, as field-level diffs.
+ * Field-level diff between two snapshots, shared by every source that reports one:
+ * only an UPDATE has two snapshots to compare (an INSERT/DELETE's single snapshot would
+ * otherwise list every column as "changed", burying the actual updates).
+ */
+const diffSnapshots = (
+  before: AuditSnapshot,
+  after: AuditSnapshot,
+  ignoredColumns: ReadonlySet<string>,
+  hidden: ReadonlySet<string>,
+): FlightLogAuditChange[] =>
+  before && after
+    ? [...new Set([...Object.keys(before), ...Object.keys(after)])]
+        .filter((column) => !ignoredColumns.has(column))
+        .filter((column) => !hidden.has(columnToField(column)))
+        .filter((column) => JSON.stringify(before[column]) !== JSON.stringify(after[column]))
+        .sort()
+        .map((column) => ({
+          field: columnToField(column),
+          before: renderAuditValue(before[column]),
+          after: renderAuditValue(after[column]),
+        }))
+    : []
+
+/**
+ * A flight log's own change history, newest first, as field-level diffs.
  *
  * `hiddenFields` are contract field names (camelCase) to leave out entirely — the route
  * passes the same list it strips from the detail response, so a crew member reading the
  * trail of someone else's flight cannot recover through the history what the flight
  * itself withheld (#1019).
  */
-export async function getFlightLogAuditTrail(
+async function getFlightLogsAuditEntries(
   flightId: string,
-  hiddenFields: readonly string[] = [],
+  hidden: ReadonlySet<string>,
 ): Promise<FlightLogAuditEntry[]> {
-  const hidden = new Set(hiddenFields)
-
   const rows = await db
     .selectFrom('flight.logsAudit as a')
     .leftJoin('member.register as cb', 'cb.memberId', 'a.changedBy')
@@ -656,39 +695,291 @@ export async function getFlightLogAuditTrail(
     .orderBy('a.auditId', 'desc')
     .execute()
 
-  return rows.map((row) => {
-    const before = row.changedData as AuditSnapshot
-    const after = row.newData as AuditSnapshot
+  return rows.map((row) => ({
+    auditId: row.auditId,
+    source: 'flightLog' as const,
+    operationType: row.operationType as FlightLogAuditEntry['operationType'],
+    changedBy: row.changedBy,
+    changedByName: changedByNameOf(row),
+    changedAt: row.changedAt.toISOString(),
+    changes: diffSnapshots(
+      row.changedData as AuditSnapshot,
+      row.newData as AuditSnapshot,
+      AUDIT_IGNORED_COLUMNS,
+      hidden,
+    ),
+  }))
+}
 
-    // Only an UPDATE has two snapshots to compare. An INSERT is the flight being
-    // created and a DELETE its removal: listing every column as "changed" there would
-    // bury the updates that are the point of the trail.
-    const changes: FlightLogAuditChange[] =
-      before && after
-        ? [...new Set([...Object.keys(before), ...Object.keys(after)])]
-            .filter((column) => !AUDIT_IGNORED_COLUMNS.has(column))
-            .filter((column) => !hidden.has(columnToField(column)))
-            .filter((column) => JSON.stringify(before[column]) !== JSON.stringify(after[column]))
-            .sort()
-            .map((column) => ({
-              field: columnToField(column),
-              before: renderAuditValue(before[column]),
-              after: renderAuditValue(after[column]),
-            }))
-        : []
+const DEFECT_AUDIT_IGNORED_COLUMNS = new Set([
+  'defect_id',
+  'flight_id',
+  'ajlb_seq_no',
+  'blank_rows_after',
+  'flight_mins',
+  'created_at',
+  'created_by',
+  'updated_at',
+  'updated_by',
+])
 
-    return {
-      auditId: row.auditId,
-      operationType: row.operationType as FlightLogAuditEntry['operationType'],
-      changedBy: row.changedBy,
-      changedByName:
-        row.changedByFirstName && row.changedByLastName
-          ? `${row.changedByFirstName} ${row.changedByLastName}`
-          : null,
-      changedAt: row.changedAt.toISOString(),
-      changes,
-    }
-  })
+/** A defect reported against this flight (#1223), newest first. */
+async function getDefectAuditEntriesForFlight(flightId: string): Promise<FlightLogAuditEntry[]> {
+  const rows = await db
+    .selectFrom('flight.defectAudit as a')
+    .leftJoin('member.register as cb', 'cb.memberId', 'a.changedBy')
+    .select([
+      'a.auditId',
+      'a.operationType',
+      'a.changedAt',
+      'a.changedBy',
+      'a.changedData',
+      'a.newData',
+      'cb.firstName as changedByFirstName',
+      'cb.lastName as changedByLastName',
+    ])
+    .where((eb) =>
+      eb.or([
+        eb(sql<string | null>`a."changed_data"->>'flight_id'`, '=', flightId),
+        eb(sql<string | null>`a."new_data"->>'flight_id'`, '=', flightId),
+      ]),
+    )
+    .orderBy('a.auditId', 'desc')
+    .execute()
+
+  return rows.map((row) => ({
+    auditId: row.auditId,
+    source: 'defect' as const,
+    operationType: row.operationType as FlightLogAuditEntry['operationType'],
+    changedBy: row.changedBy,
+    changedByName: changedByNameOf(row),
+    changedAt: row.changedAt.toISOString(),
+    changes: diffSnapshots(
+      row.changedData as AuditSnapshot,
+      row.newData as AuditSnapshot,
+      DEFECT_AUDIT_IGNORED_COLUMNS,
+      new Set(),
+    ),
+  }))
+}
+
+const REMARK_AUDIT_IGNORED_COLUMNS = new Set([
+  'remark_id',
+  'flight_id',
+  'created_at',
+  'created_by',
+  'updated_at',
+  'updated_by',
+])
+
+/** A remark logged against this flight (#1226), newest first. */
+async function getRemarkAuditEntriesForFlight(flightId: string): Promise<FlightLogAuditEntry[]> {
+  const rows = await db
+    .selectFrom('flight.remarkAudit as a')
+    .leftJoin('member.register as cb', 'cb.memberId', 'a.changedBy')
+    .select([
+      'a.auditId',
+      'a.operationType',
+      'a.changedAt',
+      'a.changedBy',
+      'a.changedData',
+      'a.newData',
+      'cb.firstName as changedByFirstName',
+      'cb.lastName as changedByLastName',
+    ])
+    .where((eb) =>
+      eb.or([
+        eb(sql<string | null>`a."changed_data"->>'flight_id'`, '=', flightId),
+        eb(sql<string | null>`a."new_data"->>'flight_id'`, '=', flightId),
+      ]),
+    )
+    .orderBy('a.auditId', 'desc')
+    .execute()
+
+  return rows.map((row) => ({
+    auditId: row.auditId,
+    source: 'remark' as const,
+    operationType: row.operationType as FlightLogAuditEntry['operationType'],
+    changedBy: row.changedBy,
+    changedByName: changedByNameOf(row),
+    changedAt: row.changedAt.toISOString(),
+    changes: diffSnapshots(
+      row.changedData as AuditSnapshot,
+      row.newData as AuditSnapshot,
+      REMARK_AUDIT_IGNORED_COLUMNS,
+      new Set(),
+    ),
+  }))
+}
+
+/** One snapshot's fuel/oil facts, e.g. "150 l JET A-1" or "0.5 l" for oil. */
+const describeLiquidSnapshot = (snapshot: AuditSnapshot): string | null => {
+  if (!snapshot) return null
+  const quantity = snapshot.quantity_litres
+  const detail = snapshot.liquid_type === 'FUEL' ? snapshot.fuel_type : null
+  return [quantity != null ? `${String(quantity)} l` : null, detail]
+    .filter((part): part is string => typeof part === 'string' && part.length > 0)
+    .join(' ')
+}
+
+/**
+ * The one or two facts about a liquid record worth reporting on *this* flight's
+ * history: whether it's linked here at all, and (while it is) its quantity.
+ *
+ * Deliberately not a generic column diff like the other three sources: most of
+ * `liquid.record`'s columns are pricing/tax figures frozen for an expense claim,
+ * and a crew member reading someone else's flight's history should not be able to
+ * recover those through it any more than they can through the flight's own
+ * redacted billing fields (#1019). Curating to quantity + link state avoids that
+ * without needing a per-field hidden-fields list here too.
+ */
+const buildLiquidChanges = (
+  before: AuditSnapshot,
+  after: AuditSnapshot,
+  flightId: string,
+): FlightLogAuditChange[] => {
+  const beforeLinked = before?.flight_log_id === flightId
+  const afterLinked = after?.flight_log_id === flightId
+  const liquidType = (after ?? before)?.liquid_type
+  const field = liquidType === 'OIL' ? 'oilRecord' : 'fuelRecord'
+
+  if (beforeLinked !== afterLinked) {
+    return [
+      {
+        field,
+        before: beforeLinked ? describeLiquidSnapshot(before) : null,
+        after: afterLinked ? describeLiquidSnapshot(after) : null,
+      },
+    ]
+  }
+
+  if (afterLinked && before && after && before.quantity_litres !== after.quantity_litres) {
+    return [
+      {
+        field,
+        before: describeLiquidSnapshot(before),
+        after: describeLiquidSnapshot(after),
+      },
+    ]
+  }
+
+  return []
+}
+
+/**
+ * A fuel/oil record linked to, unlinked from, or (while linked) quantity-edited
+ * on this flight (#1119), newest first. An UPDATE that touched neither — e.g. the
+ * record was later corrected for an expense claim — is left out entirely rather
+ * than shown as an empty "Edited" row: unlike the other three sources, most of
+ * this table's edits happen for reasons that have nothing to do with the flight.
+ */
+async function getLiquidAuditEntriesForFlight(flightId: string): Promise<FlightLogAuditEntry[]> {
+  const rows = await db
+    .selectFrom('liquid.recordAudit as a')
+    .leftJoin('member.register as cb', 'cb.memberId', 'a.changedBy')
+    .select([
+      'a.auditId',
+      'a.operationType',
+      'a.changedAt',
+      'a.changedBy',
+      'a.changedData',
+      'a.newData',
+      'cb.firstName as changedByFirstName',
+      'cb.lastName as changedByLastName',
+    ])
+    .where((eb) =>
+      eb.or([
+        eb(sql<string | null>`a."changed_data"->>'flight_log_id'`, '=', flightId),
+        eb(sql<string | null>`a."new_data"->>'flight_log_id'`, '=', flightId),
+      ]),
+    )
+    .orderBy('a.auditId', 'desc')
+    .execute()
+
+  return rows
+    .map((row): FlightLogAuditEntry | null => {
+      const changes = buildLiquidChanges(
+        row.changedData as AuditSnapshot,
+        row.newData as AuditSnapshot,
+        flightId,
+      )
+      if (changes.length === 0) return null
+      return {
+        auditId: row.auditId,
+        source: 'liquid',
+        operationType: row.operationType as FlightLogAuditEntry['operationType'],
+        changedBy: row.changedBy,
+        changedByName: changedByNameOf(row),
+        changedAt: row.changedAt.toISOString(),
+        changes,
+      }
+    })
+    .filter((entry): entry is FlightLogAuditEntry => entry !== null)
+}
+
+/**
+ * Interleaves two already-newest-first-sorted lists by `changedAt`, like the merge
+ * step of a mergesort — deliberately never reordering either list's own entries
+ * relative to each other, only deciding how the two lists thread together.
+ *
+ * That restriction is the whole reason to write this instead of one
+ * `[...a, ...b].sort(...)`: `flight.logs_audit.changed_at` is a bare `timestamp`
+ * (V160, predating the other three tables' `timestamptz`) whose value depends on
+ * the timezone of whichever session wrote it — Flyway's seed data is Helsinki-local,
+ * the app is UTC, three hours apart on the same clock reading. A flat sort by
+ * `changedAt` across sources lets one bad old flight.logs_audit row jump ahead of a
+ * genuinely newer one from the *same* table, which briefly shipped as a real
+ * regression here. Merging instead means `a`'s own already-correct order (by
+ * `audit_id`, see getFlightLogsAuditEntries) survives untouched; only *where* a `b`
+ * entry threads in among skewed old `a` timestamps can still be slightly off, which
+ * is a display-order nicety for historical rows, not a correctness bug.
+ */
+const mergeByChangedAt = (
+  a: readonly FlightLogAuditEntry[],
+  b: readonly FlightLogAuditEntry[],
+): FlightLogAuditEntry[] => {
+  const merged: FlightLogAuditEntry[] = []
+  let i = 0
+  let j = 0
+  while (i < a.length && j < b.length) {
+    merged.push(
+      new Date(a[i]!.changedAt).getTime() >= new Date(b[j]!.changedAt).getTime()
+        ? a[i++]!
+        : b[j++]!,
+    )
+  }
+  return [...merged, ...a.slice(i), ...b.slice(j)]
+}
+
+/**
+ * A flight log's complete change history, newest first: its own field-level
+ * trail plus every related entity that can be attached to it and carries its
+ * own audit trail (a defect, a remark, a fuel/oil record). Merged into one
+ * timeline by time rather than shown as four separate lists, so "what happened
+ * to this flight" reads as a single narrative.
+ */
+export async function getFlightLogAuditTrail(
+  flightId: string,
+  hiddenFields: readonly string[] = [],
+): Promise<FlightLogAuditEntry[]> {
+  const hidden = new Set(hiddenFields)
+
+  const [flightEntries, defectEntries, remarkEntries, liquidEntries] = await Promise.all([
+    getFlightLogsAuditEntries(flightId, hidden),
+    getDefectAuditEntriesForFlight(flightId),
+    getRemarkAuditEntriesForFlight(flightId),
+    getLiquidAuditEntriesForFlight(flightId),
+  ])
+
+  // The other three sources' timestamps are all reliable timestamptz columns, so
+  // it's safe to combine and sort them freely before merging that combined list
+  // against flightEntries -- only flightEntries' own relative order needs the
+  // careful treatment mergeByChangedAt exists for.
+  const relatedEntries = [...defectEntries, ...remarkEntries, ...liquidEntries].sort(
+    (a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime(),
+  )
+
+  return mergeByChangedAt(flightEntries, relatedEntries)
 }
 
 export async function getUnbilledFlightsForEstimation(

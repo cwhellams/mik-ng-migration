@@ -877,7 +877,15 @@ export type FlightLogAuditChange = z.infer<typeof FlightLogAuditChangeSchema>
 
 export const FlightLogAuditEntrySchema = z.object({
   auditId: z.number().int(),
-  operationType: z.enum(['INSERT', 'UPDATE', 'DELETE']),
+  /**
+   * Which trigger-based audit table this entry came from — flight.logs_audit
+   * plus the three related-entity trails (flight.defect_audit, #1223;
+   * flight.remark_audit, #1900; liquid.record_audit, #1119) merged into one
+   * timeline by getFlightLogAuditTrail. `auditId` is only unique within its
+   * own source table, so the frontend keys rows on `source`+`auditId`.
+   */
+  source: z.enum(['flightLog', 'defect', 'remark', 'liquid']),
+  operationType: z.enum(['INSERT', 'UPDATE', 'DELETE', 'SOFT_DELETE']),
   changedBy: z.string(),
   /** Resolved display name of the acting member; null when the id no longer resolves. */
   changedByName: z.string().nullable(),

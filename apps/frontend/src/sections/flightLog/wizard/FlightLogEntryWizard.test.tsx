@@ -215,10 +215,11 @@ describe('FlightLogEntryWizard step gating', () => {
 
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-    await user.click(screen.getByRole('checkbox', { name: 'No fuel added' }))
+    // The fuel row's toggle is first, the oil row's second.
+    await user.click(screen.getAllByRole('button', { name: 'No' })[0]!)
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-    await user.click(screen.getByRole('checkbox', { name: 'No oil added' }))
+    await user.click(screen.getAllByRole('button', { name: 'No' })[1]!)
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled())
   })
@@ -539,8 +540,11 @@ describe('FlightLogEntryWizard saving', () => {
     await screen.findByText('Fuel and oil')
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-    // Both the fuel and oil rows offer this button; the fuel row is first.
-    await user.click(screen.getAllByRole('button', { name: 'Link an existing record' })[0])
+    // Answering "Yes" on the fuel row (the first one) reveals its Add/Link
+    // controls; oil is already resolved via the seeded draft, so its own
+    // "Yes" toggle is left untouched.
+    await user.click(screen.getAllByRole('button', { name: 'Yes' })[0]!)
+    await user.click(screen.getByRole('button', { name: 'Link an existing record' }))
     await user.click(await screen.findByRole('button', { name: 'Link' }))
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled())

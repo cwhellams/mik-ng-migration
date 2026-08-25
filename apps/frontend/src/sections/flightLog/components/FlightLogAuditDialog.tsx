@@ -35,6 +35,11 @@ interface Props {
  * The server does the diffing — see `getFlightLogAuditTrail` — so this renders a list of
  * field changes rather than picking two JSON row snapshots apart in the browser, and a
  * reader who may not see the billing fields never receives them.
+ *
+ * The trail is merged server-side from four sources: the flight's own audit table plus
+ * a defect (#1223), a remark (#1226) and a fuel/oil record (#1119) attached to it — each
+ * keeps its own audit trail on its own table, and `entry.source` is what makes a row's
+ * `auditId` (unique only within its own table) safe to use as part of a React key here.
  */
 export const FlightLogAuditDialog = ({ flightId, open, onClose }: Props) => {
   const { t } = useTranslation()
@@ -67,7 +72,7 @@ export const FlightLogAuditDialog = ({ flightId, open, onClose }: Props) => {
                 </TableHead>
                 <TableBody>
                   {data.entries.map((entry) => (
-                    <TableRow key={entry.auditId}>
+                    <TableRow key={`${entry.source}-${entry.auditId}`}>
                       <TableCell>{formatDateTime(entry.changedAt)}</TableCell>
                       <TableCell>{entry.changedByName ?? entry.changedBy}</TableCell>
                       <TableCell>
