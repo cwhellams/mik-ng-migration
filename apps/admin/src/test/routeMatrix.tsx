@@ -161,6 +161,11 @@ export const ROUTES: RouteUnderTest[] = [
     permissions: [MIKPermissions.EXPENSE_ADMIN],
   },
   {
+    path: '/accounting/fuel-tax',
+    url: '/accounting/fuel-tax',
+    permissions: [MIKPermissions.EXPENSE_ADMIN],
+  },
+  {
     path: '/accounting/tulorekisteri-report',
     url: '/accounting/tulorekisteri-report',
     permissions: [MIKPermissions.EXPENSE_HETU_ADMIN],
@@ -200,6 +205,11 @@ export const ROUTES: RouteUnderTest[] = [
       MIKPermissions.INVOICING_ADMIN,
     ],
   },
+
+  // Liquid Management System (#1119) — reporting stayed in the member app.
+  { path: '/liquid/records', url: '/liquid/records', permissions: [MIKPermissions.LIQUID_ADMIN] },
+  { path: '/liquid/oil', url: '/liquid/oil', permissions: [MIKPermissions.LIQUID_ADMIN] },
+  { path: '/liquid/qr', url: '/liquid/qr', permissions: [MIKPermissions.LIQUID_ADMIN] },
 
   { path: '/login', url: '/login' },
   { path: '/login/sent', url: '/login/sent' },

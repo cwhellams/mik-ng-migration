@@ -65,7 +65,12 @@
     "ameAdmin": "AME Approvals",
     "meetings": "Meetings",
     "meetingsAdmin": "Meetings Admin",
-    "itemReservations": "Item Reservations"
+    "itemReservations": "Item Reservations",
+    "liquid": "Fuel & oil reporting",
+    "fuelTax": "Fuel tax",
+    "liquidOilAdmin": "Oil inventory",
+    "liquidQrAdmin": "Liquid QR codes",
+    "liquidRecordsAdmin": "All liquid records"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -1506,6 +1511,20 @@
         "ajlbSeqNo": "Logbook",
         "ajlbBlankRowsBefore": "Empty rows before"
       }
+    },
+    "liquid": {
+      "title": "Fuel and oil records",
+      "addFuel": "Add fuel",
+      "addOil": "Add oil",
+      "linkExisting": "Link an existing record",
+      "linkTitle": "Link a record you already reported",
+      "link": "Link",
+      "unlink": "Detach from this flight",
+      "none": "No fuel or oil records are attached to this flight.",
+      "noSuggestions": "No unattached records for {{aircraft}}. Add one above, or report it from the pump’s QR code.",
+      "legacyRecord": "Recorded before the fuel/oil record system — kept as-is.",
+      "fuelLinkFailed": "The flight saved, but the fuel record could not be linked: {{detail}} You can link it manually below.",
+      "oilLinkFailed": "The flight saved, but the oil record could not be linked: {{detail}} You can link it manually below."
     }
   },
   "invoicing": {
@@ -1907,7 +1926,7 @@
     "exitEditMode": "Exit edit mode",
     "localPrices": {
       "title": "Local (EFNU) fuel price cap",
-      "description": "The reimbursement cap for fuel claims, per fuel type. A claim's total litres are compared against the local price on the trip's start date — cheaper and pricier stops on the same trip balance out (issue #955).",
+      "description": "The reimbursement cap for fuel claims, per fuel type. A claim's total litres are compared against the local price on the trip's start date — cheaper and pricier stops on the same trip balance out.",
       "empty": "No local fuel prices set yet.",
       "fuelType": "Fuel type",
       "price": "Price (€/litre)",
@@ -1924,6 +1943,38 @@
         "litres": "Litres",
         "fuelType": "Fuel type",
         "pricePerLitre": "€/litre (incl. fees)"
+      }
+    },
+    "comparison": {
+      "title": "Fuel price comparison",
+      "intro": "Enter what a litre costs at {{icao}} today, and every fuelling in the range is compared against it. Fuellings away from {{icao}} always have a cost; a fuelling at {{icao}} with no cost is listed but not compared.",
+      "from": "From",
+      "to": "To",
+      "referencePrices": "{{icao}} reference price per litre",
+      "run": "Run report",
+      "empty": "No fuellings in this range.",
+      "abroad": "Tax included",
+      "abroadTooltip": "Bought abroad, so Finnish fuel tax was not added.",
+      "notComparable": "Not compared",
+      "notComparableTooltip": "Either no cost was recorded, or no reference price was entered for this fuel type.",
+      "stat": {
+        "total": "Fuellings",
+        "comparable": "Compared",
+        "exceeding": "Over reference",
+        "exceedingLitres": "Litres over",
+        "excessCost": "Excess cost"
+      },
+      "col": {
+        "date": "Date",
+        "aircraft": "Aircraft",
+        "airport": "Airport",
+        "fuelType": "Fuel",
+        "provider": "Provider",
+        "litres": "Litres",
+        "paid": "Paid / litre",
+        "taxAdjusted": "Comparable / litre",
+        "reference": "Reference",
+        "delta": "Difference"
       }
     }
   },
@@ -3021,6 +3072,27 @@
       "fuelDateRequired": "Date is required for fuel line items",
       "airportRequired": "Airport is required for fuel line items",
       "mileageDetailsRequired": "Start address, end address, journey date and distance are required. Board approval is required above the distance limit."
+    },
+    "fuelRecords": {
+      "intro": "Pick the fuellings this claim covers. The litres, airport, fuel type and cost come from what you reported at the pump — you do not need to enter them again.",
+      "none": "You have no fuel records with a cost to claim. Report a fuelling you paid for first.",
+      "reportFirst": "Report a fuelling",
+      "selectAtLeastOne": "Select at least one fuelling",
+      "alreadyClaimed": "Already claimed",
+      "taxIncluded": "Tax included",
+      "plusFuelTax": "+ €{{rate}}/l fuel tax",
+      "selected": "{{count}} fuelling(s) selected, €{{total}} paid.",
+      "receiptAttachedHint": "A receipt was attached when this fuelling was reported — it will be added to this claim automatically.",
+      "col": {
+        "date": "Date",
+        "aircraft": "Aircraft",
+        "airport": "Airport",
+        "fuelType": "Fuel",
+        "litres": "Litres",
+        "cost": "Paid",
+        "perLitre": "Per litre",
+        "status": ""
+      }
     }
   },
   "inventory": {
@@ -3244,10 +3316,14 @@
       "tulorekisteriReport": "Tulorekisteri report",
       "expenseApproval": "Expense approval",
       "mileageAllowances": "Mileage allowances",
+      "fuelTax": "Fuel tax",
       "costCentres": "Cost centres",
       "fuelPrices": "Fuel prices",
       "documents": "Documents",
-      "commercialFlightTime": "Commercial flight time"
+      "commercialFlightTime": "Commercial flight time",
+      "liquidRecords": "Fuel & oil records",
+      "liquidOil": "Oil inventory",
+      "liquidQr": "QR codes"
     },
     "dashboard": {
       "welcome": "Welcome back, {{name}}",
@@ -3312,5 +3388,192 @@
       "endAfterStart": "End time must be after start time",
       "itemRequired": "Choose an item to reserve"
     }
+  },
+  "liquid": {
+    "type": {
+      "fuel": "Fuel",
+      "oil": "Oil"
+    },
+    "lock": {
+      "claimLinked": "This record is attached to an expense claim and can no longer be changed by anyone.",
+      "flightValidated": "The flight log this record is attached to has been validated. Ask a liquid administrator to change it.",
+      "windowExpired": "This record is more than a week old. Ask a liquid administrator to change it.",
+      "notOwner": "This record belongs to another member.",
+      "deleted": "This record has been deleted."
+    },
+    "form": {
+      "title": "Report fuel or oil",
+      "liquidType": "What are you reporting?",
+      "aircraft": "Aircraft",
+      "recordedAtTz": "Date and time ({{tz}})",
+      "recordedAtHint": "Defaults to now — change it if you are reporting later.",
+      "airport": "Airport",
+      "fuelType": "Fuel type",
+      "provider": "Provider",
+      "providerHint": "Select \"Other / own payment\" if you did not pay with a club fuel card.",
+      "suppliedBy": "Supplied by {{provider}}",
+      "quantityLitres": "Quantity (litres)",
+      "totalCost": "Total cost",
+      "totalCostRequired": "Required away from the home base.",
+      "totalCostOptional": "Not needed at the home base — the club is invoiced directly.",
+      "currency": "Currency",
+      "fxRate": "Exchange rate to EUR",
+      "fxRateHint": "How many euros one {{ccy}} is worth.",
+      "atHomeBase": "At {{icao}}",
+      "awayFromHomeBase": "Somewhere else",
+      "prefilled": "Scanned: {{context}}",
+      "selectAircraft": "Choose an aircraft.",
+      "selectAircraftFirst": "Choose an aircraft first.",
+      "selectAirport": "Choose an airport.",
+      "selectFuelType": "Choose a fuel type.",
+      "selectProvider": "Choose a provider.",
+      "selectCanister": "Choose a canister.",
+      "enterQuantity": "Enter how much you added.",
+      "enterTotalCost": "Enter the total cost.",
+      "enterFxRate": "Enter the exchange rate.",
+      "enterOilDetails": "Enter the make, viscosity and batch number.",
+      "receiptOptional": "Receipt (optional) — attach it now and it will be added to your expense claim automatically.",
+      "attachFile": "Attach file",
+      "takePhoto": "Take photo",
+      "removeFile": "Remove {{name}}",
+      "receiptUploadFailed": "The fuelling was saved, but the receipt could not be uploaded.",
+      "retryReceiptUpload": "Try again",
+      "continueWithoutReceipt": "Continue without receipt"
+    },
+    "oil": {
+      "source": "Where did the oil come from?",
+      "clubCanister": "Club canister",
+      "otherSource": "Other source",
+      "otherSourceShort": "Other source",
+      "canister": "Canister",
+      "canisterDetails": "Batch {{batch}} · assigned to {{aircraft}}",
+      "noCanisters": "No canisters are in stock for this aircraft. Report the oil as coming from another source, or ask a liquid administrator to add one.",
+      "make": "Make",
+      "modelViscosity": "Model / viscosity",
+      "batchNumber": "Batch number",
+      "remainingLitres": "Remaining in the canister (litres)",
+      "remainingLitresHint": "For information only — it is not checked against what you used.",
+      "markEmpty": "The canister is now empty",
+      "opened": "Opened",
+      "sealed": "Sealed",
+      "isEmpty": "Empty"
+    },
+    "myRecords": {
+      "title": "My fuel and oil records",
+      "report": "Report fuel or oil",
+      "filter": "Filter by liquid",
+      "all": "All",
+      "empty": "You have not reported any fuel or oil yet.",
+      "claimed": "On a claim",
+      "locked": "Locked",
+      "deleteTitle": "Delete this record?",
+      "deleteMessage": "The record is kept for the audit trail but no longer counts anywhere.",
+      "col": {
+        "date": "Date",
+        "aircraft": "Aircraft",
+        "details": "Details",
+        "pricePerLitre": "Paid per litre",
+        "links": "Linked to"
+      }
+    },
+    "edit": {
+      "title": "Correct a record",
+      "context": "{{type}} · {{aircraft}} · reported {{recorded}}"
+    },
+    "scan": {
+      "unassignedTitle": "Code not in use yet",
+      "unassigned": "QR code {{code}} has not been assigned to anything yet.",
+      "unassignedHint": "A liquid administrator has to assign it before it can prefill a report.",
+      "reportAnyway": "Report fuel or oil anyway"
+    },
+    "claimable": {
+      "widgetTitle": "Unclaimed fuel",
+      "prompt": "You have {{count}} fuel record(s) you paid for yourself, worth €{{total}}, with no expense claim.",
+      "oldest": "The oldest is from {{date}}.",
+      "action": "Create an expense claim",
+      "viewRecords": "View my records"
+    },
+    "admin": {
+      "oil": {
+        "title": "Oil canister inventory",
+        "addTitle": "Add a canister",
+        "add": "Add canister",
+        "inventoryTitle": "Inventory",
+        "canisterRef": "Club canister ID",
+        "canisterRefHint": "Suggested from the make — change it to match the label on the tin.",
+        "manufacturingDate": "Manufactured",
+        "aircraft": "Aircraft",
+        "aircraftPermanent": "Permanent — it cannot be changed later.",
+        "initialLitres": "Volume (litres)",
+        "state": "State",
+        "showEmpty": "Show empty canisters",
+        "empty": "No canisters in inventory.",
+        "noQr": "No QR code",
+        "markEmptyTooltip": "Mark empty and remove from available inventory",
+        "deleteTitle": "Delete this canister?",
+        "deleteMessage": "Only possible while no oil has been reported against it. Otherwise mark it empty."
+      },
+      "qr": {
+        "title": "Liquid reporting QR codes",
+        "generateTitle": "Generate codes",
+        "generateHint": "Codes are created unassigned. Print the sheet, cut it up, and assign each code when you stick it on a canister or a pump.",
+        "generate": "Generate",
+        "batchLabel": "Batch label",
+        "batchLabelHint": "So you can tell a stack of printed sheets apart.",
+        "count": "How many",
+        "countHint": "Up to 96 — eight A4 sheets.",
+        "batchesTitle": "Batches",
+        "noBatches": "No codes have been generated yet.",
+        "assignedCount": "Assigned",
+        "created": "Created",
+        "printSheet": "Print sheet",
+        "showCodes": "Show codes",
+        "showAll": "Show all codes",
+        "codesTitle": "Codes",
+        "noCodes": "No codes match.",
+        "code": "Code",
+        "unassignedOnly": "Unassigned only",
+        "unassigned": "Unassigned",
+        "assign": "Assign",
+        "assignTitle": "Assign a QR code",
+        "assignedTitle": "Code assigned",
+        "assignedTo": "{{code}} now points at {{target}}.",
+        "assignPermanently": "Assign permanently",
+        "permanentWarning": "This cannot be undone. The sticker is on the object, so a code can never be pointed at anything else.",
+        "targetType": "Assign to",
+        "target": "Target",
+        "targetOilCanister": "Oil canister",
+        "targetFuelStation": "Fuel station",
+        "noCanistersToAssign": "Every canister in stock already has a code.",
+        "noStationsToAssign": "No fuel stations are set up.",
+        "assignedAt": "Assigned"
+      },
+      "records": {
+        "title": "All fuel and oil records",
+        "memberId": "Member",
+        "includeDeleted": "Include deleted",
+        "total": "{{count}} record(s)",
+        "quantity": "Quantity",
+        "empty": "No records match.",
+        "deleted": "Deleted by {{by}}",
+        "deleteTitle": "Delete this record?",
+        "deleteMessage": "The record is kept for the audit trail but no longer counts anywhere."
+      }
+    }
+  },
+  "fuelTax": {
+    "title": "Fuel tax",
+    "explanation": "Finnish fuel tax per calendar year and fuel type. It is added to a fuel purchase that did not already include it — Jet A-1 bought in Finland — when a fuel record joins an expense claim. The rate in force is copied onto the record at that point, so correcting a rate here never changes a claim that has already been made.",
+    "formTitle": "Set a rate",
+    "configuredTitle": "Configured rates",
+    "taxYear": "Calendar year",
+    "fuelType": "Fuel type",
+    "fuelTypeHint": "Only fuels the club stocks.",
+    "rate": "Rate (€/litre)",
+    "rateHint": "Added to a purchase without Finnish fuel tax.",
+    "updatedAt": "Updated",
+    "updatedBy": "Updated by",
+    "saved": "Rate saved.",
+    "none": "No fuel tax rates are configured, so nothing is added to any fuel price. Add one above if the club owes fuel tax."
   }
 }

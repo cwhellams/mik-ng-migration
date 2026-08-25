@@ -107,6 +107,13 @@ export const ROUTES: RouteUnderTest[] = [
   { path: '/inventory', url: '/inventory' },
   { path: '/inventory/:id', url: '/inventory/1' },
   { path: '/inventory-reservations', url: '/inventory-reservations' },
+  { path: '/liquid', url: '/liquid' },
+  { path: '/liquid/new', url: '/liquid/new' },
+  {
+    path: '/liquid/:recordId/edit',
+    url: '/liquid/00000000-0000-4000-8000-000000000000/edit',
+  },
+  { path: '/liquid/scan/:code', url: '/liquid/scan/MIK-L-ABCDE' },
   { path: '/login', url: '/login' },
   { path: '/login/sent', url: '/login/sent' },
   { path: '/login/validate', url: '/login/validate' },

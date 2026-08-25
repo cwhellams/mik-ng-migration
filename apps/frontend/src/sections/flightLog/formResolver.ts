@@ -24,6 +24,10 @@ export const buildFlightLogResolver = (
   // existed, and requiring it on every editable entry would block fixing an unrelated
   // field on them until the user fabricates a value for a flight that already happened.
   isNew: boolean,
+  // A record picked to link, or freshly created, via LiquidUpliftField — satisfies
+  // the requirement in place of the legacy litres number, which a new entry can no
+  // longer enter directly. Ignored once `isNew` is false, same as the litres check.
+  pending: { fuelRecordId?: string; oilRecordId?: string } = {},
 ): Resolver<FlightLogUpsertRequest> => {
   const baseResolver: Resolver<FlightLogUpsertRequest> = zodResolver(
     flightLogDateValidator(FlightLogUpsertSchema.strip()) as any,
@@ -98,14 +102,22 @@ export const buildFlightLogResolver = (
       }
     }
 
-    if (isNew && (values.oilUpliftLitres === null || values.oilUpliftLitres === undefined)) {
+    if (
+      isNew &&
+      (values.oilUpliftLitres === null || values.oilUpliftLitres === undefined) &&
+      !pending.oilRecordId
+    ) {
       additionalErrors['oilUpliftLitres'] = {
         type: 'custom',
         message: t('flightLog.error.oilUpliftRequired'),
       }
     }
 
-    if (isNew && (values.fuelUpliftLitres === null || values.fuelUpliftLitres === undefined)) {
+    if (
+      isNew &&
+      (values.fuelUpliftLitres === null || values.fuelUpliftLitres === undefined) &&
+      !pending.fuelRecordId
+    ) {
       additionalErrors['fuelUpliftLitres'] = {
         type: 'custom',
         message: t('flightLog.error.fuelUpliftRequired'),

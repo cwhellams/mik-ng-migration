@@ -1,10 +1,19 @@
 import { HttpStatusCode } from 'axios'
 import { Router, type Request, type Response } from 'express'
-import multer from 'multer'
 import logger from '../../lib/logger.ts'
-import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
+import { RECEIPT_BUCKET, receiptUpload, processReceipt } from '../../util/receiptUpload.ts'
+import {
+  deriveFlightLogId,
+  deriveLineItemsFromRecords,
+  loadClaimableFuelRecords,
+  loadCostCentreCodes,
+  MAX_ATTACHMENTS_PER_CLAIM,
+  summariseFuelRecords,
+  syncClaimAttachmentsFromRecords,
+} from './liquidClaimItems.ts'
+import { isLiquidAdmin } from '../liquid/guards.ts'
 import {
   addExpenseMessage,
   setExpenseReceipt,
@@ -59,6 +68,7 @@ import {
   RejectExpenseClaimSchema,
   RequestInfoSchema,
   TreasurerEditExpenseClaimSchema,
+  type ExpenseLineItem,
   type MileageReportFilters,
 } from '@mik/contracts/expenses'
 import {
@@ -69,69 +79,15 @@ import {
 import { isValidHetu } from '../../util/hetu.ts'
 import { renderEmail } from '../../templates/renderEmail.ts'
 import { getEcbFxRate } from '../../services/ecbFxRate.ts'
+import type { LiquidRecord } from '@mik/contracts/liquid'
 
 export const router = Router()
-
-const RECEIPT_BUCKET =
-  process.env.EXPENSE_RECEIPT_BUCKET ??
-  (process.env.NODE_ENV === 'production' ? 'mik-expense-receipts' : 'mik-expense-receipts-test')
-const MAX_RECEIPT_BYTES = 1 * 1024 * 1024 // 1 MB — post-compression image limit
-const MAX_PDF_BYTES = 5 * 1024 * 1024 // 5 MB — PDF size limit
-
-const receiptUpload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: IMAGE_UPLOAD_RAW_BYTES },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true)
-    } else {
-      cb(new Error('Only image files or PDF documents are allowed for receipts'))
-    }
-  },
-})
 
 const hasExpenseAdmin = (req: Request): boolean =>
   req.user?.permissions.includes(MIKPermissions.EXPENSE_ADMIN) ?? false
 
-const sanitizeFileName = (fileName: string): string => {
-  const sanitized = fileName
-    .replace(/\.[^.]+$/, '')
-    .replaceAll(/[^a-zA-Z0-9_-]+/g, '_')
-    .replaceAll(/_+/g, '_')
-    .replaceAll(/^_+|_+$/g, '')
-
-  return sanitized || 'receipt'
-}
-
 const buildClaimUrl = (claimId: string): string =>
   `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/expenses/${claimId}`
-
-async function processReceipt(
-  file: Express.Multer.File,
-): Promise<{ buffer: Buffer; fileName: string; mimeType: string }> {
-  if (file.mimetype === 'application/pdf') {
-    if (file.buffer.length > MAX_PDF_BYTES) {
-      problem({
-        status: HttpStatusCode.BadRequest,
-        detail: `PDF receipt is too large (max ${MAX_PDF_BYTES / 1024 / 1024} MB).`,
-      })
-    }
-    const safeName = `${sanitizeFileName(file.originalname)}.pdf`
-    return { buffer: file.buffer, fileName: safeName, mimeType: 'application/pdf' }
-  }
-
-  const buffer = await compressImageForUpload(file.buffer, {
-    maxWidth: 2000,
-    maxHeight: 2000,
-    targetBytes: MAX_RECEIPT_BYTES,
-  })
-
-  return {
-    buffer,
-    fileName: `${sanitizeFileName(file.originalname)}.jpg`,
-    mimeType: 'image/jpeg',
-  }
-}
 
 async function requireClaimForUser(req: Request<Record<string, string>>, claimId: string) {
   const claim = await getExpenseClaimById(claimId)
@@ -168,6 +124,11 @@ async function validateCategoryRequirements(data: {
     airport?: string | null
     date?: string | null
   }[]
+  // liquidRecordIds a claim was derived from (see applySelectedFuelRecords). Only
+  // the 'fuel' category has the approval routing / reimbursement caps / reporting
+  // that record-derived fuel line items are meant to feed — accepting them onto
+  // any other category would bypass all of that silently.
+  liquidRecordIds?: string[]
   // Per-line-item fuel completeness (aircraft/airport/date) is a submit-time
   // requirement, not a create/save-draft one — a claim must be saveable mid-flight,
   // before the user has filled in every line item. Only POST /:id/submit passes true.
@@ -180,6 +141,13 @@ async function validateCategoryRequirements(data: {
   const category = categories.find((item) => item.id === data.categoryId)
   if (!category) {
     return problem({ status: HttpStatusCode.BadRequest, detail: 'Expense category not found' })
+  }
+
+  if (data.liquidRecordIds?.length && category.code !== 'fuel') {
+    return problem({
+      status: HttpStatusCode.BadRequest,
+      detail: 'Fuel records can only be claimed on a fuel expense claim.',
+    })
   }
 
   if (category.code === 'fuel' && data.enforceFuelLineItemDetails) {
@@ -399,15 +367,66 @@ router.get(
   },
 )
 
+/**
+ * Replaces a claim's fuel details with the selected liquid records' (#1119).
+ *
+ * Returns the payload unchanged (and `records: undefined`) when `liquidRecordIds`
+ * is **absent**, so a hand-entered claim (or a non-fuel one) is untouched. An
+ * explicitly *empty* selection is still a selection — the member removed the
+ * last record — and has to be applied: `updateExpenseClaim` unlinks every
+ * record whenever the key is present, so skipping the derivation would leave
+ * the claim showing fuel line items, litres and a fuel type that belong to no
+ * record at all.
+ *
+ * When records were picked, `lineItems`, `fuelLitres`, `fuelType` and
+ * `flightLogId` are all overwritten rather than merged: the whole point is that
+ * the member reports a fuelling once, and a client-supplied cost (or flight
+ * link) alongside a record id is the disagreement this removes.
+ *
+ * The loaded `records` are returned alongside the payload so the caller can
+ * also sync the claim's receipt attachments from them (`syncClaimAttachmentsFromRecords`)
+ * once the claim id is known — `records` is `undefined` exactly when no
+ * derivation happened, so the caller knows not to bother.
+ */
+async function applySelectedFuelRecords<
+  T extends { liquidRecordIds?: string[]; lineItems?: ExpenseLineItem[]; flightLogId?: string },
+>(payload: T, user: JWTUser, claimId?: string): Promise<{ payload: T; records?: LiquidRecord[] }> {
+  if (!payload.liquidRecordIds) return { payload }
+
+  const records = await loadClaimableFuelRecords(
+    payload.liquidRecordIds,
+    user.memberId,
+    claimId,
+    isLiquidAdmin(user),
+  )
+  return {
+    payload: {
+      ...payload,
+      lineItems: records.length
+        ? deriveLineItemsFromRecords(records, await loadCostCentreCodes())
+        : [],
+      ...summariseFuelRecords(records),
+      flightLogId: deriveFlightLogId(records),
+    },
+    records,
+  }
+}
+
 router.post(
   '/',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
   async (req: Request<Record<string, string>>, res: Response) => {
-    const data = createExpenseClaimSchema(mileageMaxKm()).parse(req.body)
+    const parsed = createExpenseClaimSchema(mileageMaxKm()).parse(req.body)
+    // #1119: when the member picked fuel records, the litres, airport, fuel type
+    // and cost come from what they reported at the pump. Applied before
+    // validation so the category checks see the derived items, and before the
+    // write so no client-supplied fuel figure can reach the claim.
+    const { payload: data, records } = await applySelectedFuelRecords(parsed, req.user!)
     await validateCategoryRequirements({
       categoryId: data.categoryId,
       flightLogId: data.flightLogId ?? null,
       lineItems: data.lineItems,
+      liquidRecordIds: data.liquidRecordIds,
     })
     await verifyMileageLegDistances(data.mileageLegs)
 
@@ -422,9 +441,10 @@ router.post(
     }
 
     const claim = await createExpenseClaim(claimData, req.user!)
+    if (records) await syncClaimAttachmentsFromRecords(claim.id, records)
     await syncMemberIbanFromClaim(req.user!, claim.iban, claim.ibanAccountName)
 
-    res.status(HttpStatusCode.Created).json(claim)
+    res.status(HttpStatusCode.Created).json(await requireClaimForUser(req, claim.id))
   },
 )
 
@@ -523,18 +543,27 @@ router.put(
       })
     }
 
-    const patch = createExpenseClaimSchema(mileageMaxKm()).partial().parse(req.body)
+    const parsedPatch = createExpenseClaimSchema(mileageMaxKm()).partial().parse(req.body)
+    const { payload: patch, records } = await applySelectedFuelRecords(
+      parsedPatch,
+      req.user!,
+      existing.id,
+    )
     await validateCategoryRequirements({
       categoryId: patch.categoryId ?? existing.categoryId,
       flightLogId: patch.flightLogId ?? existing.flightLogId ?? undefined,
       lineItems: patch.lineItems ?? existing.lineItems,
+      liquidRecordIds: patch.liquidRecordIds,
     })
     await verifyMileageLegDistances(patch.mileageLegs)
 
     const claim = await updateExpenseClaim(req.params.id, patch, req.user!)
+    if (records && claim) await syncClaimAttachmentsFromRecords(claim.id, records)
     await syncMemberIbanFromClaim(req.user!, claim?.iban, claim?.ibanAccountName)
 
-    res.status(HttpStatusCode.Ok).json(claim)
+    res
+      .status(HttpStatusCode.Ok)
+      .json(records ? await requireClaimForUser(req, req.params.id) : claim)
   },
 )
 
@@ -846,8 +875,9 @@ router.get(
 // ─── Multiple attachments (issue #955) ───────────────────────────────────────
 // New claims use this instead of the singular /:id/receipt above — SimplBooks only
 // accepts one attachment per purchase, so they're merged into a single PDF below.
-
-const MAX_ATTACHMENTS_PER_CLAIM = 10
+// MAX_ATTACHMENTS_PER_CLAIM itself lives in liquidClaimItems.ts (imported above) —
+// syncClaimAttachmentsFromRecords needs the same cap and this file already depends
+// on that module, so the constant lives there rather than risking a circular import.
 
 router.post(
   '/:id/attachments',

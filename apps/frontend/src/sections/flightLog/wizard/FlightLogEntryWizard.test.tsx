@@ -1,4 +1,4 @@
-import { FlightLogStatus, type FlightLog } from '@mik/contracts/flight-log'
+import { FlightLogStatus, FlightLogUpsertSchema, type FlightLog } from '@mik/contracts/flight-log'
 import type { Defect } from '@mik/contracts/defects'
 import type { Remark } from '@mik/contracts/remarks'
 import { screen, waitFor, within } from '@testing-library/react'
@@ -7,6 +7,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   aFlightLog,
+  aFuelRecord,
+  anOilRecord,
   aMemberListEntry,
   aMemberListResponse,
   anAircraftListResponse,
@@ -57,9 +59,19 @@ const anExistingRemark = (overrides: Partial<Remark> = {}): Remark => ({
 })
 
 const wizardApi = (existingDefects: Defect[] = [], existingRemarks: Remark[] = []) => {
-  const state = { writes: [] as Write[], defects: [] as unknown[], remarks: [] as unknown[] }
+  const state = {
+    writes: [] as Write[],
+    defects: [] as unknown[],
+    remarks: [] as unknown[],
+    linkCalls: [] as { recordId: string; flightLogId: string }[],
+  }
 
   server.use(
+    http.post(apiUrl('v1/liquid/records/:recordId/link'), async ({ params, request }) => {
+      const { flightLogId } = (await request.json()) as { flightLogId: string }
+      state.linkCalls.push({ recordId: String(params.recordId), flightLogId })
+      return HttpResponse.json(aFuelRecord())
+    }),
     http.get(apiUrl('v1/aircrafts'), () => HttpResponse.json(anAircraftListResponse())),
     http.get(apiUrl('v1/members'), () => HttpResponse.json(aMemberListResponse())),
     http.get(apiUrl('v1/flight-logs/overlap-check'), () => HttpResponse.json({ conflicts: [] })),
@@ -181,6 +193,47 @@ describe('FlightLogEntryWizard step gating', () => {
 
     expect(await screen.findByText('Review')).toBeInTheDocument()
     expect(screen.getByText('Step 12 of 12')).toBeInTheDocument()
+  })
+
+  it('holds back Next on a new entry until fuel is resolved, then accepts "none added"', async () => {
+    wizardApi()
+
+    const { user } = renderWizard({ initialStep: 'fuelUplift' })
+    await screen.findByText('Fuel uplift')
+
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
+
+    await user.click(screen.getByRole('checkbox', { name: 'No fuel added' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled())
+  })
+
+  it('holds back Next on a new entry until oil is resolved, then accepts "none added"', async () => {
+    wizardApi()
+
+    const { user } = renderWizard({ initialStep: 'oil' })
+    await screen.findByText('Oil')
+
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
+
+    await user.click(screen.getByRole('checkbox', { name: 'No oil added' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled())
+  })
+
+  it('lets Next through once an old entry’s legacy fuel/oil figures are already on file', async () => {
+    wizardApi()
+
+    renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog({ fuelUpliftLitres: 40, oilUpliftLitres: 0.3 }),
+      initialStep: 'fuelUplift',
+    })
+    await screen.findByText('Fuel uplift')
+
+    // Read-only history, not the checkbox/link/create controls a new entry gets.
+    expect(screen.queryByRole('checkbox', { name: 'No fuel added' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled()
   })
 })
 
@@ -434,6 +487,71 @@ describe('FlightLogEntryWizard saving', () => {
       departureAirport: 'EFNU',
       arrivalAirport: 'EFNU',
     })
+  })
+
+  it('lets the member link one of the aircraft’s recent unlinked fuellings from the fuel step', async () => {
+    const state = wizardApi()
+    server.use(
+      http.get(apiUrl('v1/liquid/records/linkable'), () =>
+        HttpResponse.json({ records: [aFuelRecord({ recordId: 'rec-suggested' })] }),
+      ),
+    )
+    // "Link an existing record" needs an aircraft picked first (it's what the
+    // suggestions are scoped to), so seed a draft that has one and is already on
+    // the fuel step rather than clicking through the aircraft step first.
+    seedDraft('new', {
+      values: { aircraftRegistration: 'OH-STL' },
+      stepIndex: 7,
+      flightDateIso: new Date().toISOString(),
+      nightOrIfr: null,
+      reportedDefects: [],
+      reportedRemarks: [],
+    })
+
+    const { user } = renderWizard()
+    await screen.findByText('Fuel uplift')
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: 'Link an existing record' }))
+    await user.click(await screen.findByRole('button', { name: 'Link' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled())
+    // The pick is only staged locally -- nothing is linked until the flight itself
+    // is saved (there is no flightId to link against yet on a brand new entry).
+    expect(state.linkCalls).toHaveLength(0)
+  })
+
+  it('links pending fuel and oil records to the new flight once it is saved', async () => {
+    const state = wizardApi()
+    const validValues = FlightLogUpsertSchema.strip().parse(anEditableLog())
+
+    seedDraft('new', {
+      values: { ...validValues, fuelUpliftLitres: null, oilUpliftLitres: null },
+      stepIndex: 11,
+      // Must match the date already baked into validValues' epoch fields, or the
+      // wizard's re-anchor-to-flightDate effect shifts them onto today and the
+      // "no future times" validator rejects the entry.
+      flightDateIso: new Date(Number(validValues.offBlockTimeEpoch) * 1000).toISOString(),
+      nightOrIfr: false,
+      pendingFuelRecord: aFuelRecord({ recordId: 'rec-fuel-1' }),
+      pendingOilRecord: anOilRecord({ recordId: 'rec-oil-1' }),
+      reportedDefects: [],
+      reportedRemarks: [],
+    })
+
+    const { user } = renderWizard()
+    await screen.findByText('Review')
+
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    await waitFor(() => expect(state.linkCalls).toHaveLength(2))
+    expect(state.linkCalls).toEqual(
+      expect.arrayContaining([
+        { recordId: 'rec-fuel-1', flightLogId: 'fl-new' },
+        { recordId: 'rec-oil-1', flightLogId: 'fl-new' },
+      ]),
+    )
   })
 
   it('closes the editor and clears the draft once saved', async () => {

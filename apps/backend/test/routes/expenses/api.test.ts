@@ -523,18 +523,18 @@ describe('POST /expenses (fuel)', () => {
         title: 'Fuel test',
         currency: 'EUR',
         fuelLitres: 100,
-        fuelType: 'JetA1',
+        fuelType: 'JET A-1',
         expenseDate: '2026-07-15',
         lineItems: [
           {
             itemId: null,
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             date: '2026-07-16',
             airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
@@ -574,7 +574,7 @@ describe('POST /expenses (fuel)', () => {
     }
 
     it('balances a cheap and a pricy stop, and excludes club-card litres from the payout', async () => {
-      await insertLocalPrice('JetA1', 3.0, '2026-01-01')
+      await insertLocalPrice('JET A-1', 3.0, '2026-01-01')
       const categoryId = await fuelCategoryId()
 
       const res = await request(app)
@@ -593,7 +593,7 @@ describe('POST /expenses (fuel)', () => {
               quantity: 50,
               unit: 'l',
               unitPrice: 2.0,
-              fuelType: 'JetA1',
+              fuelType: 'JET A-1',
               costCentreCode: 'OH-STL',
               sortOrder: 0,
             },
@@ -604,7 +604,7 @@ describe('POST /expenses (fuel)', () => {
               quantity: 50,
               unit: 'l',
               unitPrice: 4.0,
-              fuelType: 'JetA1',
+              fuelType: 'JET A-1',
               costCentreCode: 'OH-STL',
               sortOrder: 1,
             },
@@ -615,7 +615,7 @@ describe('POST /expenses (fuel)', () => {
               quantity: 20,
               unit: 'l',
               unitPrice: 3.0,
-              fuelType: 'JetA1',
+              fuelType: 'JET A-1',
               costCentreCode: 'OH-STL',
               paidWithClubCard: true,
               sortOrder: 2,
@@ -657,7 +657,7 @@ describe('POST /expenses (fuel)', () => {
               quantity: 50,
               unit: 'l',
               unitPrice: 2.0,
-              fuelType: 'mogas',
+              fuelType: 'MOGAS 98E5',
               costCentreCode: 'OH-STL',
               sortOrder: 0,
             },
@@ -687,19 +687,19 @@ describe('POST /expenses (fuel)', () => {
         title: 'Fuel precision test',
         currency: 'EUR',
         fuelLitres: 30,
-        fuelType: 'JetA1',
+        fuelType: 'JET A-1',
         expenseDate: '2026-07-15',
         lineItems: [
           {
             itemId: null,
-            description: '30 l JetA1',
+            description: '30 l JET A-1',
             date: '2026-07-16',
             airport: 'EFNU',
             quantity: 30,
             unit: 'l',
             unitPrice: 50 / 30,
             totalCost: 50,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
@@ -732,17 +732,17 @@ describe('POST /expenses (fuel)', () => {
         iban: 'FI2112345600000785',
         ibanAccountName: 'Juha Seppälä',
         fuelLitres: 100,
-        fuelType: 'JetA1',
+        fuelType: 'JET A-1',
         expenseDate: '2026-07-15',
         lineItems: [
           {
             itemId: null,
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             date: '2026-07-16',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             sortOrder: 0,
           },
         ],
@@ -771,16 +771,16 @@ describe('POST /expenses (fuel)', () => {
         iban: 'FI2112345600000785',
         ibanAccountName: 'Juha Seppälä',
         fuelLitres: 100,
-        fuelType: 'JetA1',
+        fuelType: 'JET A-1',
         expenseDate: '2026-07-15',
         lineItems: [
           {
             itemId: null,
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
@@ -812,18 +812,18 @@ describe('POST /expenses (fuel)', () => {
         iban: 'FI2112345600000785',
         ibanAccountName: 'Juha Seppälä',
         fuelLitres: 100,
-        fuelType: 'JetA1',
+        fuelType: 'JET A-1',
         expenseDate: '2026-07-15',
         lineItems: [
           {
             itemId: null,
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             date: '2026-07-16',
             airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
@@ -883,13 +883,13 @@ describe('POST /expenses (fuel litres/type)', () => {
         lineItems: [
           {
             itemId: null,
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             date: '2026-07-16',
             airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
@@ -901,7 +901,7 @@ describe('POST /expenses (fuel litres/type)', () => {
     expect(res.body.fuelLitres).toBeFalsy()
     expect(res.body.fuelType).toBeFalsy()
     expect(res.body.lineItems[0].quantity).toBe(100)
-    expect(res.body.lineItems[0].fuelType).toBe('JetA1')
+    expect(res.body.lineItems[0].fuelType).toBe('JET A-1')
   })
 
   // refuelOutsideFinland is derived server-side from each line item's ICAO airport
@@ -923,7 +923,7 @@ describe('POST /expenses (fuel litres/type)', () => {
         lineItems: [
           {
             itemId: null,
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             date: '2026-07-16',
             airport: 'EFNU',
             quantity: 100,
@@ -954,7 +954,7 @@ describe('POST /expenses (fuel litres/type)', () => {
         lineItems: [
           {
             itemId: null,
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             date: '2026-07-16',
             airport: foreignAirportIdent,
             quantity: 100,
@@ -999,13 +999,13 @@ describe('POST /expenses (fuel litres/type)', () => {
       .insertInto('accts.expenseClaimLineItem')
       .values({
         claimId: claim.id,
-        description: '100 l JetA1 (legacy, no airport recorded)',
+        description: '100 l JET A-1 (legacy, no airport recorded)',
         quantity: 100,
         unit: 'l',
         unitPrice: 1.5,
         sortOrder: 0,
         costCentreCode: 'OH-STL',
-        fuelType: 'JetA1',
+        fuelType: 'JET A-1',
         // fuel_date / airport intentionally left null — data entered before issue #966.
       })
       .returning('id')
@@ -1022,11 +1022,11 @@ describe('POST /expenses (fuel litres/type)', () => {
         lineItems: [
           {
             id: lineItem.id,
-            description: '100 l JetA1 (legacy, no airport recorded)',
+            description: '100 l JET A-1 (legacy, no airport recorded)',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
@@ -1075,12 +1075,12 @@ describe('POST /expenses (fuel litres/type)', () => {
       .insertInto('accts.expenseClaimLineItem')
       .values({
         claimId: claim.id,
-        description: '100 l JetA1 (legacy, no aircraft recorded)',
+        description: '100 l JET A-1 (legacy, no aircraft recorded)',
         quantity: 100,
         unit: 'l',
         unitPrice: 1.5,
         sortOrder: 0,
-        fuelType: 'JetA1',
+        fuelType: 'JET A-1',
         airport: 'EFHK',
         fuelDate: '2026-01-01',
         // cost_centre_code intentionally left null - predates per-line-item aircraft.
@@ -1128,7 +1128,7 @@ describe('POST /expenses/:id/override-fuel-price', () => {
         lineItems: [
           {
             itemId: null,
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             date: '2026-07-16',
             airport: 'EFNU',
             quantity: 100,
@@ -1999,7 +1999,7 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
             unit: 'l',
             unitPrice: 2.0,
             totalCost: 60,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
@@ -2046,13 +2046,13 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
         ibanAccountName: 'Juha Seppälä',
         lineItems: [
           {
-            description: '100 l JetA1',
+            description: '100 l JET A-1',
             date: '2026-07-16',
             airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
-            fuelType: 'JetA1',
+            fuelType: 'JET A-1',
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
@@ -2379,7 +2379,7 @@ describe('POST /expenses/:id/approve (fuel reimbursement cap)', () => {
           date: '2026-07-15',
           airport: 'EFNU',
           unit: 'l',
-          fuelType: 'JetA1',
+          fuelType: 'JET A-1',
           costCentreCode: 'OH-STL',
           sortOrder: index,
           ...item,
@@ -2406,7 +2406,7 @@ describe('POST /expenses/:id/approve (fuel reimbursement cap)', () => {
   }
 
   it('queues the capped, club-card-free amount for payment, not the raw line items', async () => {
-    await insertLocalPrice('JetA1', 3.0, '2026-01-01')
+    await insertLocalPrice('JET A-1', 3.0, '2026-01-01')
     // 100 l member-paid @ 4.00 = 400 and 20 l club card @ 4.00 = 80.
     // Cap: 120 l * 3.00 = 360 -> capped; 360 - 80 club card = 280 to the member.
     const claimId = await createSubmittedFuelClaim([
@@ -2435,7 +2435,7 @@ describe('POST /expenses/:id/approve (fuel reimbursement cap)', () => {
   })
 
   it('queues no reimbursement and invoices the member when club-card fuel exceeded the cap', async () => {
-    await insertLocalPrice('JetA1', 3.0, '2026-01-01')
+    await insertLocalPrice('JET A-1', 3.0, '2026-01-01')
     // 100 l club card @ 4.00 = 400, cap 100 l * 3.00 = 300 -> member owes 100, gets nothing.
     // The 10 l member-paid row keeps the claim total above zero so it can be submitted.
     const claimId = await createSubmittedFuelClaim([

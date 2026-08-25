@@ -100,6 +100,32 @@ export const endpoints = {
     byId: (unitId: string) => `v1/inventory/units/${unitId}`,
     status: (unitId: string) => `v1/inventory/units/${unitId}/status`,
   },
+
+  /**
+   * The Liquid Management System (#1119) — fuel and oil reporting. Only the
+   * member-facing paths: inventory admin, QR minting/batches and fuel-tax
+   * configuration moved to `apps/admin` in the app split, and address those
+   * same routes as inline literals there (see that app's own `endpoints.ts`
+   * doc comment).
+   */
+  liquid: {
+    providers: 'v1/liquid/providers',
+    records: 'v1/liquid/records',
+    recordById: (recordId: string) => `v1/liquid/records/${recordId}`,
+    linkRecord: (recordId: string) => `v1/liquid/records/${recordId}/link`,
+    unlinkRecord: (recordId: string) => `v1/liquid/records/${recordId}/unlink`,
+    /** Recent unlinked records for a flight log, as `params`. */
+    linkableRecords: 'v1/liquid/records/linkable',
+    /** The dashboard prompt's "you have unclaimed fuel" counter. */
+    claimableFuel: 'v1/liquid/records/claimable',
+    oilCanisters: 'v1/liquid/oil-canisters',
+    qrCodes: 'v1/liquid/qr',
+    qrTargets: 'v1/liquid/qr/targets',
+    qrResolve: (code: string) => `v1/liquid/qr/${encodeURIComponent(code)}/resolve`,
+    qrAssign: (code: string) => `v1/liquid/qr/${encodeURIComponent(code)}/assign`,
+    /** Shown so a member can see what will be added on top of an untaxed purchase. */
+    fuelTax: 'v1/liquid/fuel-tax',
+  },
 } as const
 
 /**

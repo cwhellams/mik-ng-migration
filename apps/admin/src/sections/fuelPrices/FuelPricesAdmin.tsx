@@ -1,5 +1,5 @@
 import { FuelPrices as FuelPricesResponse } from '@mik/contracts/fuel-prices'
-import { Alert, Button, Stack, TextField } from '@mui/material'
+import { Alert, Box, Button, Stack, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EditButton } from '@mik/ui/components/EditButton'
@@ -10,6 +10,7 @@ import { Title } from '@mik/ui/components/Title'
 import useApi from '@mik/ui/hooks/useApi'
 import { useRoles } from '@mik/ui/hooks/useRoles'
 import { MIKPermissions } from '@mik/contracts/members'
+import { FuelPriceComparison } from './FuelPriceComparison'
 
 /**
  * Maintains the fuel-price notice members read, and the local per-fuel-type
@@ -19,6 +20,11 @@ import { MIKPermissions } from '@mik/contracts/members'
  * sudo-gated `canEdit`; setting a price is back-office work, so it moved here
  * in #1233 and that page is now read-only. `RecentFuelings` did not come with
  * it — a log of who fuelled what is for the members who did the fuelling.
+ *
+ * `FuelPriceComparison` (#1119) lives on this page too rather than its own
+ * route: it answers the same "what does fuel cost" question, just for a
+ * treasurer checking whether a claim was fuelled at a premium, so it belongs
+ * next to the reference prices it compares against.
  */
 const FuelPricesAdmin = () => {
   const { t } = useTranslation()
@@ -106,6 +112,10 @@ const FuelPricesAdmin = () => {
       )}
 
       <LocalFuelPrices canEdit={canEdit} />
+
+      <Box sx={{ mt: 4 }}>
+        <FuelPriceComparison />
+      </Box>
     </RemoteContent>
   )
 }

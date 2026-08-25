@@ -1034,6 +1034,125 @@ describe('POST /flight-log/validate', () => {
   })
 })
 
+describe('POST /flight-log/validate — fuel/oil resolution backstop', () => {
+  // OH-IHQ has no NEW-status flights in the seed data, so a freshly created one
+  // is trivially "the first NEW flight for that aircraft" — no other fixture's
+  // ordering to fight.
+  let ihqSeqNo = 0
+  const ihqFlight = (overrides: Partial<FlightLogUpsertRequest> = {}): FlightLogUpsertRequest => {
+    ihqSeqNo += 1
+    const start = new Date(`2026-01-${15 + ihqSeqNo}T10:30:00Z`)
+    return {
+      ...flightPayload,
+      aircraftRegistration: 'OH-IHQ',
+      ajlbSeqNo: ihqSeqNo,
+      offBlockTimeEpoch: (start.getTime() / 1000).toString(),
+      takeoffTimeEpoch: (start.getTime() / 1000 + 15 * 60).toString(),
+      landingTimeEpoch: (start.getTime() / 1000 + 70 * 60).toString(),
+      onBlockTimeEpoch: (start.getTime() / 1000 + 75 * 60).toString(),
+      fuelUpliftLitres: null,
+      oilUpliftLitres: null,
+      ...overrides,
+    }
+  }
+
+  const createdFlightIds: string[] = []
+  afterAll(async () => {
+    if (createdFlightIds.length > 0) {
+      await db.deleteFrom('liquid.record').where('flightLogId', 'in', createdFlightIds).execute()
+      await db.deleteFrom('flight.logs').where('flightId', 'in', createdFlightIds).execute()
+    }
+  })
+
+  // One flight, one lifecycle, kept to a single test: OH-IHQ has no other NEW
+  // flight, so nothing else can jump the "earliest NEW flight first"
+  // ordering rule in between these steps.
+  it('blocks validation until fuel and oil are resolved, then allows it once both are marked none added', async () => {
+    const created = await request(app)
+      .post('/flight-log')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send(ihqFlight())
+    expect(created.status).toBe(201)
+    const flightId = created.body.flightId
+    createdFlightIds.push(flightId)
+
+    const blocked = await request(app)
+      .post(`/flight-log/${flightId}/validate`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send()
+    expect(blocked.status).toBe(409)
+    expect(blocked.body.detail).toContain('fuel')
+    expect(blocked.body.detail).toContain('oil')
+
+    await request(app)
+      .patch(`/flight-log/${flightId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ fuelUpliftLitres: 0, oilUpliftLitres: 0 })
+
+    const validated = await request(app)
+      .post(`/flight-log/${flightId}/validate`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send()
+    expect(validated.status).toBe(200)
+  })
+
+  it('validates once fuel and oil each have a linked liquid record', async () => {
+    // Runs after the previous test, so its OH-IHQ flight is already
+    // VALIDATED and this one is the new earliest NEW flight.
+    const created = await request(app)
+      .post('/flight-log')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send(ihqFlight())
+    expect(created.status).toBe(201)
+    const flightId = created.body.flightId
+    createdFlightIds.push(flightId)
+
+    const provider = await db
+      .selectFrom('liquid.fuelProvider')
+      .select(['providerId'])
+      .where('code', '=', 'MPL')
+      .executeTakeFirstOrThrow()
+
+    await db
+      .insertInto('liquid.record')
+      .values([
+        {
+          liquidType: 'FUEL',
+          aircraftRegistration: 'OH-IHQ',
+          memberId: test_member_id,
+          quantityLitres: 40,
+          airport: 'EFNU',
+          fuelType: 'MOGAS 98E5',
+          providerId: provider.providerId,
+          flightLogId: flightId,
+          createdBy: test_member_id,
+          updatedBy: test_member_id,
+        },
+        {
+          liquidType: 'OIL',
+          aircraftRegistration: 'OH-IHQ',
+          memberId: test_member_id,
+          quantityLitres: 0.2,
+          oilSource: 'OTHER',
+          oilMake: 'Aeroshell',
+          oilModelViscosity: '100',
+          oilBatchNumber: 'B-1',
+          flightLogId: flightId,
+          createdBy: test_member_id,
+          updatedBy: test_member_id,
+        },
+      ])
+      .execute()
+
+    const res = await request(app)
+      .post(`/flight-log/${flightId}/validate`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send()
+
+    expect(res.status).toBe(200)
+  })
+})
+
 describe('DELETE /flight-log', () => {
   it('should return 404 when flight does not exist', async () => {
     const response = await request(app)

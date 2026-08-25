@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { FUEL_TYPES } from './expenses.ts'
+import { FUEL_TYPES } from './aircrafts.ts'
 
 export const FuelPricesSchema = z.object({
   markdown: z.string().max(50000),

@@ -78,9 +78,22 @@ const INSTRUCTOR_LIST = aMemberList({
 
 const resolve = (
   values: FlightLogUpsertRequest,
-  { memberList = INSTRUCTOR_LIST, isNew = false } = {},
+  {
+    memberList = INSTRUCTOR_LIST,
+    isNew = false,
+    pending = {},
+  }: {
+    memberList?: MemberListResponse
+    isNew?: boolean
+    pending?: { fuelRecordId?: string; oilRecordId?: string }
+  } = {},
 ) =>
-  buildFlightLogResolver(t, memberList, isNew)(values, undefined, {
+  buildFlightLogResolver(
+    t,
+    memberList,
+    isNew,
+    pending,
+  )(values, undefined, {
     fields: {},
     shouldUseNativeValidation: false,
   })
@@ -208,6 +221,25 @@ describe('buildFlightLogResolver', () => {
       )
 
       expect(result.errors).toEqual({})
+    })
+
+    it('accepts a pending linked/created record in place of the litres number', async () => {
+      const result = await resolve(
+        aFlightLogForm({ oilUpliftLitres: null, fuelUpliftLitres: null }),
+        { isNew: true, pending: { fuelRecordId: 'rec-fuel', oilRecordId: 'rec-oil' } },
+      )
+
+      expect(result.errors).toEqual({})
+    })
+
+    it('still blocks when only one of fuel/oil has a pending record', async () => {
+      const result = await resolve(
+        aFlightLogForm({ oilUpliftLitres: null, fuelUpliftLitres: null }),
+        { isNew: true, pending: { fuelRecordId: 'rec-fuel' } },
+      )
+
+      expect(result.errors.fuelUpliftLitres).toBeUndefined()
+      expect(result.errors.oilUpliftLitres?.message).toBe('flightLog.error.oilUpliftRequired')
     })
   })
 

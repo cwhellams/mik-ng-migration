@@ -48,6 +48,8 @@ import { estimateFlightCosts } from '../../services/accounting/flightCostEstimat
 import { generateCsv, generateEasaPdf, getFilename, type PdfMemberInfo } from './exportFormats.ts'
 import { invalidateApprovedAttempt } from '../../db/dto-queries.ts'
 import logger from '../../lib/logger.ts'
+import { getRecordsForFlightLog } from '../../db/liquid-queries.ts'
+import { LiquidType } from '@mik/contracts/liquid'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '@mik/contracts/members'
 import {
@@ -519,6 +521,32 @@ router.post(
         status: 400,
         detail: `Flight log status ${flight.status}`,
       })
+    }
+
+    // A member can save a flight with fuel/oil unresolved (the flightLogId
+    // that a liquid record links to doesn't exist until the flight is first
+    // saved) — this is the backstop that actually enforces it before the
+    // figure is finalized: either the legacy manually-entered litres are
+    // present (old flight, unaffected by this rule) or at least one liquid
+    // record of that type is linked.
+    if (!revert) {
+      const records = await getRecordsForFlightLog(flightId)
+      const unresolved: string[] = []
+      if (
+        flight.fuelUpliftLitres == null &&
+        !records.some((r) => r.liquidType === LiquidType.FUEL)
+      ) {
+        unresolved.push('fuel')
+      }
+      if (flight.oilUpliftLitres == null && !records.some((r) => r.liquidType === LiquidType.OIL)) {
+        unresolved.push('oil')
+      }
+      if (unresolved.length > 0) {
+        return problem({
+          status: 409,
+          detail: `Flight ${flightId} has no linked ${unresolved.join(' or ')} record, and it was never marked as none added. Link one, or mark it as none added, before validating.`,
+        })
+      }
     }
 
     const updated = await updateFlightLogStatus(

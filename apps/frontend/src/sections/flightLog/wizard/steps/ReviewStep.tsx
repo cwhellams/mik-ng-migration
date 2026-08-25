@@ -5,6 +5,8 @@ import { EditButton } from '@mik/ui/components/EditButton'
 import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import type { Aircraft } from '@mik/contracts/aircrafts'
 import type { MemberList } from '@mik/contracts/members'
+import type { LiquidRecordWithLock } from '@mik/contracts/liquid'
+import { describeRecord } from '../../../liquid/liquidHelpers'
 import type { WizardFormProps } from '../types'
 import type { WizardStep } from '../useWizardSteps'
 
@@ -28,6 +30,12 @@ interface Props extends WizardFormProps {
   // acTotalFlightTimeAfter regardless of how the user has since edited the times.
   originalTakeoffTimeEpoch?: string | null
   originalLandingTimeEpoch?: string | null
+  // A record picked/created for this flight but not yet linked -- linking only
+  // happens after save, once a real flightId exists (see FlightLogEntryWizard's
+  // doSave). Takes priority over the raw litres figure, which stays `null` while
+  // a record is pending.
+  pendingFuelRecord?: LiquidRecordWithLock
+  pendingOilRecord?: LiquidRecordWithLock
 }
 
 // Parses the server's "H:MM" total-time string into minutes; returns null if missing
@@ -85,6 +93,8 @@ export const ReviewStep = ({
   acTotalFlightTimeAfter,
   originalTakeoffTimeEpoch,
   originalLandingTimeEpoch,
+  pendingFuelRecord,
+  pendingOilRecord,
 }: Props) => {
   const { t } = useTranslation()
   const { formatTime } = useTimezone()
@@ -309,7 +319,11 @@ export const ReviewStep = ({
               {t('flightLog.fuelUpliftLitres')}
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
-              {fuelUpliftLitres ?? t('common.none')}
+              {pendingFuelRecord
+                ? describeRecord(pendingFuelRecord, t)
+                : fuelUpliftLitres
+                  ? `${fuelUpliftLitres}L`
+                  : t('common.none')}
             </Typography>
           </Box>
           <Box>
@@ -325,7 +339,11 @@ export const ReviewStep = ({
               {t('flightLog.oilUpliftLitres')}
             </Typography>
             <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
-              {oilUpliftLitres ?? 0}L
+              {pendingOilRecord
+                ? describeRecord(pendingOilRecord, t)
+                : oilUpliftLitres
+                  ? `${oilUpliftLitres}L`
+                  : t('common.none')}
             </Typography>
           </Box>
         </Box>

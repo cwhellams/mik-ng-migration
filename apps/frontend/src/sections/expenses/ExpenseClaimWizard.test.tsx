@@ -136,18 +136,20 @@ describe('ExpenseClaimWizard step list', () => {
     expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled()
   })
 
-  it('starts with no fuel or journey step, since no category is picked yet', async () => {
+  it('starts with no journey step, since no category is picked yet', async () => {
     wizardApi()
 
     renderWizard()
     await screen.findByText('Before you start')
 
-    expect(screen.queryByText('Flight')).toBeNull()
     expect(screen.queryByText('Journey Details')).toBeNull()
     expect(screen.getByText('Line Items')).toBeInTheDocument()
   })
 
-  it('adds a flight step for a fuel claim', async () => {
+  it('never asks a fuel claim which flight it was for — the picked records already carry the link', async () => {
+    // #1119 follow-up: fuel claims are built from FuelRecordPicker, and each
+    // selected record already knows its own flight, if any. The step used to
+    // ask again by hand; it no longer exists for any category.
     wizardApi()
 
     const { user } = renderWizard()
@@ -157,7 +159,8 @@ describe('ExpenseClaimWizard step list', () => {
     await user.click(await screen.findByRole('combobox', { name: /Category/ }))
     await user.click(await screen.findByRole('option', { name: 'Fuel' }))
 
-    expect(await screen.findByText('Flight')).toBeInTheDocument()
+    expect(screen.queryByText('Flight')).toBeNull()
+    expect(screen.getByText('Line Items')).toBeInTheDocument()
   })
 
   it('swaps line items and the receipt for a journey step on a mileage claim', async () => {
@@ -353,8 +356,6 @@ describe('ExpenseClaimWizard drafts', () => {
         ibanAccountName: '',
         lineItems: [],
       },
-      fuelForFlight: null,
-      flightMode: 'dropdown',
       attachments: [],
       savedClaimId: null,
       mileageLegs: [],
@@ -459,8 +460,6 @@ describe('ExpenseClaimWizard saving', () => {
         ibanAccountName: 'Matti Virtanen',
         lineItems: [],
       },
-      fuelForFlight: null,
-      flightMode: 'dropdown',
       attachments: [],
       savedClaimId: 'claim-1',
       mileageLegs: [],

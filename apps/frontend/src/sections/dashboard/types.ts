@@ -80,6 +80,12 @@ export const DASHBOARD_COMPONENT_METADATA: DashboardComponentMetadata[] = [
     icon: '✈️',
   },
   {
+    id: 'liquidClaimable',
+    label: 'Unclaimed Fuel',
+    description: 'Prompt to claim fuel you paid for yourself',
+    icon: '⛽',
+  },
+  {
     id: 'memberAdmin',
     label: 'Member Admin',
     description: 'Member administration panel',

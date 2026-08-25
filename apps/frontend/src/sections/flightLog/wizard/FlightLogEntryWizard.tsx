@@ -21,6 +21,7 @@ import {
 } from '@mik/contracts/flight-log'
 import { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { MemberListResponse } from '@mik/contracts/members'
+import type { LiquidRecordWithLock } from '@mik/contracts/liquid'
 import useApi from '@mik/ui/hooks/useApi'
 import { useDefects } from '../../../hooks/useDefects'
 import { useRemarks } from '../../../hooks/useRemarks'
@@ -58,7 +59,7 @@ import { useLongTaxiCheck } from '../useLongTaxiCheck'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { hasBlankReportedDefect, submitReportedDefects } from '../reportDefectsApi'
 import { hasBlankReportedRemark, submitReportedRemarks } from '../reportRemarksApi'
-import { endpoints } from '../../../api/endpoints'
+import { absolute, endpoints } from '../../../api/endpoints'
 
 interface Props {
   onSwitchToClassicForm: () => void
@@ -79,8 +80,8 @@ interface FlightLogWizardDraft {
   stepIndex: number
   flightDateIso: string
   nightOrIfr: boolean | null
-  refueled: boolean | null
-  oilAdded: boolean | null
+  pendingFuelRecord?: LiquidRecordWithLock
+  pendingOilRecord?: LiquidRecordWithLock
   reportedDefects: string[]
   reportedRemarks: string[]
 }
@@ -201,8 +202,27 @@ const FlightLogEntryWizardInner = ({
     url: `v1/flight-logs${isEditing ? `/${flightId}` : ''}`,
     skipFetch: true,
   })
+  const { mutation: linkMutation } = useApi<LiquidRecordWithLock>({
+    url: endpoints.liquid.records,
+    skipFetch: true,
+  })
 
-  const resolver = buildFlightLogResolver(t, memberList, !isEditing)
+  // Staged locally rather than written to the form: a brand new flight has no
+  // flightId yet for a liquid record's `flightLogId` FK to point at, so linking
+  // happens as a second API call once doSave has a real flightId (see doSave).
+  // Declared before the resolver/useForm below, since the resolver needs to know
+  // about a pending record to accept it in place of a litres figure.
+  const [pendingFuelRecord, setPendingFuelRecord] = useState<LiquidRecordWithLock | undefined>(
+    () => persistedDraft?.pendingFuelRecord,
+  )
+  const [pendingOilRecord, setPendingOilRecord] = useState<LiquidRecordWithLock | undefined>(
+    () => persistedDraft?.pendingOilRecord,
+  )
+
+  const resolver = buildFlightLogResolver(t, memberList, !isEditing, {
+    fuelRecordId: pendingFuelRecord?.recordId,
+    oilRecordId: pendingOilRecord?.recordId,
+  })
 
   const baseDefaultValues: DefaultValues<FlightLogUpsertRequest> = initialData
     ? FlightLogUpsertSchema.strip().parse(initialData)
@@ -341,19 +361,6 @@ const FlightLogEntryWizardInner = ({
           (initialData.instrumentFlyingMins ?? 0) > 0
       : null
   })
-  const [refueled, setRefueled] = useState<boolean | null>(() => {
-    if (persistedDraft) return persistedDraft.refueled
-    // null/undefined means unanswered (common on entries predating this required
-    // field) — leave it unanswered rather than guessing, so the step still requires
-    // an explicit choice. 0 means the user already answered "No".
-    if (!initialData || initialData.fuelUpliftLitres == null) return null
-    return initialData.fuelUpliftLitres > 0
-  })
-  const [oilAdded, setOilAdded] = useState<boolean | null>(() => {
-    if (persistedDraft) return persistedDraft.oilAdded
-    if (!initialData || initialData.oilUpliftLitres == null) return null
-    return initialData.oilUpliftLitres > 0
-  })
   // Defects found on this flight, reported alongside the entry itself instead of via
   // the old separate "Add in-flight defect" button on the logbook view -- see doSave.
   const [reportedDefects, setReportedDefects] = useState<string[]>(
@@ -412,8 +419,8 @@ const FlightLogEntryWizardInner = ({
         stepIndex,
         flightDateIso: flightDate.toISOString(),
         nightOrIfr,
-        refueled,
-        oilAdded,
+        pendingFuelRecord,
+        pendingOilRecord,
         reportedDefects,
         reportedRemarks,
       })
@@ -439,8 +446,8 @@ const FlightLogEntryWizardInner = ({
     stepIndex,
     flightDate,
     nightOrIfr,
-    refueled,
-    oilAdded,
+    pendingFuelRecord,
+    pendingOilRecord,
     reportedDefects,
     reportedRemarks,
     watch,
@@ -485,11 +492,14 @@ const FlightLogEntryWizardInner = ({
       case 'nightIfr':
         return nightOrIfr !== null
       case 'fuelUplift':
-        return refueled !== null && (refueled === false || (watch('fuelUpliftLitres') ?? 0) > 0)
+        // null means unresolved: no litres figure (0 = "none added" is fine) and
+        // no record linked/created yet, whether fresh or (for an old flight) a
+        // still-unset legacy value.
+        return watch('fuelUpliftLitres') != null || !!pendingFuelRecord
       case 'fuelRemaining':
         return (watch('fuelRemainingLitres') ?? 0) > 0
       case 'oil':
-        return oilAdded !== null && (oilAdded === false || (watch('oilUpliftLitres') ?? 0) > 0)
+        return watch('oilUpliftLitres') != null || !!pendingOilRecord
       case 'notes':
       case 'review':
         return true
@@ -574,6 +584,32 @@ const FlightLogEntryWizardInner = ({
             console.error('Failed to submit reported remarks:', err)
           }),
         ])
+
+        // Sequential, not parallel -- both go through the same mutation hook,
+        // whose in-flight state a concurrent second trigger() would stomp on.
+        // A failure here is non-fatal in the same sense as defects/remarks
+        // above: the flight itself is saved, the pending record (kept below on
+        // failure) is still valid and unclaimed, and the backend refuses to
+        // validate this flight until fuel/oil are actually resolved -- so
+        // there's a real backstop even if this member never comes back to it.
+        if (pendingFuelRecord) {
+          const { error } = await linkMutation.trigger(
+            'POST',
+            { flightLogId: savedFlightId },
+            absolute(endpoints.liquid.linkRecord(pendingFuelRecord.recordId)),
+          )
+          if (error) console.error('Failed to link fuel record:', error)
+          else setPendingFuelRecord(undefined)
+        }
+        if (pendingOilRecord) {
+          const { error } = await linkMutation.trigger(
+            'POST',
+            { flightLogId: savedFlightId },
+            absolute(endpoints.liquid.linkRecord(pendingOilRecord.recordId)),
+          )
+          if (error) console.error('Failed to link oil record:', error)
+          else setPendingOilRecord(undefined)
+        }
       }
 
       discardDraft()
@@ -703,13 +739,23 @@ const FlightLogEntryWizardInner = ({
         <NightIfrStep {...formProps} nightOrIfr={nightOrIfr} onNightOrIfrChange={setNightOrIfr} />
       )}
       {currentStep === 'fuelUplift' && (
-        <FuelUpliftStep {...formProps} refueled={refueled} onRefueledChange={setRefueled} />
+        <FuelUpliftStep
+          {...formProps}
+          aircraftRegistration={registration}
+          pendingRecord={pendingFuelRecord}
+          onPendingRecordChange={setPendingFuelRecord}
+        />
       )}
       {currentStep === 'fuelRemaining' && (
         <FuelRemainingStep {...formProps} usableFuelLitres={aircraft?.usableFuelLitres ?? 100} />
       )}
       {currentStep === 'oil' && (
-        <OilStep {...formProps} oilAdded={oilAdded} onOilAddedChange={setOilAdded} />
+        <OilStep
+          {...formProps}
+          aircraftRegistration={registration}
+          pendingRecord={pendingOilRecord}
+          onPendingRecordChange={setPendingOilRecord}
+        />
       )}
       {currentStep === 'notes' && (
         <NotesStep
@@ -737,6 +783,8 @@ const FlightLogEntryWizardInner = ({
           acTotalFlightTimeAfter={initialData?.acTotalFlightTime}
           originalTakeoffTimeEpoch={initialData?.takeoffTimeEpoch}
           originalLandingTimeEpoch={initialData?.landingTimeEpoch}
+          pendingFuelRecord={pendingFuelRecord}
+          pendingOilRecord={pendingOilRecord}
         />
       )}
 

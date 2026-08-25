@@ -1,7 +1,10 @@
 import { noExtraKeys } from './rowToContract.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
+import { HttpStatusCode } from 'axios'
 
 import { db } from './connection.ts'
+import { problem } from '../routes/response.ts'
+import { getRecordsForClaim, linkRecordsToClaim, unlinkRecordsFromClaim } from './liquid-queries.ts'
 import type { DB } from './schema.d.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
@@ -483,6 +486,24 @@ async function computeFuelReimbursementSummary(
   )
 }
 
+/**
+ * `linkRecordsToClaim`'s `WHERE expenseClaimId IS NULL` guard stops a record
+ * being linked twice, but the claim's own line items were already derived from
+ * a pre-transaction read (`loadClaimableFuelRecords`) of the records the caller
+ * still believed were free. If another request won the race for one of them in
+ * between, `rejected` names it here -- and the claim must not be saved with
+ * cost/litres figures for a record it was never actually linked to, so this
+ * rolls the whole write back rather than persisting a claim with stale totals.
+ */
+function assertAllRecordsLinked({ rejected }: { linked: string[]; rejected: string[] }): void {
+  if (rejected.length === 0) return
+  problem({
+    status: HttpStatusCode.Conflict,
+    detail:
+      'One of the selected fuel records was just claimed on another submission. Please review your selection and try again.',
+  })
+}
+
 export async function createExpenseClaim(
   data: CreateExpenseClaim,
   user: JWTUser,
@@ -521,6 +542,14 @@ export async function createExpenseClaim(
     await insertLineItems(txn, inserted.id, data.lineItems)
     if (data.mileageLegs) {
       await replaceMileageLegs(txn, inserted.id, data.mileageLegs, effectiveRate)
+    }
+    // #1119: attach the fuel records this claim was built from, freezing their
+    // paid and tax-adjusted prices. Inside the same transaction, so a claim and
+    // the records it is derived from are saved together or not at all.
+    if (data.liquidRecordIds?.length) {
+      assertAllRecordsLinked(
+        await linkRecordsToClaim(data.liquidRecordIds, inserted.id, user.memberId, txn),
+      )
     }
     return inserted.id
   })
@@ -579,6 +608,19 @@ export async function updateExpenseClaim(
       await replaceMileageLegs(txn, id, data.mileageLegs, effectiveRate)
     }
 
+    // #1119: the selection replaces whatever was attached before. Records the
+    // member removed are released -- and their frozen prices cleared -- so they
+    // can go on a different claim; only a draft or pending-info claim reaches
+    // this path, so nothing already approved is disturbed.
+    if (data.liquidRecordIds) {
+      await unlinkRecordsFromClaim(id, user.memberId, txn)
+      if (data.liquidRecordIds.length) {
+        assertAllRecordsLinked(
+          await linkRecordsToClaim(data.liquidRecordIds, id, user.memberId, txn),
+        )
+      }
+    }
+
     await txn
       .insertInto('accts.expenseClaimMessage')
       .values({
@@ -594,12 +636,20 @@ export async function updateExpenseClaim(
 }
 
 export async function deleteExpenseClaim(id: string): Promise<boolean> {
-  const result = await db
-    .deleteFrom('accts.expenseClaim')
-    .where('id', '=', id)
-    .executeTakeFirstOrThrow()
+  return db.transaction().execute(async (txn) => {
+    // Liquid records reference the claim, and #1119 makes a claim-linked record
+    // immutable -- so a deleted claim that left its records pointing at it
+    // would strand them: unclaimable, uneditable and undeletable by anyone.
+    // Released first, which also clears the frozen prices.
+    await unlinkRecordsFromClaim(id, 'system', txn)
 
-  return result.numDeletedRows > BigInt(0)
+    const result = await txn
+      .deleteFrom('accts.expenseClaim')
+      .where('id', '=', id)
+      .executeTakeFirstOrThrow()
+
+    return result.numDeletedRows > BigInt(0)
+  })
 }
 
 export async function retractExpenseClaim(
@@ -870,6 +920,32 @@ export async function treasurerEditExpenseClaim(
   const existing = await getExpenseClaimById(claimId)
   if (!existing) {
     throw new Error('Expense claim not found')
+  }
+
+  // #1119: quantity/unitPrice/totalCost on a fuel-derived line item mirror the
+  // originalPaidTotal/originalPricePerLitre frozen onto the liquid record by
+  // linkRecordsToClaim -- the whole point of deriving these was to remove the
+  // two-sources-of-truth problem, so this route (the one path that still writes
+  // a line item's own cost/quantity directly) must not let them drift from what
+  // the linked record froze. Fixing something else about the item -- item code,
+  // cost centre, club-card flag -- is still fine.
+  if ((await getRecordsForClaim(claimId)).length > 0) {
+    const FROZEN_BY_LIQUID_RECORD = ['quantity', 'unitPrice', 'totalCost'] as const
+    for (const lineItemPatch of patch.lineItems ?? []) {
+      const existingLineItem = existing.lineItems?.find((li) => li.id === lineItemPatch.id)
+      if (!existingLineItem) continue
+      for (const field of FROZEN_BY_LIQUID_RECORD) {
+        if (!hasOwn(lineItemPatch, field)) continue
+        const newValue = (lineItemPatch as Record<string, unknown>)[field] ?? null
+        const oldValue = (existingLineItem as Record<string, unknown>)[field] ?? null
+        if (newValue !== oldValue) {
+          return problem({
+            status: HttpStatusCode.Conflict,
+            detail: `This claim's fuel details come from a linked fuel record, so ${field} cannot be edited here. Ask the member to fix the underlying fuel record instead.`,
+          })
+        }
+      }
+    }
   }
 
   const auditRows: EditAuditRow[] = []

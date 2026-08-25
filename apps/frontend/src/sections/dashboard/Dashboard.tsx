@@ -17,6 +17,7 @@ import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
 import { DtoInstructorWidget } from './components/DtoInstructorWidget'
 import { EventsDashboard } from './components/EventsDashboard'
+import { LiquidClaimableWidget } from './components/LiquidClaimableWidget'
 import useApi from '@mik/ui/hooks/useApi'
 import type { DashboardSettings, DashboardComponent } from './types'
 import { ALWAYS_VISIBLE_COMPONENTS } from './types'
@@ -29,6 +30,7 @@ const createComponentMap = (
   flyingUser: boolean,
   me: ReturnType<typeof useRoles>['me'],
   isDtoInstructor: boolean,
+  liquidUser: boolean,
 ): Record<string, () => JSX.Element | null> => ({
   reservationsSuspended: () => (isMember ? <ReservationsSuspendedBanner /> : null),
   overdueInvoice: () => (isMember ? <OverdueInvoiceBanner /> : null),
@@ -42,6 +44,7 @@ const createComponentMap = (
   events: () => (isMember ? <EventsDashboard /> : null),
   bookingUser: () => (bookingUser ? <BookingUserDashboard /> : null),
   flightLogUser: () => (flyingUser ? <FlightLogUserDashboard /> : null),
+  liquidClaimable: () => (liquidUser ? <LiquidClaimableWidget /> : null),
   // memberAdmin, flightLogAdmin, expenseAdmin and ameAdmin were here until
   // #1233. They are queues of work an admin does at a desk, and they now make
   // up the admin app's dashboard — see apps/admin/src/sections/dashboard.
@@ -56,6 +59,7 @@ const Dashboard = () => {
   const isMember = hasAccess(MIKPermissions.MEMBER)
   const bookingUser = hasAccess(MIKPermissions.BOOKING_USER, MIKPermissions.BOOKING_ADMIN)
   const flyingUser = hasAccess(MIKPermissions.FLIGHTLOG_USER, MIKPermissions.FLIGHTLOG_ADMIN)
+  const liquidUser = hasAccess(MIKPermissions.LIQUID_USER)
 
   // Fetch dashboard settings
   const {
@@ -80,7 +84,14 @@ const Dashboard = () => {
   }
 
   // Component mapping - returns null if component should not be shown based on permissions
-  const componentMap = createComponentMap(isMember, bookingUser, flyingUser, me, isDtoInstructor)
+  const componentMap = createComponentMap(
+    isMember,
+    bookingUser,
+    flyingUser,
+    me,
+    isDtoInstructor,
+    liquidUser,
+  )
   const alwaysVisibleComponentIds: readonly string[] = ALWAYS_VISIBLE_COMPONENTS
   const customizableComponentIds = useMemo(
     () => Object.keys(componentMap).filter((id) => !alwaysVisibleComponentIds.includes(id)),

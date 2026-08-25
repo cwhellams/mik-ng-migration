@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { FUEL_TYPES as CLUB_FUEL_TYPES } from './aircrafts.ts'
 import { createMileageLegSchema, MileageLegSchema } from './expenses-mileage.ts'
 import {
   DateRangeSchema,
@@ -63,9 +64,11 @@ export const MIK_SUPPORTED_CURRENCIES = [
 
 export type EuropeanCurrency = (typeof MIK_SUPPORTED_CURRENCIES)[number]
 
-// Fuel types available at EFNU.
-export const FUEL_TYPES = ['100LL', 'JetA1', 'mogas'] as const
-export type FuelType = (typeof FUEL_TYPES)[number]
+// Fuel types, from the one place that defines them. Re-exported rather than
+// re-declared: this module used to carry its own ['100LL', 'JetA1', 'mogas'],
+// which is exactly the second vocabulary #1119 set out to remove. Kept as an
+// export because a dozen call sites import it from here.
+export { FUEL_TYPES, type FuelType } from './aircrafts.ts'
 
 export const ExpenseLineItemSchema = z.object({
   id: z.number().optional(),
@@ -86,7 +89,7 @@ export const ExpenseLineItemSchema = z.object({
   totalCost: z.number().min(0).nullable().optional(),
   sortOrder: z.number().int().default(0),
   costCentreCode: z.string().max(50).nullable().optional(),
-  fuelType: z.enum(FUEL_TYPES).optional(),
+  fuelType: z.enum(CLUB_FUEL_TYPES).optional(),
   airport: z.string().max(10).nullable().optional(),
   // Fuel bought with the club's card rather than by the member (issue #955) — still
   // counts toward the trip's balanced price-cap calculation, but is never reimbursed.
@@ -117,6 +120,12 @@ export const ExpenseClaimAttachmentSchema = z.object({
   mimeType: z.string(),
   sortOrder: z.number(),
   uploadedAt: z.string(),
+  /**
+   * Set when this attachment was auto-copied from the liquid record's own
+   * receipt (reported at the pump) rather than uploaded directly to the claim
+   * — see `LiquidRecordAttachment` in `@mik/contracts/liquid`.
+   */
+  sourceLiquidAttachmentId: z.number().nullable().optional(),
 })
 export type ExpenseClaimAttachment = z.infer<typeof ExpenseClaimAttachmentSchema>
 
@@ -142,7 +151,7 @@ export const createExpenseClaimSchema = (maxMileageKm?: number) =>
     description: optionalTrimmedString(z.string().max(2000)),
     expenseDate: z.string().date().optional(),
     fuelLitres: z.number().positive().optional(),
-    fuelType: z.enum(FUEL_TYPES).optional(),
+    fuelType: z.enum(CLUB_FUEL_TYPES).optional(),
     currency: z.enum(MIK_SUPPORTED_CURRENCIES).optional(),
     fxRate: z.number().positive().nullable().optional(),
     // Not required to be non-empty here — a claim can be saved as a draft before any
@@ -154,6 +163,29 @@ export const createExpenseClaimSchema = (maxMileageKm?: number) =>
     mileageLegs: z.array(createMileageLegSchema(maxMileageKm)).min(1).optional(),
     /** Finnish social security number, claim-level (one person per claim), masked on read. */
     hetu: z.string().optional(),
+    /**
+     * Fuel records this claim is built from (#1119).
+     *
+     * When present, the server **derives the line items from the records** and
+     * ignores whatever `lineItems` carried: the litres, airport, fuel type and
+     * cost come from what the member reported at the pump, not from what they
+     * retype into the claim form. That is the whole point of the change — before
+     * it, the same fuelling was entered twice and the two could disagree.
+     *
+     * One claim may hold several records (a trip with three fuellings), but a
+     * record may only ever be on one claim.
+     */
+    liquidRecordIds: z
+      .array(z.string().guid())
+      .max(50)
+      // A selection, not a list: the same record picked twice is still one
+      // fuelling. Deduplicated here because the ids are consumed twice — once
+      // to derive the line items, once to link the records — and only the
+      // second collapses duplicates on its own (it matches with `in`). Left to
+      // the call site, a doubled id would double a line item and the claim's
+      // total while still linking one record.
+      .transform((ids) => [...new Set(ids)])
+      .optional(),
   })
 
 /** The claim schema with the default mileage cap — use for types and for callers with no env. */

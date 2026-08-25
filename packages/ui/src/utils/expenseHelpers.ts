@@ -60,7 +60,10 @@ export function matchAircraftCostCentre(
 /**
  * Whether an ICAO airport code lies outside Finland (issue #1020) — Finnish
  * aerodromes all use the EFxx prefix, so anything else counts as abroad.
+ *
+ * Re-exported from `@mik/contracts/liquid` rather than re-implemented: #1119
+ * needed the same rule server-side to derive a fuel record's tax status, and two
+ * copies of "does this start with EF" is how a fuel claim and a fuel record come
+ * to disagree about where a purchase happened.
  */
-export function isAirportOutsideFinland(icao: string | null | undefined): boolean {
-  return !!icao && !icao.toUpperCase().startsWith('EF')
-}
+export { isAirportOutsideFinland } from '@mik/contracts/liquid'

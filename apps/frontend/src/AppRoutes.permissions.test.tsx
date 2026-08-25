@@ -74,9 +74,15 @@ describe('route table', () => {
     // another gate is added, add its row to routeMatrix.tsx and change these
     // numbers with it — `covers every gate in AppRoutes.tsx` above is what
     // forces that.
-    expect(ROUTES).toHaveLength(61)
+    //
+    // #1119 added four routes and no gates: every /liquid endpoint requires
+    // `liquid.user`, so an unauthorised member gets the same 403 as /inventory
+    // and /expenses rather than a route-level <Forbidden />. The three
+    // liquid-admin console pages and the treasurer's fuel tax page went to
+    // apps/admin instead, gated there.
+    expect(ROUTES).toHaveLength(65)
     expect(GATED_ROUTES).toHaveLength(1)
-    expect(UNGATED_ROUTES).toHaveLength(60)
+    expect(UNGATED_ROUTES).toHaveLength(64)
   })
 
   it('opens nothing to the public beyond the sign-in routes and the 404', () => {
