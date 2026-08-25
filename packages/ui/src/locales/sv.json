@@ -2,6 +2,7 @@
   "header": {
     "dashboard": "Instrumentpanel",
     "schedule": "Schema",
+    "aircraftReservations": "Flygplansbokningar",
     "fly": "Flyga",
     "aircrafts": "Flygplan",
     "members": "Medlemmar",
@@ -63,7 +64,8 @@
     "ameList": "AME-katalog",
     "ameAdmin": "AME-godkännanden",
     "meetings": "Möten",
-    "meetingsAdmin": "Möten (administration)"
+    "meetingsAdmin": "Möten (administration)",
+    "itemReservations": "Utrustningsbokningar"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -3031,7 +3033,10 @@
       "UPDATED": "Uppdaterad",
       "QUANTITY_CHANGE": "Antal ändrat",
       "CONDITION_CHANGE": "Skick ändrat",
-      "DEACTIVATED": "Inaktiverad"
+      "DEACTIVATED": "Inaktiverad",
+      "UNIT_CREATED": "Enhet tillagd",
+      "UNIT_UPDATED": "Enhet uppdaterad",
+      "UNIT_STATUS_CHANGE": "Enhetens status ändrad"
     },
     "admin": {
       "title": "Inventarieadmin",
@@ -3048,7 +3053,32 @@
       "delta": "Förändring (+ eller -)",
       "deltaHint": "Positivt för att lägga till, negativt för att ta bort",
       "fieldRequired": "Detta fält är obligatoriskt",
-      "invalidImageUrl": "Ange en giltig http(s)-URL"
+      "invalidImageUrl": "Ange en giltig http(s)-URL",
+      "tabUnits": "Enheter",
+      "selectItem": "Artikel",
+      "selectItemFirst": "Välj en artikel för att hantera dess enheter.",
+      "onlyReservableItems": "Endast artiklar markerade som bokningsbara visas.",
+      "reservableNoUnits": "Markerad som bokningsbar, men artikeln har inga enheter i tjänst — alla bokningar avvisas. Lägg till enheter på fliken Enheter.",
+      "reservableAddUnitsAfterSaving": "Spara artikeln först och lägg sedan till dess enheter på fliken Enheter — en artikel utan enheter kan inte bokas."
+    },
+    "isReservable": "Bokningsbar",
+    "isReservableHint": "Visa denna artikel i bokningskalendern för utrustning",
+    "units": "Enheter",
+    "unit": "Enhet",
+    "unitTag": "Märkning",
+    "unitsInService": "{{count}} av {{total}} enheter i tjänst",
+    "addUnit": "Lägg till enhet",
+    "editUnit": "Redigera enhet",
+    "changeUnitStatus": "Ändra enhetens status",
+    "noUnits": "Denna artikel har inga enskilda enheter ännu. Lägg till en så att den kan bokas.",
+    "unitStatus": {
+      "label": "Status",
+      "AVAILABLE": "Ledig",
+      "RESERVED": "Bokad",
+      "ON_LOAN": "Utlånad",
+      "MAINTENANCE": "På underhåll",
+      "LOST": "Förlorad",
+      "RETIRED": "Tagen ur bruk"
     }
   },
   "meetings": {
@@ -3202,6 +3232,58 @@
       "noCommercialFlights": "Inga kommersiella flygningar registrerade de senaste 12 månaderna.",
       "month": "Månad",
       "commercialHours": "Kommersiella timmar"
+    }
+  },
+  "itemReservations": {
+    "title": "Utrustningsbokningar",
+    "showItems": "Artiklar",
+    "ALL": "Alla",
+    "showCancelled": "Visa avbokade",
+    "newReservation": "Ny bokning",
+    "editReservation": "Redigera bokning",
+    "startDate": "Startdatum och tid ({{tz}})",
+    "endDate": "Slutdatum och tid ({{tz}})",
+    "item": "Artikel",
+    "quantity": "Antal",
+    "unit": "Specifik enhet",
+    "anyUnit": "Vilken ledig enhet som helst",
+    "unitOnlyForOne": "En specifik enhet kan bara väljas när du bokar en enda.",
+    "linkedBooking": "Flygbokning",
+    "noLinkedBooking": "Inte kopplad till någon flygning",
+    "linkedBookingHint": "Koppla bokningen till en av dina kommande flygningar så att det framgår vad utrustningen ska användas till.",
+    "description": "Beskrivning",
+    "details": "Bokningsdetaljer",
+    "owner": "Bokad av",
+    "created": "Skapad",
+    "updated": "Uppdaterad",
+    "cancelled": "Avbokad",
+    "cancellationNote": "Ytterligare anteckningar",
+    "cancellationNoteHint": "Valfritt: varför bokningen avbokades",
+    "confirmCancel": "Avboka",
+    "availability": "{{available}} av {{total}} enheter i tjänst är lediga vid denna tid",
+    "noneAvailable": "Ingen av de {{total}} enheterna i tjänst är ledig vid denna tid",
+    "noReservableItems": "Inga artiklar är markerade som bokningsbara ännu. En lageradministratör kan aktivera en och lägga till dess enheter.",
+    "noUnits": "Denna artikel har inga enheter i tjänst och kan därför inte bokas ännu.",
+    "self": "du",
+    "calendarMessages": {
+      "date": "Datum",
+      "time": "Tid (Helsinki)",
+      "event": "Bokning",
+      "allDay": "Hela dagen",
+      "week": "Vecka",
+      "day": "Dag",
+      "month": "Månad",
+      "today": "Idag",
+      "previous": "Föregående",
+      "next": "Nästa",
+      "noEventsInRange": "Det finns inga bokningar i detta intervall."
+    },
+    "validation": {
+      "disablePast": "Datum/tid kan inte vara i det förflutna",
+      "minutesStep": "Använd 15-minutersintervall",
+      "invalidDateTime": "Ogiltigt datum/tid",
+      "endAfterStart": "Sluttiden måste vara efter starttiden",
+      "itemRequired": "Välj en artikel att boka"
     }
   }
 }

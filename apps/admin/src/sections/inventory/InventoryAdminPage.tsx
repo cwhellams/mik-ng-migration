@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -36,7 +37,20 @@ import { RemoteContent } from '@mik/ui/components/RemoteContent'
 
 import { InventoryItemHistory } from './InventoryItemHistory'
 import { LocalisedTextField, withLocalisedField } from '@mik/ui/components/LocalisedTextField'
-import type { InventoryItem, InventoryCategory, InventoryLocation } from '@mik/contracts/inventory'
+import {
+  ItemConditionEnum,
+  type ItemCondition,
+  type InventoryItem,
+  type InventoryCategory,
+  type InventoryLocation,
+} from '@mik/contracts/inventory'
+import {
+  ItemUnitStatusEnum,
+  type ItemUnit,
+  type ItemUnitListResponse,
+  type ItemUnitStatus,
+} from '@mik/contracts/inventory-units'
+import { absolute, endpoints } from '../../api/endpoints'
 import { localText as localName, resolveLanguage } from '@mik/ui/utils/localisedText'
 
 // ── Localized CRUD tab (shared by Categories & Locations) ───────────────────────
@@ -265,6 +279,7 @@ interface ItemFormState {
   notes: string
   tags: string
   isActive: boolean
+  isReservable: boolean
 }
 
 const emptyItemForm: ItemFormState = {
@@ -285,6 +300,7 @@ const emptyItemForm: ItemFormState = {
   notes: '',
   tags: '',
   isActive: true,
+  isReservable: false,
 }
 
 function itemToForm(item: InventoryItem): ItemFormState {
@@ -308,6 +324,7 @@ function itemToForm(item: InventoryItem): ItemFormState {
     notes: item.notes ?? '',
     tags: (item.tags ?? []).join(', '),
     isActive: item.isActive,
+    isReservable: item.isReservable,
   }
 }
 
@@ -353,6 +370,7 @@ function formToItemPayload(f: ItemFormState) {
           .filter(Boolean)
       : [],
     isActive: f.isActive,
+    isReservable: f.isReservable,
   }
 }
 
@@ -395,6 +413,27 @@ function ItemsTab() {
   const [adjustDelta, setAdjustDelta] = useState('')
   const [adjustNotes, setAdjustNotes] = useState('')
   const { mutation: adjustMutation } = useApi<InventoryItem>({ url: '', skipFetch: true })
+
+  // Ticking "reservable" is only half of making an item reservable: capacity is
+  // counted from the item's units, so one with none is offered in the
+  // reservation calendar's item picker and then refuses every reservation with
+  // "0 of 0 units are free for that time". The editor over there already warns
+  // about it; without the same warning here, the tab the admin never opened is
+  // the one thing not on screen.
+  //
+  // Only fetched while the dialog is open on an existing item that is ticked —
+  // a brand-new item has no id to ask about, and gets the "after saving" note
+  // below instead.
+  const { data: unitData } = useApi<ItemUnitListResponse>({
+    url: endpoints.inventoryUnits.forItem(editing?.itemId ?? 'no-item'),
+    skipFetch: !dialogOpen || !editing || !form.isReservable,
+  })
+
+  // `unitData &&` rather than `?? 0`: while the request is in flight the count
+  // is unknown, not zero, and warning first and retracting it reads as a bug.
+  const reservableWithoutUnits =
+    form.isReservable && !!editing && !!unitData && unitData.inServiceCount === 0
+  const reservableBeforeSaving = form.isReservable && !editing
 
   const nameError = attemptedSubmit && !form.nameEn.trim()
   const categoryError = attemptedSubmit && !form.categoryId
@@ -733,6 +772,31 @@ function ItemsTab() {
             }
             label={t('common.active')}
           />
+
+          {/* Opt-in, so the reservation calendar's item picker stays a short
+              list of things worth reserving rather than the whole catalog. */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={form.isReservable}
+                onChange={(e) => setForm((f) => ({ ...f, isReservable: e.target.checked }))}
+              />
+            }
+            label={t('inventory.isReservable')}
+          />
+          <FormHelperText>{t('inventory.isReservableHint')}</FormHelperText>
+
+          {reservableWithoutUnits && (
+            <Alert severity='warning' sx={{ mt: 2 }}>
+              {t('inventory.admin.reservableNoUnits')}
+            </Alert>
+          )}
+
+          {reservableBeforeSaving && (
+            <Alert severity='info' sx={{ mt: 2 }}>
+              {t('inventory.admin.reservableAddUnitsAfterSaving')}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={close}>{t('common.cancel')}</Button>
@@ -787,6 +851,321 @@ function ItemsTab() {
   )
 }
 
+// ── Units Tab ─────────────────────────────────────────────────────────────────
+
+/**
+ * The physical units of a reservable item (#1139).
+ *
+ * Its own tab rather than a control on the Items tab, because a unit is a row
+ * in its own right — a tag, a condition, a status — and the item table has no
+ * room to nest one list inside another. Only reservable items are offered: an
+ * item nobody can reserve has no use for per-unit identity.
+ */
+function UnitsTab() {
+  const { t, i18n } = useTranslation()
+  const { showSnackbar } = useSnackbar()
+  const lang = resolveLanguage(i18n.language)
+
+  const { data: items } = useApi<InventoryItem[]>({
+    url: 'v1/inventory/items',
+    params: { reservableOnly: 'true', includeInactive: 'true' },
+  })
+
+  const [itemId, setItemId] = useState('')
+
+  // `skipFetch` nulls SWR's key, so the placeholder id is never fetched — it
+  // only satisfies `url`'s string type while no item is chosen.
+  const {
+    data: unitData,
+    mutate,
+    isLoading,
+    error,
+  } = useApi<ItemUnitListResponse>({
+    url: endpoints.inventoryUnits.forItem(itemId || 'no-item'),
+    skipFetch: !itemId,
+  })
+
+  // Writes go to three different paths (create under the item, update and
+  // status under the unit), so they ride a separate mutation-only hook and pass
+  // an absolute path each time rather than sharing the list hook's url.
+  const { mutation: unitMutation } = useApi<ItemUnit>({ url: '', skipFetch: true })
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<ItemUnit | null>(null)
+  const [tag, setTag] = useState('')
+  const [condition, setCondition] = useState<ItemCondition>('UNKNOWN')
+  const [notes, setNotes] = useState('')
+  const [isActive, setIsActive] = useState(true)
+
+  const [statusDialog, setStatusDialog] = useState<ItemUnit | null>(null)
+  const [nextStatus, setNextStatus] = useState<ItemUnitStatus>('AVAILABLE')
+  const [statusNotes, setStatusNotes] = useState('')
+
+  const openCreate = () => {
+    setEditing(null)
+    setTag('')
+    setCondition('UNKNOWN')
+    setNotes('')
+    setIsActive(true)
+    setDialogOpen(true)
+  }
+
+  const openEdit = (unit: ItemUnit) => {
+    setEditing(unit)
+    setTag(unit.tag ?? '')
+    setCondition(unit.condition)
+    setNotes(unit.notes ?? '')
+    setIsActive(unit.isActive)
+    setDialogOpen(true)
+  }
+
+  const handleSave = async () => {
+    const payload = { tag: tag.trim() || null, condition, notes: notes.trim() || null, isActive }
+    const result = editing
+      ? await unitMutation.trigger(
+          'PUT',
+          payload,
+          absolute(endpoints.inventoryUnits.byId(editing.unitId)),
+        )
+      : await unitMutation.trigger(
+          'POST',
+          payload,
+          absolute(endpoints.inventoryUnits.forItem(itemId)),
+        )
+
+    if (result.error) {
+      showSnackbar(result.error.detail ?? t('common.error'), { severity: 'error' })
+      return
+    }
+    await mutate()
+    showSnackbar(t('common.saved'), { severity: 'success' })
+    setDialogOpen(false)
+  }
+
+  const handleStatusChange = async () => {
+    if (!statusDialog) return
+
+    const result = await unitMutation.trigger(
+      'POST',
+      { status: nextStatus, notes: statusNotes.trim() || null },
+      absolute(endpoints.inventoryUnits.status(statusDialog.unitId)),
+    )
+    if (result.error) {
+      showSnackbar(result.error.detail ?? t('common.error'), { severity: 'error' })
+      return
+    }
+    await mutate()
+    showSnackbar(t('common.saved'), { severity: 'success' })
+    setStatusDialog(null)
+    setStatusNotes('')
+  }
+
+  const units = unitData?.units ?? []
+
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 2 }}>
+        <FormControl size='small' sx={{ minWidth: 260 }}>
+          <InputLabel id='inventory-units-item-label'>{t('inventory.admin.selectItem')}</InputLabel>
+          <Select
+            labelId='inventory-units-item-label'
+            value={itemId}
+            label={t('inventory.admin.selectItem')}
+            onChange={(e) => setItemId(e.target.value)}
+          >
+            {items?.map((item) => (
+              <MenuItem key={item.itemId} value={item.itemId}>
+                {localName(item.name as Record<string, string>, lang)}
+              </MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>{t('inventory.admin.onlyReservableItems')}</FormHelperText>
+        </FormControl>
+
+        <Button
+          variant='contained'
+          startIcon={<Icon icon='mdi:plus' />}
+          onClick={openCreate}
+          disabled={!itemId}
+        >
+          {t('inventory.addUnit')}
+        </Button>
+      </Box>
+
+      {!itemId ? (
+        <Typography variant='body2' color='text.secondary'>
+          {t('inventory.admin.selectItemFirst')}
+        </Typography>
+      ) : (
+        <RemoteContent isLoading={isLoading} error={error}>
+          <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+            {t('inventory.unitsInService', {
+              count: unitData?.inServiceCount ?? 0,
+              total: units.length,
+            })}
+          </Typography>
+
+          {units.length === 0 ? (
+            <Typography variant='body2'>{t('inventory.noUnits')}</Typography>
+          ) : (
+            <TableContainer component={Paper}>
+              <Table size='small'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>{t('inventory.unitTag')}</TableCell>
+                    <TableCell>{t('inventory.unitStatus.label')}</TableCell>
+                    <TableCell>{t('inventory.condition.label')}</TableCell>
+                    <TableCell>{t('inventory.notes')}</TableCell>
+                    <TableCell>{t('inventory.status')}</TableCell>
+                    <TableCell />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {units.map((unit) => (
+                    <TableRow key={unit.unitId} hover>
+                      <TableCell>{unit.tag ?? unit.unitId}</TableCell>
+                      <TableCell>
+                        <Chip label={t(`inventory.unitStatus.${unit.status}`)} size='small' />
+                      </TableCell>
+                      <TableCell>{t(`inventory.condition.${unit.condition}`)}</TableCell>
+                      <TableCell>{unit.notes ?? ''}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={unit.isActive ? t('common.active') : t('common.inactive')}
+                          size='small'
+                          color={unit.isActive ? 'success' : 'default'}
+                        />
+                      </TableCell>
+                      <TableCell align='right'>
+                        <IconButton
+                          size='small'
+                          aria-label={`${t('inventory.changeUnitStatus')} ${unit.tag ?? unit.unitId}`}
+                          onClick={() => {
+                            setStatusDialog(unit)
+                            setNextStatus(unit.status)
+                            setStatusNotes('')
+                          }}
+                        >
+                          <Icon icon='mdi:swap-horizontal' />
+                        </IconButton>
+                        <IconButton
+                          size='small'
+                          aria-label={`${t('common.edit')} ${unit.tag ?? unit.unitId}`}
+                          onClick={() => openEdit(unit)}
+                        >
+                          <Icon icon='mdi:pencil' />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </RemoteContent>
+      )}
+
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth='xs' fullWidth>
+        <DialogTitle>{editing ? t('inventory.editUnit') : t('inventory.addUnit')}</DialogTitle>
+        <DialogContent sx={{ pt: '8px !important' }}>
+          <TextField
+            label={t('inventory.unitTag')}
+            size='small'
+            fullWidth
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <FormControl size='small' fullWidth sx={{ mb: 2 }}>
+            <InputLabel id='inventory-unit-condition-label'>
+              {t('inventory.condition.label')}
+            </InputLabel>
+            <Select
+              labelId='inventory-unit-condition-label'
+              value={condition}
+              label={t('inventory.condition.label')}
+              onChange={(e) => setCondition(e.target.value as ItemCondition)}
+            >
+              {ItemConditionEnum.options.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {t(`inventory.condition.${option}`)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label={t('inventory.notes')}
+            size='small'
+            fullWidth
+            multiline
+            rows={2}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            sx={{ mb: 1 }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+            }
+            label={t('common.active')}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>{t('common.cancel')}</Button>
+          <Button variant='contained' onClick={handleSave} disabled={unitMutation.isMutating}>
+            {t('common.save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Status moves through their own dialog so each one can carry a note and
+          land in the item's audit log — the same reason stock only moves
+          through the adjust-quantity dialog. */}
+      <Dialog open={!!statusDialog} onClose={() => setStatusDialog(null)} maxWidth='xs' fullWidth>
+        <DialogTitle>{t('inventory.changeUnitStatus')}</DialogTitle>
+        <DialogContent sx={{ pt: '8px !important' }}>
+          <FormControl size='small' fullWidth sx={{ mb: 2 }}>
+            <InputLabel id='inventory-unit-status-label'>
+              {t('inventory.unitStatus.label')}
+            </InputLabel>
+            <Select
+              labelId='inventory-unit-status-label'
+              value={nextStatus}
+              label={t('inventory.unitStatus.label')}
+              onChange={(e) => setNextStatus(e.target.value as ItemUnitStatus)}
+            >
+              {ItemUnitStatusEnum.options.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {t(`inventory.unitStatus.${option}`)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label={t('inventory.notes')}
+            size='small'
+            fullWidth
+            multiline
+            rows={2}
+            value={statusNotes}
+            onChange={(e) => setStatusNotes(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setStatusDialog(null)}>{t('common.cancel')}</Button>
+          <Button
+            variant='contained'
+            onClick={handleStatusChange}
+            disabled={unitMutation.isMutating}
+          >
+            {t('common.save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
+}
+
 // ── Main Admin Page ───────────────────────────────────────────────────────────
 
 export default function InventoryAdminPage() {
@@ -798,11 +1177,13 @@ export default function InventoryAdminPage() {
       <Title label={t('inventory.admin.title')} />
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
         <Tab label={t('inventory.admin.tabItems')} />
+        <Tab label={t('inventory.admin.tabUnits')} />
         <Tab label={t('inventory.admin.tabCategories')} />
         <Tab label={t('inventory.admin.tabLocations')} />
       </Tabs>
       {tab === 0 && <ItemsTab />}
-      {tab === 1 && (
+      {tab === 1 && <UnitsTab />}
+      {tab === 2 && (
         <LocalizedCrudTab<InventoryCategory>
           url='v1/inventory/categories'
           getId={(c) => c.categoryId}
@@ -810,7 +1191,7 @@ export default function InventoryAdminPage() {
           editLabel='inventory.admin.editCategory'
         />
       )}
-      {tab === 2 && (
+      {tab === 3 && (
         <LocalizedCrudTab<InventoryLocation>
           url='v1/inventory/locations'
           getId={(l) => l.locationId}

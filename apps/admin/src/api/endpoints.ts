@@ -31,6 +31,17 @@ export const endpoints = {
   aircrafts: {
     root: 'v1/aircrafts',
   },
+  /**
+   * Per-unit inventory (#1139). Unit management sits under the catalog's
+   * `/v1/inventory` prefix because creating a unit is stock-keeping; the
+   * reservations that consume them are the member app's, under their own
+   * prefix. The rest of the catalog still uses raw literals.
+   */
+  inventoryUnits: {
+    forItem: (itemId: string) => `v1/inventory/items/${itemId}/units`,
+    byId: (unitId: string) => `v1/inventory/units/${unitId}`,
+    status: (unitId: string) => `v1/inventory/units/${unitId}/status`,
+  },
 }
 
 /**

@@ -83,6 +83,11 @@ export type InventoryItemCondition = 'FAIR' | 'GOOD' | 'POOR' | 'UNKNOWN'
 
 export type InventoryItemType = 'ASSET' | 'CONSUMABLE'
 
+export type InventoryItemUnitStatus =
+  'AVAILABLE' | 'LOST' | 'MAINTENANCE' | 'ON_LOAN' | 'RESERVED' | 'RETIRED'
+
+export type InventoryReservationStatus = 'CANCELLED' | 'CONFIRMED'
+
 export type InvoiceType =
   | 'ANNUAL_FEE'
   | 'CREDIT_NOTE'
@@ -1206,6 +1211,10 @@ export interface InventoryItems {
   description: Json | null
   imageUrl: string | null
   isActive: Generated<boolean>
+  /**
+   * Whether this item appears in the item reservation calendar. Defaults to false so existing consumables stay out of it.
+   */
+  isReservable: Generated<boolean>
   itemId: string
   itemType: Generated<InventoryItemType>
   locationId: string | null
@@ -1219,6 +1228,20 @@ export interface InventoryItems {
   updatedBy: string
 }
 
+export interface InventoryItemUnits {
+  condition: Generated<InventoryItemCondition>
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  isActive: Generated<boolean>
+  itemId: string
+  notes: string | null
+  status: Generated<InventoryItemUnitStatus>
+  tag: string | null
+  unitId: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
 export interface InventoryLocations {
   createdAt: Generated<Timestamp>
   createdBy: string
@@ -1227,6 +1250,28 @@ export interface InventoryLocations {
   locationId: string
   name: Json
   sortOrder: Generated<number>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
+export interface InventoryReservations {
+  cancellationNote: string | null
+  cancelledAt: Timestamp | null
+  cancelledBy: string | null
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  description: string | null
+  endTimeEpoch: Int8
+  endTimeUtc: Generated<Timestamp>
+  itemId: string
+  linkedBookingId: string | null
+  memberId: string
+  quantity: Generated<number>
+  reservationId: string
+  reservationStatus: InventoryReservationStatus
+  startTimeEpoch: Int8
+  startTimeUtc: Generated<Timestamp>
+  unitId: string | null
   updatedAt: Generated<Timestamp>
   updatedBy: string
 }
@@ -2286,7 +2331,9 @@ export interface DB {
   'inventory.auditLog': InventoryAuditLog
   'inventory.categories': InventoryCategories
   'inventory.items': InventoryItems
+  'inventory.itemUnits': InventoryItemUnits
   'inventory.locations': InventoryLocations
+  'inventory.reservations': InventoryReservations
   'member.annualFees': MemberAnnualFees
   'member.brevoCampaignArchiveState': MemberBrevoCampaignArchiveState
   'member.brevoSyncState': MemberBrevoSyncState

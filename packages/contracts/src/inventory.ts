@@ -64,6 +64,9 @@ export const InventoryItemSchema = AuditableSchema.extend({
   notes: nullableTrimmedString(z.string().max(2000)).optional(),
   tags: z.array(z.string()).default([]),
   isActive: z.boolean().default(true),
+  // Whether the item appears in the item reservation calendar (#1139). Opt-in,
+  // so a consumable tracked by quantity alone stays out of the item picker.
+  isReservable: z.boolean().default(false),
   category: InventoryCategorySchema.optional(),
   location: InventoryLocationSchema.nullable().optional(),
 })
@@ -88,6 +91,12 @@ export const InventoryFiltersSchema = z.object({
   itemType: ItemTypeEnum.optional(),
   search: z.string().optional(),
   includeInactive: z
+    .enum(['true', 'false'])
+    .transform((v) => v === 'true')
+    .optional(),
+  // Narrows the list to items that can be reserved, which is what the item
+  // reservation calendar's picker wants.
+  reservableOnly: z
     .enum(['true', 'false'])
     .transform((v) => v === 'true')
     .optional(),

@@ -83,6 +83,12 @@ export enum MIKPermissions {
   // can create/edit/delete inventory items, locations and categories
   INVENTORY_ADMIN = 'inventory.admin',
 
+  // can reserve club items (life vests, oxygen tanks) in the item calendar
+  INVENTORY_RESERVATION_USER = 'inventory_reservation.user',
+
+  // can reserve on any member's behalf, and manage the physical units of an item
+  INVENTORY_RESERVATION_ADMIN = 'inventory_reservation.admin',
+
   // can submit AME recommendations
   AME_USER = 'ame.user',
 
@@ -127,6 +133,8 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
 
     case MIKPermissions.INVENTORY_ADMIN:
       return MIKPermissions.INVENTORY_USER
+    case MIKPermissions.INVENTORY_RESERVATION_ADMIN:
+      return MIKPermissions.INVENTORY_RESERVATION_USER
     case MIKPermissions.MEETING_ADMIN:
       return MIKPermissions.MEETING_USER
 

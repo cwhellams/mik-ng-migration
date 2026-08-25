@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Route, Routes, useLocation } from 'react-router'
 
-import type { MenuItem } from '../config/menuItems'
+import { menuItems, type MenuItem } from '../config/menuItems'
 import { signInAs, signInWithPermissions } from '../test/auth'
 import { aMemberWithoutPermissions } from '../test/fixtures'
 import { renderWithProviders } from '../test/renderWithProviders'
@@ -154,6 +154,80 @@ describe('HeaderSubMenu DTO access', () => {
 
     await screen.findByRole('tab', { name: /training/i })
     expect(screen.queryByRole('tab', { name: /verify/i })).toBeNull()
+  })
+})
+
+/**
+ * The Schedule group, driven by the real `menuItems` entry rather than a fixture.
+ *
+ * It is the one group whose second tab is an *absolute* path — the item
+ * reservation calendar kept the URL it already had when it moved out of the top
+ * row — so it exercises `resolvePath` and `isUnderAbsoluteSubItem` on live
+ * config. A fixture would only prove the component works on the shape this file
+ * happens to write down.
+ */
+describe('HeaderSubMenu schedule group', () => {
+  const schedule = menuItems.find((item) => item.path === '/schedule')!
+
+  it('offers both calendars to a member who may reserve either', async () => {
+    signInWithPermissions(MIKPermissions.BOOKING_USER, MIKPermissions.INVENTORY_RESERVATION_USER)
+
+    renderMenu(schedule, { route: '/schedule' })
+
+    expect(await screen.findByRole('tab', { name: /aircraft reservations/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /item reservations/i })).toBeInTheDocument()
+  })
+
+  it('lands on the aircraft calendar by default', async () => {
+    signInWithPermissions(MIKPermissions.BOOKING_USER, MIKPermissions.INVENTORY_RESERVATION_USER)
+
+    renderMenu(schedule, { route: '/schedule' })
+
+    expect(await screen.findByRole('tab', { name: /aircraft reservations/i })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+  })
+
+  it('stays open, with the item tab selected, on the absolute sub-item path', async () => {
+    signInWithPermissions(MIKPermissions.BOOKING_USER, MIKPermissions.INVENTORY_RESERVATION_USER)
+
+    renderMenu(schedule, { route: '/inventory-reservations' })
+
+    expect(await screen.findByRole('tab', { name: /item reservations/i })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+  })
+
+  it('navigates to the item calendar without nesting it under /schedule', async () => {
+    signInWithPermissions(MIKPermissions.BOOKING_USER, MIKPermissions.INVENTORY_RESERVATION_USER)
+
+    const { user } = renderMenu(schedule, { route: '/schedule' })
+
+    await user.click(await screen.findByRole('tab', { name: /item reservations/i }))
+
+    expect(await screen.findByText('at /inventory-reservations')).toBeInTheDocument()
+  })
+
+  it('shows only the equipment tab to a member who may not book aircraft', async () => {
+    // MEMBER holds inventory_reservation.user without booking.user (V2010), and
+    // the aircraft calendar is not theirs to see.
+    signInWithPermissions(MIKPermissions.INVENTORY_RESERVATION_USER)
+
+    renderMenu(schedule, { route: '/inventory-reservations' })
+
+    expect(await screen.findByRole('tab', { name: /item reservations/i })).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: /aircraft reservations/i })).toBeNull()
+  })
+
+  it('shows only the aircraft tab to a member who may not reserve equipment', async () => {
+    signInWithPermissions(MIKPermissions.BOOKING_USER)
+
+    renderMenu(schedule, { route: '/schedule' })
+
+    expect(await screen.findByRole('tab', { name: /aircraft reservations/i })).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: /item reservations/i })).toBeNull()
   })
 })
 

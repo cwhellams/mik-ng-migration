@@ -2,6 +2,7 @@
   "header": {
     "dashboard": "Dashboard",
     "schedule": "Schedule",
+    "aircraftReservations": "Aircraft Reservations",
     "fly": "Fly",
     "aircrafts": "Aircraft",
     "members": "Members",
@@ -63,7 +64,8 @@
     "ameList": "AME Directory",
     "ameAdmin": "AME Approvals",
     "meetings": "Meetings",
-    "meetingsAdmin": "Meetings Admin"
+    "meetingsAdmin": "Meetings Admin",
+    "itemReservations": "Item Reservations"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -3058,7 +3060,10 @@
       "UPDATED": "Updated",
       "QUANTITY_CHANGE": "Quantity Changed",
       "CONDITION_CHANGE": "Condition Changed",
-      "DEACTIVATED": "Deactivated"
+      "DEACTIVATED": "Deactivated",
+      "UNIT_CREATED": "Unit Added",
+      "UNIT_UPDATED": "Unit Updated",
+      "UNIT_STATUS_CHANGE": "Unit Status Changed"
     },
     "admin": {
       "title": "Inventory Admin",
@@ -3075,7 +3080,32 @@
       "delta": "Change (+ or -)",
       "deltaHint": "Positive to add stock, negative to remove",
       "fieldRequired": "This field is required",
-      "invalidImageUrl": "Enter a valid http(s) URL"
+      "invalidImageUrl": "Enter a valid http(s) URL",
+      "tabUnits": "Units",
+      "selectItem": "Item",
+      "selectItemFirst": "Choose an item to manage its units.",
+      "onlyReservableItems": "Only items marked reservable are listed.",
+      "reservableNoUnits": "Reservable, but this item has no units in service — every reservation will be refused. Add units on the Units tab.",
+      "reservableAddUnitsAfterSaving": "Save the item first, then add its units on the Units tab — an item with no units cannot be reserved."
+    },
+    "isReservable": "Reservable",
+    "isReservableHint": "Show this item in the item reservation calendar",
+    "units": "Units",
+    "unit": "Unit",
+    "unitTag": "Tag",
+    "unitsInService": "{{count}} of {{total}} units in service",
+    "addUnit": "Add Unit",
+    "editUnit": "Edit Unit",
+    "changeUnitStatus": "Change Unit Status",
+    "noUnits": "This item has no individual units yet. Add one so it can be reserved.",
+    "unitStatus": {
+      "label": "Status",
+      "AVAILABLE": "Available",
+      "RESERVED": "Reserved",
+      "ON_LOAN": "On loan",
+      "MAINTENANCE": "In maintenance",
+      "LOST": "Lost",
+      "RETIRED": "Retired"
     }
   },
   "meetings": {
@@ -3229,6 +3259,58 @@
       "noCommercialFlights": "No commercial flights recorded in the last 12 months.",
       "month": "Month",
       "commercialHours": "Commercial hours"
+    }
+  },
+  "itemReservations": {
+    "title": "Item Reservations",
+    "showItems": "Items",
+    "ALL": "All",
+    "showCancelled": "Show cancelled",
+    "newReservation": "New Reservation",
+    "editReservation": "Edit Reservation",
+    "startDate": "Start Date and Time ({{tz}})",
+    "endDate": "End Date and Time ({{tz}})",
+    "item": "Item",
+    "quantity": "Quantity",
+    "unit": "Specific unit",
+    "anyUnit": "Any available unit",
+    "unitOnlyForOne": "A specific unit can only be picked when reserving one.",
+    "linkedBooking": "Flight booking",
+    "noLinkedBooking": "Not linked to a flight",
+    "linkedBookingHint": "Link this to one of your upcoming flights so it is clear what the equipment is for.",
+    "description": "Description",
+    "details": "Reservation Details",
+    "owner": "Reserved by",
+    "created": "Created",
+    "updated": "Updated",
+    "cancelled": "Cancelled",
+    "cancellationNote": "Cancellation note",
+    "cancellationNoteHint": "Optional: why the reservation was cancelled",
+    "confirmCancel": "Cancel reservation",
+    "availability": "{{available}} of {{total}} in service free for this time",
+    "noneAvailable": "None of the {{total}} units in service are free for this time",
+    "noReservableItems": "No items are marked reservable yet. An inventory admin can enable one and add its units.",
+    "noUnits": "This item has no units in service, so it cannot be reserved yet.",
+    "self": "you",
+    "calendarMessages": {
+      "date": "Date",
+      "time": "Time (Helsinki)",
+      "event": "Reservation",
+      "allDay": "All Day",
+      "week": "Week",
+      "day": "Day",
+      "month": "Month",
+      "today": "Today",
+      "previous": "Previous",
+      "next": "Next",
+      "noEventsInRange": "There are no reservations in this range."
+    },
+    "validation": {
+      "disablePast": "Date/time cannot be in the past",
+      "minutesStep": "Please use 15-minute increments",
+      "invalidDateTime": "Invalid date/time",
+      "endAfterStart": "End time must be after start time",
+      "itemRequired": "Choose an item to reserve"
     }
   }
 }

@@ -70,6 +70,10 @@ export default defineConfig({
         // split hadn't yet existed when that PR was written) with the tests that
         // came with them — 55.79/50.17/44.29 measured. Left with headroom rather
         // than set at the ceiling.
+        // Unchanged at 55/50/44, now measuring 56.47/50.79/44.98: #1139's review
+        // round added the inventory item form's "reservable but no units" warning
+        // and four tests over it. Under a point of movement on every column once
+        // the usual headroom is taken off, so the bars stay where they are.
         'src/sections/**': { statements: 55, branches: 50, functions: 44 },
         'src/{*,hooks/**,theme/**,config/**}': { statements: 74, branches: 36, functions: 50 },
       },

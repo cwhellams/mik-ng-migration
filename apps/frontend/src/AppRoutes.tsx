@@ -29,6 +29,7 @@ import FuelPrices from './sections/fuelPrices/FuelPrices'
 import InstructorStatus from './sections/members/InstructorStatus'
 import InventoryItemPage from './sections/inventory/InventoryItemPage'
 import InventoryPage from './sections/inventory/InventoryPage'
+import ItemReservationCalendar from './sections/inventoryReservations/ItemReservationCalendar'
 import LogbookFlights from './sections/flightLog/LogbookPage'
 import LogbooksList from './sections/flightLog/LogbooksList'
 import Login from './sections/login/Login'
@@ -176,6 +177,11 @@ export default function AppRoutes() {
           <Route index element={<InventoryPage />} />
           <Route path=':id' element={<InventoryItemPage />} />
         </Route>
+        {/* Ungated at the route, like /schedule: this is a page every member
+            may open. Who may *do* anything on it is the API's call, and the nav
+            entry carries the permission so it doesn't advertise itself to a
+            member without it. */}
+        <Route path='/inventory-reservations' element={<ItemReservationCalendar />} />
       </Route>
 
       {/* Auth Layout without header */}
