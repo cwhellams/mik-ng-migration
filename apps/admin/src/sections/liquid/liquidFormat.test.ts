@@ -19,7 +19,7 @@ import { describeRecord, formatCost, formatLitres, formatPricePerLitre } from '.
 const t = ((key: string) => key) as never
 
 /** fi-FI groups thousands with a non-breaking space; assertions read better without it. */
-const normaliseSpaces = (value: string) => value.replace(/ /g, ' ')
+const normaliseSpaces = (value: string) => value.replace(/\u00a0/g, ' ')
 
 describe('formatting', () => {
   it('formats litres with the unit', () => {
