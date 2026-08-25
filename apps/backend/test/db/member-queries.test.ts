@@ -22,6 +22,8 @@ import {
   hasMemberFlownBillableFlightInYear,
   getUnpaidMembershipFeesForYear,
   wasMemberFeeCredited,
+  setMemberAvatar,
+  clearMemberAvatar,
 } from '../../src/db/member-queries.ts'
 import { db } from '../../src/db/connection.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
@@ -187,6 +189,22 @@ describe('Db query member tests', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     })
+  })
+
+  it('getMembers resolves a presigned avatarUrl for a member with a populated storage key', async () => {
+    await setMemberAvatar('Matti1', 'member-avatars/test.jpg', jwt)
+    try {
+      const result = await getMembers(true, [], {})
+      const matti = result.find((member) => member.memberId === 'Matti1')
+
+      expect(matti?.avatarUrl).toEqual(expect.any(String))
+      // The mock presigned URL is distinguished by its `?expires=` query param — a plain
+      // stored URL (what a regression back to the un-presigned read path would return)
+      // wouldn't have one.
+      expect(matti?.avatarUrl).toMatch(/\?expires=\d+$/)
+    } finally {
+      await clearMemberAvatar('Matti1', 'member-avatars/test.jpg', jwt)
+    }
   })
 })
 

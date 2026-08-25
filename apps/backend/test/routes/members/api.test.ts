@@ -1,7 +1,9 @@
 import 'dotenv/config'
+import { jest } from '@jest/globals'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import request from 'supertest'
+import sharp from 'sharp'
 
 import type { RegisterRequest } from '@mik/contracts/auth'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
@@ -30,6 +32,7 @@ import { createPendingEmailChange } from '../../../src/db/email-change-queries.t
 import { insertBooking, getBookings } from '../../../src/db/booking-queries.ts'
 import { BookingStatus, BookingType } from '@mik/contracts/bookings'
 import dayjs from 'dayjs'
+import { storageService } from '../../../src/services/storage.ts'
 
 // Create an instance of the Express app
 const app = express()
@@ -356,6 +359,161 @@ describe('GET /members/me', () => {
   it('Get return 404 if user is missing', async () => {
     const response = await query(missingUserToken)
     expect(response.status).toBe(404)
+  })
+})
+
+const tinyJpeg = async () =>
+  sharp({ create: { width: 4, height: 4, channels: 3, background: 'red' } })
+    .jpeg()
+    .toBuffer()
+
+describe('POST/DELETE /members/me/avatar', () => {
+  const upload = async (filename = 'avatar.jpg') =>
+    request(app)
+      .post('/members/me/avatar')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .attach('file', await tinyJpeg(), { filename, contentType: 'image/jpeg' })
+
+  // Every test here mutates Matti1's avatar; clear it afterwards so the GET /members
+  // and GET /members/me snapshot tests elsewhere in this file see no avatarUrl again.
+  afterEach(async () => {
+    await request(app).delete('/members/me/avatar').set('Cookie', `accessToken=${memberToken}`)
+  })
+
+  it('requires authentication', async () => {
+    const response = await request(app)
+      .post('/members/me/avatar')
+      .attach('file', await tinyJpeg(), { filename: 'avatar.jpg', contentType: 'image/jpeg' })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('rejects an upload with no file', async () => {
+    const response = await request(app)
+      .post('/members/me/avatar')
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(response.status).toBe(400)
+  })
+
+  it('uploads, compresses, and stores an avatar, returning a presigned avatarUrl', async () => {
+    const response = await upload()
+
+    expect(response.status).toBe(200)
+    // Asserting more than "is a string, not gravatar" here matters: the handler could
+    // regress to returning storageService.uploadFile()'s plain `url` (a permanent public
+    // link) instead of a presigned one and this would still pass on a weaker assertion.
+    // The mock's presigned URL is distinguished by its `?expires=` query param and the
+    // MEMBER_AVATAR_BUCKET path segment — a plain upload URL has neither.
+    expect(response.body.avatarUrl).toMatch(/\?expires=\d+$/)
+    expect(response.body.avatarUrl).toContain('/mik-member-avatars-test/')
+    expect(response.body.avatarUrl).not.toMatch(/gravatar/)
+  })
+
+  it('reflects the uploaded avatarUrl on GET /members/me (regression: getMemberById used to omit it)', async () => {
+    await upload()
+
+    const response = await request(app)
+      .get('/members/me')
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(response.body.avatarUrl).toEqual(expect.any(String))
+  })
+
+  it('replaces an existing avatar and deletes the old storage object', async () => {
+    const deleteFileSpy = jest.spyOn(storageService, 'deleteFile')
+
+    const first = await upload('first.jpg')
+    const firstKey = new URL(first.body.avatarUrl).pathname.split('/').slice(2).join('/')
+
+    deleteFileSpy.mockClear()
+    const second = await upload('second.jpg')
+
+    expect(second.status).toBe(200)
+    expect(second.body.avatarUrl).not.toBe(first.body.avatarUrl)
+    expect(deleteFileSpy).toHaveBeenCalledWith(firstKey, expect.any(String))
+
+    deleteFileSpy.mockRestore()
+  })
+
+  it('deletes the avatar, after which the member has no avatarUrl', async () => {
+    await upload()
+
+    const response = await request(app)
+      .delete('/members/me/avatar')
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.avatarUrl).toBeUndefined()
+  })
+
+  it('rejects a non-image file', async () => {
+    const response = await request(app)
+      .post('/members/me/avatar')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .attach('file', Buffer.from('not an image'), {
+        filename: 'notes.txt',
+        contentType: 'text/plain',
+      })
+
+    // sharp throws on non-image data; the shared problemErrorHandler surfaces that as a
+    // 500, consistent with every other image-upload route in this codebase.
+    expect(response.status).toBe(500)
+  })
+
+  it('rejects an image format outside the JPEG/PNG/WebP allowlist, even though sharp can decode it', async () => {
+    // A GIF is a real image sharp would happily process, but the UI and translations
+    // promise only JPEG/PNG/WebP — the multer fileFilter must reject it before sharp
+    // ever sees the bytes, regardless of what's actually inside the buffer.
+    const response = await request(app)
+      .post('/members/me/avatar')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .attach('file', Buffer.from('GIF89a'), { filename: 'avatar.gif', contentType: 'image/gif' })
+
+    expect(response.status).toBe(500)
+  })
+})
+
+describe('PATCH /members/me/avatar-style', () => {
+  // Restore Matti1's style so other snapshot tests in this file see the default again.
+  afterEach(async () => {
+    await request(app)
+      .patch('/members/me/avatar-style')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({ style: 'initials' })
+  })
+
+  it('requires authentication', async () => {
+    const response = await request(app)
+      .patch('/members/me/avatar-style')
+      .send({ style: 'avataaars' })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('rejects an unknown style', async () => {
+    const response = await request(app)
+      .patch('/members/me/avatar-style')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({ style: 'not-a-real-style' })
+
+    expect(response.status).toBe(400)
+  })
+
+  it('sets the style and reflects it on the response and on GET /members/me', async () => {
+    const response = await request(app)
+      .patch('/members/me/avatar-style')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({ style: 'bottts' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.avatarStyle).toBe('bottts')
+
+    const getResponse = await request(app)
+      .get('/members/me')
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(getResponse.body.avatarStyle).toBe('bottts')
   })
 })
 
@@ -1882,6 +2040,48 @@ describe('DELETE /members/:memberId', () => {
       .delete('/members/NonExistent99')
       .set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(404)
+  })
+
+  it('deletes the avatar storage object when hard-deleting a member (regression: used to orphan it)', async () => {
+    const memberId = await addMember({
+      memberType: MIKMemberTypes.JUNIOR,
+      email: `hard-delete-avatar-${Date.now()}@test.com`,
+      firstName: 'HardDeleteAvatar',
+      lastName: 'Member',
+      lang: MIKLang.EN,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+    })
+
+    const uploadResponse = await request(app)
+      .post('/members/me/avatar')
+      .set(
+        'Cookie',
+        `accessToken=${generateAccessToken({
+          memberId,
+          lastName: 'Member',
+          email: 'hard-delete-avatar@test.com',
+          roles: [],
+          permissions: [],
+          canMakeReservations: false,
+        })}`,
+      )
+      .attach('file', await tinyJpeg(), { filename: 'avatar.jpg', contentType: 'image/jpeg' })
+    expect(uploadResponse.status).toBe(200)
+
+    const deleteFileSpy = jest.spyOn(storageService, 'deleteFile')
+    deleteFileSpy.mockClear()
+
+    const response = await request(app)
+      .delete(`/members/${memberId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(response.status).toBe(204)
+    expect(deleteFileSpy).toHaveBeenCalledWith(expect.any(String), expect.any(String))
+
+    deleteFileSpy.mockRestore()
   })
 })
 

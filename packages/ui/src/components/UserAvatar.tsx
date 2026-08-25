@@ -1,11 +1,17 @@
 import React, { useState } from 'react'
 import { Avatar } from '@mui/material'
-import md5 from 'crypto-js/md5'
+import { createAvatar, type Style } from '@dicebear/core'
+import * as initials from '@dicebear/initials'
+import * as avataaars from '@dicebear/avataaars'
+import * as bottts from '@dicebear/bottts'
+import { DicebearAvatarStyle } from '@mik/contracts/members'
 
 type Props = {
   email: string
   firstName: string
   lastName?: string
+  avatarUrl?: string | null
+  avatarStyle?: DicebearAvatarStyle
   size?: number
   onClick?: (event: React.MouseEvent<HTMLElement>) => void
   className?: string
@@ -18,29 +24,59 @@ const getInitials = (firstName: string, lastName?: string) => {
   return `${firstInitial}${lastInitial}`.toUpperCase()
 }
 
-const getGravatarUrl = (email: string, size: number): string => {
-  const hash = md5(email.trim().toLowerCase()).toString()
-  return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=404`
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DICEBEAR_STYLES: Record<DicebearAvatarStyle, Style<any>> = {
+  [DicebearAvatarStyle.INITIALS]: initials,
+  [DicebearAvatarStyle.AVATAAARS]: avataaars,
+  [DicebearAvatarStyle.BOTTTS]: bottts,
 }
 
-const UserAvatar: React.FC<Props> = ({ email, firstName, lastName, size = 40, onClick }) => {
-  const [error, setError] = useState(false)
-  const showGravatar = email && !error
+// Deterministic, generated locally in the browser — unlike Gravatar this never sends
+// the member's email to a third party just to render a placeholder image.
+export const getDicebearAvatar = (
+  email: string,
+  firstName: string,
+  lastName?: string,
+  style: DicebearAvatarStyle = DicebearAvatarStyle.INITIALS,
+): string => {
+  const seed = email.trim().toLowerCase() || `${firstName} ${lastName ?? ''}`
+  return createAvatar(DICEBEAR_STYLES[style] ?? initials, { seed }).toDataUri()
+}
+
+const UserAvatar: React.FC<Props> = ({
+  email,
+  firstName,
+  lastName,
+  avatarUrl,
+  avatarStyle,
+  size = 40,
+  onClick,
+  className,
+}) => {
+  // Tracks the specific URL that failed, not a plain boolean: a presigned URL is
+  // short-lived and gets re-signed on every member read, so a stale one failing must not
+  // permanently hide a later, freshly-presigned avatarUrl until this component remounts.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
+  const src =
+    avatarUrl && avatarUrl !== failedUrl
+      ? avatarUrl
+      : getDicebearAvatar(email, firstName, lastName, avatarStyle)
 
   return (
     <Avatar
-      src={showGravatar ? getGravatarUrl(email, size) : undefined}
-      onError={() => setError(true)}
+      src={src}
+      alt={`${firstName} ${lastName ?? ''}`.trim()}
+      onError={() => avatarUrl && setFailedUrl(avatarUrl)}
       onClick={onClick}
+      className={className}
       sx={{
-        bgcolor: error ? 'primary.main' : 'transparent',
         width: size,
         height: size,
         cursor: onClick ? 'pointer' : 'default',
         fontSize: size / 2,
       }}
     >
-      {!showGravatar && getInitials(firstName, lastName)}
+      {getInitials(firstName, lastName)}
     </Avatar>
   )
 }

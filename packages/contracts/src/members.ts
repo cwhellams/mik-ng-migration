@@ -169,6 +169,19 @@ export enum MIKLang {
   SV = 'sv',
 }
 
+// The generated fallback avatar shown when a member has no uploaded photo. Chosen by
+// the member; rendered client-side by @dicebear (see UserAvatar in @mik/ui).
+export enum DicebearAvatarStyle {
+  INITIALS = 'initials',
+  AVATAAARS = 'avataaars',
+  BOTTTS = 'bottts',
+}
+
+export const UpdateAvatarStyleRequestSchema = z.object({
+  style: z.nativeEnum(DicebearAvatarStyle),
+})
+export type UpdateAvatarStyleRequest = z.infer<typeof UpdateAvatarStyleRequestSchema>
+
 // roles endpoint
 
 export const MemberRoleSchema = AuditableSchema.extend({
@@ -208,6 +221,10 @@ const MemberListSchema = z.object({
   autoRenewAnnualMembership: z.boolean().nullable().optional(),
   autoRenewEquipmentFee: z.boolean().nullable().optional(),
   mustUpdateProfile: z.boolean().optional(),
+  /** Short-lived presigned URL for an uploaded avatar; absent when the member has none. */
+  avatarUrl: z.string().nullish(),
+  /** Generated fallback avatar style, used whenever avatarUrl is absent. */
+  avatarStyle: z.nativeEnum(DicebearAvatarStyle).optional(),
 })
 
 export type MemberList = z.infer<typeof MemberListSchema>
@@ -381,6 +398,10 @@ export const MemberSchema = AuditableSchema.extend({
   mailingLists: z.array(z.string()).nullish(),
   applicationData: ApplicationDataSchema.nullish(),
   defaultInstructorMemberId: z.string().nullable().optional(),
+  /** Short-lived presigned URL for an uploaded avatar; absent when the member has none. */
+  avatarUrl: z.string().nullish(),
+  /** Generated fallback avatar style, used whenever avatarUrl is absent. */
+  avatarStyle: z.nativeEnum(DicebearAvatarStyle).optional(),
 })
 
 export type Member = z.infer<typeof MemberSchema>
@@ -451,6 +472,11 @@ export const MemberAdminPatchSchema = MemberSchema.omit({
   memberId: true,
   mustUpdateProfile: true,
   emailVerifiedAt: true,
+  // Both have dedicated endpoints (POST/DELETE /me/avatar, PATCH /me/avatar-style) and are
+  // not member-settable attributes — avatarUrl in particular is a short-lived presigned
+  // URL, not something a PATCH payload should ever be able to write.
+  avatarUrl: true,
+  avatarStyle: true,
 }).extend({
   email: z.string().email(),
 })

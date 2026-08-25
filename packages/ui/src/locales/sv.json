@@ -203,6 +203,25 @@
     "noRolesAssigned": "Inga roller tilldelade",
     "noMembersFound": "Inga medlemmar hittades",
     "avatar": "Bild",
+    "avatarUpload": {
+      "changePhoto": "Byt bild",
+      "removePhoto": "Ta bort bild",
+      "removeConfirm": "Ta bort din bild?",
+      "consent": "Synlig för andra medlemmar",
+      "invalidFileType": "Endast JPEG-, PNG- och WebP-bilder är tillåtna",
+      "fileTooLarge": "Filstorleken måste vara mindre än 40 MB",
+      "uploadFailed": "Det gick inte att ladda upp bilden",
+      "deleteFailed": "Det gick inte att ta bort bilden",
+      "dialogTitle": "Justera din bild",
+      "zoom": "Zoom",
+      "cancel": "Avbryt",
+      "save": "Spara",
+      "styles": {
+        "initials": "Initialer",
+        "avataaars": "Avatar",
+        "bottts": "Robot"
+      }
+    },
     "edit": {
       "register": "Lägg till ny användare",
       "personalInfo": "Redigera din information",

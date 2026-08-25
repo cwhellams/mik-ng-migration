@@ -78,7 +78,13 @@ const User = () => {
       {me ? (
         <>
           <IconButton onClick={handleClick} aria-label={t('header.openAccountMenu')} sx={{ p: 0 }}>
-            <UserAvatar email={me.email} firstName={me.firstName} lastName={me.lastName} />
+            <UserAvatar
+              email={me.email}
+              firstName={me.firstName}
+              lastName={me.lastName}
+              avatarUrl={me.avatarUrl}
+              avatarStyle={me.avatarStyle}
+            />
           </IconButton>
 
           <Menu

@@ -51,6 +51,8 @@ export const endpoints = {
     myLang: 'v1/members/me/lang',
     myPasskeys: 'v1/members/me/passkeys',
     myGdprExport: 'v1/members/me/gdpr-export',
+    myAvatar: 'v1/members/me/avatar',
+    myAvatarStyle: 'v1/members/me/avatar-style',
     roles: identityEndpoints.roles,
     role: (roleId: string) => `v1/members/roles/${roleId}`,
     nonRenewals: 'v1/members/non-renewals',

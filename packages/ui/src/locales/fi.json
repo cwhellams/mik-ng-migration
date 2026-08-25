@@ -202,6 +202,25 @@
     "noRolesAssigned": "Ei rooleja",
     "noMembersFound": "jäseniä ei löytynyt",
     "avatar": "Profiilikuva",
+    "avatarUpload": {
+      "changePhoto": "Vaihda kuva",
+      "removePhoto": "Poista kuva",
+      "removeConfirm": "Poistetaanko profiilikuvasi?",
+      "consent": "Näkyy muille jäsenille",
+      "invalidFileType": "Vain JPEG-, PNG- ja WebP-kuvat ovat sallittuja",
+      "fileTooLarge": "Tiedoston koon on oltava alle 40 Mt",
+      "uploadFailed": "Kuvan lataus epäonnistui",
+      "deleteFailed": "Kuvan poisto epäonnistui",
+      "dialogTitle": "Muokkaa kuvaasi",
+      "zoom": "Zoomaus",
+      "cancel": "Peruuta",
+      "save": "Tallenna",
+      "styles": {
+        "initials": "Nimikirjaimet",
+        "avataaars": "Avatar",
+        "bottts": "Robotti"
+      }
+    },
     "edit": {
       "register": "Lisää uusi käyttäjä",
       "personalInfo": "Muokkaa omia tietojasi",

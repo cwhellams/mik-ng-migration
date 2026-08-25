@@ -203,6 +203,25 @@
     "noRolesAssigned": "No roles assigned",
     "noMembersFound": "No members found",
     "avatar": "Picture",
+    "avatarUpload": {
+      "changePhoto": "Change photo",
+      "removePhoto": "Remove photo",
+      "removeConfirm": "Remove your photo?",
+      "consent": "Visible to other members",
+      "invalidFileType": "Only JPEG, PNG and WebP images are allowed",
+      "fileTooLarge": "File size must be less than 40MB",
+      "uploadFailed": "Failed to upload photo",
+      "deleteFailed": "Failed to remove photo",
+      "dialogTitle": "Adjust your photo",
+      "zoom": "Zoom",
+      "cancel": "Cancel",
+      "save": "Save",
+      "styles": {
+        "initials": "Initials",
+        "avataaars": "Avatar",
+        "bottts": "Robot"
+      }
+    },
     "edit": {
       "register": "Add new user",
       "personalInfo": "Edit your information",

@@ -184,6 +184,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 - **Important**: Add `DISABLE_EMAIL_SENDING=true` to the .env file to prevent actual emails being sent in development
 - **Important**: Add `SIMPLBOOKS_DRY_RUN=true` to test the invoice outbox worker locally without calling SimplBooks (see Dry-Run Mode below)
 - **Optional**: `OCCURRENCE_ATTACHMENT_BUCKET` overrides the DO Spaces bucket used for occurrence report attachments (pictures). Defaults to `mik-occurrence-attachments` in production and `mik-occurrence-attachments-test` otherwise. The bucket must be created (Restricted) in DO Spaces before first use in an environment.
+- **Optional**: `MEMBER_AVATAR_BUCKET` overrides the DO Spaces bucket used for uploaded member avatars. Defaults to `mik-member-avatars` in production and `mik-member-avatars-test` otherwise. The bucket must be created (Restricted) in DO Spaces before first use in an environment. **Gotcha shared with `OCCURRENCE_ATTACHMENT_BUCKET`**: both `.do/mik-intranet-prod.yaml` and `.do/mik-intranet-test.yaml` hardcode `NODE_ENV=production`, so the beta environment does _not_ get the `-test` default for free — `MEMBER_AVATAR_BUCKET` is wired as an explicit per-environment GitHub Actions variable (see `create-test-release-and-deploy-to-do.yml` / `prod-deploy-to-do.yml`) precisely so beta can point at `mik-member-avatars-test` instead of silently sharing the production bucket.
 
 ## Known Issues and Workarounds
 

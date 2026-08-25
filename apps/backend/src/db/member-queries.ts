@@ -25,6 +25,7 @@ import {
   MemberChangeType,
   type MemberChangeLogEntry,
   type MemberChangeLogFilters,
+  DicebearAvatarStyle,
 } from '@mik/contracts/members'
 import { problem } from '../routes/response.ts'
 import type { Upsert } from '@mik/contracts/schema'
@@ -32,6 +33,36 @@ import { generateShortId } from '../util/nanoId.ts'
 import { randomUUID } from 'node:crypto'
 import { RecurringFeeType, SimplbooksEventType } from '../services/simplbooks/models.ts'
 import type { DashboardSettings } from '@mik/contracts/dashboard'
+import { storageService } from '../services/storage.ts'
+
+// Avatars are personal data, so they live in a Restricted DO Space rather than the
+// public bucket other member-facing uploads use — the URL handed to the client is a
+// short-lived presigned URL computed fresh on every read, never a stored public link.
+export const MEMBER_AVATAR_BUCKET =
+  process.env.MEMBER_AVATAR_BUCKET ??
+  (process.env.NODE_ENV === 'production' ? 'mik-member-avatars' : 'mik-member-avatars-test')
+
+const AVATAR_URL_EXPIRY_SECONDS = 3600
+
+async function resolveAvatarUrl(
+  storageKey: string | null | undefined,
+): Promise<string | undefined> {
+  if (!storageKey) return undefined
+  return await storageService.getPresignedUrl(
+    storageKey,
+    AVATAR_URL_EXPIRY_SECONDS,
+    MEMBER_AVATAR_BUCKET,
+  )
+}
+
+// The column is a plain VARCHAR (not a DB enum), so a value written by a future backend
+// version, or edited by hand, may not match a style this version knows how to render.
+// Fall back to the default rather than sending the client a style it can't look up.
+function resolveAvatarStyle(dbValue: string): DicebearAvatarStyle {
+  return Object.values(DicebearAvatarStyle).includes(dbValue as DicebearAvatarStyle)
+    ? (dbValue as DicebearAvatarStyle)
+    : DicebearAvatarStyle.INITIALS
+}
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
   const member = await db
@@ -41,7 +72,11 @@ export async function getMemberById(memberId: string): Promise<Member | undefine
     .executeTakeFirst()
 
   if (member !== undefined) {
-    return toMember(member, await getMemberRolesByMemberId(memberId))
+    return {
+      ...toMember(member, await getMemberRolesByMemberId(memberId)),
+      avatarUrl: await resolveAvatarUrl(member.avatarStorageKey),
+      avatarStyle: resolveAvatarStyle(member.avatarDicebearStyle),
+    }
   }
 }
 
@@ -53,7 +88,11 @@ export async function getMemberByEmail(email: string): Promise<Member | undefine
     .where('email', '=', email.toLowerCase())
     .executeTakeFirst()
   if (member !== undefined) {
-    return toMember(member, await getMemberRolesByMemberId(member.memberId))
+    return {
+      ...toMember(member, await getMemberRolesByMemberId(member.memberId)),
+      avatarUrl: await resolveAvatarUrl(member.avatarStorageKey),
+      avatarStyle: resolveAvatarStyle(member.avatarDicebearStyle),
+    }
   }
 }
 
@@ -182,6 +221,8 @@ export async function getMembers(
       'autoRenewAnnualMembership',
       'autoRenewEquipmentFee',
       'mustUpdateProfile',
+      'avatarStorageKey',
+      'avatarDicebearStyle',
       jsonArrayFrom(
         eb
           .selectFrom('member.memberToRoles')
@@ -247,31 +288,35 @@ export async function getMembers(
     .orderBy('firstName')
     .execute()
 
-  return list.map((member) => ({
-    memberId: member.memberId,
-    first: member.firstName,
-    last: member.lastName,
-    phoneNumber: member.phoneNumber,
-    townCity: member.townCity,
-    email: member.email,
-    lang: member.langIso639 as MIKLang,
-    // nested subquery: the keys inside come back snake_case, so role.roleId would
-    // be undefined and every member would lose their roles
-    roles: camelCaseNestedRows(member.roles)
-      .map((role) => role.roleId)
-      .filter((role) => isAdmin || publicRoles.includes(role)),
-    ...(isAdmin
-      ? {
-          memberSince: member.memberSince,
-          isTrainingProgramPilot: member.isTrainingProgramPilot,
-          canMakeReservations: member.canMakeReservations,
-          automaticBillingStatus: member.billingId !== null,
-          autoRenewAnnualMembership: member.autoRenewAnnualMembership ?? true,
-          autoRenewEquipmentFee: member.autoRenewEquipmentFee ?? false,
-          mustUpdateProfile: member.mustUpdateProfile,
-        }
-      : {}),
-  }))
+  return await Promise.all(
+    list.map(async (member) => ({
+      memberId: member.memberId,
+      first: member.firstName,
+      last: member.lastName,
+      phoneNumber: member.phoneNumber,
+      townCity: member.townCity,
+      email: member.email,
+      lang: member.langIso639 as MIKLang,
+      // nested subquery: the keys inside come back snake_case, so role.roleId would
+      // be undefined and every member would lose their roles
+      roles: camelCaseNestedRows(member.roles)
+        .map((role) => role.roleId)
+        .filter((role) => isAdmin || publicRoles.includes(role)),
+      avatarUrl: await resolveAvatarUrl(member.avatarStorageKey),
+      avatarStyle: resolveAvatarStyle(member.avatarDicebearStyle),
+      ...(isAdmin
+        ? {
+            memberSince: member.memberSince,
+            isTrainingProgramPilot: member.isTrainingProgramPilot,
+            canMakeReservations: member.canMakeReservations,
+            automaticBillingStatus: member.billingId !== null,
+            autoRenewAnnualMembership: member.autoRenewAnnualMembership ?? true,
+            autoRenewEquipmentFee: member.autoRenewEquipmentFee ?? false,
+            mustUpdateProfile: member.mustUpdateProfile,
+          }
+        : {}),
+    })),
+  )
 }
 
 export async function getMembersForAnnualMembershipFee(year: number): Promise<InvoiceMember[]> {
@@ -504,7 +549,7 @@ export async function setMembershipApproval(
   approvedBy: string,
   createSimplbooksAccount: boolean,
 ): Promise<Member> {
-  return await db.transaction().execute(async (txn) => {
+  const member = await db.transaction().execute(async (txn) => {
     const member = await txn
       .updateTable('member.register')
       .set({
@@ -527,8 +572,14 @@ export async function setMembershipApproval(
         .execute()
     }
 
-    return toMember(member, [])
+    return member
   })
+
+  return {
+    ...toMember(member, []),
+    avatarUrl: await resolveAvatarUrl(member.avatarStorageKey),
+    avatarStyle: resolveAvatarStyle(member.avatarDicebearStyle),
+  }
 }
 
 export async function updateMemberRoles(
@@ -937,7 +988,11 @@ export async function restoreMember(memberId: string, restoredBy: string): Promi
       .executeTakeFirstOrThrow()
   })
 
-  return toMember(member, [])
+  return {
+    ...toMember(member, []),
+    avatarUrl: await resolveAvatarUrl(member.avatarStorageKey),
+    avatarStyle: resolveAvatarStyle(member.avatarDicebearStyle),
+  }
 }
 
 /**
@@ -1332,4 +1387,87 @@ export async function getMemberChangeLog(
       // Drop UPDATEs that only touched ignored columns (background sync churn)
       (entry) => entry.operationType !== 'UPDATE' || entry.changedFields.length > 0,
     )
+}
+
+// Avatar management
+
+// Locks the row for the transaction's lifetime and returns the key it just replaced, so
+// two concurrent uploads can't both read the same "old" key: the second transaction's
+// SELECT ... FOR UPDATE blocks until the first commits, then correctly sees the
+// first upload's key as the one it is superseding. Returns null both when the member had
+// no avatar yet and when memberId doesn't match any row (the latter is the caller's to
+// detect via a subsequent read — this function intentionally doesn't throw on 0 rows so
+// the route can still clean up the just-uploaded storage object either way).
+export async function setMemberAvatar(
+  memberId: string,
+  avatarStorageKey: string,
+  user: JWTUser,
+): Promise<string | null> {
+  return await db.transaction().execute(async (txn) => {
+    const previous = await txn
+      .selectFrom('member.register')
+      .select('avatarStorageKey')
+      .where('memberId', '=', memberId)
+      .forUpdate()
+      .executeTakeFirst()
+
+    await txn
+      .updateTable('member.register')
+      .set({
+        avatarStorageKey,
+        ...auditUpdate(user),
+      })
+      .where('memberId', '=', memberId)
+      .execute()
+
+    return previous?.avatarStorageKey ?? null
+  })
+}
+
+export async function getMemberAvatarStorageKey(memberId: string): Promise<string | null> {
+  const result = await db
+    .selectFrom('member.register')
+    .select('avatarStorageKey')
+    .where('memberId', '=', memberId)
+    .executeTakeFirst()
+
+  return result?.avatarStorageKey ?? null
+}
+
+// Compare-and-swap: only clears the column if it still holds `expectedKey`. Without this,
+// reading the key and then unconditionally clearing the row races a concurrent upload from
+// another tab/device — this delete would otherwise wipe out a newer key that upload just
+// installed, orphaning its storage object. Returns whether it actually cleared, so the
+// caller only deletes the Spaces object it's sure is no longer referenced.
+export async function clearMemberAvatar(
+  memberId: string,
+  expectedKey: string,
+  user: JWTUser,
+): Promise<boolean> {
+  const result = await db
+    .updateTable('member.register')
+    .set({
+      avatarStorageKey: null,
+      ...auditUpdate(user),
+    })
+    .where('memberId', '=', memberId)
+    .where('avatarStorageKey', '=', expectedKey)
+    .executeTakeFirst()
+
+  return Number(result.numUpdatedRows) > 0
+}
+
+export async function setMemberAvatarStyle(
+  memberId: string,
+  style: DicebearAvatarStyle,
+  user: JWTUser,
+): Promise<void> {
+  await db
+    .updateTable('member.register')
+    .set({
+      avatarDicebearStyle: style,
+      ...auditUpdate(user),
+    })
+    .where('memberId', '=', memberId)
+    .execute()
 }

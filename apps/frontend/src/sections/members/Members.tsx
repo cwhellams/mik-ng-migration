@@ -486,6 +486,8 @@ const Members = () => {
                     size={40}
                     firstName={row.first}
                     lastName={row.last}
+                    avatarUrl={row.avatarUrl}
+                    avatarStyle={row.avatarStyle}
                   />
                   <Box
                     sx={{

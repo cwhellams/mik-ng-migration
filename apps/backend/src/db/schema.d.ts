@@ -1477,6 +1477,14 @@ export interface MemberRegister {
   applicationData: Json | null
   autoRenewAnnualMembership: Generated<boolean | null>
   autoRenewEquipmentFee: Generated<boolean | null>
+  /**
+   * DiceBear style used to render the generated fallback avatar when no photo is uploaded: initials, avataaars or bottts.
+   */
+  avatarDicebearStyle: Generated<string>
+  /**
+   * Storage key (path) for an uploaded member avatar in the restricted member-avatars DO Space; the URL is presigned on read, not stored.
+   */
+  avatarStorageKey: string | null
   billingId: string | null
   brevoContactId: Int8 | null
   brevoSyncedAt: Timestamp | null

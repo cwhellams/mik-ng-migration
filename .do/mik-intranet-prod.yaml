@@ -136,6 +136,9 @@ services:
       - key: EXPENSE_RECEIPT_BUCKET
         value: '${EXPENSE_RECEIPT_BUCKET}'
         type: GENERAL
+      - key: MEMBER_AVATAR_BUCKET
+        value: '${MEMBER_AVATAR_BUCKET}'
+        type: GENERAL
       - key: FIELD_ENCRYPTION_KEY
         value: '${FIELD_ENCRYPTION_KEY}'
         type: SECRET

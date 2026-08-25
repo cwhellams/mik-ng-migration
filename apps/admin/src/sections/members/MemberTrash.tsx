@@ -135,7 +135,13 @@ const MemberTrash = () => {
                   minWidth: 0,
                 }}
               >
-                <UserAvatar email={member.email} firstName={member.first} lastName={member.last} />
+                <UserAvatar
+                  email={member.email}
+                  firstName={member.first}
+                  lastName={member.last}
+                  avatarUrl={member.avatarUrl}
+                  avatarStyle={member.avatarStyle}
+                />
                 <Box
                   sx={{
                     minWidth: 0,

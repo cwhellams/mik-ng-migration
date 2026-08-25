@@ -63,6 +63,9 @@ import UserAvatar from '@mik/ui/components/UserAvatar'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
 import Watermark from './components/watermark'
+import { AvatarUpload } from './components/AvatarUpload'
+import { AvatarStylePicker } from './components/AvatarStylePicker'
+import { DicebearAvatarStyle } from '@mik/contracts/members'
 import { mutate } from 'swr'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
@@ -112,6 +115,58 @@ const MemberProfile = () => {
     url: endpoints.members.root,
     skipFetch: true,
   })
+
+  const { mutation: avatarMutation } = useApi<Member>({
+    url: endpoints.members.myAvatar,
+    skipFetch: true,
+  })
+  const [avatarLoading, setAvatarLoading] = useState(false)
+
+  const handleAvatarUpload = async (blob: Blob) => {
+    setAvatarLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', blob, 'avatar.jpg')
+
+      const { error } = await avatarMutation.trigger<FormData, Member>('POST', formData)
+      if (error) throw new Error(error.detail || t('member.avatarUpload.uploadFailed'))
+
+      // Revalidate rather than seeding the cache with the raw Member: the cache slot
+      // actually holds the AxiosResponse the fetcher returns (read via `.data` in
+      // useApi), so writing the unwrapped object here would make every reader of this
+      // key — including the header's useMe() — see `data` as undefined.
+      mutate((key) => Array.isArray(key) && key[0] === endpoints.members.byId(memberId))
+    } finally {
+      setAvatarLoading(false)
+    }
+  }
+
+  const handleAvatarDelete = async () => {
+    setAvatarLoading(true)
+    try {
+      const { error } = await avatarMutation.trigger<undefined, Member>('DELETE', undefined)
+      if (error) throw new Error(error.detail || t('member.avatarUpload.deleteFailed'))
+
+      mutate((key) => Array.isArray(key) && key[0] === endpoints.members.byId(memberId))
+    } finally {
+      setAvatarLoading(false)
+    }
+  }
+
+  const { mutation: avatarStyleMutation } = useApi<Member>({
+    url: endpoints.members.myAvatarStyle,
+    skipFetch: true,
+  })
+
+  const handleAvatarStyleSelect = async (style: DicebearAvatarStyle) => {
+    const { error } = await avatarStyleMutation.trigger<{ style: DicebearAvatarStyle }, Member>(
+      'PATCH',
+      { style },
+    )
+    if (error) throw new Error(error.detail)
+
+    mutate((key) => Array.isArray(key) && key[0] === endpoints.members.byId(memberId))
+  }
 
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
   const [isPreFlightChecked, setIsPreFlightChecked] = useState<boolean>(false)
@@ -271,6 +326,8 @@ const MemberProfile = () => {
     email,
     firstName,
     lastName,
+    avatarUrl,
+    avatarStyle,
     //roles,
     phoneNumber,
     phoneCountry,
@@ -355,12 +412,33 @@ const MemberProfile = () => {
               email={email || ''}
               firstName={firstName || ''}
               lastName={lastName || ''}
+              avatarUrl={avatarUrl}
+              avatarStyle={avatarStyle}
               size={100}
               className='user-avatar'
             />
           </Badge>
 
-          <Title label={firstName || t('member.profile')} />
+          <Box>
+            <Title label={firstName || t('member.profile')} />
+            {memberId === 'me' && (
+              <>
+                <AvatarUpload
+                  hasAvatar={!!avatarUrl}
+                  isLoading={avatarLoading}
+                  onUpload={handleAvatarUpload}
+                  onDelete={handleAvatarDelete}
+                />
+                <AvatarStylePicker
+                  email={email || ''}
+                  firstName={firstName || ''}
+                  lastName={lastName}
+                  currentStyle={avatarStyle ?? DicebearAvatarStyle.INITIALS}
+                  onSelect={handleAvatarStyleSelect}
+                />
+              </>
+            )}
+          </Box>
         </Box>
 
         <Stack direction='row' spacing={1} sx={{ mb: 3, justifyContent: 'flex-end' }}>

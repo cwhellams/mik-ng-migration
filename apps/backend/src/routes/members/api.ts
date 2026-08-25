@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
+import multer from 'multer'
+import { nanoid } from 'nanoid'
 
 import {
   type MemberListResponse,
@@ -21,6 +23,7 @@ import {
   MemberChangeType,
   type MemberChangeLogResponse,
   type RestoreMemberResponse,
+  UpdateAvatarStyleRequestSchema,
 } from '@mik/contracts/members'
 import {
   getMemberById,
@@ -50,6 +53,11 @@ import {
   setMustUpdateProfileBulk,
   clearMustUpdateProfile,
   getMemberChangeLog,
+  setMemberAvatar,
+  getMemberAvatarStorageKey,
+  clearMemberAvatar,
+  setMemberAvatarStyle,
+  MEMBER_AVATAR_BUCKET,
 } from '../../db/member-queries.ts'
 import { getInvoices } from '../../db/invoicing-queries.ts'
 import { getFlightLogs } from '../../db/flight-log-queries.ts'
@@ -107,6 +115,8 @@ import {
   claimPendingEmailChangeByTokenHash,
 } from '../../db/email-change-queries.ts'
 import dayjs from 'dayjs'
+import { compressImageForUpload, IMAGE_UPLOAD_RAW_BYTES } from '../../util/imageUpload.ts'
+import { storageService } from '../../services/storage.ts'
 
 export const router = Router()
 
@@ -376,6 +386,144 @@ router.patch('/me/lang', validateUser(), async (req: Request, res: Response): Pr
   await updateMemberLang(req.user?.memberId!, validatedLang, req.user!)
   res.sendStatus(200)
 })
+
+// Avatar upload/delete. The browser lets the member pick a large photo (up to
+// IMAGE_UPLOAD_RAW_BYTES, matching every other image-upload route in this codebase — see
+// util/imageUpload.ts), then crops and zooms it client-side before ever uploading, so what
+// arrives here is normally already a small, roughly-square image. compressImageForUpload
+// still re-encodes it to the final 300x300/500KB bound server-side as defense in depth
+// (e.g. a high-DPI crop export), so the stored file is never larger than intended
+// regardless of what the client sent.
+const AVATAR_FOLDER = 'member-avatars'
+const MAX_AVATAR_BYTES = 500 * 1024 // 500 KB post-compression
+
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: IMAGE_UPLOAD_RAW_BYTES },
+  fileFilter: (_req, file, cb) => {
+    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only JPEG, PNG or WEBP images are allowed'))
+    }
+  },
+})
+
+router.post(
+  '/me/avatar',
+  validateUser(),
+  avatarUpload.single('file'),
+  async (req: Request, res: Response<Member>): Promise<void> => {
+    if (!req.file) {
+      return problem({ status: 400, detail: 'No avatar image uploaded' })
+    }
+
+    const buffer = await compressImageForUpload(req.file.buffer, {
+      maxWidth: 300,
+      maxHeight: 300,
+      targetBytes: MAX_AVATAR_BYTES,
+    })
+
+    const fileName = `${nanoid()}.jpg`
+    let uploadedKey: string | undefined
+    let oldStorageKey: string | null = null
+    try {
+      const upload = await storageService.uploadFile(
+        buffer,
+        fileName,
+        'image/jpeg',
+        AVATAR_FOLDER,
+        MEMBER_AVATAR_BUCKET,
+      )
+      uploadedKey = upload.key
+
+      // Atomically swaps the key and hands back the one it replaced — see setMemberAvatar
+      // for why this has to happen in one locked transaction rather than a separate
+      // read-then-write (a concurrent upload from another tab/device would otherwise race
+      // it and leak an object no row ever points at).
+      oldStorageKey = await setMemberAvatar(req.user!.memberId, upload.key, req.user!)
+    } catch (error) {
+      // Only the upload/DB-swap failing rolls back the new object — a failure below this
+      // catch (deleting the superseded key, or the member-not-found check) must never
+      // delete the file whose key we already committed to the row.
+      if (uploadedKey) {
+        await storageService.deleteFile(uploadedKey, MEMBER_AVATAR_BUCKET).catch((deleteError) => {
+          logger.error('Failed to roll back uploaded avatar file', deleteError)
+        })
+      }
+      logger.error(`Error uploading avatar for member ${req.user!.memberId}:`, error)
+      throw error
+    }
+
+    const member = await getMemberById(req.user!.memberId)
+    if (!member) {
+      // The JWT referred to a member that no longer exists — setMemberAvatar updated 0
+      // rows, so nothing in the database points at uploadedKey. Without this it would sit
+      // in Spaces forever with no reference.
+      await storageService.deleteFile(uploadedKey, MEMBER_AVATAR_BUCKET).catch((deleteError) => {
+        logger.error('Failed to delete orphaned avatar for missing member', deleteError)
+      })
+      return problem({ status: 404, detail: 'Member not found' })
+    }
+
+    // Best-effort: the row already points at the new key, so a failure here just leaves
+    // an orphaned (but no longer referenced) object in Spaces rather than corrupting
+    // member state — never worth failing the request or rolling back the new avatar for.
+    if (oldStorageKey) {
+      await storageService.deleteFile(oldStorageKey, MEMBER_AVATAR_BUCKET).catch((deleteError) => {
+        logger.error('Failed to delete superseded avatar file', deleteError)
+      })
+    }
+
+    res.status(200).json(member)
+  },
+)
+
+router.delete(
+  '/me/avatar',
+  validateUser(),
+  async (req: Request, res: Response<Member>): Promise<void> => {
+    const storageKey = await getMemberAvatarStorageKey(req.user!.memberId)
+    if (storageKey) {
+      // Compare-and-swap: only delete the Spaces object if the row still referenced this
+      // exact key when cleared. If a concurrent upload from another tab/device installed a
+      // newer key in between, clearMemberAvatar leaves that row alone and returns false —
+      // deleting the file here would otherwise orphan the newer avatar.
+      const cleared = await clearMemberAvatar(req.user!.memberId, storageKey, req.user!)
+      if (cleared) {
+        await storageService.deleteFile(storageKey, MEMBER_AVATAR_BUCKET)
+      }
+    }
+
+    const member = await getMemberById(req.user!.memberId)
+    if (!member) {
+      return problem({ status: 404, detail: 'Member not found' })
+    }
+    res.status(200).json(member)
+  },
+)
+
+// Only affects the generated fallback avatar (initials/avataaars/bottts); has no effect
+// while the member has an uploaded photo (avatarUrl set), same as the client-side
+// UserAvatar which only falls back to this style when avatarUrl is absent.
+router.patch(
+  '/me/avatar-style',
+  validateUser(),
+  async (req: Request, res: Response<Member>): Promise<void> => {
+    const parsed = UpdateAvatarStyleRequestSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return problem({ status: 400, detail: parsed.error.message })
+    }
+
+    await setMemberAvatarStyle(req.user!.memberId, parsed.data.style, req.user!)
+
+    const member = await getMemberById(req.user!.memberId)
+    if (!member) {
+      return problem({ status: 404, detail: 'Member not found' })
+    }
+    res.status(200).json(member)
+  },
+)
 
 // Email change request — sends verification email to the new address
 const EmailChangeRequestSchema = z.object({
@@ -862,9 +1010,20 @@ router.delete(
       })
     }
 
+    // Read before the row is gone — hard deletion removes the only reference to this
+    // storage object, so without capturing the key first the photo would be orphaned
+    // in the Restricted Space indefinitely (personal data outliving the member record).
+    const avatarStorageKey = await getMemberAvatarStorageKey(memberId)
+
     const updated = await removeMember(memberId)
     if (!updated) {
       return problem({ status: 404 })
+    }
+
+    if (avatarStorageKey) {
+      await storageService.deleteFile(avatarStorageKey, MEMBER_AVATAR_BUCKET).catch((error) => {
+        logger.error(`Failed to delete avatar for hard-deleted member ${memberId}:`, error)
+      })
     }
 
     res.status(204).end()
