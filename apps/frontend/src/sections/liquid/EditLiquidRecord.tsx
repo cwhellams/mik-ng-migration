@@ -18,7 +18,9 @@ import {
 import useApi from '@mik/ui/hooks/useApi'
 import { absolute, endpoints } from '../../api/endpoints'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { SaveButton } from '@mik/ui/components/SaveButton'
 import { Title } from '@mik/ui/components/Title'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { lockReasonKey } from './liquidHelpers'
 
 /**
@@ -36,6 +38,7 @@ import { lockReasonKey } from './liquidHelpers'
  */
 export default function EditLiquidRecord() {
   const { t } = useTranslation()
+  const { formatDateTime } = useTimezone()
   const navigate = useNavigate()
   const { recordId } = useParams<{ recordId: string }>()
 
@@ -155,7 +158,7 @@ export default function EditLiquidRecord() {
                   {t('liquid.edit.context', {
                     aircraft: data.aircraftRegistration,
                     type: t(`liquid.type.${String(data.liquidType).toLowerCase()}`),
-                    recorded: new Date(data.recordedAt).toLocaleString(),
+                    recorded: formatDateTime(data.recordedAt),
                   })}
                 </Alert>
 
@@ -273,19 +276,15 @@ export default function EditLiquidRecord() {
                 </Box>
 
                 <Stack direction='row' spacing={1}>
-                  <Button
-                    variant='contained'
+                  <SaveButton
                     disabled={
                       !lock.canEdit ||
                       mutation.isMutating ||
                       (isFuel && costRequired && totalCost === '') ||
                       (isFuel && !atHomeBase && providerId === '')
                     }
-                    startIcon={<Icon icon='mdi:content-save-outline' />}
                     onClick={() => void handleSave()}
-                  >
-                    {t('general.save')}
-                  </Button>
+                  />
                   <Button onClick={() => void navigate('/liquid')}>{t('general.cancel')}</Button>
                 </Stack>
               </Stack>

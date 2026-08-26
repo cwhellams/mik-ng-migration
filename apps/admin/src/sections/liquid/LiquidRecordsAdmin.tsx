@@ -31,6 +31,7 @@ import {
 import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { absolute } from '../../api/endpoints'
 import { MemberAppLink } from '../../components/MemberAppLink'
 import { describeRecord, formatCost, formatLitres } from './liquidFormat'
@@ -46,6 +47,7 @@ import { describeRecord, formatCost, formatLitres } from './liquidFormat'
  */
 export default function LiquidRecordsAdmin() {
   const { t } = useTranslation()
+  const { formatDateTime } = useTimezone()
   const [liquidType, setLiquidType] = useState('')
   const [aircraftRegistration, setAircraftRegistration] = useState('')
   const [memberId, setMemberId] = useState('')
@@ -161,7 +163,7 @@ export default function LiquidRecordsAdmin() {
                       // A deleted record is history, not a row to act on.
                       sx={record.deletedAt ? { opacity: 0.55 } : undefined}
                     >
-                      <TableCell>{new Date(record.recordedAt).toLocaleString()}</TableCell>
+                      <TableCell>{formatDateTime(record.recordedAt)}</TableCell>
                       <TableCell>{record.memberId}</TableCell>
                       <TableCell>{record.aircraftRegistration}</TableCell>
                       <TableCell>{describeRecord(record, t)}</TableCell>

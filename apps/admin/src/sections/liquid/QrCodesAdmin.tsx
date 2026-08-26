@@ -26,6 +26,7 @@ import type { CreateQrBatchRequest, QrBatch, QrCode } from '@mik/contracts/liqui
 import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { AssignQrCode } from './AssignQrCode'
 
 /**
@@ -40,6 +41,7 @@ import { AssignQrCode } from './AssignQrCode'
 
 export default function QrCodesAdmin() {
   const { t } = useTranslation()
+  const { formatDate } = useTimezone()
   const [label, setLabel] = useState('')
   const [count, setCount] = useState('12')
   const [selectedBatch, setSelectedBatch] = useState<string>()
@@ -169,7 +171,7 @@ export default function QrCodesAdmin() {
                         <TableCell>{batch.label}</TableCell>
                         <TableCell>{batch.codeCount}</TableCell>
                         <TableCell>{`${batch.assignedCount} / ${batch.codeCount}`}</TableCell>
-                        <TableCell>{new Date(batch.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatDate(batch.createdAt)}</TableCell>
                         <TableCell align='right'>
                           <Stack
                             direction='row'
@@ -265,9 +267,7 @@ export default function QrCodesAdmin() {
                             />
                           )}
                         </TableCell>
-                        <TableCell>
-                          {code.assignedAt ? new Date(code.assignedAt).toLocaleDateString() : '—'}
-                        </TableCell>
+                        <TableCell>{code.assignedAt ? formatDate(code.assignedAt) : '—'}</TableCell>
                         <TableCell align='right'>
                           {/* Permanent once set, so there is nothing to offer on
                               an assigned code. */}

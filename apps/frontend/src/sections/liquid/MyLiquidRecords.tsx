@@ -33,6 +33,7 @@ import { absolute, endpoints } from '../../api/endpoints'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import {
   describeRecord,
   formatPricePerLitre,
@@ -54,6 +55,7 @@ type Filter = 'ALL' | LiquidType
 
 export default function MyLiquidRecords() {
   const { t } = useTranslation()
+  const { formatDateTime } = useTimezone()
   const [filter, setFilter] = useState<Filter>('ALL')
   const [pendingDelete, setPendingDelete] = useState<LiquidRecordWithLock>()
 
@@ -142,7 +144,7 @@ export default function MyLiquidRecords() {
                 <TableBody>
                   {records.map((record) => (
                     <TableRow key={record.recordId}>
-                      <TableCell>{new Date(record.recordedAt).toLocaleString()}</TableCell>
+                      <TableCell>{formatDateTime(record.recordedAt)}</TableCell>
                       <TableCell>{record.aircraftRegistration}</TableCell>
                       <TableCell>
                         <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>

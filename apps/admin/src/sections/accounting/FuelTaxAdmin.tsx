@@ -24,6 +24,7 @@ import useApi from '@mik/ui/hooks/useApi'
 import { absolute } from '../../api/endpoints'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 
 /**
  * Finnish fuel tax by calendar year and fuel type — the treasurer's screen.
@@ -55,6 +56,7 @@ const emptyForm = (): FormState => ({
 
 export function FuelTaxAdmin() {
   const { t } = useTranslation()
+  const { formatDate } = useTimezone()
   const [form, setForm] = useState<FormState>(emptyForm)
   const [saveError, setSaveError] = useState<string>()
   const [saved, setSaved] = useState(false)
@@ -199,7 +201,7 @@ export function FuelTaxAdmin() {
                       <TableCell>{rate.taxYear}</TableCell>
                       <TableCell>{rate.fuelType}</TableCell>
                       <TableCell>{`€${rate.rateEurPerLitre.toFixed(4)}/l`}</TableCell>
-                      <TableCell>{new Date(rate.updatedAt).toLocaleDateString()}</TableCell>
+                      <TableCell>{formatDate(rate.updatedAt)}</TableCell>
                       <TableCell>{rate.updatedBy}</TableCell>
                       <TableCell align='right'>
                         <Stack direction='row' spacing={0.5} sx={{ justifyContent: 'flex-end' }}>

@@ -26,6 +26,7 @@ import {
 import useApi from '@mik/ui/hooks/useApi'
 import { endpoints } from '../../api/endpoints'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import {
   formatCost,
   formatLitres,
@@ -57,6 +58,7 @@ interface Props {
 
 export function FuelRecordPicker({ selectedIds, onChange, claimId }: Props) {
   const { t } = useTranslation()
+  const { formatDate } = useTimezone()
 
   const { data, error, isLoading } = useApi<LiquidRecordListResponse>({
     url: endpoints.liquid.records,
@@ -149,7 +151,7 @@ export function FuelRecordPicker({ selectedIds, onChange, claimId }: Props) {
                           }}
                         />
                       </TableCell>
-                      <TableCell>{new Date(record.recordedAt).toLocaleDateString()}</TableCell>
+                      <TableCell>{formatDate(record.recordedAt)}</TableCell>
                       <TableCell>{record.aircraftRegistration}</TableCell>
                       <TableCell>{record.airport}</TableCell>
                       <TableCell>{record.fuelType}</TableCell>

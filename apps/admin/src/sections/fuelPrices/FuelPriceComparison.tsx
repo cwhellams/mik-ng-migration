@@ -27,6 +27,7 @@ import {
 import useApi from '@mik/ui/hooks/useApi'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { formatLitres, formatPricePerLitre } from '../liquid/liquidFormat'
 
 /**
@@ -47,6 +48,7 @@ const yearStart = () => `${new Date().getFullYear()}-01-01`
 
 export function FuelPriceComparison() {
   const { t } = useTranslation()
+  const { formatDate } = useTimezone()
   const [from, setFrom] = useState(yearStart)
   const [to, setTo] = useState(today)
   const [references, setReferences] = useState<Record<string, string>>({})
@@ -199,7 +201,7 @@ export function FuelPriceComparison() {
                             : undefined
                         }
                       >
-                        <TableCell>{new Date(row.recordedAt).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatDate(row.recordedAt)}</TableCell>
                         <TableCell>{row.aircraftRegistration}</TableCell>
                         <TableCell>
                           {row.airportName ? `${row.airport}: ${row.airportName}` : row.airport}
