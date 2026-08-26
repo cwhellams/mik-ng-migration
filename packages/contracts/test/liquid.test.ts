@@ -17,14 +17,17 @@ import {
   JET_A1,
   LIQUID_EDIT_WINDOW_DAYS,
   LiquidLockReason,
+  LiquidRecordFilterSchema,
   LiquidRecordSource,
   LiquidType,
   liquidReportPath,
+  OIL_MAX_LITRES,
   OilSource,
   qrScanPath,
   QrTargetType,
   requiresTotalCost,
   resolveHomeBaseProvider,
+  round4,
   selectableProviders,
   suggestCanisterRef,
   UpdateLiquidRecordSchema,
@@ -431,10 +434,25 @@ describe('computeLiquidFuelPricing', () => {
         quantityLitres: 10,
         totalCost: 20,
         taxIncludedAbroad: false,
-        recordedAt: '2025-12-31T23:00:00.000Z',
+        recordedAt: '2025-12-15T10:00:00.000Z',
         taxRateEurPerLitre: 0.05,
       }).fuelTaxYear,
     ).toBe(2025)
+  })
+
+  it('takes the year from the club’s own Helsinki calendar, not UTC’s', () => {
+    // 2025-12-31T23:00Z is already 2026-01-01 in Helsinki (UTC+2 in winter) —
+    // a fuelling right around New Year must freeze the year the club actually
+    // sees it in, not whichever side of midnight UTC happens to land on.
+    expect(
+      computeLiquidFuelPricing({
+        quantityLitres: 10,
+        totalCost: 20,
+        taxIncludedAbroad: false,
+        recordedAt: '2025-12-31T23:00:00.000Z',
+        taxRateEurPerLitre: 0.05,
+      }).fuelTaxYear,
+    ).toBe(2026)
   })
 
   it('rounds to the four decimals the column stores', () => {
@@ -592,6 +610,27 @@ describe('CreateLiquidRecordSchema', () => {
     )
     expect(result.success).toBe(false)
     expect(result.error?.issues.map((i) => i.path.join('.'))).toContain('oilCanisterId')
+  })
+
+  it('rejects an oil quantity past the tighter oil-specific bound', () => {
+    // A fuel tank measures in the hundreds of litres; an engine's oil system
+    // does not. Oil used to share fuel's 10,000L bound entirely, so a 100L
+    // "oil" entry passed validation everywhere.
+    const result = CreateLiquidRecordSchema.safeParse(
+      anOilRequest({ quantityLitres: OIL_MAX_LITRES + 1 }),
+    )
+    expect(result.success).toBe(false)
+    expect(result.error?.issues.map((i) => i.path.join('.'))).toContain('quantityLitres')
+  })
+
+  it('accepts an oil quantity right at the bound, and never restricts fuel this way', () => {
+    expect(
+      CreateLiquidRecordSchema.safeParse(anOilRequest({ quantityLitres: OIL_MAX_LITRES })).success,
+    ).toBe(true)
+    expect(
+      CreateLiquidRecordSchema.safeParse(aFuelRequest({ quantityLitres: OIL_MAX_LITRES + 1 }))
+        .success,
+    ).toBe(true)
   })
 
   it('requires an exchange rate for a non-EUR purchase', () => {
@@ -797,5 +836,28 @@ describe('FuelPriceComparisonQuerySchema', () => {
     expect(
       FuelPriceComparisonQuerySchema.safeParse({ from: 'yesterday', to: '2026-06-30' }).success,
     ).toBe(false)
+  })
+})
+
+describe('LiquidRecordFilterSchema', () => {
+  it('defaults to the shared 100/500 limit-offset pair', () => {
+    // Reuses LimitOffsetSchema(100, 500) rather than hand-defining limit/offset
+    // a second time — this pins the pair it now inherits.
+    const parsed = LiquidRecordFilterSchema.parse({})
+    expect(parsed.limit).toBe(100)
+    expect(parsed.offset).toBe(0)
+  })
+
+  it('rejects a limit past the shared cap', () => {
+    expect(LiquidRecordFilterSchema.safeParse({ limit: 501 }).success).toBe(false)
+    expect(LiquidRecordFilterSchema.safeParse({ limit: 500 }).success).toBe(true)
+  })
+})
+
+describe('round4', () => {
+  it('is exported so callers price a litre the same way computeLiquidFuelPricing does', () => {
+    // liquidClaimItems.ts's derived line-item price and the frontend's
+    // paidPricePerLitre both used to reimplement this inline.
+    expect(round4(10 / 7)).toBe(1.4286)
   })
 })
