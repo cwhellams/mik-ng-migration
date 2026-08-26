@@ -64,7 +64,12 @@
     "ameAdmin": "AME-hyväksynnät",
     "meetings": "Kokoukset",
     "meetingsAdmin": "Kokoukset (hallinto)",
-    "itemReservations": "Kalustovaraukset"
+    "itemReservations": "Kalustovaraukset",
+    "liquid": "Polttoaine- ja öljykirjaus",
+    "fuelTax": "Polttoainevero",
+    "liquidOilAdmin": "Öljyvarasto",
+    "liquidQrAdmin": "Nesteiden QR-koodit",
+    "liquidRecordsAdmin": "Kaikki nestekirjaukset"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -1203,14 +1208,15 @@
         "airports": "Lähtö- ja saapumislentopaikka",
         "landings": "Laskut",
         "nightIfr": "Yölento ja mittarilento",
-        "fuelUplift": "Tankattu polttoaine",
+        "fuelUplift": "Polttoaine ja öljy",
         "fuelRemaining": "Polttoainetta jäljellä",
-        "oil": "Öljy",
         "notes": "Muistiinpanot",
         "review": "Yhteenveto"
       },
       "question": {
-        "nightOrIfr": "Sisälsikö lento yölentoa tai mittarilentoa?"
+        "nightOrIfr": "Sisälsikö lento yölentoa tai mittarilentoa?",
+        "fuelAdded": "Tankkasitko polttoainetta?",
+        "oilAdded": "Lisäsitkö öljyä?"
       },
       "stepCounter": "Vaihe {{current}}/{{total}}",
       "useClassicForm": "Käytä täyttä lomaketta",
@@ -1470,9 +1476,15 @@
       "operations": {
         "INSERT": "Luotu",
         "UPDATE": "Muokattu",
-        "DELETE": "Poistettu"
+        "DELETE": "Poistettu",
+        "SOFT_DELETE": "Poistettu"
       },
       "fields": {
+        "description": "Kuvaus",
+        "hilId": "HIL-merkintä",
+        "resolvedNoteId": "Ratkaistu huoltomerkinnällä",
+        "fuelRecord": "Polttoainekirjaus",
+        "oilRecord": "Öljykirjaus",
         "aircraftRegistration": "Ilma-alus",
         "flightType": "Lentolaji",
         "billableMemberId": "Laskutetaan",
@@ -1513,6 +1525,25 @@
         "ajlbSeqNo": "Matkapäiväkirja",
         "ajlbBlankRowsBefore": "Tyhjiä rivejä ennen"
       }
+    },
+    "liquid": {
+      "title": "Polttoaine- ja öljykirjaukset",
+      "addFuel": "Lisää polttoaine",
+      "addOil": "Lisää öljy",
+      "addAnotherFuel": "Lisää toinen polttoainekirjaus",
+      "addAnotherOil": "Lisää toinen öljykirjaus",
+      "linkExisting": "Liitä aiempi kirjaus",
+      "linkAdditional": "Liitä toinen kirjaus",
+      "linkTitle": "Liitä ilma-aluksen olemassa oleva kirjaus",
+      "link": "Liitä",
+      "unlink": "Irrota tästä lennosta",
+      "none": "Tähän lentoon ei ole liitetty polttoaine- tai öljykirjauksia.",
+      "noSuggestions": "Ei liittämättömiä kirjauksia ilma-alukselle {{aircraft}}. Lisää kirjaus yllä.",
+      "legacyRecord": "Kirjattu ennen polttoaine-/öljykirjausjärjestelmää — säilytetään sellaisenaan.",
+      "fuelLinkFailed": "Lento tallennettiin, mutta polttoainekirjausta ei saatu liitettyä: {{detail}} Voit liittää sen alla käsin.",
+      "oilLinkFailed": "Lento tallennettiin, mutta öljykirjausta ei saatu liitettyä: {{detail}} Voit liittää sen alla käsin.",
+      "fuelLabel": "Polttoaine",
+      "oilLabel": "Öljy"
     }
   },
   "invoicing": {
@@ -1914,7 +1945,7 @@
     "exitEditMode": "Poistu muokkaustilasta",
     "localPrices": {
       "title": "Paikallinen (EFNU) polttoainehintakatto",
-      "description": "Polttoainekulujen korvauskatto polttoainetyypeittäin. Matkan kokonaislitrat verrataan paikalliseen hintaan matkan alkamispäivänä — halvemmat ja kalliimmat pysähdykset samalla matkalla tasoittavat toisiaan (issue #955).",
+      "description": "Polttoainekulujen korvauskatto polttoainetyypeittäin. Matkan kokonaislitrat verrataan paikalliseen hintaan matkan alkamispäivänä — halvemmat ja kalliimmat pysähdykset samalla matkalla tasoittavat toisiaan.",
       "empty": "Paikallisia polttoainehintoja ei ole vielä asetettu.",
       "fuelType": "Polttoainetyyppi",
       "price": "Hinta (€/litra)",
@@ -1931,6 +1962,38 @@
         "litres": "Litraa",
         "fuelType": "Polttoainetyyppi",
         "pricePerLitre": "€/litra (sis. kulut)"
+      }
+    },
+    "comparison": {
+      "title": "Polttoaineen hintavertailu",
+      "intro": "Syötä litrahinta {{icao}}:ssa tänään, ja jokainen aikavälin tankkaus verrataan siihen. {{icao}}:n ulkopuolisilla tankkauksilla on aina hinta; {{icao}}:ssa ilman hintaa tehty tankkaus näytetään mutta sitä ei verrata.",
+      "from": "Alkaen",
+      "to": "Päättyen",
+      "referencePrices": "{{icao}}:n vertailuhinta litralta",
+      "run": "Aja raportti",
+      "empty": "Aikavälillä ei ole tankkauksia.",
+      "abroad": "Vero sisältyy",
+      "abroadTooltip": "Ostettu ulkomailta, joten Suomen polttoaineveroa ei lisätty.",
+      "notComparable": "Ei verrattu",
+      "notComparableTooltip": "Hintaa ei kirjattu tai tälle polttoainelaadulle ei annettu vertailuhintaa.",
+      "stat": {
+        "total": "Tankkauksia",
+        "comparable": "Verrattu",
+        "exceeding": "Yli vertailuhinnan",
+        "exceedingLitres": "Litroja yli",
+        "excessCost": "Ylimääräinen kustannus"
+      },
+      "col": {
+        "date": "Päivä",
+        "aircraft": "Ilma-alus",
+        "airport": "Lentopaikka",
+        "fuelType": "Polttoaine",
+        "provider": "Toimittaja",
+        "litres": "Litraa",
+        "paid": "Maksettu / litra",
+        "taxAdjusted": "Vertailukelpoinen / litra",
+        "reference": "Vertailuhinta",
+        "delta": "Ero"
       }
     }
   },
@@ -3027,6 +3090,27 @@
       "fuelDateRequired": "Päivämäärä on pakollinen polttoainerivin tiedoille",
       "airportRequired": "Lentopaikka on pakollinen polttoainerivin tiedoille",
       "mileageDetailsRequired": "Lähtö- ja määränpään osoite, matkapäivä ja matkan pituus vaaditaan. Hallituksen hyväksyntä vaaditaan kilometrirajan ylittyessä."
+    },
+    "fuelRecords": {
+      "intro": "Valitse tankkaukset, joita tämä hakemus koskee. Litrat, lentopaikka, polttoainelaatu ja hinta tulevat siitä, mitä kirjasit tankkauksen yhteydessä — niitä ei tarvitse syöttää uudelleen.",
+      "none": "Sinulla ei ole hinnallisia polttoainekirjauksia. Kirjaa ensin itse maksettu tankkaus.",
+      "reportFirst": "Kirjaa tankkaus",
+      "selectAtLeastOne": "Valitse vähintään yksi tankkaus",
+      "alreadyClaimed": "Jo haettu",
+      "taxIncluded": "Vero sisältyy",
+      "plusFuelTax": "+ {{rate}} €/l polttoainevero",
+      "selected": "{{count}} tankkausta valittu, maksettu {{total}} €.",
+      "receiptAttachedHint": "Tähän tankkaukseen liitettiin kuitti, kun se kirjattiin — se lisätään tähän hakemukseen automaattisesti.",
+      "col": {
+        "date": "Päivä",
+        "aircraft": "Ilma-alus",
+        "airport": "Lentopaikka",
+        "fuelType": "Polttoaine",
+        "litres": "Litraa",
+        "cost": "Maksettu",
+        "perLitre": "Litrahinta",
+        "status": ""
+      }
     }
   },
   "inventory": {
@@ -3250,10 +3334,14 @@
       "tulorekisteriReport": "Tulorekisteri-raportti",
       "expenseApproval": "Kulukorvausten hyväksyntä",
       "mileageAllowances": "Kilometrikorvaukset",
+      "fuelTax": "Polttoainevero",
       "costCentres": "Kustannuspaikat",
       "fuelPrices": "Polttoaineen hinnat",
       "documents": "Dokumentit",
-      "commercialFlightTime": "Kaupallinen lentoaika"
+      "commercialFlightTime": "Kaupallinen lentoaika",
+      "liquidRecords": "Polttoaine- ja öljykirjaukset",
+      "liquidOil": "Öljyvarasto",
+      "liquidQr": "QR-koodit"
     },
     "dashboard": {
       "welcome": "Tervetuloa takaisin, {{name}}",
@@ -3318,5 +3406,192 @@
       "endAfterStart": "Loppuajan on oltava alkuajan jälkeen",
       "itemRequired": "Valitse varattava tuote"
     }
+  },
+  "liquid": {
+    "type": {
+      "fuel": "Polttoaine",
+      "oil": "Öljy"
+    },
+    "lock": {
+      "claimLinked": "Tämä kirjaus on liitetty kulukorvaushakemukseen, eikä sitä voi enää muuttaa kukaan.",
+      "flightValidated": "Lentopäiväkirjan merkintä on hyväksytty. Pyydä muutos nesteiden ylläpitäjältä.",
+      "windowExpired": "Kirjaus on yli viikon vanha. Pyydä muutos nesteiden ylläpitäjältä.",
+      "notOwner": "Kirjaus kuuluu toiselle jäsenelle.",
+      "deleted": "Kirjaus on poistettu."
+    },
+    "form": {
+      "title": "Kirjaa polttoaine tai öljy",
+      "liquidType": "Mitä kirjaat?",
+      "aircraft": "Ilma-alus",
+      "recordedAtTz": "Päivä ja kellonaika ({{tz}})",
+      "recordedAtHint": "Oletuksena nyt — muuta, jos kirjaat jälkikäteen.",
+      "airport": "Lentopaikka",
+      "fuelType": "Polttoainelaatu",
+      "provider": "Toimittaja",
+      "providerHint": "Valitse \"Muu / oma maksu\", jos et maksanut kerhon polttoainekortilla.",
+      "suppliedBy": "Toimittaja: {{provider}}",
+      "quantityLitres": "Määrä (litraa)",
+      "totalCost": "Kokonaishinta",
+      "totalCostRequired": "Pakollinen kotikentän ulkopuolella.",
+      "totalCostOptional": "Ei tarvita kotikentällä — kerho laskutetaan suoraan.",
+      "currency": "Valuutta",
+      "fxRate": "Muuntokurssi euroksi",
+      "fxRateHint": "Montako euroa yksi {{ccy}} on.",
+      "atHomeBase": "Kotikentällä ({{icao}})",
+      "awayFromHomeBase": "Muualla",
+      "prefilled": "Skannattu: {{context}}",
+      "selectAircraft": "Valitse ilma-alus.",
+      "selectAircraftFirst": "Valitse ensin ilma-alus.",
+      "selectAirport": "Valitse lentopaikka.",
+      "selectFuelType": "Valitse polttoainelaatu.",
+      "selectProvider": "Valitse toimittaja.",
+      "selectCanister": "Valitse kanisteri.",
+      "enterQuantity": "Syötä lisätty määrä.",
+      "enterTotalCost": "Syötä kokonaishinta.",
+      "enterFxRate": "Syötä muuntokurssi.",
+      "enterOilDetails": "Syötä valmistaja, viskositeetti ja eränumero.",
+      "receiptOptional": "Kuitti (valinnainen) — liitä se nyt, niin se lisätään automaattisesti kulukorvaushakemukseesi.",
+      "attachFile": "Liitä tiedosto",
+      "takePhoto": "Ota kuva",
+      "removeFile": "Poista {{name}}",
+      "receiptUploadFailed": "Tankkaus tallennettiin, mutta kuittia ei saatu ladattua.",
+      "retryReceiptUpload": "Yritä uudelleen",
+      "continueWithoutReceipt": "Jatka ilman kuittia"
+    },
+    "oil": {
+      "source": "Mistä öljy tuli?",
+      "clubCanister": "Kerhon kanisteri",
+      "otherSource": "Muu lähde",
+      "otherSourceShort": "Muu lähde",
+      "canister": "Kanisteri",
+      "canisterDetails": "Erä {{batch}} · kohdennettu {{aircraft}}",
+      "noCanisters": "Tälle ilma-alukselle ei ole kanistereita varastossa. Kirjaa öljy muusta lähteestä tai pyydä ylläpitäjää lisäämään kanisteri.",
+      "make": "Valmistaja",
+      "modelViscosity": "Malli / viskositeetti",
+      "batchNumber": "Eränumero",
+      "remainingLitres": "Kanisterissa jäljellä (litraa)",
+      "remainingLitresHint": "Vain tiedoksi — sitä ei verrata käytettyyn määrään.",
+      "markEmpty": "Kanisteri on nyt tyhjä",
+      "opened": "Avattu",
+      "sealed": "Avaamaton",
+      "isEmpty": "Tyhjä"
+    },
+    "myRecords": {
+      "title": "Omat polttoaine- ja öljykirjaukset",
+      "report": "Kirjaa polttoaine tai öljy",
+      "filter": "Suodata nesteen mukaan",
+      "all": "Kaikki",
+      "empty": "Et ole vielä kirjannut polttoainetta tai öljyä.",
+      "claimed": "Hakemuksella",
+      "locked": "Lukittu",
+      "deleteTitle": "Poistetaanko kirjaus?",
+      "deleteMessage": "Kirjaus säilytetään muutoshistoriassa, mutta se ei enää vaikuta mihinkään.",
+      "col": {
+        "date": "Päivä",
+        "aircraft": "Ilma-alus",
+        "details": "Tiedot",
+        "pricePerLitre": "Maksettu litrahinta",
+        "links": "Liitetty"
+      }
+    },
+    "edit": {
+      "title": "Korjaa kirjausta",
+      "context": "{{type}} · {{aircraft}} · kirjattu {{recorded}}"
+    },
+    "scan": {
+      "unassignedTitle": "Koodi ei ole vielä käytössä",
+      "unassigned": "QR-koodia {{code}} ei ole vielä kohdennettu mihinkään.",
+      "unassignedHint": "Nesteiden ylläpitäjän on kohdennettava koodi, ennen kuin se voi esitäyttää kirjauksen.",
+      "reportAnyway": "Kirjaa silti polttoaine tai öljy"
+    },
+    "claimable": {
+      "widgetTitle": "Hakematon polttoaine",
+      "prompt": "Sinulla on {{count}} itse maksettua polttoainekirjausta ({{total}} €) ilman kulukorvaushakemusta.",
+      "oldest": "Vanhin on {{date}}.",
+      "action": "Tee kulukorvaushakemus",
+      "viewRecords": "Näytä omat kirjaukset"
+    },
+    "admin": {
+      "oil": {
+        "title": "Öljykanisterien varasto",
+        "addTitle": "Lisää kanisteri",
+        "add": "Lisää kanisteri",
+        "inventoryTitle": "Varasto",
+        "canisterRef": "Kerhon kanisteritunnus",
+        "canisterRefHint": "Ehdotettu valmistajan perusteella — muuta vastaamaan kanisterin merkintää.",
+        "manufacturingDate": "Valmistettu",
+        "aircraft": "Ilma-alus",
+        "aircraftPermanent": "Pysyvä — sitä ei voi muuttaa jälkikäteen.",
+        "initialLitres": "Tilavuus (litraa)",
+        "state": "Tila",
+        "showEmpty": "Näytä tyhjät kanisterit",
+        "empty": "Varastossa ei ole kanistereita.",
+        "noQr": "Ei QR-koodia",
+        "markEmptyTooltip": "Merkitse tyhjäksi ja poista käytettävissä olevasta varastosta",
+        "deleteTitle": "Poistetaanko kanisteri?",
+        "deleteMessage": "Onnistuu vain, jos kanisterille ei ole kirjattu öljynkäyttöä. Muuten merkitse se tyhjäksi."
+      },
+      "qr": {
+        "title": "Nestekirjauksen QR-koodit",
+        "generateTitle": "Luo koodeja",
+        "generateHint": "Koodit luodaan kohdentamattomina. Tulosta arkki, leikkaa se ja kohdenna koodi, kun kiinnität sen kanisteriin tai tankkauspisteeseen.",
+        "generate": "Luo",
+        "batchLabel": "Erän nimi",
+        "batchLabelHint": "Jotta tulostetut arkit voi erottaa toisistaan.",
+        "count": "Määrä",
+        "countHint": "Enintään 96 — kahdeksan A4-arkkia.",
+        "batchesTitle": "Erät",
+        "noBatches": "Koodeja ei ole vielä luotu.",
+        "assignedCount": "Kohdennettu",
+        "created": "Luotu",
+        "printSheet": "Tulosta arkki",
+        "showCodes": "Näytä koodit",
+        "showAll": "Näytä kaikki koodit",
+        "codesTitle": "Koodit",
+        "noCodes": "Ei koodeja.",
+        "code": "Koodi",
+        "unassignedOnly": "Vain kohdentamattomat",
+        "unassigned": "Kohdentamaton",
+        "assign": "Kohdenna",
+        "assignTitle": "Kohdenna QR-koodi",
+        "assignedTitle": "Koodi kohdennettu",
+        "assignedTo": "{{code}} osoittaa nyt kohteeseen {{target}}.",
+        "assignPermanently": "Kohdenna pysyvästi",
+        "permanentWarning": "Tätä ei voi peruuttaa. Tarra on kiinni kohteessa, joten koodia ei voi enää koskaan osoittaa muualle.",
+        "targetType": "Kohdenna",
+        "target": "Kohde",
+        "targetOilCanister": "Öljykanisteri",
+        "targetFuelStation": "Tankkauspiste",
+        "noCanistersToAssign": "Kaikilla varastossa olevilla kanistereilla on jo koodi.",
+        "noStationsToAssign": "Tankkauspisteitä ei ole määritelty.",
+        "assignedAt": "Kohdennettu"
+      },
+      "records": {
+        "title": "Kaikki polttoaine- ja öljykirjaukset",
+        "memberId": "Jäsen",
+        "includeDeleted": "Näytä poistetut",
+        "total": "{{count}} kirjausta",
+        "quantity": "Määrä",
+        "empty": "Ei kirjauksia.",
+        "deleted": "Poistanut {{by}}",
+        "deleteTitle": "Poistetaanko kirjaus?",
+        "deleteMessage": "Kirjaus säilytetään muutoshistoriassa, mutta se ei enää vaikuta mihinkään."
+      }
+    }
+  },
+  "fuelTax": {
+    "title": "Polttoainevero",
+    "explanation": "Suomen polttoainevero kalenterivuoden ja polttoainelaadun mukaan. Se lisätään ostoon, jossa veroa ei ollut jo mukana — Suomesta ostettu Jet A-1 — kun polttoainekirjaus liitetään kulukorvaushakemukseen. Voimassa oleva verokanta kopioidaan tällöin kirjaukselle, joten verokannan korjaaminen täällä ei koskaan muuta jo tehtyä hakemusta.",
+    "formTitle": "Aseta verokanta",
+    "configuredTitle": "Määritellyt verokannat",
+    "taxYear": "Kalenterivuosi",
+    "fuelType": "Polttoainelaatu",
+    "fuelTypeHint": "Vain kerhon käyttämät polttoaineet.",
+    "rate": "Verokanta (€/litra)",
+    "rateHint": "Lisätään ostoon, jossa ei ole Suomen polttoaineveroa.",
+    "updatedAt": "Päivitetty",
+    "updatedBy": "Päivittäjä",
+    "saved": "Verokanta tallennettu.",
+    "none": "Polttoaineverokantoja ei ole määritelty, joten mihinkään hintaan ei lisätä veroa. Lisää verokanta yllä, jos kerho on velvollinen maksamaan polttoaineveroa."
   }
 }

@@ -67,6 +67,8 @@ export const menuItems: MenuItem[] = [
       MIKPermissions.AIRCRAFT_ADMIN,
       MIKPermissions.FUEL_PRICES_USER,
       MIKPermissions.FUEL_PRICES_ADMIN,
+      MIKPermissions.LIQUID_USER,
+      MIKPermissions.LIQUID_ADMIN,
     ],
     subItems: [
       { label: 'header.aircrafts', path: '' },
@@ -83,6 +85,11 @@ export const menuItems: MenuItem[] = [
         path: 'fuel-prices',
         label: 'header.fuelPrices',
         requiredRoles: [MIKPermissions.FUEL_PRICES_USER, MIKPermissions.FUEL_PRICES_ADMIN],
+      },
+      {
+        path: '/liquid',
+        label: 'header.liquid',
+        requiredRoles: [MIKPermissions.LIQUID_USER, MIKPermissions.LIQUID_ADMIN],
       },
     ],
   },

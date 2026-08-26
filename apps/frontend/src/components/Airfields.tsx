@@ -1,10 +1,8 @@
-import { AirfieldListResponse } from '@mik/contracts/flight-log'
-import { Autocomplete, TextField } from '@mui/material'
 import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import useApi from '@mik/ui/hooks/useApi'
 import { useIsFormSubmitted } from '../hooks/useIsFormSubmitted'
 import { formatRequiredFieldError, shouldShowFieldError } from '../utils/formErrors'
+import { AirfieldAutocomplete } from './AirfieldAutocomplete'
 
 interface AirfieldsProps<T extends FieldValues> {
   control: Control<T>
@@ -23,19 +21,6 @@ export const Airfields = <T extends FieldValues>({
 }: AirfieldsProps<T>) => {
   const { t } = useTranslation()
   const isSubmitted = useIsFormSubmitted(control)
-  const { data } = useApi<AirfieldListResponse>(
-    {
-      url: 'v1/flight-logs/airfields',
-    },
-    {
-      // airfields do not change while adding a flight
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    },
-  )
-
-  const airfields = data?.airfields ?? []
 
   return (
     <Controller
@@ -45,34 +30,16 @@ export const Airfields = <T extends FieldValues>({
         const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
         return (
-          <Autocomplete
-            options={airfields}
+          <AirfieldAutocomplete
+            value={value}
+            onChange={onChange}
+            required={required}
             disabled={disabled}
-            value={airfields.find((airfield) => airfield.ident === value) ?? null}
-            getOptionLabel={(option) => `${option.ident}: ${option.name}`}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                required={required}
-                label={label}
-                placeholder='ICAO'
-                margin='normal'
-                slotProps={{
-                  ...params.slotProps,
-
-                  inputLabel: {
-                    shrink: true,
-                  },
-                }}
-                error={showError}
-                helperText={
-                  showError ? formatRequiredFieldError(error, t('common.fieldRequired')) : undefined
-                }
-              />
-            )}
-            onChange={(_e, airfield) => {
-              onChange(airfield?.ident ?? '')
-            }}
+            label={label}
+            error={showError}
+            helperText={
+              showError ? formatRequiredFieldError(error, t('common.fieldRequired')) : undefined
+            }
           />
         )
       }}

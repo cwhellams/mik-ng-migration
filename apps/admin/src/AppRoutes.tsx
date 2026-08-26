@@ -40,6 +40,7 @@ import { CostCentresPage } from './sections/accounting/CostCentresPage'
 import { ExpenseApproval } from './sections/accounting/ExpenseApproval'
 import { ExpenseClaimAdminDetail } from './sections/accounting/ExpenseClaimAdminDetail'
 import { FlightInvoicing } from './sections/accounting/FlightInvoicing'
+import { FuelTaxAdmin } from './sections/accounting/FuelTaxAdmin'
 import { InstructorWorktimeReport } from './sections/accounting/InstructorWorktimeReport'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
@@ -54,8 +55,11 @@ import { UpliftReport } from './sections/accounting/UpliftReport'
 import CommercialFlightTime from './sections/stats/CommercialFlightTime'
 import DocumentsAdmin from './sections/documents/DocumentsAdmin'
 import FuelPricesAdmin from './sections/fuelPrices/FuelPricesAdmin'
+import LiquidRecordsAdmin from './sections/liquid/LiquidRecordsAdmin'
 import MemberChangeLog from './sections/members/MemberChangeLog'
 import MemberTrash from './sections/members/MemberTrash'
+import OilInventoryAdmin from './sections/liquid/OilInventoryAdmin'
+import QrCodesAdmin from './sections/liquid/QrCodesAdmin'
 import Roles from './sections/members/Roles'
 
 /**
@@ -355,6 +359,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path='/accounting/fuel-tax'
+          element={
+            <RequirePermission permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+              <FuelTaxAdmin />
+            </RequirePermission>
+          }
+        />
+        <Route
           path='/accounting/tulorekisteri-report'
           element={
             <RequirePermission permissions={[MIKPermissions.EXPENSE_HETU_ADMIN]}>
@@ -420,7 +432,9 @@ const AppRoutes = () => {
         <Route
           path='/fuel-prices'
           element={
-            <RequirePermission permissions={[MIKPermissions.FUEL_PRICES_ADMIN]}>
+            <RequirePermission
+              permissions={[MIKPermissions.FUEL_PRICES_ADMIN, MIKPermissions.FUEL_PRICES_USER]}
+            >
               <FuelPricesAdmin />
             </RequirePermission>
           }
@@ -436,6 +450,34 @@ const AppRoutes = () => {
               ]}
             >
               <CommercialFlightTime />
+            </RequirePermission>
+          }
+        />
+
+        {/* Liquid Management System (#1119) — reporting stayed in the member
+            app (fuel now, fly later, at the aircraft); the inventory/QR/records
+            console is back-office. */}
+        <Route
+          path='/liquid/records'
+          element={
+            <RequirePermission permissions={[MIKPermissions.LIQUID_ADMIN]}>
+              <LiquidRecordsAdmin />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/liquid/oil'
+          element={
+            <RequirePermission permissions={[MIKPermissions.LIQUID_ADMIN]}>
+              <OilInventoryAdmin />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/liquid/qr'
+          element={
+            <RequirePermission permissions={[MIKPermissions.LIQUID_ADMIN]}>
+              <QrCodesAdmin />
             </RequirePermission>
           }
         />

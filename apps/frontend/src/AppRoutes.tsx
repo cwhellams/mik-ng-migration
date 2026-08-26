@@ -43,6 +43,10 @@ import MeetingPage from './sections/meetings/MeetingPage'
 import Member from './sections/members/Member'
 import MemberEfficiencyReport from './sections/members/MemberEfficiencyReport'
 import Members from './sections/members/Members'
+import EditLiquidRecord from './sections/liquid/EditLiquidRecord'
+import LiquidReportPage from './sections/liquid/LiquidReportForm'
+import LiquidScanPage from './sections/liquid/LiquidScanPage'
+import MyLiquidRecords from './sections/liquid/MyLiquidRecords'
 import MyExamHistoryPage from './sections/exams/MyExamHistoryPage'
 import MyFlightPackagesPage from './sections/shop/MyFlightPackagesPage'
 import NewFlightLogEntry from './sections/flightLog/FlightLogEntry'
@@ -182,6 +186,20 @@ export default function AppRoutes() {
             entry carries the permission so it doesn't advertise itself to a
             member without it. */}
         <Route path='/inventory-reservations' element={<ItemReservationCalendar />} />
+        {/* Ungated at the route level, like /inventory, /expenses and /exams:
+            every liquid endpoint requires liquid.user, and a member without it
+            gets the 403 that RemoteContent renders as "no access". A
+            RequirePermission here would be the app's only route-level gate on a
+            plain user permission — see AppRoutes.permissions.test.tsx. */}
+        <Route path='/liquid'>
+          <Route index element={<MyLiquidRecords />} />
+          <Route path='new' element={<LiquidReportPage />} />
+          <Route path=':recordId/edit' element={<EditLiquidRecord />} />
+          {/* Where a scanned QR code lands. The page renders whatever the server
+              resolved, because only the server knows whether this scanner may
+              assign an unused code. */}
+          <Route path='scan/:code' element={<LiquidScanPage />} />
+        </Route>
       </Route>
 
       {/* Auth Layout without header */}

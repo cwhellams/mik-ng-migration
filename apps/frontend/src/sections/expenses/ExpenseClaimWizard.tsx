@@ -3,21 +3,16 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router'
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   Divider,
-  FormControlLabel,
   IconButton,
   MenuItem,
   Paper,
-  Radio,
-  RadioGroup,
   Stack,
   Step,
   StepLabel,
@@ -37,11 +32,11 @@ import {
   type ExpenseClaim,
   type ExpenseClaimAttachment,
 } from '@mik/contracts/expenses'
-import type { FlightLogListEntry, FlightLogListResponse } from '@mik/contracts/flight-log'
 import useApi, { sharedApi } from '@mik/ui/hooks/useApi'
 import { useMe } from '@mik/ui/hooks/useMe'
 import { Title } from '@mik/ui/components/Title'
 import { getExpenseCategoryLabel } from '@mik/ui/utils/expenseUi'
+import { FuelRecordPicker } from './FuelRecordPicker'
 import {
   AttachmentsUploadZone,
   BankDetailsFields,
@@ -105,37 +100,35 @@ const EXPENSE_WIZARD_DRAFT_KEY = 'expenseClaim:new'
 interface ExpenseWizardDraft {
   step: number
   form: WizardForm
-  fuelForFlight: boolean | null
-  flightMode: 'dropdown' | 'manual'
   attachments: ExpenseClaimAttachment[]
   savedClaimId: string | null
   mileageLegs: MileageLegForm[]
   hetu: string
   claimFxRate: number | null
+  /** The fuel records this claim is built from (#1119). */
+  liquidRecordIds: string[]
 }
 
 // ─── Step keys ────────────────────────────────────────────────────────────────
 
 const STEP_WELCOME = 'expenses.wizard.step.welcome'
 const STEP_DETAILS = 'expenses.wizard.step.details'
-const STEP_FUEL_FLIGHT = 'expenses.wizard.step.fuelFlight'
 const STEP_MILEAGE = 'expenses.wizard.step.mileage'
 const STEP_BANK = 'expenses.wizard.step.bankDetails'
 const STEP_LINE_ITEMS = 'expenses.wizard.step.lineItems'
 const STEP_RECEIPT = 'expenses.wizard.step.receipt'
 const STEP_REVIEW = 'expenses.wizard.step.review'
 
-function useWizardSteps(isFuel: boolean, isMileage: boolean) {
+function useWizardSteps(isMileage: boolean) {
   return useMemo(() => {
     const steps = [STEP_WELCOME, STEP_DETAILS]
-    if (isFuel) steps.push(STEP_FUEL_FLIGHT)
     if (isMileage) steps.push(STEP_MILEAGE)
     steps.push(STEP_BANK)
     if (!isMileage) steps.push(STEP_LINE_ITEMS)
     if (!isMileage) steps.push(STEP_RECEIPT)
     steps.push(STEP_REVIEW)
     return steps
-  }, [isFuel, isMileage])
+  }, [isMileage])
 }
 
 // ─── Wizard ───────────────────────────────────────────────────────────────────
@@ -191,11 +184,12 @@ function ExpenseClaimWizardInner() {
 
   const [step, setStep] = useState(persistedDraft?.step ?? 0)
   const [form, setForm] = useState<WizardForm>(persistedDraft?.form ?? defaultForm)
-  const [fuelForFlight, setFuelForFlight] = useState<boolean | null>(
-    persistedDraft?.fuelForFlight ?? null,
-  )
-  const [flightMode, setFlightMode] = useState<'dropdown' | 'manual'>(
-    persistedDraft?.flightMode ?? 'dropdown',
+  // #1119: a fuel claim is now assembled from records the member already
+  // reported, rather than from line items they retype here. The claim's own
+  // flightLogId is derived server-side from those records too (#1119 follow-up)
+  // — the member is no longer asked "was this for a flight?" separately.
+  const [liquidRecordIds, setLiquidRecordIds] = useState<string[]>(
+    persistedDraft?.liquidRecordIds ?? [],
   )
   const [attachments, setAttachments] = useState<ExpenseClaimAttachment[]>(
     persistedDraft?.attachments ?? [],
@@ -232,27 +226,16 @@ function ExpenseClaimWizardInner() {
       writeWizardDraft<ExpenseWizardDraft>(EXPENSE_WIZARD_DRAFT_KEY, {
         step,
         form,
-        fuelForFlight,
-        flightMode,
         attachments,
         savedClaimId,
         mileageLegs,
         hetu,
         claimFxRate,
+        liquidRecordIds,
       })
     }, 400)
     return () => clearTimeout(timer)
-  }, [
-    step,
-    form,
-    fuelForFlight,
-    flightMode,
-    attachments,
-    savedClaimId,
-    mileageLegs,
-    hetu,
-    claimFxRate,
-  ])
+  }, [step, form, attachments, savedClaimId, mileageLegs, hetu, claimFxRate, liquidRecordIds])
 
   const categoryApi = useApi<ExpenseCategory[]>({ url: 'v1/expenses/categories' })
   const { data: mileageAllowance } = useApi<{ effectiveRatePerKm: number; discountPct: number }>({
@@ -263,10 +246,6 @@ function ExpenseClaimWizardInner() {
   })
   const { data: invoiceItemsData } = useApi<ItemListResponse>({
     url: 'v1/invoices/items',
-  })
-  const recentFlightsApi = useApi<FlightLogListResponse>({
-    url: 'v1/flight-log',
-    params: { orderLatestFirst: true, limit: 10 },
   })
   const { mutation } = useApi<ExpenseClaim>({ url: 'v1/expenses', skipFetch: true })
 
@@ -296,7 +275,7 @@ function ExpenseClaimWizardInner() {
         .map((item) => ({ id: item.id, code: item.code, name: item.name })),
     [invoiceItemsData?.items, isFuel, isMileage],
   )
-  const stepLabels = useWizardSteps(isFuel, isMileage)
+  const stepLabels = useWizardSteps(isMileage)
 
   // Pre-fill from flight log fuel shortcut (navigate state)
   useEffect(() => {
@@ -328,9 +307,10 @@ function ExpenseClaimWizardInner() {
         },
       ],
     }))
-    setFuelForFlight(true)
-    // Jump straight to the bank details step (past welcome, details, fuel-flight steps)
-    setStep(3)
+    // Jump straight to the bank details step (past welcome and details) —
+    // there's no fuel-flight step to skip past any more, the record picked in
+    // STEP_LINE_ITEMS supplies the flight link itself server-side.
+    setStep(2)
     // Run once when categories load
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories])
@@ -426,21 +406,19 @@ function ExpenseClaimWizardInner() {
           !!form.expenseDate &&
           new Date(form.expenseDate) <= new Date()
         )
-      case STEP_FUEL_FLIGHT:
-        return true
       case STEP_MILEAGE:
         return isMileage && validateHetu(hetu) && mileageLegs.every(isMileageLegValid)
       case STEP_BANK:
         return validateIban(form.iban) && form.ibanAccountName.trim().length > 0
       case STEP_LINE_ITEMS:
+        // A fuel claim is a selection of records, not a set of typed line items:
+        // the server derives litres, airport, cost and fuel type from them, so
+        // there is nothing here for the member to get wrong.
+        if (isFuel) return liquidRecordIds.length > 0
         return (
           form.lineItems.length > 0 &&
           form.lineItems.every(
-            (li) =>
-              li.description.trim().length > 0 &&
-              li.quantity > 0 &&
-              li.unitPrice > 0 &&
-              (!isFuel || (!!li.costCentreCode && !!li.date && !!li.airport)),
+            (li) => li.description.trim().length > 0 && li.quantity > 0 && li.unitPrice > 0,
           )
         )
       default:
@@ -477,7 +455,12 @@ function ExpenseClaimWizardInner() {
         return missing
       }
       case STEP_LINE_ITEMS:
-        return canAdvance() ? [] : [t('expenses.wizard.lineItemDetails')]
+        if (canAdvance()) return []
+        return [
+          isFuel
+            ? t('expenses.fuelRecords.selectAtLeastOne')
+            : t('expenses.wizard.lineItemDetails'),
+        ]
       default:
         return []
     }
@@ -506,7 +489,10 @@ function ExpenseClaimWizardInner() {
       ...form,
       description: form.description || undefined,
       aircraftId: form.aircraftId || undefined,
-      flightLogId: isFuel && fuelForFlight ? form.flightLogId : undefined,
+      // For fuel, the server derives this from the selected liquid records
+      // (#1119 follow-up) — never sent from here. Nothing else in the wizard
+      // has a control that sets form.flightLogId.
+      flightLogId: isFuel ? undefined : form.flightLogId,
       iban: form.iban || undefined,
       ibanAccountName: form.ibanAccountName || undefined,
       expenseDate: form.expenseDate || undefined,
@@ -547,6 +533,12 @@ function ExpenseClaimWizardInner() {
             }))
           : undefined,
       hetu: isMileage ? hetu || undefined : undefined,
+      // Always sent, including when empty: the backend only skips its
+      // link/unlink pass when this key is entirely absent, so a fuel claim
+      // whose last record was removed -- or a claim whose category just
+      // changed away from fuel -- must still send `[]` to actually release
+      // whatever was attached, rather than leaving it silently stuck.
+      liquidRecordIds,
     }
 
     const res = savedClaimId
@@ -676,6 +668,11 @@ function ExpenseClaimWizardInner() {
                 categoryId: id,
                 lineItems: c.lineItems.map((li) => ({ ...li, unit: defaultUnitForCategory(code) })),
               }))
+              // Switching away from fuel must release any records already
+              // attached, not just stop showing them: leaving stale ids in
+              // local state would still submit them on save and strand them
+              // locked to a claim the member no longer thinks involves fuel.
+              if (code !== 'fuel') setLiquidRecordIds([])
             }}
           >
             {categories.map((cat) => (
@@ -789,87 +786,6 @@ function ExpenseClaimWizardInner() {
       )
     }
 
-    if (currentStep === STEP_FUEL_FLIGHT) {
-      const recentFlights: FlightLogListEntry[] = recentFlightsApi.data?.logs ?? []
-      return (
-        <Stack spacing={3}>
-          <Typography variant='body1'>{t('expenses.wizard.fuelFlightQuestion')}</Typography>
-          <RadioGroup
-            value={fuelForFlight === null ? '' : String(fuelForFlight)}
-            onChange={(e) => setFuelForFlight(e.target.value === 'true')}
-          >
-            <FormControlLabel value='true' control={<Radio />} label={t('common.yes')} />
-            <FormControlLabel value='false' control={<Radio />} label={t('common.no')} />
-          </RadioGroup>
-          {fuelForFlight && (
-            <Stack spacing={2}>
-              <Stack direction='row' spacing={1}>
-                <Button
-                  size='small'
-                  variant={flightMode === 'dropdown' ? 'contained' : 'outlined'}
-                  onClick={() => setFlightMode('dropdown')}
-                >
-                  {t('expenses.wizard.recentFlights')}
-                </Button>
-                <Button
-                  size='small'
-                  variant={flightMode === 'manual' ? 'contained' : 'outlined'}
-                  onClick={() => setFlightMode('manual')}
-                >
-                  {t('expenses.wizard.enterFlightId')}
-                </Button>
-              </Stack>
-
-              {flightMode === 'dropdown' ? (
-                <Autocomplete
-                  options={recentFlights}
-                  loading={recentFlightsApi.isLoading}
-                  getOptionLabel={(fl) =>
-                    `#${fl.ajlbSeqNo} · ${fl.aircraftRegistration} · ${fl.departureAirport}→${fl.arrivalAirport} · ${fl.takeoffTimeUtc ? new Date(fl.takeoffTimeUtc).toLocaleDateString() : '?'}`
-                  }
-                  value={recentFlights.find((fl) => fl.flightId === form.flightLogId) ?? null}
-                  onChange={(_e, fl) =>
-                    setForm((c) => ({ ...c, flightLogId: fl?.flightId ?? undefined }))
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={t('expenses.wizard.selectFlight')}
-                      slotProps={{
-                        ...params.slotProps,
-
-                        input: {
-                          ...params.slotProps.input,
-                          endAdornment: (
-                            <>
-                              {recentFlightsApi.isLoading ? <CircularProgress size={20} /> : null}
-                              {params.slotProps.input.endAdornment}
-                            </>
-                          ),
-                        },
-                      }}
-                    />
-                  )}
-                />
-              ) : (
-                <TextField
-                  label={t('expenses.wizard.flightLogId')}
-                  type='number'
-                  value={form.flightLogId ?? ''}
-                  onChange={(e) =>
-                    setForm((c) => ({
-                      ...c,
-                      flightLogId: e.target.value || undefined,
-                    }))
-                  }
-                />
-              )}
-            </Stack>
-          )}
-        </Stack>
-      )
-    }
-
     if (currentStep === STEP_MILEAGE) {
       return (
         <Stack spacing={2}>
@@ -922,6 +838,16 @@ function ExpenseClaimWizardInner() {
     }
 
     if (currentStep === STEP_LINE_ITEMS) {
+      if (isFuel) {
+        return (
+          <FuelRecordPicker
+            selectedIds={liquidRecordIds}
+            onChange={setLiquidRecordIds}
+            claimId={savedClaimId ?? undefined}
+          />
+        )
+      }
+
       const defaultUnit = defaultUnitForCategory(selectedCategory?.code)
       return (
         <Stack spacing={2}>
@@ -997,11 +923,6 @@ function ExpenseClaimWizardInner() {
               {form.currency !== 'EUR' && claimFxRate && (
                 <Typography variant='body2'>
                   <b>{t('expenses.fields.fxRate')}:</b> 1 {form.currency} = {claimFxRate} EUR
-                </Typography>
-              )}
-              {isFuel && fuelForFlight && form.flightLogId && (
-                <Typography variant='body2'>
-                  <b>{t('expenses.wizard.flightLogId')}:</b> #{form.flightLogId}
                 </Typography>
               )}
               {isFuel && (

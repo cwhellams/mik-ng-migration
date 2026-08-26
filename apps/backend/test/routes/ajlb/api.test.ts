@@ -339,7 +339,7 @@ describe('CRUD /ajlb', () => {
   it('should delete logbook without flights', async () => {
     const logs = await getFlightLogs({ aircraftRegistration: 'OH-IHQ', ajlbSeqNo: payload.seqNo })
     for (const log of logs.logs) {
-      await deleteFlightLog(log.flightId)
+      await deleteFlightLog(log.flightId, jwt.memberId)
     }
 
     const response = await request(app)

@@ -1034,6 +1034,125 @@ describe('POST /flight-log/validate', () => {
   })
 })
 
+describe('POST /flight-log/validate — fuel/oil resolution backstop', () => {
+  // OH-IHQ has no NEW-status flights in the seed data, so a freshly created one
+  // is trivially "the first NEW flight for that aircraft" — no other fixture's
+  // ordering to fight.
+  let ihqSeqNo = 0
+  const ihqFlight = (overrides: Partial<FlightLogUpsertRequest> = {}): FlightLogUpsertRequest => {
+    ihqSeqNo += 1
+    const start = new Date(`2026-01-${15 + ihqSeqNo}T10:30:00Z`)
+    return {
+      ...flightPayload,
+      aircraftRegistration: 'OH-IHQ',
+      ajlbSeqNo: ihqSeqNo,
+      offBlockTimeEpoch: (start.getTime() / 1000).toString(),
+      takeoffTimeEpoch: (start.getTime() / 1000 + 15 * 60).toString(),
+      landingTimeEpoch: (start.getTime() / 1000 + 70 * 60).toString(),
+      onBlockTimeEpoch: (start.getTime() / 1000 + 75 * 60).toString(),
+      fuelUpliftLitres: null,
+      oilUpliftLitres: null,
+      ...overrides,
+    }
+  }
+
+  const createdFlightIds: string[] = []
+  afterAll(async () => {
+    if (createdFlightIds.length > 0) {
+      await db.deleteFrom('liquid.record').where('flightLogId', 'in', createdFlightIds).execute()
+      await db.deleteFrom('flight.logs').where('flightId', 'in', createdFlightIds).execute()
+    }
+  })
+
+  // One flight, one lifecycle, kept to a single test: OH-IHQ has no other NEW
+  // flight, so nothing else can jump the "earliest NEW flight first"
+  // ordering rule in between these steps.
+  it('blocks validation until fuel and oil are resolved, then allows it once both are marked none added', async () => {
+    const created = await request(app)
+      .post('/flight-log')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send(ihqFlight())
+    expect(created.status).toBe(201)
+    const flightId = created.body.flightId
+    createdFlightIds.push(flightId)
+
+    const blocked = await request(app)
+      .post(`/flight-log/${flightId}/validate`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send()
+    expect(blocked.status).toBe(409)
+    expect(blocked.body.detail).toContain('fuel')
+    expect(blocked.body.detail).toContain('oil')
+
+    await request(app)
+      .patch(`/flight-log/${flightId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ fuelUpliftLitres: 0, oilUpliftLitres: 0 })
+
+    const validated = await request(app)
+      .post(`/flight-log/${flightId}/validate`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send()
+    expect(validated.status).toBe(200)
+  })
+
+  it('validates once fuel and oil each have a linked liquid record', async () => {
+    // Runs after the previous test, so its OH-IHQ flight is already
+    // VALIDATED and this one is the new earliest NEW flight.
+    const created = await request(app)
+      .post('/flight-log')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send(ihqFlight())
+    expect(created.status).toBe(201)
+    const flightId = created.body.flightId
+    createdFlightIds.push(flightId)
+
+    const provider = await db
+      .selectFrom('liquid.fuelProvider')
+      .select(['providerId'])
+      .where('code', '=', 'MPL')
+      .executeTakeFirstOrThrow()
+
+    await db
+      .insertInto('liquid.record')
+      .values([
+        {
+          liquidType: 'FUEL',
+          aircraftRegistration: 'OH-IHQ',
+          memberId: test_member_id,
+          quantityLitres: 40,
+          airport: 'EFNU',
+          fuelType: 'MOGAS 98E5',
+          providerId: provider.providerId,
+          flightLogId: flightId,
+          createdBy: test_member_id,
+          updatedBy: test_member_id,
+        },
+        {
+          liquidType: 'OIL',
+          aircraftRegistration: 'OH-IHQ',
+          memberId: test_member_id,
+          quantityLitres: 0.2,
+          oilSource: 'OTHER',
+          oilMake: 'Aeroshell',
+          oilModelViscosity: '100',
+          oilBatchNumber: 'B-1',
+          flightLogId: flightId,
+          createdBy: test_member_id,
+          updatedBy: test_member_id,
+        },
+      ])
+      .execute()
+
+    const res = await request(app)
+      .post(`/flight-log/${flightId}/validate`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send()
+
+    expect(res.status).toBe(200)
+  })
+})
+
 describe('DELETE /flight-log', () => {
   it('should return 404 when flight does not exist', async () => {
     const response = await request(app)
@@ -1605,7 +1724,15 @@ describe('crew flights in a member own flight log', () => {
         .set('Cookie', `accessToken=${mattiToken}`)
 
       expect(audit.status).toBe(200)
-      expect(audit.body.entries[0]).toMatchObject({
+      // Not entries[0]: 'mikify' is also the shared fixture NEW_JET_FLIGHT that the
+      // liquid test suite links/deletes records against (test/routes/liquid/
+      // testSupport.ts), and since #1119 those now legitimately show up in this
+      // same merged trail too -- newest-first no longer means "this test's own
+      // change" once other sources can be more recent.
+      const flightEntries = audit.body.entries.filter(
+        (entry: { source: string }) => entry.source === 'flightLog',
+      )
+      expect(flightEntries[0]).toMatchObject({
         operationType: 'UPDATE',
         changedBy: 'Jukka1',
         changes: [
@@ -1720,5 +1847,133 @@ describe('crew flights in a member own flight log', () => {
 
       expect(response.status).toBe(404)
     })
+
+    // The trail used to be flight.logs_audit alone. A remark (#1226) and a fuel/oil
+    // record (#1119) each carry their own audit trail on their own table, and these
+    // prove the merge actually surfaces them here rather than only on their own
+    // domain's screens -- writing straight to the base table (not through its own
+    // API) so the real database trigger, not a mock, is what produces the row.
+    it('includes a remark logged against the flight', async () => {
+      const inserted = await db
+        .insertInto('flight.remark')
+        .values({
+          flightId: 'da40tndra',
+          description: 'Merged-audit test remark',
+          createdBy: 'Jukka1',
+          updatedBy: 'Jukka1',
+        })
+        .returning('remarkId')
+        .executeTakeFirstOrThrow()
+
+      const response = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.entries).toContainEqual(
+        expect.objectContaining({
+          source: 'remark',
+          operationType: 'INSERT',
+          changedBy: 'Jukka1',
+        }),
+      )
+
+      await db.deleteFrom('flight.remark').where('remarkId', '=', inserted.remarkId).execute()
+    })
+
+    it('includes an oil record linked to the flight', async () => {
+      const record = await db
+        .insertInto('liquid.record')
+        .values({
+          liquidType: 'OIL',
+          aircraftRegistration: 'OH-P28',
+          memberId: 'Jukka1',
+          quantityLitres: 0.5,
+          oilSource: 'OTHER',
+          oilMake: 'Aeroshell',
+          oilModelViscosity: 'W100',
+          oilBatchNumber: 'B-merge-test',
+          createdBy: 'Jukka1',
+          updatedBy: 'Jukka1',
+        })
+        .returning('recordId')
+        .executeTakeFirstOrThrow()
+
+      // Linking is its own UPDATE (see FuelOilSection.tsx): flightLogId starts
+      // null, so this is the transition the merged trail needs to catch.
+      await db
+        .updateTable('liquid.record')
+        .set({ flightLogId: 'da40tndra', updatedBy: 'Jukka1' })
+        .where('recordId', '=', record.recordId)
+        .execute()
+
+      const response = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.entries).toContainEqual(
+        expect.objectContaining({
+          source: 'liquid',
+          operationType: 'UPDATE',
+          changes: [expect.objectContaining({ field: 'oilRecord', before: null })],
+        }),
+      )
+
+      await db.deleteFrom('liquid.record').where('recordId', '=', record.recordId).execute()
+    })
+
+    it('shows a soft-deleted linked record as removed from the flight, not silently dropped', async () => {
+      // Regression: buildLiquidChanges only ever diffed flight_log_id and
+      // quantity_litres, neither of which a soft delete touches -- so a
+      // deleted-while-linked record produced changes.length===0 and vanished
+      // from the trail entirely instead of showing up as an unlink.
+      const record = await db
+        .insertInto('liquid.record')
+        .values({
+          liquidType: 'OIL',
+          aircraftRegistration: 'OH-P28',
+          memberId: 'Jukka1',
+          quantityLitres: 0.5,
+          oilSource: 'OTHER',
+          oilMake: 'Aeroshell',
+          oilModelViscosity: 'W100',
+          oilBatchNumber: 'B-softdelete-test',
+          flightLogId: 'da40tndra',
+          createdBy: 'Jukka1',
+          updatedBy: 'Jukka1',
+        })
+        .returning('recordId')
+        .executeTakeFirstOrThrow()
+
+      await db
+        .updateTable('liquid.record')
+        .set({ deletedAt: new Date(), deletedBy: 'Jukka1', updatedBy: 'Jukka1' })
+        .where('recordId', '=', record.recordId)
+        .execute()
+
+      const response = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.entries).toContainEqual(
+        expect.objectContaining({
+          source: 'liquid',
+          operationType: 'SOFT_DELETE',
+          changes: [expect.objectContaining({ field: 'oilRecord', after: null })],
+        }),
+      )
+
+      await db.deleteFrom('liquid.record').where('recordId', '=', record.recordId).execute()
+    })
+
+    // Blocked on fixture setup: a defect (#1223) needs an ajlb_seq_no referencing an
+    // existing flight.aircraft_journey_log_book row, and this file has no seeded
+    // logbook page to reference without duplicating a large chunk of baseline data.
+    // The remark and liquid tests above already prove the merge mechanism itself
+    // (diffSnapshots / buildLiquidChanges / the cross-table sort) works; a defect
+    // entry goes through the exact same generic diffSnapshots path as remark does.
+    it.todo('includes a defect reported against the flight')
   })
 })

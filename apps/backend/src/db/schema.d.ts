@@ -205,6 +205,10 @@ export interface AcctsExpenseClaimAttachment {
   id: Generated<number>
   mimeType: string
   sortOrder: Generated<number>
+  /**
+   * Set when this attachment was auto-copied from a liquid record's own receipt, rather than uploaded directly to the claim.
+   */
+  sourceLiquidAttachmentId: number | null
   storageKey: string
   uploadedAt: Generated<Timestamp>
 }
@@ -298,6 +302,20 @@ export interface AcctsExpenseMileageDetail {
    * Ordered [{label, lat, lon}, ...] intermediate stops for non-direct routes
    */
   waypoints: Generated<Json>
+}
+
+export interface AcctsFuelTax {
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  fuelType: string
+  id: Generated<number>
+  /**
+   * EUR per litre added to a purchase that did not already include Finnish fuel tax
+   */
+  rateEurPerLitre: Numeric
+  taxYear: number
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
 }
 
 export interface AcctsInvoice {
@@ -1274,6 +1292,143 @@ export interface InventoryReservations {
   unitId: string | null
   updatedAt: Generated<Timestamp>
   updatedBy: string
+}
+
+export interface LiquidFuelProvider {
+  code: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  defaultAirport: string | null
+  fuelTypes: string[] | null
+  isActive: Generated<boolean>
+  isHomeBase: Generated<boolean>
+  name: string
+  providerId: Generated<number>
+  requiresClaim: Generated<boolean>
+  requiresTotalCost: Generated<boolean>
+  sortOrder: Generated<number>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
+export interface LiquidFuelStation {
+  aircraftRegistration: string | null
+  airport: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  fuelType: string | null
+  isActive: Generated<boolean>
+  label: string
+  providerId: number | null
+  stationId: Generated<string>
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
+export interface LiquidOilCanister {
+  aircraftRegistration: string
+  batchNumber: string
+  canisterId: Generated<string>
+  clubCanisterRef: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  emptiedAt: Timestamp | null
+  initialLitres: Numeric | null
+  isEmpty: Generated<boolean>
+  isOpened: Generated<boolean>
+  make: string
+  manufacturingDate: string | null
+  modelViscosity: string
+  openedAt: Timestamp | null
+  /**
+   * Informational. Deliberately not validated against reported usage (#1119).
+   */
+  remainingLitres: Numeric | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
+export interface LiquidQrBatch {
+  batchId: Generated<string>
+  codeCount: number
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  label: string
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
+export interface LiquidQrCode {
+  assignedAt: Timestamp | null
+  assignedBy: string | null
+  batchId: string | null
+  code: string
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  qrId: Generated<string>
+  targetId: string | null
+  targetType: string | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
+export interface LiquidRecord {
+  aircraftRegistration: string
+  airport: string | null
+  ccy: Generated<string>
+  claimLinkedAt: Timestamp | null
+  createdAt: Generated<Timestamp>
+  createdBy: string
+  deletedAt: Timestamp | null
+  deletedBy: string | null
+  expenseClaimId: string | null
+  flightLogId: string | null
+  fuelTaxRateApplied: Numeric | null
+  fuelTaxYear: number | null
+  fuelType: string | null
+  fxRate: Numeric | null
+  liquidType: string
+  markCanisterEmpty: Generated<boolean>
+  memberId: string
+  oilBatchNumber: string | null
+  oilCanisterId: string | null
+  oilMake: string | null
+  oilModelViscosity: string | null
+  oilSource: string | null
+  originalPaidTotal: Numeric | null
+  originalPricePerLitre: Numeric | null
+  providerId: number | null
+  qrId: string | null
+  quantityLitres: Numeric
+  recordedAt: Generated<Timestamp>
+  recordId: Generated<string>
+  remainingLitres: Numeric | null
+  source: Generated<string>
+  taxAdjustedPricePerLitre: Numeric | null
+  taxIncludedAbroad: Generated<boolean>
+  totalCost: Numeric | null
+  updatedAt: Generated<Timestamp>
+  updatedBy: string
+}
+
+export interface LiquidRecordAttachment {
+  fileName: string
+  fileSize: Int8
+  id: Generated<number>
+  mimeType: string
+  recordId: string
+  storageKey: string
+  uploadedAt: Generated<Timestamp>
+}
+
+export interface LiquidRecordAudit {
+  auditId: Generated<number>
+  changedAt: Generated<Timestamp>
+  changedBy: string
+  changedData: Json | null
+  newData: Json | null
+  operationType: string
+  recordId: string
 }
 
 export interface MemberAnnualFees {
@@ -2263,6 +2418,7 @@ export interface DB {
   'accts.expenseClaimLineItem': AcctsExpenseClaimLineItem
   'accts.expenseClaimMessage': AcctsExpenseClaimMessage
   'accts.expenseMileageDetail': AcctsExpenseMileageDetail
+  'accts.fuelTax': AcctsFuelTax
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
   'accts.localFuelPrice': AcctsLocalFuelPrice
@@ -2334,6 +2490,14 @@ export interface DB {
   'inventory.itemUnits': InventoryItemUnits
   'inventory.locations': InventoryLocations
   'inventory.reservations': InventoryReservations
+  'liquid.fuelProvider': LiquidFuelProvider
+  'liquid.fuelStation': LiquidFuelStation
+  'liquid.oilCanister': LiquidOilCanister
+  'liquid.qrBatch': LiquidQrBatch
+  'liquid.qrCode': LiquidQrCode
+  'liquid.record': LiquidRecord
+  'liquid.recordAttachment': LiquidRecordAttachment
+  'liquid.recordAudit': LiquidRecordAudit
   'member.annualFees': MemberAnnualFees
   'member.brevoCampaignArchiveState': MemberBrevoCampaignArchiveState
   'member.brevoSyncState': MemberBrevoSyncState

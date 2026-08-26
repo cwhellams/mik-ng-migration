@@ -267,8 +267,8 @@ describe('Db query FlightLog tests', () => {
       })
       expect(result.pageStartFlightMins).toEqual(700240 + 30 + 45)
     } finally {
-      await deleteFlightLog(flightIdA)
-      await deleteFlightLog(flightIdB)
+      await deleteFlightLog(flightIdA, insertUser.memberId)
+      await deleteFlightLog(flightIdB, insertUser.memberId)
     }
   })
 
@@ -355,8 +355,8 @@ describe('Db query FlightLog tests', () => {
       expect(result.pageStartFlightMins).toEqual(700405 + 60)
     } finally {
       await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
-      await deleteFlightLog(flightIdA)
-      await deleteFlightLog(flightIdB)
+      await deleteFlightLog(flightIdA, insertUser.memberId)
+      await deleteFlightLog(flightIdB, insertUser.memberId)
     }
   })
 
@@ -444,7 +444,7 @@ describe('Db query FlightLog tests', () => {
       ])
     } finally {
       await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
-      await deleteFlightLog(flightIdA)
+      await deleteFlightLog(flightIdA, 'Matti1')
     }
   })
 
@@ -547,7 +547,7 @@ describe('Db query FlightLog tests', () => {
         .deleteFrom('flight.defect')
         .where('defectId', 'in', [filler.defectId, overflow.defectId])
         .execute()
-      await deleteFlightLog(flightIdA)
+      await deleteFlightLog(flightIdA, 'Matti1')
     }
   })
 
@@ -682,7 +682,7 @@ describe('Db insert tests', () => {
     })
 
     //cleanup
-    const delRowcount = await deleteFlightLog(flightId)
+    const delRowcount = await deleteFlightLog(flightId, 'Matti1')
     expect(delRowcount).toEqual(true)
   })
 
@@ -714,6 +714,81 @@ describe('Db insert tests', () => {
         permissions: [MIKPermissions.FLIGHTLOG_USER],
       }),
     ).rejects.toThrow('Overlapping flight log entry')
+  })
+})
+
+describe('deleteFlightLog', () => {
+  it('unlinks a liquid record rather than failing on the FK', async () => {
+    // liquid.record.flight_log_id has no ON DELETE handling: a fuelling
+    // outlives the flight it was reported against, so deleting the flight
+    // must unlink any record pointing at it instead of throwing a raw FK
+    // violation.
+    //
+    // The timestamps have to satisfy three DB guards at once: minute-aligned
+    // (check_all_times_in_mins), not in the future (check_epochs_not_future),
+    // and after every already-validated OH-STL fixture ("Protected time
+    // period" rejects an insert that on-blocks before one). "Yesterday"
+    // satisfies all three relative to whenever this test actually runs,
+    // without a magic constant that could drift out of range as fixtures or
+    // the clock change.
+    const yesterday = Math.floor(Date.now() / 1000 / 60 - 24 * 60) * 60
+
+    let flightId: string | undefined
+    let recordId: string | undefined
+    try {
+      flightId = await insertFlightLog(
+        {
+          ...overlapTestFlight,
+          offBlockTimeEpoch: String(yesterday),
+          takeoffTimeEpoch: String(yesterday + 300),
+          landingTimeEpoch: String(yesterday + 3600),
+          onBlockTimeEpoch: String(yesterday + 3900),
+        },
+        { memberId: 'Matti1', permissions: [MIKPermissions.FLIGHTLOG_USER] },
+      )
+
+      const provider = await db
+        .selectFrom('liquid.fuelProvider')
+        .select(['providerId'])
+        .where('code', '=', 'LOKKI')
+        .executeTakeFirstOrThrow()
+
+      const record = await db
+        .insertInto('liquid.record')
+        .values({
+          liquidType: 'FUEL',
+          aircraftRegistration: 'OH-STL',
+          memberId: 'Matti1',
+          airport: 'EFNU',
+          fuelType: 'JET A-1',
+          providerId: provider.providerId,
+          quantityLitres: 100,
+          flightLogId: flightId,
+          source: 'MANUAL',
+          createdBy: 'Matti1',
+          updatedBy: 'Matti1',
+        })
+        .returning('recordId')
+        .executeTakeFirstOrThrow()
+      recordId = record.recordId
+
+      const deleted = await deleteFlightLog(flightId, 'Matti1')
+      expect(deleted).toBe(true)
+      flightId = undefined // deleteFlightLog already removed it
+
+      const after = await db
+        .selectFrom('liquid.record')
+        .select(['flightLogId'])
+        .where('recordId', '=', recordId)
+        .executeTakeFirstOrThrow()
+      expect(after.flightLogId).toBeNull()
+    } finally {
+      if (recordId) {
+        await db.deleteFrom('liquid.recordAudit').where('recordId', '=', recordId).execute()
+        await db.deleteFrom('liquid.record').where('recordId', '=', recordId).execute()
+      }
+      if (flightId) await db.deleteFrom('flight.logs').where('flightId', '=', flightId).execute()
+    }
   })
 })
 
@@ -985,7 +1060,7 @@ describe('Db invoicable FlightLog tests', () => {
           {},
           statusUser,
         )
-        await deleteFlightLog(id)
+        await deleteFlightLog(id, insertUser.memberId)
       }
     }
   })
@@ -1082,7 +1157,7 @@ describe('Db invoicable FlightLog tests', () => {
           {},
           makeStatusUser(memberId),
         )
-        await deleteFlightLog(id)
+        await deleteFlightLog(id, memberId)
       }
     }
 

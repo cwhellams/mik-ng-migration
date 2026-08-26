@@ -1,4 +1,4 @@
-import { FlightLogStatus } from '@mik/contracts/flight-log'
+import { FlightLogStatus, FlightLogUpsertSchema } from '@mik/contracts/flight-log'
 import type { Defect } from '@mik/contracts/defects'
 import type { Remark } from '@mik/contracts/remarks'
 import { screen, waitFor, within } from '@testing-library/react'
@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   aFlightLog,
+  aFuelRecord,
   aMemberListEntry,
   aMemberListResponse,
   anAircraftListResponse,
@@ -128,6 +129,61 @@ describe('FlightLogEntry wizard-to-classic-form draft transfer', () => {
     await waitFor(() => expect(hasDraft('flightLog:new')).toBe(false))
   })
 
+  it('enables Save once a linked fuel record and "no oil added" resolve the previously-blocked fields', async () => {
+    // Regression test: picking a pending record (or ticking "none added") does
+    // not itself change fuelUpliftLitres/oilUpliftLitres away from the null they
+    // already had, so RHF's own onChange-triggered validation never re-ran for
+    // them and the stale "required" error from before the field was resolved
+    // used to sit in formState.errors forever, keeping Save disabled.
+    wizardToClassicApi()
+    const posted: unknown[] = []
+    server.use(
+      http.post(apiUrl('v1/flight-logs'), async ({ request }) => {
+        posted.push(await request.json())
+        return HttpResponse.json(aFlightLog({ flightId: 'fl-new' }))
+      }),
+      http.get(apiUrl('v1/liquid/records/linkable'), () =>
+        HttpResponse.json({ records: [aFuelRecord({ recordId: 'rec-fuel-1' })] }),
+      ),
+      http.post(apiUrl('v1/liquid/records/:recordId/link'), () =>
+        HttpResponse.json(aFuelRecord({ recordId: 'rec-fuel-1' })),
+      ),
+      http.get(apiUrl('v1/flight-logs/airfields'), () => HttpResponse.json({ airfields: [] })),
+      http.get(apiUrl('v1/dto/members/:memberId/syllabus'), () => HttpResponse.json(null)),
+    )
+
+    // A complete, otherwise-valid entry -- only fuel/oil are left unresolved.
+    const validValues = FlightLogUpsertSchema.strip().parse(
+      aFlightLog({ status: FlightLogStatus.NEW }),
+    )
+    seedWizardDraft('flightLog:new', {
+      ...validValues,
+      fuelUpliftLitres: null,
+      oilUpliftLitres: null,
+    })
+
+    const { user } = renderWithProviders(<FlightLogEntry />, {
+      route: '/logs/new',
+      path: '/logs/:flightId',
+    })
+
+    await user.click(await screen.findByRole('button', { name: 'Use full form instead' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled())
+
+    // Fuel's control renders before oil's.
+    await user.click(screen.getAllByRole('button', { name: 'Link an existing record' })[0]!)
+    await user.click(await screen.findByRole('button', { name: 'Link' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await user.click(screen.getByRole('checkbox', { name: 'No oil added' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled())
+
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(posted).toHaveLength(1))
+  })
+
   it('does not read the draft when the classic form loads directly (not via a wizard switch)', async () => {
     wizardToClassicApi()
     seedWizardDraft('flightLog:new', {
@@ -204,6 +260,7 @@ const classicFormApi = (
   existingDefects: Defect[] = [],
   existingRemarks: Remark[] = [],
   flightOverrides: Partial<ReturnType<typeof aFlightLog>> = {},
+  linkedRecords: ReturnType<typeof aFuelRecord>[] = [],
 ) => {
   const state = { patches: 0, defects: [] as unknown[] }
 
@@ -219,6 +276,13 @@ const classicFormApi = (
     http.get(apiUrl('v1/useful-phone-numbers/flight-plan-centre'), () =>
       HttpResponse.json(null, { status: 404 }),
     ),
+    // FuelOilSection fetches this by flightLogId once the flight is editable.
+    http.get(apiUrl('v1/liquid/records'), ({ request }) => {
+      const flightLogId = new URL(request.url).searchParams.get('flightLogId')
+      return HttpResponse.json({
+        records: linkedRecords.filter((r) => r.flightLogId === flightLogId),
+      })
+    }),
     http.get(apiUrl('v1/defects'), () => HttpResponse.json(existingDefects)),
     http.post(apiUrl('v1/defects'), async ({ request }) => {
       state.defects.push(await request.json())
@@ -295,6 +359,40 @@ describe('FlightLogEntry (classic form) already-reported defects', () => {
       'href',
       'tel:0409998888',
     )
+  })
+})
+
+describe('FlightLogEntry (classic form) already-linked fuel/oil records', () => {
+  it('shows a fuel record linked in an earlier session, with no stale "none added" checkbox', async () => {
+    classicFormApi([], [], {}, [aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: 'fi_inst1' })])
+
+    renderClassicForm()
+
+    // The real link is shown directly, and "none added" no longer applies to
+    // fuel -- Add/Link remain available since bundling a second fuelling onto
+    // the same flight is intentionally allowed.
+    expect(await screen.findByText(/JET A-1/)).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'No fuel added' })).toBeNull()
+    // Oil is unaffected -- still unresolved and offered normally.
+    expect(screen.getByRole('checkbox', { name: 'No oil added' })).toBeInTheDocument()
+  })
+
+  it('unlinks a record via the real API, not just local state', async () => {
+    const unlinkCalls: string[] = []
+    classicFormApi([], [], {}, [aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: 'fi_inst1' })])
+    server.use(
+      http.post(apiUrl('v1/liquid/records/:recordId/unlink'), ({ params }) => {
+        unlinkCalls.push(String(params.recordId))
+        return HttpResponse.json(aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: null }))
+      }),
+    )
+
+    const { user } = renderClassicForm()
+    await screen.findByText(/JET A-1/)
+
+    await user.click(screen.getByRole('button', { name: 'Detach from this flight' }))
+
+    await waitFor(() => expect(unlinkCalls).toEqual(['rec-fuel-1']))
   })
 })
 

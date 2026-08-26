@@ -20,8 +20,8 @@ export const anAircraft = (overrides: Partial<Aircraft> = {}): Aircraft => ({
   yearOfManufacture: 2007,
   seats: 4,
   usableFuelLitres: 147.6,
-  fuelTypes: ['JETA-1'],
-  preferredFuelType: 'JETA-1',
+  fuelTypes: ['JET A-1'],
+  preferredFuelType: 'JET A-1',
   active: true,
   hidden: false,
 

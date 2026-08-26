@@ -33,7 +33,13 @@ export async function getExpenseAttachments(claimId: string): Promise<ExpenseCla
 
 export async function addExpenseAttachment(
   claimId: string,
-  file: { storageKey: string; fileName: string; fileSize: number; mimeType: string },
+  file: {
+    storageKey: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    sourceLiquidAttachmentId?: number
+  },
   executor: Executor = db,
 ): Promise<ExpenseClaimAttachment> {
   const { sortOrder } = await executor
@@ -51,6 +57,7 @@ export async function addExpenseAttachment(
       fileSize: file.fileSize,
       mimeType: file.mimeType,
       sortOrder: (sortOrder ?? -1) + 1,
+      sourceLiquidAttachmentId: file.sourceLiquidAttachmentId ?? null,
     })
     .returningAll()
     .executeTakeFirstOrThrow()

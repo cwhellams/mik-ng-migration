@@ -32,7 +32,6 @@ import { router as dashboardRoutes } from './routes/dashboard/api.ts'
 import taxReportRoutes from './routes/tax-reports/api.ts'
 import traficomReportRoutes from './routes/traficom-reports/api.ts'
 import upliftReportRoutes from './routes/uplift-reports/api.ts'
-import fuelReportRoutes from './routes/fuel-report/api.ts'
 import instructorWorktimeRoutes from './routes/instructor-worktime/api.ts'
 import { router as outboxRoutes } from './routes/outbox/api.ts'
 import { router as versionRoute } from './routes/version/api.ts'
@@ -59,6 +58,7 @@ import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import aircraftHilRoutes from './routes/aircraft-hil/api.ts'
 import defectRoutes from './routes/defects/api.ts'
 import remarkRoutes from './routes/remarks/api.ts'
+import liquidRoutes from './routes/liquid/api.ts'
 import meetingRoutes from './routes/meetings/api.ts'
 import { router as pricesRoutes } from './routes/prices/api.ts'
 import { startAllWorkers, stopAllWorkers } from './workers/registry.ts'
@@ -193,7 +193,6 @@ app.use('/api/v1/time', timeRoute)
 app.use('/api/v1/shop', shopRoutes)
 app.use('/api/v1/prepaid-hours', prepaidHoursRoutes)
 app.use('/api/v1/fuel-prices', fuelPricesRoutes)
-app.use('/api/v1/fuel-report', fuelReportRoutes)
 app.use('/api/v1/exams', examRoutes)
 app.use('/api/v1/notification-banner', notificationBannerRoutes)
 app.use('/api/v1/instructor-qualifications', instructorQualificationRoutes)
@@ -215,6 +214,7 @@ app.use('/api/v1/aircraft-hil', aircraftHilRoutes)
 app.use('/api/v1/defects', defectRoutes)
 app.use('/api/v1/remarks', remarkRoutes)
 app.use('/api/v1/meetings', meetingRoutes)
+app.use('/api/v1/liquid', liquidRoutes)
 
 // Test database connection before starting workers
 await testConnection()

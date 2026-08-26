@@ -63,8 +63,8 @@ import { shouldShowFieldError } from '../../utils/formErrors'
 import { PersonsOnBoard } from './components/PersonsOnBoard'
 import { NumberOfLandings } from './components/NumberOfLandings'
 import { Fuel } from './components/Fuel'
-import { FuelUplift } from './components/FuelUplift'
-import { OilUplift } from './components/OilUplift'
+import { FuelOilSection } from './components/FuelOilSection'
+import type { LiquidRecordWithLock } from '@mik/contracts/liquid'
 import { StatusDisplay } from './components/StatusDisplay'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { useRoles } from '@mik/ui/hooks/useRoles'
@@ -93,7 +93,7 @@ import { hasBlankReportedDefect, submitReportedDefects } from './reportDefectsAp
 import { hasBlankReportedRemark, submitReportedRemarks } from './reportRemarksApi'
 import { useDefects } from '../../hooks/useDefects'
 import { useRemarks } from '../../hooks/useRemarks'
-import { endpoints } from '../../api/endpoints'
+import { absolute, endpoints } from '../../api/endpoints'
 import { readWizardDraft, clearWizardDraft } from '../../utils/wizardDraft'
 
 // Renders the guided mobile wizard for new entries on phone-width viewports (unless
@@ -153,6 +153,12 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
     skipFetch: isNew,
   })
 
+  // For linking a staged fuel/oil record once the flight has a real id.
+  const { mutation: linkMutation } = useApi<LiquidRecordWithLock>({
+    url: endpoints.liquid.records,
+    skipFetch: true,
+  })
+
   const { data: aircraftData } = useApi<AircraftListResponse>({
     url: endpoints.aircrafts.root,
     params: { activeOnly: true },
@@ -203,9 +209,19 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
     },
   )
 
+  // Staged by FuelOilSection for a brand new entry: a record the member picked
+  // or just created to cover this flight's fuel/oil, not yet linked because a
+  // brand new flight has no real flightId until the save below succeeds.
+  const [pendingFuelRecord, setPendingFuelRecord] = useState<LiquidRecordWithLock>()
+  const [pendingOilRecord, setPendingOilRecord] = useState<LiquidRecordWithLock>()
+
   const formResolver = useMemo(
-    () => buildFlightLogResolver(t, memberList, isNew),
-    [memberList, t, isNew],
+    () =>
+      buildFlightLogResolver(t, memberList, isNew, {
+        fuelRecordId: pendingFuelRecord?.recordId,
+        oilRecordId: pendingOilRecord?.recordId,
+      }),
+    [memberList, t, isNew, pendingFuelRecord, pendingOilRecord],
   )
 
   // Read wizard draft if switching from wizard to classic form.
@@ -304,6 +320,16 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
       setValue('picMemberId', me?.memberId ?? '')
     }
   }, [me, setValue, isNew])
+
+  // Picking/creating a pending record doesn't itself change fuelUpliftLitres or
+  // oilUpliftLitres (FuelOilSection sets them to the null they already were),
+  // so RHF's own onChange-triggered validation never re-runs for them and the
+  // "required" error set while the field was still unresolved would otherwise
+  // sit in formState.errors forever, keeping Save disabled after the member has
+  // actually resolved it. Force a re-check whenever a pending record appears.
+  useEffect(() => {
+    void trigger(['fuelUpliftLitres', 'oilUpliftLitres'])
+  }, [pendingFuelRecord, pendingOilRecord, trigger])
 
   useEffect(() => {
     if (data) {
@@ -599,6 +625,40 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
             console.error('Failed to submit reported remarks:', err)
           }),
         ])
+      }
+
+      // Link whatever was staged in FuelOilSection -- the flight only
+      // just got a real id, so this couldn't happen any earlier. The two
+      // are independent: one failing must not stop the other from linking.
+      const linkErrors: string[] = []
+      if (savedFlightId && pendingFuelRecord) {
+        const { error: linkError } = await linkMutation.trigger(
+          'POST',
+          { flightLogId: savedFlightId },
+          absolute(endpoints.liquid.linkRecord(pendingFuelRecord.recordId)),
+        )
+        if (linkError)
+          linkErrors.push(t('flightLog.liquid.fuelLinkFailed', { detail: linkError.detail }))
+        else setPendingFuelRecord(undefined)
+      }
+      if (savedFlightId && pendingOilRecord) {
+        const { error: linkError } = await linkMutation.trigger(
+          'POST',
+          { flightLogId: savedFlightId },
+          absolute(endpoints.liquid.linkRecord(pendingOilRecord.recordId)),
+        )
+        if (linkError)
+          linkErrors.push(t('flightLog.liquid.oilLinkFailed', { detail: linkError.detail }))
+        else setPendingOilRecord(undefined)
+      }
+
+      if (linkErrors.length > 0) {
+        // The flight itself saved fine -- stay on it (now in edit mode, with
+        // a real flightId) so FuelOilSection can retry the link live,
+        // rather than losing the member on a page they can't get back to.
+        setProblem({ status: 0, detail: linkErrors.join(' ') })
+        if (isNew && savedFlightId) navigate(`/logs/flights/${savedFlightId}`, { replace: true })
+        return
       }
 
       navigate(backLink)
@@ -977,13 +1037,6 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
               <MinutesField name='instrumentFlyingMins' control={control} disabled={!isEditable} />
             </Grid>
 
-            {/* Fuel and Oil */}
-            <Grid size={12}>
-              <Typography sx={{ mt: 4 }} variant='h6'>
-                {t('flightLog.fuelInfo')}
-              </Typography>
-            </Grid>
-
             <Grid offset={1} size={{ xs: 10, md: 10 }}>
               <Fuel
                 control={control}
@@ -991,10 +1044,6 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
                 usableFuelLitres={aircraft?.usableFuelLitres ?? 100}
                 required
               />
-            </Grid>
-
-            <Grid size={12}>
-              <FuelUplift control={control} disabled={!isEditable} />
             </Grid>
 
             {/* Fuel expense shortcut — shown whenever a fuel uplift has been entered */}
@@ -1044,7 +1093,16 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
             )}
 
             <Grid size={12}>
-              <OilUplift control={control} disabled={!isEditable} />
+              <FuelOilSection
+                control={control}
+                disabled={!isEditable}
+                aircraftRegistration={registration}
+                flightId={isNew ? undefined : flightId}
+                pendingFuelRecord={pendingFuelRecord}
+                pendingOilRecord={pendingOilRecord}
+                onPendingFuelRecordChange={setPendingFuelRecord}
+                onPendingOilRecordChange={setPendingOilRecord}
+              />
             </Grid>
 
             {/* Defects and Remarks */}

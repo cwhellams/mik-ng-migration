@@ -23,6 +23,13 @@ export default [
       globals: {
         ...globals.jest,
         ...globals.node,
+        // Ambient global namespaces from @types packages (multer, node, pdfkit)
+        // used only in type positions. no-undef doesn't resolve `declare global
+        // { namespace X { ... } }` augmentations, so it flags every reference
+        // as an undefined runtime value — these are never runtime values.
+        Express: 'readonly',
+        NodeJS: 'readonly',
+        PDFKit: 'readonly',
       },
     },
     plugins: {

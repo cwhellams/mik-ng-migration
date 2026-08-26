@@ -147,7 +147,12 @@ jobs:
           # 81 -> 80: the sanitizers test moved to packages/contracts with them,
           # where zero tolerance forced its useless-escape to be fixed properly.
           # 80 -> 79: getAirfields lost an unused parameter (#1165 review).
-          THRESHOLD=79
+          # 79 -> 66: Express/NodeJS/PDFKit registered as ESLint globals (#1119) —
+          # these are ambient type-only namespaces from @types packages, never
+          # runtime values, that no-undef doesn't know how to resolve and so
+          # flagged on every `Express.Multer.File`/`NodeJS.Timeout`/`PDFKit.PDFDocument`
+          # type reference across the codebase.
+          THRESHOLD=66
 
           # Check if error count exceeds threshold
           if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then

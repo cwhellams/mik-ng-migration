@@ -103,6 +103,15 @@ export enum MIKPermissions {
 
   // CAMO members can view and comment on occurrences shared with them by SMS
   CAMO_USER = 'camo.user',
+
+  // can report fuel and oil uplifts (every flying member)
+  LIQUID_USER = 'liquid.user',
+
+  // can manage oil canister inventory and QR codes, and can edit or delete a
+  // member's locked liquid record -- except one linked to an expense claim,
+  // which is immutable for everyone. Fuel tax rates are configured by
+  // EXPENSE_ADMIN (the treasurer), not this permission.
+  LIQUID_ADMIN = 'liquid.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -140,6 +149,9 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
 
     case MIKPermissions.AME_ADMIN:
       return MIKPermissions.AME_USER
+
+    case MIKPermissions.LIQUID_ADMIN:
+      return MIKPermissions.LIQUID_USER
 
     // no separate user role for events – all members can read events
     case MIKPermissions.EVENTS_ADMIN:

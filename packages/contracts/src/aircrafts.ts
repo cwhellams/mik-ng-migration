@@ -25,6 +25,30 @@ export enum Severity {
   off = 'off',
 }
 
+/**
+ * The fuel types the club's fleet actually takes, spelled exactly as
+ * `flight.fuel_types` spells them.
+ *
+ * This is the single vocabulary, and it lives here because the fleet owns it:
+ * `flight.fuel_types` is the reference table, `flight.aircraft.fuel_types` is
+ * what each aircraft is allowed, and everything else — expense claims, local
+ * price caps, liquid records — refers to it.
+ *
+ * Before #1119 there were three. The reference table said `JET A-1` and
+ * `MOGAS 98E5`; `expenses.ts` independently declared
+ * `['100LL', 'JetA1', 'mogas']`; and the issue itself introduced `BE98`. The
+ * club's answer was to consolidate on the reference table, so `BE98` is
+ * `MOGAS 98E5`, `JetA1` is `JET A-1`, and `V2060` renamed the stored values to
+ * match — with foreign keys, so they cannot drift apart again.
+ *
+ * The full reference table has four more entries (`JET A`, `JP-8`,
+ * `EN228 SUPER`, `EN228 SUPER PLUS`) that no club aircraft takes. Fetch
+ * `GET /v1/aircrafts/fuel-types` where the whole list is wanted; this constant
+ * is for the dropdowns that should only ever offer the four in use.
+ */
+export const FUEL_TYPES = ['JET A-1', '100LL', 'MOGAS 98E5', 'MOGAS 95E10'] as const
+export type FuelType = (typeof FUEL_TYPES)[number]
+
 export const FuelTypeSchema = z.object({
   name: z.string(),
   sortOrder: z.number().int(),

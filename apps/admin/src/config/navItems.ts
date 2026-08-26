@@ -196,6 +196,12 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
         permissions: [MIKPermissions.EXPENSE_ADMIN],
       },
       {
+        label: 'admin.nav.fuelTax',
+        icon: 'mdi:gas-station-outline',
+        path: '/accounting/fuel-tax',
+        permissions: [MIKPermissions.EXPENSE_ADMIN],
+      },
+      {
         label: 'admin.nav.costCentres',
         icon: 'mdi:tag-multiple',
         path: '/accounting/cost-centres',
@@ -251,7 +257,7 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
         label: 'admin.nav.fuelPrices',
         icon: 'mdi:gas-station',
         path: '/fuel-prices',
-        permissions: [MIKPermissions.FUEL_PRICES_ADMIN],
+        permissions: [MIKPermissions.FUEL_PRICES_ADMIN, MIKPermissions.FUEL_PRICES_USER],
       },
       {
         label: 'admin.nav.documents',
@@ -270,6 +276,24 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
         icon: 'mdi:warehouse',
         path: '/inventory',
         permissions: [MIKPermissions.INVENTORY_ADMIN],
+      },
+      {
+        label: 'admin.nav.liquidRecords',
+        icon: 'mdi:clipboard-text-outline',
+        path: '/liquid/records',
+        permissions: [MIKPermissions.LIQUID_ADMIN],
+      },
+      {
+        label: 'admin.nav.liquidOil',
+        icon: 'mdi:oil',
+        path: '/liquid/oil',
+        permissions: [MIKPermissions.LIQUID_ADMIN],
+      },
+      {
+        label: 'admin.nav.liquidQr',
+        icon: 'mdi:qrcode',
+        path: '/liquid/qr',
+        permissions: [MIKPermissions.LIQUID_ADMIN],
       },
     ],
   },

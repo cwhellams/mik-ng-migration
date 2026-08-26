@@ -739,6 +739,8 @@ describe('GET /members/roles', () => {
       'meeting.user',
       'meeting.admin',
       'camo.user',
+      'liquid.user',
+      'liquid.admin',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -761,6 +763,7 @@ describe('GET /members/roles', () => {
           'meeting.admin',
           'ame.admin',
           'inventory_reservation.admin',
+          'liquid.admin',
         ],
         roleId: 'ADMIN',
       },
@@ -802,6 +805,7 @@ describe('GET /members/roles', () => {
           'meeting.user',
           'ame.user',
           'inventory_reservation.user',
+          'liquid.user',
         ],
         roleId: 'FLYING_MEMBER',
       },
@@ -900,6 +904,7 @@ describe('GET /members/roles/id', () => {
         'meeting.admin',
         'ame.admin',
         'inventory_reservation.admin',
+        'liquid.admin',
       ],
       createdAt: expect.any(String),
       createdBy: 'k1mnimda',

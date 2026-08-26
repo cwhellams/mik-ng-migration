@@ -1,4 +1,4 @@
-// Fixed 13-step flow — unlike ExpenseClaimWizard's step list, nothing here is
+// Fixed 11-step flow — unlike ExpenseClaimWizard's step list, nothing here is
 // conditionally included/excluded; per-step content (e.g. the default-instructor
 // crew slot, or the date/timezone controls only shown on the first time step) is
 // handled inside the step components themselves.
@@ -10,9 +10,8 @@ export const WIZARD_STEPS = [
   'airports',
   'landings',
   'nightIfr',
-  'fuelUplift',
+  'fuelUplift', // fuel and oil, on one page (FuelOilSection)
   'fuelRemaining',
-  'oil',
   'notes',
   'review',
 ] as const

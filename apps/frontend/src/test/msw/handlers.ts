@@ -1,4 +1,5 @@
 import type { AppConfig } from '@mik/contracts/config'
+import type { ClaimableFuelSummary } from '@mik/contracts/liquid'
 import type { NotificationBanner } from '@mik/contracts/notification-banner'
 import type { TimeResponse } from '@mik/contracts/time'
 import { http, HttpResponse } from 'msw'
@@ -58,6 +59,18 @@ export const handlers = [
     HttpResponse.json<NotificationBanner>({ enabled: false, message: null, severity: 'info' }),
   ),
   http.get(apiUrl('v1/mailbox/unread-count'), () => HttpResponse.json({ count: 0 })),
+  // The dashboard's unclaimed-fuel prompt (#1119). Every liquid user's dashboard
+  // hits this, and `ALL_PERMISSIONS` is `Object.values(MIKPermissions)` — so any
+  // test rendering <Dashboard /> as an admin would otherwise fail on an
+  // unhandled request. "Nothing to claim" is the right default: the widget
+  // renders nothing at all for a zero count.
+  http.get(apiUrl('v1/liquid/records/claimable'), () =>
+    HttpResponse.json<ClaimableFuelSummary>({
+      count: 0,
+      totalCostEur: 0,
+      oldestRecordedAt: null,
+    }),
+  ),
 
   // --- core collections ----------------------------------------------------
   http.get(apiUrl('v1/members'), () => HttpResponse.json(aMemberListResponse())),

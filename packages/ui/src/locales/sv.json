@@ -65,7 +65,12 @@
     "ameAdmin": "AME-godkännanden",
     "meetings": "Möten",
     "meetingsAdmin": "Möten (administration)",
-    "itemReservations": "Utrustningsbokningar"
+    "itemReservations": "Utrustningsbokningar",
+    "liquid": "Bränsle- och oljerapportering",
+    "fuelTax": "Bränsleskatt",
+    "liquidOilAdmin": "Oljelager",
+    "liquidQrAdmin": "QR-koder för vätskor",
+    "liquidRecordsAdmin": "Alla vätskeposter"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -1204,14 +1209,15 @@
         "airports": "Avgång & ankomst",
         "landings": "Landningar",
         "nightIfr": "Nattflygning & IFR",
-        "fuelUplift": "Tankad bränslemängd",
+        "fuelUplift": "Bränsle och olja",
         "fuelRemaining": "Bränsle kvar",
-        "oil": "Olja",
         "notes": "Anteckningar",
         "review": "Sammanfattning"
       },
       "question": {
-        "nightOrIfr": "Innebar denna flygning nattflygning eller IFR?"
+        "nightOrIfr": "Innebar denna flygning nattflygning eller IFR?",
+        "fuelAdded": "Tankade du bränsle?",
+        "oilAdded": "Fyllde du på olja?"
       },
       "stepCounter": "Steg {{current}} av {{total}}",
       "useClassicForm": "Använd hela formuläret istället",
@@ -1471,9 +1477,15 @@
       "operations": {
         "INSERT": "Skapad",
         "UPDATE": "Redigerad",
-        "DELETE": "Borttagen"
+        "DELETE": "Borttagen",
+        "SOFT_DELETE": "Borttagen"
       },
       "fields": {
+        "description": "Beskrivning",
+        "hilId": "HIL-post",
+        "resolvedNoteId": "Löst med underhållsanteckning",
+        "fuelRecord": "Bränslepost",
+        "oilRecord": "Oljepost",
         "aircraftRegistration": "Luftfartyg",
         "flightType": "Flygtyp",
         "billableMemberId": "Faktureras",
@@ -1514,6 +1526,25 @@
         "ajlbSeqNo": "Resedagbok",
         "ajlbBlankRowsBefore": "Tomma rader före"
       }
+    },
+    "liquid": {
+      "title": "Bränsle- och oljeposter",
+      "addFuel": "Lägg till bränsle",
+      "addOil": "Lägg till olja",
+      "addAnotherFuel": "Lägg till ytterligare en bränslepost",
+      "addAnotherOil": "Lägg till ytterligare en oljepost",
+      "linkExisting": "Koppla en befintlig post",
+      "linkAdditional": "Koppla ytterligare en post",
+      "linkTitle": "Koppla en befintlig post för detta flygplan",
+      "link": "Koppla",
+      "unlink": "Koppla bort från denna flygning",
+      "none": "Inga bränsle- eller oljeposter är kopplade till denna flygning.",
+      "noSuggestions": "Inga okopplade poster för {{aircraft}}. Lägg till en ovan.",
+      "legacyRecord": "Registrerat före bränsle-/oljesystemet — behålls som det är.",
+      "fuelLinkFailed": "Flygningen sparades, men bränsleposten kunde inte kopplas: {{detail}} Du kan koppla den manuellt nedan.",
+      "oilLinkFailed": "Flygningen sparades, men oljeposten kunde inte kopplas: {{detail}} Du kan koppla den manuellt nedan.",
+      "fuelLabel": "Bränsle",
+      "oilLabel": "Olja"
     }
   },
   "invoicing": {
@@ -1915,7 +1946,7 @@
     "exitEditMode": "Avsluta redigeringsläge",
     "localPrices": {
       "title": "Lokalt (EFNU) bränsleprisgräns",
-      "description": "Ersättningsgränsen för bränsleanspråk, per bränsletyp. Resans totala liter jämförs med det lokala priset på resans startdatum — billigare och dyrare stopp på samma resa balanserar varandra (issue #955).",
+      "description": "Ersättningsgränsen för bränsleanspråk, per bränsletyp. Resans totala liter jämförs med det lokala priset på resans startdatum — billigare och dyrare stopp på samma resa balanserar varandra.",
       "empty": "Inga lokala bränslepriser inställda ännu.",
       "fuelType": "Bränsletyp",
       "price": "Pris (€/liter)",
@@ -1932,6 +1963,38 @@
         "litres": "Liter",
         "fuelType": "Bränsletyp",
         "pricePerLitre": "€/liter (inkl. avgifter)"
+      }
+    },
+    "comparison": {
+      "title": "Jämförelse av bränslepris",
+      "intro": "Ange vad en liter kostar på {{icao}} idag, och varje tankning i intervallet jämförs mot det. Tankningar utanför {{icao}} har alltid en kostnad; en tankning på {{icao}} utan kostnad listas men jämförs inte.",
+      "from": "Från",
+      "to": "Till",
+      "referencePrices": "Referenspris per liter på {{icao}}",
+      "run": "Kör rapport",
+      "empty": "Inga tankningar i detta intervall.",
+      "abroad": "Skatt inkluderad",
+      "abroadTooltip": "Köpt utomlands, så finsk bränsleskatt lades inte till.",
+      "notComparable": "Ej jämförd",
+      "notComparableTooltip": "Antingen registrerades ingen kostnad, eller inget referenspris angavs för denna bränsletyp.",
+      "stat": {
+        "total": "Tankningar",
+        "comparable": "Jämförda",
+        "exceeding": "Över referens",
+        "exceedingLitres": "Liter över",
+        "excessCost": "Överskjutande kostnad"
+      },
+      "col": {
+        "date": "Datum",
+        "aircraft": "Luftfartyg",
+        "airport": "Flygplats",
+        "fuelType": "Bränsle",
+        "provider": "Leverantör",
+        "litres": "Liter",
+        "paid": "Betalt / liter",
+        "taxAdjusted": "Jämförbart / liter",
+        "reference": "Referens",
+        "delta": "Skillnad"
       }
     }
   },
@@ -2994,6 +3057,27 @@
       "fuelDateRequired": "Datum krävs för bränslerader",
       "airportRequired": "Flygplats krävs för bränslerader",
       "mileageDetailsRequired": "Start- och slutadress, resedatum och avstånd krävs. Styrelsegodkännande krävs över avståndsgränsen."
+    },
+    "fuelRecords": {
+      "intro": "Välj de tankningar denna ansökan gäller. Liter, flygplats, bränsletyp och kostnad kommer från vad du rapporterade vid tankstationen — du behöver inte ange dem igen.",
+      "none": "Du har inga bränsleposter med en kostnad att ansöka om. Rapportera först en tankning du betalat själv.",
+      "reportFirst": "Rapportera en tankning",
+      "selectAtLeastOne": "Välj minst en tankning",
+      "alreadyClaimed": "Redan ansökt",
+      "taxIncluded": "Skatt inkluderad",
+      "plusFuelTax": "+ {{rate}} €/l bränsleskatt",
+      "selected": "{{count}} tankningar valda, {{total}} € betalt.",
+      "receiptAttachedHint": "Ett kvitto bifogades när denna tankning rapporterades — det läggs automatiskt till i denna ansökan.",
+      "col": {
+        "date": "Datum",
+        "aircraft": "Luftfartyg",
+        "airport": "Flygplats",
+        "fuelType": "Bränsle",
+        "litres": "Liter",
+        "cost": "Betalt",
+        "perLitre": "Per liter",
+        "status": ""
+      }
     }
   },
   "inventory": {
@@ -3217,10 +3301,14 @@
       "tulorekisteriReport": "Inkomstregisterrapport",
       "expenseApproval": "Godkännande av utlägg",
       "mileageAllowances": "Milersättning",
+      "fuelTax": "Bränsleskatt",
       "costCentres": "Kostnadsställen",
       "fuelPrices": "Bränslepriser",
       "documents": "Dokument",
-      "commercialFlightTime": "Kommersiell flygtid"
+      "commercialFlightTime": "Kommersiell flygtid",
+      "liquidRecords": "Bränsle- och oljeposter",
+      "liquidOil": "Oljelager",
+      "liquidQr": "QR-koder"
     },
     "dashboard": {
       "welcome": "Välkommen tillbaka, {{name}}",
@@ -3285,5 +3373,192 @@
       "endAfterStart": "Sluttiden måste vara efter starttiden",
       "itemRequired": "Välj en artikel att boka"
     }
+  },
+  "liquid": {
+    "type": {
+      "fuel": "Bränsle",
+      "oil": "Olja"
+    },
+    "lock": {
+      "claimLinked": "Posten är kopplad till en utläggsansökan och kan inte längre ändras av någon.",
+      "flightValidated": "Flygloggen posten hör till är godkänd. Be en vätskeadministratör om ändringen.",
+      "windowExpired": "Posten är äldre än en vecka. Be en vätskeadministratör om ändringen.",
+      "notOwner": "Posten tillhör en annan medlem.",
+      "deleted": "Posten är borttagen."
+    },
+    "form": {
+      "title": "Rapportera bränsle eller olja",
+      "liquidType": "Vad rapporterar du?",
+      "aircraft": "Luftfartyg",
+      "recordedAtTz": "Datum och tid ({{tz}})",
+      "recordedAtHint": "Som standard nu — ändra om du rapporterar i efterhand.",
+      "airport": "Flygplats",
+      "fuelType": "Bränsletyp",
+      "provider": "Leverantör",
+      "providerHint": "Välj \"Annat / egen betalning\" om du inte betalade med klubbens bränslekort.",
+      "suppliedBy": "Levererat av {{provider}}",
+      "quantityLitres": "Mängd (liter)",
+      "totalCost": "Totalkostnad",
+      "totalCostRequired": "Krävs utanför hemmabasen.",
+      "totalCostOptional": "Behövs inte på hemmabasen — klubben faktureras direkt.",
+      "currency": "Valuta",
+      "fxRate": "Växelkurs till EUR",
+      "fxRateHint": "Hur många euro en {{ccy}} är värd.",
+      "atHomeBase": "På {{icao}}",
+      "awayFromHomeBase": "Någon annanstans",
+      "prefilled": "Skannat: {{context}}",
+      "selectAircraft": "Välj luftfartyg.",
+      "selectAircraftFirst": "Välj luftfartyg först.",
+      "selectAirport": "Välj flygplats.",
+      "selectFuelType": "Välj bränsletyp.",
+      "selectProvider": "Välj leverantör.",
+      "selectCanister": "Välj kanister.",
+      "enterQuantity": "Ange hur mycket du fyllde på.",
+      "enterTotalCost": "Ange totalkostnaden.",
+      "enterFxRate": "Ange växelkursen.",
+      "enterOilDetails": "Ange tillverkare, viskositet och batchnummer.",
+      "receiptOptional": "Kvitto (valfritt) — bifoga det nu så läggs det automatiskt till din utgiftsersättning.",
+      "attachFile": "Bifoga fil",
+      "takePhoto": "Ta foto",
+      "removeFile": "Ta bort {{name}}",
+      "receiptUploadFailed": "Tankningen sparades, men kvittot kunde inte laddas upp.",
+      "retryReceiptUpload": "Försök igen",
+      "continueWithoutReceipt": "Fortsätt utan kvitto"
+    },
+    "oil": {
+      "source": "Varifrån kom oljan?",
+      "clubCanister": "Klubbens kanister",
+      "otherSource": "Annan källa",
+      "otherSourceShort": "Annan källa",
+      "canister": "Kanister",
+      "canisterDetails": "Batch {{batch}} · tilldelad {{aircraft}}",
+      "noCanisters": "Inga kanistrar finns i lager för detta luftfartyg. Rapportera oljan från en annan källa eller be en administratör lägga till en.",
+      "make": "Tillverkare",
+      "modelViscosity": "Modell / viskositet",
+      "batchNumber": "Batchnummer",
+      "remainingLitres": "Kvar i kanistern (liter)",
+      "remainingLitresHint": "Endast information — den jämförs inte med hur mycket du använde.",
+      "markEmpty": "Kanistern är nu tom",
+      "opened": "Öppnad",
+      "sealed": "Oöppnad",
+      "isEmpty": "Tom"
+    },
+    "myRecords": {
+      "title": "Mina bränsle- och oljeposter",
+      "report": "Rapportera bränsle eller olja",
+      "filter": "Filtrera på vätska",
+      "all": "Alla",
+      "empty": "Du har inte rapporterat bränsle eller olja ännu.",
+      "claimed": "På en ansökan",
+      "locked": "Låst",
+      "deleteTitle": "Ta bort posten?",
+      "deleteMessage": "Posten sparas i ändringshistoriken men räknas inte längre någonstans.",
+      "col": {
+        "date": "Datum",
+        "aircraft": "Luftfartyg",
+        "details": "Detaljer",
+        "pricePerLitre": "Betalt per liter",
+        "links": "Kopplad till"
+      }
+    },
+    "edit": {
+      "title": "Rätta en post",
+      "context": "{{type}} · {{aircraft}} · rapporterad {{recorded}}"
+    },
+    "scan": {
+      "unassignedTitle": "Koden används inte ännu",
+      "unassigned": "QR-koden {{code}} har inte tilldelats något ännu.",
+      "unassignedHint": "En vätskeadministratör måste tilldela den innan den kan förifylla en rapport.",
+      "reportAnyway": "Rapportera bränsle eller olja ändå"
+    },
+    "claimable": {
+      "widgetTitle": "Obegärt bränsle",
+      "prompt": "Du har {{count}} bränsleposter som du betalat själv, värda {{total}} €, utan utläggsansökan.",
+      "oldest": "Den äldsta är från {{date}}.",
+      "action": "Skapa en utläggsansökan",
+      "viewRecords": "Visa mina poster"
+    },
+    "admin": {
+      "oil": {
+        "title": "Lager av oljekanistrar",
+        "addTitle": "Lägg till en kanister",
+        "add": "Lägg till kanister",
+        "inventoryTitle": "Lager",
+        "canisterRef": "Klubbens kanister-ID",
+        "canisterRefHint": "Föreslaget från tillverkaren — ändra så att det matchar etiketten.",
+        "manufacturingDate": "Tillverkad",
+        "aircraft": "Luftfartyg",
+        "aircraftPermanent": "Permanent — det kan inte ändras senare.",
+        "initialLitres": "Volym (liter)",
+        "state": "Status",
+        "showEmpty": "Visa tomma kanistrar",
+        "empty": "Inga kanistrar i lager.",
+        "noQr": "Ingen QR-kod",
+        "markEmptyTooltip": "Markera som tom och ta bort från tillgängligt lager",
+        "deleteTitle": "Ta bort kanistern?",
+        "deleteMessage": "Möjligt endast om ingen olja rapporterats mot den. Markera den annars som tom."
+      },
+      "qr": {
+        "title": "QR-koder för vätskerapportering",
+        "generateTitle": "Generera koder",
+        "generate": "Generera",
+        "generateHint": "Koder skapas otilldelade. Skriv ut arket, klipp isär det och tilldela varje kod när du sätter den på en kanister eller en tankstation.",
+        "batchLabel": "Satsens namn",
+        "batchLabelHint": "Så att du kan skilja utskrivna ark från varandra.",
+        "count": "Antal",
+        "countHint": "Upp till 96 — åtta A4-ark.",
+        "batchesTitle": "Satser",
+        "noBatches": "Inga koder har genererats ännu.",
+        "assignedCount": "Tilldelade",
+        "created": "Skapad",
+        "printSheet": "Skriv ut ark",
+        "showCodes": "Visa koder",
+        "showAll": "Visa alla koder",
+        "codesTitle": "Koder",
+        "noCodes": "Inga koder matchar.",
+        "code": "Kod",
+        "unassignedOnly": "Endast otilldelade",
+        "unassigned": "Otilldelad",
+        "assign": "Tilldela",
+        "assignTitle": "Tilldela en QR-kod",
+        "assignedTitle": "Koden tilldelad",
+        "assignedTo": "{{code}} pekar nu på {{target}}.",
+        "assignPermanently": "Tilldela permanent",
+        "permanentWarning": "Detta kan inte ångras. Etiketten sitter på objektet, så en kod kan aldrig peka på något annat.",
+        "targetType": "Tilldela till",
+        "target": "Mål",
+        "targetOilCanister": "Oljekanister",
+        "targetFuelStation": "Tankstation",
+        "noCanistersToAssign": "Alla kanistrar i lager har redan en kod.",
+        "noStationsToAssign": "Inga tankstationer är uppsatta.",
+        "assignedAt": "Tilldelad"
+      },
+      "records": {
+        "title": "Alla bränsle- och oljeposter",
+        "memberId": "Medlem",
+        "includeDeleted": "Inkludera borttagna",
+        "total": "{{count}} poster",
+        "quantity": "Mängd",
+        "empty": "Inga poster matchar.",
+        "deleted": "Borttagen av {{by}}",
+        "deleteTitle": "Ta bort posten?",
+        "deleteMessage": "Posten sparas i ändringshistoriken men räknas inte längre någonstans."
+      }
+    }
+  },
+  "fuelTax": {
+    "title": "Bränsleskatt",
+    "explanation": "Finsk bränsleskatt per kalenderår och bränsletyp. Den läggs till ett köp som inte redan innehöll den — Jet A-1 köpt i Finland — när en bränslepost kopplas till en utläggsansökan. Den gällande satsen kopieras då till posten, så att rätta en sats här aldrig ändrar en ansökan som redan gjorts.",
+    "formTitle": "Ange en sats",
+    "configuredTitle": "Angivna satser",
+    "taxYear": "Kalenderår",
+    "fuelType": "Bränsletyp",
+    "fuelTypeHint": "Endast bränslen klubben använder.",
+    "rate": "Sats (€/liter)",
+    "rateHint": "Läggs till ett köp utan finsk bränsleskatt.",
+    "updatedAt": "Uppdaterad",
+    "updatedBy": "Uppdaterad av",
+    "saved": "Satsen sparad.",
+    "none": "Inga bränsleskattesatser är angivna, så inget läggs till något bränslepris. Lägg till en ovan om klubben ska betala bränsleskatt."
   }
 }

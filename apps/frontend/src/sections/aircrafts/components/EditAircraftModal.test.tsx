@@ -22,7 +22,7 @@ const aircraftApi = () => {
       HttpResponse.json({
         fuelTypes: [
           { name: '100LL', sortOrder: 1 },
-          { name: 'JETA-1', sortOrder: 2 },
+          { name: 'JET A-1', sortOrder: 2 },
         ],
       }),
     ),
