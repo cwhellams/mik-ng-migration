@@ -427,6 +427,61 @@ describe('GET /liquid/reports/fuel-price-comparison', () => {
     })
   })
 
+  it('does not trust the frozen price while its claim is still a draft', async () => {
+    // The old /v1/fuel-report explicitly excluded DRAFT/REJECTED claims as
+    // "not reliable enough to report a price from" -- a draft hasn't even
+    // been submitted yet. Falls back to a live recompute instead of the
+    // frozen (and here, deliberately wrong) stored figure.
+    const recordId = await inRange({
+      airport: ABROAD,
+      providerCode: 'AIRBP',
+      totalCost: 500,
+      quantityLitres: 200, // 2.50 €/l live
+    })
+    const claimId = await insertDraftClaim()
+    await linkRecordsToClaim([recordId], claimId, 'Matti1')
+    // Simulate a stale frozen figure that would tell a different story than
+    // the live price, so the assertion can tell which one the report used.
+    await db
+      .updateTable('liquid.record')
+      .set({ taxAdjustedPricePerLitre: 1.0 })
+      .where('recordId', '=', recordId)
+      .execute()
+
+    const res = await runReport(asAdmin, [`${JET_A1}:2.10`])
+
+    expect(res.body.rows[0]).toMatchObject({
+      // Not trusted: the response's own "stored" figure is null, exactly like
+      // an unclaimed record's, even though the DB column still holds 1.00.
+      storedTaxAdjustedPricePerLitre: null,
+      taxAdjustedPricePerLitre: 2.5,
+      exceedsReference: true, // true on the live 2.50, false on the stale 1.00
+    })
+  })
+
+  it('does not trust the frozen price of a record left on a rejected claim', async () => {
+    // Belt-and-suspenders for data from before rejectExpenseClaim was fixed
+    // to unlink its records: even a record still pointing at a REJECTED
+    // claim must not have its stored figure trusted by the report.
+    const recordId = await inRange({
+      airport: ABROAD,
+      providerCode: 'AIRBP',
+      totalCost: 500,
+      quantityLitres: 200,
+    })
+    const claimId = await insertDraftClaim()
+    await linkRecordsToClaim([recordId], claimId, 'Matti1')
+    await db
+      .updateTable('accts.expenseClaim')
+      .set({ status: 'REJECTED' })
+      .where('id', '=', claimId)
+      .execute()
+
+    const res = await runReport(asAdmin, [`${JET_A1}:2.10`])
+
+    expect(res.body.rows[0].taxAdjustedPricePerLitre).toBe(2.5)
+  })
+
   it('converts a foreign-currency purchase before comparing', async () => {
     await inRange({
       airport: ABROAD,

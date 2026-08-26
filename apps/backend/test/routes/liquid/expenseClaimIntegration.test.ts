@@ -691,3 +691,37 @@ describe('copying a fuelling’s own receipt onto the claim (#1119 follow-up)', 
     ).toBe(false)
   })
 })
+
+describe('rejecting a claim releases its records (#1119 review finding B9)', () => {
+  it('unlinks and unfreezes the record so it can be reclaimed, not stuck forever', async () => {
+    const recordId = await aPaidFuelling()
+    await insertRecordAttachment(recordId)
+    const claim = await createClaim(await aClaim([recordId]))
+    expect(claim.status).toBe(201)
+
+    const submitted = await request(app)
+      .post(`/expenses/${claim.body.id}/submit`)
+      .set('Cookie', asMember)
+    expect(submitted.status).toBe(200)
+
+    const rejected = await request(app)
+      .post(`/expenses/${claim.body.id}/reject`)
+      .set('Cookie', asTreasurer)
+      .send({ reason: 'LIQUID-TEST rejection' })
+    expect(rejected.status).toBe(200)
+
+    const row = await db
+      .selectFrom('liquid.record')
+      .select(['expenseClaimId', 'claimLinkedAt', 'taxAdjustedPricePerLitre'])
+      .where('recordId', '=', recordId)
+      .executeTakeFirstOrThrow()
+
+    // Released, same as an outright deleteExpenseClaim -- a rejected claim is
+    // never going to be paid, so the record must not stay locked
+    // (LINKED_TO_EXPENSE_CLAIM has no admin escape hatch) to a claim that
+    // just needs correcting and resubmitting, or to a wholly different one.
+    expect(row.expenseClaimId).toBeNull()
+    expect(row.claimLinkedAt).toBeNull()
+    expect(row.taxAdjustedPricePerLitre).toBeNull()
+  })
+})

@@ -13,6 +13,7 @@ import {
   type QrCode,
 } from '@mik/contracts/liquid'
 import { buildQrSheetPdf } from '../../../src/services/liquid/qrSheet.ts'
+import { createQrBatch } from '../../../src/db/liquid-queries.ts'
 import {
   asAdmin,
   asMember,
@@ -122,6 +123,67 @@ describe('POST /liquid/qr/batches', () => {
       .set('Cookie', asAdmin)
       .send({ count: 2 })
     expect(res.status).toBe(400)
+  })
+
+  it('tops back up to the requested count when a generated code collides with an existing one', async () => {
+    // Regression (B17): filtering out already-taken codes used to stop there,
+    // so codeCount and the actual number of issued codes could disagree.
+    // A deterministic `random` generates a distinct code per call (counter 0,
+    // 1, 2, ... in the same base-32 alphabet the route uses); pre-seeding the
+    // 2nd one as already taken forces exactly one collision, which the
+    // top-up round must make up for.
+    const codeForCounter = (n: number): string => {
+      const alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
+      let s = ''
+      for (let i = 0; i < 5; i++) {
+        s = alphabet[n % 32] + s
+        n = Math.floor(n / 32)
+      }
+      return `MIK-L-${s}`
+    }
+    let counter = 0
+    const deterministicRandom = (bytes: number): Uint8Array => {
+      const arr = new Uint8Array(bytes)
+      let n = counter++
+      for (let i = bytes - 1; i >= 0; i--) {
+        arr[i] = n % 32
+        n = Math.floor(n / 32)
+      }
+      return arr
+    }
+
+    const existingBatch = await db
+      .insertInto('liquid.qrBatch')
+      .values({
+        label: 'LIQUID-TEST pre-seeded',
+        codeCount: 1,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
+      })
+      .returning('batchId')
+      .executeTakeFirstOrThrow()
+    trackedBatchIds.push(existingBatch.batchId)
+    await db
+      .insertInto('liquid.qrCode')
+      .values({
+        code: codeForCounter(1),
+        batchId: existingBatch.batchId,
+        createdBy: 'k1mnimda',
+        updatedBy: 'k1mnimda',
+      })
+      .execute()
+
+    const { batch, codes } = await createQrBatch(
+      'LIQUID-TEST top-up',
+      3,
+      'k1mnimda',
+      deterministicRandom,
+    )
+    trackedBatchIds.push(batch.batchId)
+
+    expect(codes).toHaveLength(3)
+    expect(batch.codeCount).toBe(3)
+    expect(codes.map((c) => c.code)).not.toContain(codeForCounter(1))
   })
 })
 
