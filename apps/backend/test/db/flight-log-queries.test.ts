@@ -267,8 +267,8 @@ describe('Db query FlightLog tests', () => {
       })
       expect(result.pageStartFlightMins).toEqual(700240 + 30 + 45)
     } finally {
-      await deleteFlightLog(flightIdA)
-      await deleteFlightLog(flightIdB)
+      await deleteFlightLog(flightIdA, insertUser.memberId)
+      await deleteFlightLog(flightIdB, insertUser.memberId)
     }
   })
 
@@ -355,8 +355,8 @@ describe('Db query FlightLog tests', () => {
       expect(result.pageStartFlightMins).toEqual(700405 + 60)
     } finally {
       await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
-      await deleteFlightLog(flightIdA)
-      await deleteFlightLog(flightIdB)
+      await deleteFlightLog(flightIdA, insertUser.memberId)
+      await deleteFlightLog(flightIdB, insertUser.memberId)
     }
   })
 
@@ -444,7 +444,7 @@ describe('Db query FlightLog tests', () => {
       ])
     } finally {
       await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
-      await deleteFlightLog(flightIdA)
+      await deleteFlightLog(flightIdA, 'Matti1')
     }
   })
 
@@ -547,7 +547,7 @@ describe('Db query FlightLog tests', () => {
         .deleteFrom('flight.defect')
         .where('defectId', 'in', [filler.defectId, overflow.defectId])
         .execute()
-      await deleteFlightLog(flightIdA)
+      await deleteFlightLog(flightIdA, 'Matti1')
     }
   })
 
@@ -682,7 +682,7 @@ describe('Db insert tests', () => {
     })
 
     //cleanup
-    const delRowcount = await deleteFlightLog(flightId)
+    const delRowcount = await deleteFlightLog(flightId, 'Matti1')
     expect(delRowcount).toEqual(true)
   })
 
@@ -985,7 +985,7 @@ describe('Db invoicable FlightLog tests', () => {
           {},
           statusUser,
         )
-        await deleteFlightLog(id)
+        await deleteFlightLog(id, insertUser.memberId)
       }
     }
   })
@@ -1082,7 +1082,7 @@ describe('Db invoicable FlightLog tests', () => {
           {},
           makeStatusUser(memberId),
         )
-        await deleteFlightLog(id)
+        await deleteFlightLog(id, memberId)
       }
     }
 

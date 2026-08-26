@@ -533,9 +533,12 @@ function ExpenseClaimWizardInner() {
             }))
           : undefined,
       hetu: isMileage ? hetu || undefined : undefined,
-      // Sent even when empty for a fuel claim, so removing the last record
-      // releases the ones that were attached rather than leaving them stuck.
-      liquidRecordIds: isFuel ? liquidRecordIds : undefined,
+      // Always sent, including when empty: the backend only skips its
+      // link/unlink pass when this key is entirely absent, so a fuel claim
+      // whose last record was removed -- or a claim whose category just
+      // changed away from fuel -- must still send `[]` to actually release
+      // whatever was attached, rather than leaving it silently stuck.
+      liquidRecordIds,
     }
 
     const res = savedClaimId
@@ -665,6 +668,11 @@ function ExpenseClaimWizardInner() {
                 categoryId: id,
                 lineItems: c.lineItems.map((li) => ({ ...li, unit: defaultUnitForCategory(code) })),
               }))
+              // Switching away from fuel must release any records already
+              // attached, not just stop showing them: leaving stale ids in
+              // local state would still submit them on save and strand them
+              // locked to a claim the member no longer thinks involves fuel.
+              if (code !== 'fuel') setLiquidRecordIds([])
             }}
           >
             {categories.map((cat) => (

@@ -7,8 +7,10 @@ import {
   computeLiquidRecordLock,
   LiquidLockReason,
   LiquidType,
+  round4,
   type LiquidRecord,
 } from '@mik/contracts/liquid'
+import { toHelsinki } from '@mik/contracts/date'
 import { db } from '../../db/connection.ts'
 import { getLiquidRecordById } from '../../db/liquid-queries.ts'
 import { getLiquidRecordAttachments } from '../../db/liquid-attachment-queries.ts'
@@ -158,10 +160,13 @@ export function deriveLineItemsFromRecords(
     ]
       .filter(Boolean)
       .join(' · '),
-    date: record.recordedAt.slice(0, 10),
+    // The club's own calendar date, not UTC's: a fuelling reported just after
+    // local midnight but before UTC midnight would otherwise land on the
+    // claim a day early.
+    date: toHelsinki(record.recordedAt).format('YYYY-MM-DD'),
     quantity: record.quantityLitres,
     unit: 'l' as const,
-    unitPrice: Math.round((record.totalCost! / record.quantityLitres) * 10_000) / 10_000,
+    unitPrice: round4(record.totalCost! / record.quantityLitres),
     totalCost: record.totalCost,
     sortOrder: index,
     costCentreCode: costCentreCodes.has(record.aircraftRegistration)

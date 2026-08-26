@@ -595,7 +595,7 @@ router.delete('/:id', async (req: Request<Record<string, string>>, res: Response
     `Deleting flight log ${flightId}. Deleted by member: ${req.user?.memberId} with permissions :${req.user?.permissions}`,
   )
 
-  const deletedLogRows = await deleteFlightLog(flightId)
+  const deletedLogRows = await deleteFlightLog(flightId, req.user!.memberId!)
   if (!deletedLogRows) {
     return problem({
       status: 500,

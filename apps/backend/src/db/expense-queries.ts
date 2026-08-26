@@ -717,21 +717,28 @@ export async function rejectExpenseClaim(
   id: string,
   rejectorId: string,
   reason: string,
-  executor: Executor = db,
 ): Promise<boolean> {
-  const result = await executor
-    .updateTable('accts.expenseClaim')
-    .set({
-      status: ExpenseClaimStatus.REJECTED,
-      rejectedAt: new Date(),
-      rejectedBy: rejectorId,
-      rejectionReason: reason,
-      updatedAt: new Date(),
-    })
-    .where('id', '=', id)
-    .executeTakeFirstOrThrow()
+  return db.transaction().execute(async (txn) => {
+    const result = await txn
+      .updateTable('accts.expenseClaim')
+      .set({
+        status: ExpenseClaimStatus.REJECTED,
+        rejectedAt: new Date(),
+        rejectedBy: rejectorId,
+        rejectionReason: reason,
+        updatedAt: new Date(),
+      })
+      .where('id', '=', id)
+      .executeTakeFirstOrThrow()
 
-  return result.numUpdatedRows > BigInt(0)
+    // A rejected claim needs correcting and resubmitting, same as one the
+    // member deletes outright -- its fuel records must not stay locked to a
+    // claim that is never going to be paid, or they become unclaimable and
+    // uneditable by anyone (same reasoning as deleteExpenseClaim).
+    await unlinkRecordsFromClaim(id, rejectorId, txn)
+
+    return result.numUpdatedRows > BigInt(0)
+  })
 }
 
 export async function overrideFuelPrice(

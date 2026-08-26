@@ -33,6 +33,8 @@ import {
   type UpdateOilCanisterRequest,
   type UpsertFuelTaxRequest,
 } from '@mik/contracts/liquid'
+import { ExpenseClaimStatus } from '@mik/contracts/expenses'
+import { toHelsinki } from '@mik/contracts/date'
 
 type Executor = Kysely<DB> | Transaction<DB>
 
@@ -516,7 +518,7 @@ export async function linkRecordsToClaim(
     for (const row of rows) {
       const recordedAt = new Date(row.recordedAt)
       const rate = row.fuelType
-        ? await getFuelTaxRate(recordedAt.getUTCFullYear(), row.fuelType, trx)
+        ? await getFuelTaxRate(toHelsinki(recordedAt).year(), row.fuelType, trx)
         : null
 
       const pricing = computeLiquidFuelPricing({
@@ -780,29 +782,52 @@ export async function createQrBatch(
 ): Promise<{ batch: QrBatch; codes: QrCode[] }> {
   return db.transaction().execute(async (trx) => {
     const now = new Date()
+
+    // Filtering out codes that already exist can leave fewer than `count`;
+    // the original version stopped there, so a batch could silently ship
+    // with fewer codes than its own codeCount claimed. Topped up in rounds
+    // instead, generating only the shortfall each time, until the batch is
+    // full or a broken `random` (bounded attempts) makes another round
+    // pointless.
+    const excluded = new Set<string>()
+    const codes: string[] = []
+    for (let round = 0; codes.length < count && round < 5; round++) {
+      const stillNeeded = count - codes.length
+      const candidates = new Set<string>()
+      for (let attempt = 0; candidates.size < stillNeeded && attempt < stillNeeded * 20; attempt++) {
+        const code = randomCode(random)
+        if (!excluded.has(code)) candidates.add(code)
+      }
+      if (candidates.size === 0) break
+
+      const taken = await trx
+        .selectFrom('liquid.qrCode')
+        .select(['code'])
+        .where('code', 'in', [...candidates])
+        .execute()
+      const takenCodes = new Set(taken.map((r) => r.code))
+
+      for (const code of candidates) {
+        excluded.add(code)
+        if (!takenCodes.has(code) && codes.length < count) codes.push(code)
+      }
+    }
+
+    // codeCount reflects what was actually generated, never the requested
+    // count on faith — the two could otherwise disagree if generation ran out
+    // of rounds.
     const batch = await trx
       .insertInto('liquid.qrBatch')
-      .values({ label, codeCount: count, ...auditCreate(actor, now) })
+      .values({ label, codeCount: codes.length, ...auditCreate(actor, now) })
       .returning('batchId')
       .executeTakeFirstOrThrow()
 
-    const wanted = new Set<string>()
-    // Bounded so a broken `random` cannot spin here forever.
-    for (let attempt = 0; wanted.size < count && attempt < count * 20; attempt++) {
-      wanted.add(randomCode(random))
+    if (codes.length > 0) {
+      await trx
+        .insertInto('liquid.qrCode')
+        .values(codes.map((code) => ({ code, batchId: batch.batchId, ...auditCreate(actor, now) })))
+        .execute()
     }
-    const taken = await trx
-      .selectFrom('liquid.qrCode')
-      .select(['code'])
-      .where('code', 'in', [...wanted])
-      .execute()
-    const takenCodes = new Set(taken.map((r) => r.code))
-    const codes = [...wanted].filter((c) => !takenCodes.has(c)).slice(0, count)
-
-    await trx
-      .insertInto('liquid.qrCode')
-      .values(codes.map((code) => ({ code, batchId: batch.batchId, ...auditCreate(actor, now) })))
-      .execute()
 
     return {
       batch: (await getQrBatch(batch.batchId, trx))!,
@@ -1068,6 +1093,7 @@ export async function getFuelPriceComparison(
     .selectFrom('liquid.record as r')
     .leftJoin('static.airfields as af', 'af.ident', 'r.airport')
     .leftJoin('liquid.fuelProvider as p', 'p.providerId', 'r.providerId')
+    .leftJoin('accts.expenseClaim as ec', 'ec.id', 'r.expenseClaimId')
     .select([
       'r.recordId',
       'r.recordedAt',
@@ -1085,6 +1111,7 @@ export async function getFuelPriceComparison(
       'r.taxAdjustedPricePerLitre',
       'r.expenseClaimId',
       'r.flightLogId',
+      'ec.status as claimStatus',
     ])
     .where('r.liquidType', '=', LiquidType.FUEL)
     .where('r.deletedAt', 'is', null)
@@ -1117,9 +1144,16 @@ export async function getFuelPriceComparison(
       fxRate: num(row.fxRate),
       taxIncludedAbroad: row.taxIncludedAbroad,
       recordedAt,
-      taxRateEurPerLitre: await rateFor(recordedAt.getUTCFullYear(), row.fuelType),
+      taxRateEurPerLitre: await rateFor(toHelsinki(recordedAt).year(), row.fuelType),
     })
-    const stored = num(row.taxAdjustedPricePerLitre)
+    // A DRAFT claim hasn't been submitted yet and a REJECTED one was declined
+    // by the club -- the old /v1/fuel-report explicitly treated both as "not
+    // reliable enough to report a price from". The frozen figure is only
+    // trusted once a claim has actually been submitted for payment; otherwise
+    // this falls back to the live recompute above, same as an unclaimed record.
+    const unreliableClaim =
+      row.claimStatus === ExpenseClaimStatus.DRAFT || row.claimStatus === ExpenseClaimStatus.REJECTED
+    const stored = unreliableClaim ? null : num(row.taxAdjustedPricePerLitre)
     const referencePrice = row.fuelType ? (query.reference[row.fuelType] ?? null) : null
 
     out.push({

@@ -837,9 +837,14 @@ const buildLiquidChanges = (
   before: AuditSnapshot,
   after: AuditSnapshot,
   flightId: string,
+  operationType: string,
 ): FlightLogAuditChange[] => {
   const beforeLinked = before?.flight_log_id === flightId
-  const afterLinked = after?.flight_log_id === flightId
+  // A soft delete never touches flight_log_id, so a linked record that gets
+  // deleted would otherwise diff as "still linked, nothing changed" and be
+  // dropped by the changes.length===0 check below — silently vanishing from
+  // the flight's own history instead of showing up as an unlink.
+  const afterLinked = operationType === 'SOFT_DELETE' ? false : after?.flight_log_id === flightId
   const liquidType = (after ?? before)?.liquid_type
   const field = liquidType === 'OIL' ? 'oilRecord' : 'fuelRecord'
 
@@ -902,6 +907,7 @@ async function getLiquidAuditEntriesForFlight(flightId: string): Promise<FlightL
         row.changedData as AuditSnapshot,
         row.newData as AuditSnapshot,
         flightId,
+        row.operationType,
       )
       if (changes.length === 0) return null
       return {
@@ -1378,14 +1384,27 @@ export async function insertFlightLog(
   return retval.flightId
 }
 
-export async function deleteFlightLog(flightId: string): Promise<boolean> {
-  let delQuery = db
-    .deleteFrom('flight.logs')
-    .where('flightId', '=', flightId)
-    .where('status', '=', FlightLogStatus.NEW)
+export async function deleteFlightLog(flightId: string, actor: string): Promise<boolean> {
+  return db.transaction().execute(async (txn) => {
+    // liquid.record.flight_log_id has no ON DELETE handling: a fuelling
+    // outlives the flight it was reported against ("a member may fuel an
+    // aircraft even when the planned flight is cancelled", #1119), so deleting
+    // the flight log must unlink any record pointing at it rather than leave
+    // the delete to fail on the FK.
+    await txn
+      .updateTable('liquid.record')
+      .set({ flightLogId: null, ...auditUpdate(actor) })
+      .where('flightLogId', '=', flightId)
+      .execute()
 
-  const retval = await delQuery.executeTakeFirst()
-  return retval.numDeletedRows == 1n
+    const retval = await txn
+      .deleteFrom('flight.logs')
+      .where('flightId', '=', flightId)
+      .where('status', '=', FlightLogStatus.NEW)
+      .executeTakeFirst()
+
+    return retval.numDeletedRows == 1n
+  })
 }
 
 const flightTypeToPrivOrCom = (type: FlightType): PrivOrComFlight => {
