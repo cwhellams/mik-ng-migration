@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { LiquidLockReason } from '@mik/contracts/liquid'
 import { aFuelRecord, anOilRecord, theFuelProviders } from '../../test/fixtures'
 import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
@@ -148,7 +149,7 @@ describe('EditLiquidRecord — locked record', () => {
       http.get(apiUrl('v1/liquid/records/:recordId'), () =>
         HttpResponse.json(
           aFuelRecord({
-            lock: { canEdit: false, canDelete: false, reason: 'EDIT_WINDOW_EXPIRED' },
+            lock: { canEdit: false, canDelete: false, reason: LiquidLockReason.EDIT_WINDOW_EXPIRED },
           }),
         ),
       ),
