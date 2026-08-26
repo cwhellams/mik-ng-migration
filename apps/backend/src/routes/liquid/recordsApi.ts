@@ -11,6 +11,7 @@ import {
   LiquidRecordFilterSchema,
   LiquidType,
   LinkFlightLogSchema,
+  OIL_MAX_LITRES,
   OilSource,
   UpdateLiquidRecordSchema,
   type ClaimableFuelSummary,
@@ -33,6 +34,7 @@ import {
 } from '../../db/liquid-queries.ts'
 import {
   addLiquidRecordAttachment,
+  countLiquidRecordAttachments,
   deleteLiquidRecordAttachment,
   getLiquidRecordAttachment,
   getLiquidRecordAttachments,
@@ -75,6 +77,15 @@ const withLock = (record: LiquidRecord, req: Request) => ({
     { memberId: req.user!.memberId!, isLiquidAdmin: isLiquidAdmin(req.user!) },
   ),
 })
+
+/** The fetch-or-404 every mutating/detail route on `:recordId` starts with. */
+async function getExistingRecordOr404(recordId: string): Promise<LiquidRecord> {
+  const record = await getLiquidRecordById(recordId)
+  if (!record) {
+    return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
+  }
+  return record
+}
 
 // GET /v1/liquid/providers — reference data for the reporting form.
 recordsRouter.get('/providers', async (_req: Request, res: Response<FuelProvider[]>) => {
@@ -121,9 +132,20 @@ recordsRouter.get('/records', async (req: Request, res: Response<LiquidRecordLis
 
   // A member's filter is pinned to themselves whatever they asked for: without
   // this, `?memberId=` would turn a member-scoped list into a fleet-wide one.
+  // The one exception is a flight's own liquid section (`?flightLogId=`):
+  // either party on a shared flight may have added the fuelling, so pinning to
+  // the requester's own memberId there would hide the other party's record
+  // entirely. `assertFlightViewable` still confines it to someone who was
+  // actually on that flight.
+  let memberId = admin ? filter.memberId : req.user!.memberId!
+  if (!admin && filter.flightLogId) {
+    await assertFlightViewable(filter.flightLogId, req.user!.memberId!)
+    memberId = filter.memberId
+  }
+
   const { records, total } = await listLiquidRecords({
     ...filter,
-    memberId: admin ? filter.memberId : req.user!.memberId!,
+    memberId,
     includeDeleted: admin ? filter.includeDeleted : false,
   })
 
@@ -133,10 +155,7 @@ recordsRouter.get('/records', async (req: Request, res: Response<LiquidRecordLis
 recordsRouter.get(
   '/records/:recordId',
   async (req: Request<{ recordId: string }>, res: Response) => {
-    const record = await getLiquidRecordById(req.params.recordId)
-    if (!record) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const record = await getExistingRecordOr404(req.params.recordId)
     assertRecordVisible(record, req.user!)
     res.json(withLock(record, req))
   },
@@ -180,7 +199,15 @@ recordsRouter.post('/records', async (req: Request, res: Response) => {
     }
   }
 
-  if (data.flightLogId) await assertFlightLogLinkable(data.flightLogId, memberId, req)
+  if (data.flightLogId) {
+    const flight = await assertFlightLogLinkable(data.flightLogId, memberId, req)
+    if (flight.aircraftRegistration !== data.aircraftRegistration) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: `That flight was in ${flight.aircraftRegistration}, but this record is for ${data.aircraftRegistration}.`,
+      })
+    }
+  }
 
   // The scanned code is recorded on the record, so "how was this reported" is
   // answerable later. An unknown code is not fatal — the uplift is real either
@@ -199,10 +226,7 @@ recordsRouter.post('/records', async (req: Request, res: Response) => {
 recordsRouter.patch(
   '/records/:recordId',
   async (req: Request<{ recordId: string }>, res: Response) => {
-    const existing = await getLiquidRecordById(req.params.recordId)
-    if (!existing) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const existing = await getExistingRecordOr404(req.params.recordId)
     assertRecordMutable(existing, req.user!)
 
     const data = UpdateLiquidRecordSchema.parse(req.body)
@@ -240,6 +264,36 @@ recordsRouter.patch(
             : 'Oil from another source cannot name a club canister.',
         })
       }
+
+      if (data.quantityLitres != null && data.quantityLitres > OIL_MAX_LITRES) {
+        return problem({
+          status: HttpStatusCode.BadRequest,
+          detail: `Oil quantity cannot exceed ${OIL_MAX_LITRES} litres.`,
+        })
+      }
+
+      // Only re-checked when the edit actually touches the canister or the
+      // aircraft: POST's aircraft-match/isEmpty checks (above) apply here too,
+      // but re-running them on every unrelated field edit would reject a record
+      // whose canister has since emptied through normal, unrelated use.
+      if (merged.oilCanisterId && (data.oilCanisterId !== undefined || data.aircraftRegistration)) {
+        const canister = await getOilCanisterById(merged.oilCanisterId)
+        if (!canister) {
+          return problem({ status: HttpStatusCode.BadRequest, detail: 'Unknown oil canister.' })
+        }
+        if (canister.aircraftRegistration !== merged.aircraftRegistration) {
+          return problem({
+            status: HttpStatusCode.BadRequest,
+            detail: `Canister ${canister.clubCanisterRef} belongs to ${canister.aircraftRegistration}.`,
+          })
+        }
+        if (canister.isEmpty) {
+          return problem({
+            status: HttpStatusCode.BadRequest,
+            detail: `Canister ${canister.clubCanisterRef} is marked empty and is no longer in inventory.`,
+          })
+        }
+      }
     }
 
     let providerId = data.providerId
@@ -262,7 +316,13 @@ recordsRouter.patch(
     }
 
     if (data.flightLogId) {
-      await assertFlightLogLinkable(data.flightLogId, existing.memberId, req)
+      const flight = await assertFlightLogLinkable(data.flightLogId, existing.memberId, req)
+      if (flight.aircraftRegistration !== merged.aircraftRegistration) {
+        return problem({
+          status: HttpStatusCode.BadRequest,
+          detail: `That flight was in ${flight.aircraftRegistration}, but this record is for ${merged.aircraftRegistration}.`,
+        })
+      }
     }
 
     const updated = await updateLiquidRecord(
@@ -283,10 +343,7 @@ recordsRouter.patch(
 recordsRouter.delete(
   '/records/:recordId',
   async (req: Request<{ recordId: string }>, res: Response) => {
-    const existing = await getLiquidRecordById(req.params.recordId)
-    if (!existing) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const existing = await getExistingRecordOr404(req.params.recordId)
     assertRecordMutable(existing, req.user!)
     await softDeleteLiquidRecord(req.params.recordId, req.user!.memberId!)
     res.status(HttpStatusCode.NoContent).send()
@@ -301,10 +358,7 @@ recordsRouter.delete(
 recordsRouter.post(
   '/records/:recordId/link',
   async (req: Request<{ recordId: string }>, res: Response) => {
-    const existing = await getLiquidRecordById(req.params.recordId)
-    if (!existing) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const existing = await getExistingRecordOr404(req.params.recordId)
     assertRecordLinkable(existing, req.user!)
 
     const { flightLogId } = LinkFlightLogSchema.parse(req.body)
@@ -342,10 +396,7 @@ recordsRouter.post(
 recordsRouter.post(
   '/records/:recordId/unlink',
   async (req: Request<{ recordId: string }>, res: Response) => {
-    const existing = await getLiquidRecordById(req.params.recordId)
-    if (!existing) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const existing = await getExistingRecordOr404(req.params.recordId)
     assertRecordMutable(existing, req.user!)
     const updated = await updateLiquidRecord(
       req.params.recordId,
@@ -373,14 +424,11 @@ recordsRouter.post(
       return problem({ status: HttpStatusCode.BadRequest, detail: 'No files uploaded' })
     }
 
-    const existing = await getLiquidRecordById(req.params.recordId)
-    if (!existing) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const existing = await getExistingRecordOr404(req.params.recordId)
     assertRecordMutable(existing, req.user!)
 
-    const existingCount = await getLiquidRecordAttachments(req.params.recordId)
-    if (existingCount.length + files.length > MAX_ATTACHMENTS_PER_RECORD) {
+    const existingCount = await countLiquidRecordAttachments(req.params.recordId)
+    if (existingCount + files.length > MAX_ATTACHMENTS_PER_RECORD) {
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: `A fuelling can have at most ${MAX_ATTACHMENTS_PER_RECORD} receipts.`,
@@ -409,6 +457,25 @@ recordsRouter.post(
       }
 
       const uploaded = await db.transaction().execute(async (txn) => {
+        // The pre-check above is only a fast, non-authoritative rejection: two
+        // concurrent uploads on the same record can both pass it and then both
+        // insert. Locking the record row serialises them, so the recount right
+        // before inserting is the one that actually enforces the cap.
+        await txn
+          .selectFrom('liquid.record')
+          .select('recordId')
+          .where('recordId', '=', req.params.recordId)
+          .forUpdate()
+          .executeTakeFirstOrThrow()
+
+        const currentCount = await countLiquidRecordAttachments(req.params.recordId, txn)
+        if (currentCount + stored.length > MAX_ATTACHMENTS_PER_RECORD) {
+          return problem({
+            status: HttpStatusCode.BadRequest,
+            detail: `A fuelling can have at most ${MAX_ATTACHMENTS_PER_RECORD} receipts.`,
+          })
+        }
+
         const rows = []
         for (const attachment of stored) {
           rows.push(await addLiquidRecordAttachment(req.params.recordId, attachment, txn))
@@ -435,10 +502,7 @@ recordsRouter.post(
 recordsRouter.get(
   '/records/:recordId/attachments',
   async (req: Request<{ recordId: string }>, res: Response) => {
-    const existing = await getLiquidRecordById(req.params.recordId)
-    if (!existing) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const existing = await getExistingRecordOr404(req.params.recordId)
     assertRecordVisible(existing, req.user!)
     res.json(await getLiquidRecordAttachments(req.params.recordId))
   },
@@ -453,10 +517,7 @@ recordsRouter.get(
 recordsRouter.get(
   '/records/:recordId/attachments/:attachmentId/url',
   async (req: Request<{ recordId: string; attachmentId: string }>, res: Response) => {
-    const existing = await getLiquidRecordById(req.params.recordId)
-    if (!existing) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const existing = await getExistingRecordOr404(req.params.recordId)
     assertRecordVisible(existing, req.user!)
 
     const attachment = await getLiquidRecordAttachment(
@@ -476,10 +537,7 @@ recordsRouter.get(
 recordsRouter.delete(
   '/records/:recordId/attachments/:attachmentId',
   async (req: Request<{ recordId: string; attachmentId: string }>, res: Response) => {
-    const existing = await getLiquidRecordById(req.params.recordId)
-    if (!existing) {
-      return problem({ status: HttpStatusCode.NotFound, detail: 'Liquid record not found.' })
-    }
+    const existing = await getExistingRecordOr404(req.params.recordId)
     assertRecordMutable(existing, req.user!)
 
     const attachment = await getLiquidRecordAttachment(
@@ -496,6 +554,24 @@ recordsRouter.delete(
     res.status(HttpStatusCode.NoContent).send()
   },
 )
+
+/**
+ * Guards `GET /records?flightLogId=` for a non-admin: the requester has to
+ * have actually been on that flight (either party), not just anyone who knows
+ * its id. 404 rather than 403, same reasoning as `assertRecordVisible` — a
+ * member with no business on that flight shouldn't learn it exists.
+ */
+async function assertFlightViewable(flightLogId: string, memberId: string): Promise<void> {
+  const flight = await db
+    .selectFrom('flight.logs')
+    .select(['billableMemberId', 'picMemberId'])
+    .where('flightId', '=', flightLogId)
+    .executeTakeFirst()
+
+  if (!flight || (flight.billableMemberId !== memberId && flight.picMemberId !== memberId)) {
+    return problem({ status: HttpStatusCode.NotFound, detail: 'Flight log not found.' })
+  }
+}
 
 /**
  * A flight log a record may be attached to: it has to exist, and — for anyone

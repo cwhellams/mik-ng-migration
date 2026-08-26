@@ -152,7 +152,9 @@ export default function MyLiquidRecords() {
                           <span>{describeRecord(record, t)}</span>
                         </Stack>
                       </TableCell>
-                      <TableCell>{formatPricePerLitre(paidPricePerLitre(record)) ?? '—'}</TableCell>
+                      <TableCell>
+                        {formatPricePerLitre(paidPricePerLitre(record), record.ccy) ?? '—'}
+                      </TableCell>
                       <TableCell>
                         <Stack direction='row' spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
                           {record.flightLogId && (

@@ -2,7 +2,13 @@ import { z } from 'zod'
 
 import { FlightLogStatus } from './flight-log.ts'
 import { MIK_SUPPORTED_CURRENCIES } from './expenses.ts'
-import { AuditableSchema, nullableTrimmedString, optionalTrimmedString } from './schema.ts'
+import {
+  AuditableSchema,
+  LimitOffsetSchema,
+  nullableTrimmedString,
+  optionalTrimmedString,
+} from './schema.ts'
+import { toHelsinki } from './date.ts'
 
 /**
  * The Liquid Management System (#1119): one record per fuel or oil uplift, held
@@ -169,6 +175,15 @@ const litres = (max: number) =>
     // price-per-litre is derived from identical.
     .transform((v) => Math.round(v * 1000) / 1000)
 
+/**
+ * A fuel tank measures in the hundreds of litres; an aircraft engine's oil
+ * system does not. The deleted `OilUplift` component capped its input at 10L
+ * for exactly this reason — kept here as a real validation bound (with a
+ * little headroom for a full engine refill) rather than an HTML `max` nobody
+ * server-side ever checked.
+ */
+export const OIL_MAX_LITRES = 20
+
 export const LiquidRecordSchema = AuditableSchema.extend({
   recordId: z.string().guid(),
   liquidType: z.nativeEnum(LiquidType),
@@ -303,6 +318,7 @@ type LiquidRecordInput = {
   totalCost?: number | null
   ccy?: string
   fxRate?: number | null
+  quantityLitres?: number
 }
 
 /**
@@ -326,6 +342,9 @@ export const refineLiquidRecordShape = <T extends z.ZodType<LiquidRecordInput>>(
     }
 
     if (data.liquidType === LiquidType.OIL) {
+      if (data.quantityLitres != null && data.quantityLitres > OIL_MAX_LITRES) {
+        issue('quantityLitres', `Oil quantity cannot exceed ${OIL_MAX_LITRES} litres.`)
+      }
       if (!data.oilSource) issue('oilSource', 'Oil source is required for an oil record.')
       if (data.oilSource === OilSource.CANISTER && !data.oilCanisterId) {
         issue('oilCanisterId', 'Select the canister the oil came from.')
@@ -393,23 +412,23 @@ export const UpdateLiquidRecordSchema = z.object({
 })
 export type UpdateLiquidRecordRequest = z.infer<typeof UpdateLiquidRecordSchema>
 
-export const LiquidRecordFilterSchema = z.object({
-  liquidType: z.nativeEnum(LiquidType).optional(),
-  aircraftRegistration: z.string().optional(),
-  /** Admin-only; a member always sees their own. */
-  memberId: z.string().optional(),
-  from: z.string().datetime().optional(),
-  to: z.string().datetime().optional(),
-  /** `true` narrows to records not yet on a claim — what the wizard wants. */
-  unclaimed: z.coerce.boolean().optional(),
-  /** `true` narrows to records not yet on a flight log. */
-  unlinked: z.coerce.boolean().optional(),
-  /** One flight's records — what the flight log's own liquid section reads. */
-  flightLogId: z.string().optional(),
-  includeDeleted: z.coerce.boolean().optional(),
-  limit: z.coerce.number().int().positive().max(500).default(100),
-  offset: z.coerce.number().int().min(0).default(0),
-})
+export const LiquidRecordFilterSchema = z
+  .object({
+    liquidType: z.nativeEnum(LiquidType).optional(),
+    aircraftRegistration: z.string().optional(),
+    /** Admin-only; a member always sees their own. */
+    memberId: z.string().optional(),
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    /** `true` narrows to records not yet on a claim — what the wizard wants. */
+    unclaimed: z.coerce.boolean().optional(),
+    /** `true` narrows to records not yet on a flight log. */
+    unlinked: z.coerce.boolean().optional(),
+    /** One flight's records — what the flight log's own liquid section reads. */
+    flightLogId: z.string().optional(),
+    includeDeleted: z.coerce.boolean().optional(),
+  })
+  .merge(LimitOffsetSchema(100, 500))
 export type LiquidRecordFilter = z.infer<typeof LiquidRecordFilterSchema>
 
 /**
@@ -563,7 +582,8 @@ export interface FuelPricing {
   fuelTaxRateApplied: number | null
 }
 
-const round4 = (v: number) => Math.round(v * 10_000) / 10_000
+/** Four decimals is what a per-litre price is stored/displayed at. */
+export const round4 = (v: number) => Math.round(v * 10_000) / 10_000
 
 /**
  * Turns "what the member paid" into "what the club compares and reimburses".
@@ -598,7 +618,10 @@ export const computeLiquidFuelPricing = (input: {
   /** The `accts.fuel_tax` rate in force, or null when none is configured. */
   taxRateEurPerLitre?: number | null
 }): FuelPricing => {
-  const year = new Date(input.recordedAt).getUTCFullYear()
+  // The Finnish tax year follows the club's own calendar, not UTC's: a
+  // fuelling just after local midnight but before UTC midnight (or vice versa)
+  // must freeze the rate for the year the club actually sees it in.
+  const year = toHelsinki(input.recordedAt).year()
   const rate = input.taxIncludedAbroad ? null : (input.taxRateEurPerLitre ?? null)
 
   if (input.totalCost == null || input.quantityLitres <= 0) {

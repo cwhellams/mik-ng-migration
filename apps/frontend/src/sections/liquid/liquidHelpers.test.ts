@@ -75,6 +75,12 @@ describe('formatting', () => {
   it('formats a litre price to four decimals', () => {
     expect(formatPricePerLitre(1.4286)).toBe('1,4286 €/l')
   })
+
+  it('labels a non-EUR litre price with its real currency, not €', () => {
+    // Showing € on a price the member paid in SEK would misreport what they
+    // actually saw on their receipt (#1119 review finding B16).
+    expect(formatPricePerLitre(1.4286, 'SEK')).toBe('1,4286 SEK/l')
+  })
 })
 
 describe('paidPricePerLitre', () => {

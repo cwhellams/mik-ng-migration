@@ -44,6 +44,19 @@ export async function addLiquidRecordAttachment(
   return mapAttachment(row)
 }
 
+/** Row count only, for the cap check — `executor` lets a caller run it inside a locked transaction. */
+export async function countLiquidRecordAttachments(
+  recordId: string,
+  executor: Executor = db,
+): Promise<number> {
+  const result = await executor
+    .selectFrom('liquid.recordAttachment')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('recordId', '=', recordId)
+    .executeTakeFirstOrThrow()
+  return Number(result.count)
+}
+
 export async function getLiquidRecordAttachment(
   recordId: string,
   attachmentId: number,

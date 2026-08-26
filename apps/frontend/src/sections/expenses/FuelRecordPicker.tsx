@@ -159,7 +159,7 @@ export function FuelRecordPicker({ selectedIds, onChange, claimId }: Props) {
                       </TableCell>
                       <TableCell align='right'>
                         <Stack>
-                          <span>{formatPricePerLitre(paidPricePerLitre(record))}</span>
+                          <span>{formatPricePerLitre(paidPricePerLitre(record), record.ccy)}</span>
                           {/* What the club will add before comparing against the
                               EFNU cap — visible here so the approved figure is
                               not a surprise. */}

@@ -4,6 +4,7 @@ import {
   LiquidLockReason,
   LiquidType,
   OilSource,
+  round4,
   type LiquidPrefill,
   type LiquidRecordWithLock,
 } from '@mik/contracts/liquid'
@@ -43,8 +44,15 @@ export const formatLitres = (value: number): string => `${litres.format(value)} 
 export const formatCost = (value: number | null, ccy: string): string | null =>
   value == null ? null : `${money.format(value)} ${ccy}`
 
-export const formatPricePerLitre = (value: number | null): string | null =>
-  value == null ? null : `${perLitre.format(value)} €/l`
+/**
+ * `ccy` defaults to EUR for the tax-adjusted/reference figures, which are
+ * always EUR by definition (`computeLiquidFuelPricing`). A record's own paid
+ * price must always pass its real purchase currency — showing € on a foreign
+ * fuelling's paid price would mislabel a number the member never saw on their
+ * receipt as euros.
+ */
+export const formatPricePerLitre = (value: number | null, ccy = 'EUR'): string | null =>
+  value == null ? null : `${perLitre.format(value)} ${ccy === 'EUR' ? '€' : ccy}/l`
 
 /**
  * The one-line summary of a record, for a list row.
@@ -89,7 +97,7 @@ export const describeRecord = (record: LiquidRecordWithLock, t: TFunction): stri
 export const paidPricePerLitre = (record: LiquidRecordWithLock): number | null =>
   record.totalCost == null || record.quantityLitres <= 0
     ? null
-    : Math.round((record.totalCost / record.quantityLitres) * 10_000) / 10_000
+    : round4(record.totalCost / record.quantityLitres)
 
 /**
  * Turns the `?ac=&apt=&fuel=&canister=&type=` deep link into the same prefill
