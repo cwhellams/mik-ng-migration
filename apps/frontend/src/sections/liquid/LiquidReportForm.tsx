@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
   Checkbox,
@@ -22,7 +21,6 @@ import dayjs from 'dayjs'
 
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { MIK_SUPPORTED_CURRENCIES } from '@mik/contracts/expenses'
-import type { AirfieldListResponse } from '@mik/contracts/flight-log'
 import {
   deriveTaxIncludedAbroad,
   HOME_BASE_ICAO,
@@ -41,6 +39,7 @@ import {
 } from '@mik/contracts/liquid'
 import useApi from '@mik/ui/hooks/useApi'
 import { endpoints } from '../../api/endpoints'
+import { AirfieldAutocomplete } from '../../components/AirfieldAutocomplete'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { Title } from '@mik/ui/components/Title'
 import { useTimezone } from '@mik/ui/hooks/useTimezone'
@@ -149,10 +148,6 @@ export function LiquidReportForm({ prefill, qrCode, flightLogId, onSaved }: Prop
 
   const aircraftApi = useApi<AircraftListResponse>({ url: endpoints.aircrafts.root })
   const providersApi = useApi<FuelProvider[]>({ url: endpoints.liquid.providers })
-  const airfieldsApi = useApi<AirfieldListResponse>(
-    { url: 'v1/flight-logs/airfields', skipFetch: !isFuel },
-    { revalidateIfStale: false, revalidateOnFocus: false },
-  )
   const canistersApi = useApi<OilCanister[]>(
     {
       url: endpoints.liquid.oilCanisters,
@@ -170,7 +165,6 @@ export function LiquidReportForm({ prefill, qrCode, flightLogId, onSaved }: Prop
 
   const aircraft = aircraftApi.data?.aircrafts ?? []
   const providers = providersApi.data ?? []
-  const airfields = airfieldsApi.data?.airfields ?? []
   const canisters = canistersApi.data ?? []
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
@@ -433,7 +427,6 @@ export function LiquidReportForm({ prefill, qrCode, flightLogId, onSaved }: Prop
                   form={form}
                   set={set}
                   fuelType={fuelType}
-                  airfields={airfields}
                   allowedFuelTypes={allowedFuelTypes}
                   providerOptions={providerOptions}
                   homeProvider={homeProvider}
@@ -511,7 +504,6 @@ interface FuelFieldsProps {
   set: <K extends keyof FormState>(key: K, value: FormState[K]) => void
   /** The fuel type in effect, which the aircraft may have decided rather than the member. */
   fuelType: string
-  airfields: { ident: string; name: string }[]
   allowedFuelTypes: string[]
   providerOptions: FuelProvider[]
   homeProvider?: FuelProvider
@@ -527,7 +519,6 @@ function FuelFields({
   form,
   set,
   fuelType,
-  airfields,
   allowedFuelTypes,
   providerOptions,
   homeProvider,
@@ -575,14 +566,12 @@ function FuelFields({
             slotProps={{ inputLabel: { shrink: true } }}
           />
         ) : (
-          <Autocomplete
-            options={airfields}
-            value={airfields.find((a) => a.ident === form.airport) ?? null}
-            getOptionLabel={(option) => `${option.ident}: ${option.name}`}
-            onChange={(_e, value) => set('airport', value?.ident ?? '')}
-            renderInput={(params) => (
-              <TextField {...params} required label={t('liquid.form.airport')} placeholder='ICAO' />
-            )}
+          <AirfieldAutocomplete
+            value={form.airport}
+            onChange={(ident) => set('airport', ident)}
+            required
+            label={t('liquid.form.airport')}
+            margin='none'
           />
         )}
 
