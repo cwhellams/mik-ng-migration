@@ -182,6 +182,32 @@ describe('FuelOilSection', () => {
     await waitFor(() => expect(state.unlinkCalls).toEqual(['rec-fuel-1']))
   })
 
+  it('surfaces the server’s refusal to unlink rather than appearing to succeed', async () => {
+    // Regression: mutation.trigger never throws, it resolves with `.error` —
+    // an unchecked result made a rejected unlink (e.g. the flight was
+    // validated in the meantime) look identical to success.
+    fuelOilApi([aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: 'fi_inst1' })])
+    server.use(
+      http.post(apiUrl('v1/liquid/records/:recordId/unlink'), () =>
+        HttpResponse.json(
+          { status: 409, detail: 'That flight log has already been validated.' },
+          { status: 409, headers: { 'content-type': 'application/problem+json' } },
+        ),
+      ),
+    )
+
+    const { user } = renderWithProviders(<Harness flightId='fi_inst1' />)
+    await screen.findByText(/JET A-1/)
+
+    await user.click(screen.getByRole('button', { name: 'Detach from this flight' }))
+
+    expect(
+      await screen.findByText('That flight log has already been validated.'),
+    ).toBeInTheDocument()
+    // Still shown as linked — the failed unlink must not disappear from view.
+    expect(screen.getByText(/JET A-1/)).toBeInTheDocument()
+  })
+
   it('offers "add another"/"link additional" wording once a record is already linked', async () => {
     fuelOilApi([aFuelRecord({ recordId: 'rec-fuel-1', flightLogId: 'fi_inst1' })])
 

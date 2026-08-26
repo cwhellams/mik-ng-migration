@@ -426,6 +426,28 @@ describe('LiquidReportForm — oil', () => {
       quantityLitres: 0.5,
     })
   })
+
+  it('drops the canister choice when switching to another source, not just its fields', async () => {
+    // Regression: only remainingLitres/markCanisterEmpty were cleared on this
+    // switch, so a canister picked before switching to "Other source" silently
+    // rode along in the submission (the CANISTER-only fields disappeared from
+    // view, but oilCanisterId itself stayed set).
+    const { user } = renderWithProviders(<LiquidReportForm />)
+    await switchToOil(user)
+    await user.click(await screen.findByRole('combobox', { name: 'Canister' }))
+    await user.click(await screen.findByRole('option', { name: /MIK A 26\/1/ }))
+
+    await user.click(screen.getByRole('button', { name: 'Other source' }))
+    await user.type(await screen.findByLabelText(/Make/), 'Aeroshell')
+    await user.type(screen.getByLabelText(/Model \/ viscosity/), 'W100')
+    await user.type(screen.getByLabelText(/Batch number/), 'FIELD-42')
+    await user.type(quantityField(), '0.5')
+    await user.click(saveButton())
+
+    await waitFor(() => expect(posted).toHaveLength(1))
+    expect(posted[0]).toMatchObject({ oilSource: OilSource.OTHER })
+    expect((posted[0] as { oilCanisterId?: string }).oilCanisterId).toBeUndefined()
+  })
 })
 
 describe('LiquidReportForm — deep links and scans', () => {

@@ -200,8 +200,11 @@ export function LiquidReportForm({ prefill, qrCode, flightLogId, onSaved }: Prop
   // empty -- clear both behind the member's back the moment they stop being
   // shown, so a value typed earlier can't silently ride along in the submission.
   useEffect(() => {
-    if (form.oilSource === OilSource.OTHER && (form.remainingLitres || form.markCanisterEmpty)) {
-      setForm((f) => ({ ...f, remainingLitres: '', markCanisterEmpty: false }))
+    if (
+      form.oilSource === OilSource.OTHER &&
+      (form.remainingLitres || form.markCanisterEmpty || form.oilCanisterId)
+    ) {
+      setForm((f) => ({ ...f, remainingLitres: '', markCanisterEmpty: false, oilCanisterId: '' }))
     } else if (form.markCanisterEmpty && form.remainingLitres) {
       setForm((f) => ({ ...f, remainingLitres: '' }))
     }

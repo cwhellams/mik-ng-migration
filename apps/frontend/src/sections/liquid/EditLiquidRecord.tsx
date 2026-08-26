@@ -7,8 +7,11 @@ import { Icon } from '@iconify/react'
 import { MIK_SUPPORTED_CURRENCIES } from '@mik/contracts/expenses'
 import type { AirfieldListResponse } from '@mik/contracts/flight-log'
 import {
+  isHomeBase,
   LiquidType,
   requiresTotalCost,
+  selectableProviders,
+  type FuelProvider,
   type LiquidRecordWithLock,
   type UpdateLiquidRecordRequest,
 } from '@mik/contracts/liquid'
@@ -45,12 +48,17 @@ export default function EditLiquidRecord() {
     { url: 'v1/flight-logs/airfields', skipFetch: data?.liquidType !== LiquidType.FUEL },
     { revalidateIfStale: false },
   )
+  const providersApi = useApi<FuelProvider[]>(
+    { url: endpoints.liquid.providers, skipFetch: data?.liquidType !== LiquidType.FUEL },
+    { revalidateIfStale: false },
+  )
 
   const [quantityLitres, setQuantityLitres] = useState('')
   const [totalCost, setTotalCost] = useState('')
   const [ccy, setCcy] = useState('EUR')
   const [fxRate, setFxRate] = useState('')
   const [airport, setAirport] = useState('')
+  const [providerId, setProviderId] = useState('')
   const [remainingLitres, setRemainingLitres] = useState('')
   const [saveError, setSaveError] = useState<string>()
 
@@ -61,11 +69,14 @@ export default function EditLiquidRecord() {
     setCcy(data.ccy)
     setFxRate(data.fxRate == null ? '' : String(data.fxRate))
     setAirport(data.airport ?? '')
+    setProviderId(data.providerId == null ? '' : String(data.providerId))
     setRemainingLitres(data.remainingLitres == null ? '' : String(data.remainingLitres))
   }, [data])
 
   const isFuel = data?.liquidType === LiquidType.FUEL
   const costRequired = data ? requiresTotalCost(data.liquidType, airport) : false
+  const atHomeBase = isHomeBase(airport)
+  const providerOptions = selectableProviders(providersApi.data ?? [], airport, data?.fuelType)
 
   /**
    * Fails closed. The server attaches a lock to every record, so this default is
@@ -91,6 +102,16 @@ export default function EditLiquidRecord() {
       if (changed(ccy, data.ccy)) patch.ccy = ccy as UpdateLiquidRecordRequest['ccy']
       const nextRate = fxRate === '' ? null : Number(fxRate)
       if (changed(nextRate, data.fxRate)) patch.fxRate = nextRate
+      // Away from home the provider is a real choice and has to travel with an
+      // airport change, or the server re-resolves an unset providerId against
+      // the new airport and 400s ("A fuel provider is required away from the
+      // home base."). At home it is derived from the fuel type either way.
+      if (!atHomeBase) {
+        const nextProviderId = providerId === '' ? undefined : Number(providerId)
+        if (changed(nextProviderId, data.providerId ?? undefined)) {
+          patch.providerId = nextProviderId ?? null
+        }
+      }
     } else {
       const nextRemaining = remainingLitres === '' ? null : Number(remainingLitres)
       if (changed(nextRemaining, data.remainingLitres)) patch.remainingLitres = nextRemaining
@@ -160,11 +181,35 @@ export default function EditLiquidRecord() {
                       label={t('liquid.form.airport')}
                       value={airport}
                       disabled={!lock.canEdit}
-                      onChange={(e) => setAirport(e.target.value)}
+                      onChange={(e) => {
+                        setAirport(e.target.value)
+                        // A provider tied to the old airport may not sell at the
+                        // new one; re-picking from scratch avoids resubmitting a
+                        // choice the server would reject.
+                        setProviderId('')
+                      }}
                     >
                       {(airfieldsApi.data?.airfields ?? []).map((a) => (
                         <MenuItem key={a.ident} value={a.ident}>
                           {`${a.ident}: ${a.name}`}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+
+                  {isFuel && !atHomeBase && (
+                    <TextField
+                      select
+                      required
+                      label={t('liquid.form.provider')}
+                      value={providerId}
+                      disabled={!lock.canEdit}
+                      onChange={(e) => setProviderId(e.target.value)}
+                      helperText={t('liquid.form.providerHint')}
+                    >
+                      {providerOptions.map((provider) => (
+                        <MenuItem key={provider.providerId} value={String(provider.providerId)}>
+                          {provider.name}
                         </MenuItem>
                       ))}
                     </TextField>
@@ -233,7 +278,8 @@ export default function EditLiquidRecord() {
                     disabled={
                       !lock.canEdit ||
                       mutation.isMutating ||
-                      (isFuel && costRequired && totalCost === '')
+                      (isFuel && costRequired && totalCost === '') ||
+                      (isFuel && !atHomeBase && providerId === '')
                     }
                     startIcon={<Icon icon='mdi:content-save-outline' />}
                     onClick={() => void handleSave()}

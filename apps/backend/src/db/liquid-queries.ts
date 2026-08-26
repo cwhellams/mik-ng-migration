@@ -794,7 +794,11 @@ export async function createQrBatch(
     for (let round = 0; codes.length < count && round < 5; round++) {
       const stillNeeded = count - codes.length
       const candidates = new Set<string>()
-      for (let attempt = 0; candidates.size < stillNeeded && attempt < stillNeeded * 20; attempt++) {
+      for (
+        let attempt = 0;
+        candidates.size < stillNeeded && attempt < stillNeeded * 20;
+        attempt++
+      ) {
         const code = randomCode(random)
         if (!excluded.has(code)) candidates.add(code)
       }
@@ -1152,7 +1156,8 @@ export async function getFuelPriceComparison(
     // trusted once a claim has actually been submitted for payment; otherwise
     // this falls back to the live recompute above, same as an unclaimed record.
     const unreliableClaim =
-      row.claimStatus === ExpenseClaimStatus.DRAFT || row.claimStatus === ExpenseClaimStatus.REJECTED
+      row.claimStatus === ExpenseClaimStatus.DRAFT ||
+      row.claimStatus === ExpenseClaimStatus.REJECTED
     const stored = unreliableClaim ? null : num(row.taxAdjustedPricePerLitre)
     const referencePrice = row.fuelType ? (query.reference[row.fuelType] ?? null) : null
 

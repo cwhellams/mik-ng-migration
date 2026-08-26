@@ -153,12 +153,22 @@ function LiquidTypeRow({
     { revalidateIfStale: false },
   )
 
+  const [linkError, setLinkError] = useState<string>()
+
   const linkLive = async (record: LiquidRecordWithLock) => {
-    await mutation.trigger(
+    setLinkError(undefined)
+    const result = await mutation.trigger(
       'POST',
       { flightLogId: flightId },
       absolute(endpoints.liquid.linkRecord(record.recordId)),
     )
+    // `trigger` never throws on a rejected request (it resolves with `.error`
+    // instead) — without checking it, a record the server refused to link
+    // (already claimed, flight already validated) looked exactly like success.
+    if (result.error) {
+      setLinkError(result.error.detail ?? t('general.savingError'))
+      return
+    }
     setDialog(undefined)
     onRecordsChanged()
     // The "link additional" suggestions list is cached per aircraft+liquidType
@@ -169,7 +179,16 @@ function LiquidTypeRow({
   }
 
   const unlinkLive = async (record: LiquidRecordWithLock) => {
-    await mutation.trigger('POST', {}, absolute(endpoints.liquid.unlinkRecord(record.recordId)))
+    setLinkError(undefined)
+    const result = await mutation.trigger(
+      'POST',
+      {},
+      absolute(endpoints.liquid.unlinkRecord(record.recordId)),
+    )
+    if (result.error) {
+      setLinkError(result.error.detail ?? t('general.savingError'))
+      return
+    }
     onRecordsChanged()
     // Symmetric with linkLive: an unlinked record becomes eligible again.
     void suggestions.mutate()
@@ -219,6 +238,12 @@ function LiquidTypeRow({
           </Box>
         )}
       </Typography>
+
+      {linkError && (
+        <Alert severity='error' sx={{ mb: 1 }} onClose={() => setLinkError(undefined)}>
+          {linkError}
+        </Alert>
+      )}
 
       {!hasAnyLinked &&
         (isPlain ? (
