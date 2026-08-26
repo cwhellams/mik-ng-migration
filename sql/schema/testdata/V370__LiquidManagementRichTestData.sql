@@ -1,7 +1,7 @@
 -- ============================================================
 -- Liquid Management System (#1119) — richer local/dev test data
 -- ============================================================
--- V340/V350 seed only the fixed reference data (providers, pumps). This file
+-- V350/V360 seed only the fixed reference data (providers, pumps). This file
 -- adds actual oil canisters and fuel/oil records so every screen of the
 -- feature has something to show in local/dev environments: home-base
 -- fuellings (invoiced to the club, no cost to enter), away fuellings from

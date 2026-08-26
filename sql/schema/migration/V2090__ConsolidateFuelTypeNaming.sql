@@ -1,5 +1,5 @@
 -- ============================================================
--- V2060__ConsolidateFuelTypeNaming  --  Liquid Management System (#1119)
+-- V2090__ConsolidateFuelTypeNaming  --  Liquid Management System (#1119)
 -- ============================================================
 -- Before #1119 the codebase held three spellings of the same four fuels:
 --
@@ -32,7 +32,7 @@
 -- pre-consolidation 'JetA1' spelling. The schema phase (this file included)
 -- runs to completion before the testdata phase even starts
 -- (scripts/baseline_database.sh), so a FK added here would reject V240's own
--- inserts before sql/schema/testdata/V350__ConsolidateFuelTypeTestData.sql
+-- inserts before sql/schema/testdata/V360__ConsolidateFuelTypeTestData.sql
 -- ever got a chance to rename them. See that file for the test-data half of
 -- this rename.
 
@@ -50,7 +50,7 @@ UPDATE accts.local_fuel_price SET fuel_type = 'MOGAS 98E5' WHERE fuel_type = 'mo
 
 -- ─── Guard against a fourth vocabulary ───────────────────────────────────────
 -- Any value left over that flight.fuel_types does not know about would fail the
--- constraint below. There is none in production or (after V350) in the test
+-- constraint below. There is none in production or (after V360) in the test
 -- data; this statement makes that a fact the database enforces rather than a
 -- hope.
 ALTER TABLE accts.expense_claim

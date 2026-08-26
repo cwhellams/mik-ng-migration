@@ -1,5 +1,5 @@
 -- ============================================================
--- V2030__CreateLiquidSchema  --  Liquid Management System (#1119)
+-- V2060__CreateLiquidSchema  --  Liquid Management System (#1119)
 -- ============================================================
 -- One unified record for every litre of fuel or oil that goes into a club
 -- aircraft, independent of the flight log: a member may fuel an aircraft even
@@ -57,7 +57,7 @@ COMMENT ON TABLE liquid.fuel_provider IS
     'Fuel sellers. The three EFNU providers are picked by fuel type rather than by the member.';
 
 -- default_airport is deliberately left NULL here and filled in by the data phase
--- (sql/schema/static_data/V30 in production, sql/schema/testdata/V340 in tests).
+-- (sql/schema/static_data/V30 in production, sql/schema/testdata/V350 in tests).
 -- static.airfields is itself seeded by that phase -- static_data/V10 for
 -- production, testdata/V20 for tests -- which runs *after* every schema
 -- migration, so a schema migration cannot reference an airfield row without

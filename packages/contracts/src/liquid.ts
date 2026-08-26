@@ -307,7 +307,7 @@ type LiquidRecordInput = {
 
 /**
  * The FUEL/OIL split, as Zod issues rather than database check-constraint
- * violations — the same rules are also `CHECK`s in V2030, but a constraint
+ * violations — the same rules are also `CHECK`s in V2060, but a constraint
  * surfaces as a 500 with a Postgres message in it. These give the member a 400
  * naming the field.
  */

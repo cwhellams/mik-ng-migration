@@ -1,5 +1,5 @@
 -- ============================================================
--- V2050__GrantLiquidPermissions  --  Liquid Management System (#1119)
+-- V2080__GrantLiquidPermissions  --  Liquid Management System (#1119)
 -- ============================================================
 -- liquid.user goes to every flying member: reporting the fuel or oil you just
 -- put into an aircraft is part of flying it, not a privilege.
