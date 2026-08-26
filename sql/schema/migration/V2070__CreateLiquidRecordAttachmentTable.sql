@@ -3,9 +3,9 @@
 -- attach it later in the expense claim wizard. Modelled directly on
 -- accts.expense_claim_attachment (V1830) -- same shape, different owner. No
 -- sort_order: unlike a claim's merged-into-one-PDF attachments, these are never
--- reordered, only copied onto a claim (see V2010's source_liquid_attachment_id).
+-- reordered, only copied onto a claim (see V2080's source_liquid_attachment_id).
 --
--- liquid already has ALTER DEFAULT PRIVILEGES from V2010, so this table needs no
+-- liquid already has ALTER DEFAULT PRIVILEGES from V2030, so this table needs no
 -- separate GRANT.
 
 CREATE TABLE liquid.record_attachment (

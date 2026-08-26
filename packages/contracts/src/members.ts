@@ -107,9 +107,10 @@ export enum MIKPermissions {
   // can report fuel and oil uplifts (every flying member)
   LIQUID_USER = 'liquid.user',
 
-  // can manage oil canister inventory, QR codes and fuel tax, and can edit or
-  // delete a member's locked liquid record -- except one linked to an expense
-  // claim, which is immutable for everyone
+  // can manage oil canister inventory and QR codes, and can edit or delete a
+  // member's locked liquid record -- except one linked to an expense claim,
+  // which is immutable for everyone. Fuel tax rates are configured by
+  // EXPENSE_ADMIN (the treasurer), not this permission.
   LIQUID_ADMIN = 'liquid.admin',
 }
 

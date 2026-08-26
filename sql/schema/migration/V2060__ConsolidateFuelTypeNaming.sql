@@ -1,5 +1,5 @@
 -- ============================================================
--- V1990__ConsolidateFuelTypeNaming  --  Liquid Management System (#1119)
+-- V2060__ConsolidateFuelTypeNaming  --  Liquid Management System (#1119)
 -- ============================================================
 -- Before #1119 the codebase held three spellings of the same four fuels:
 --

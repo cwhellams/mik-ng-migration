@@ -1,5 +1,5 @@
 -- ============================================================
--- V2020__CreateFuelTaxTable  --  Liquid Management System (#1119)
+-- V2040__CreateFuelTaxTable  --  Liquid Management System (#1119)
 -- ============================================================
 -- Finnish fuel tax per calendar year and fuel type, configured by the treasurer.
 -- Modelled on accts.mileage_allowance (V1240), which is the club's existing

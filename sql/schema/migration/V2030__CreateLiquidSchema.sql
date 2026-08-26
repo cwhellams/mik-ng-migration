@@ -1,5 +1,5 @@
 -- ============================================================
--- V2010__CreateLiquidSchema  --  Liquid Management System (#1119)
+-- V2030__CreateLiquidSchema  --  Liquid Management System (#1119)
 -- ============================================================
 -- One unified record for every litre of fuel or oil that goes into a club
 -- aircraft, independent of the flight log: a member may fuel an aircraft even
