@@ -149,7 +149,11 @@ describe('EditLiquidRecord — locked record', () => {
       http.get(apiUrl('v1/liquid/records/:recordId'), () =>
         HttpResponse.json(
           aFuelRecord({
-            lock: { canEdit: false, canDelete: false, reason: LiquidLockReason.EDIT_WINDOW_EXPIRED },
+            lock: {
+              canEdit: false,
+              canDelete: false,
+              reason: LiquidLockReason.EDIT_WINDOW_EXPIRED,
+            },
           }),
         ),
       ),

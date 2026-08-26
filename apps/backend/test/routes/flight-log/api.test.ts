@@ -1923,6 +1923,51 @@ describe('crew flights in a member own flight log', () => {
       await db.deleteFrom('liquid.record').where('recordId', '=', record.recordId).execute()
     })
 
+    it('shows a soft-deleted linked record as removed from the flight, not silently dropped', async () => {
+      // Regression: buildLiquidChanges only ever diffed flight_log_id and
+      // quantity_litres, neither of which a soft delete touches -- so a
+      // deleted-while-linked record produced changes.length===0 and vanished
+      // from the trail entirely instead of showing up as an unlink.
+      const record = await db
+        .insertInto('liquid.record')
+        .values({
+          liquidType: 'OIL',
+          aircraftRegistration: 'OH-P28',
+          memberId: 'Jukka1',
+          quantityLitres: 0.5,
+          oilSource: 'OTHER',
+          oilMake: 'Aeroshell',
+          oilModelViscosity: 'W100',
+          oilBatchNumber: 'B-softdelete-test',
+          flightLogId: 'da40tndra',
+          createdBy: 'Jukka1',
+          updatedBy: 'Jukka1',
+        })
+        .returning('recordId')
+        .executeTakeFirstOrThrow()
+
+      await db
+        .updateTable('liquid.record')
+        .set({ deletedAt: new Date(), deletedBy: 'Jukka1', updatedBy: 'Jukka1' })
+        .where('recordId', '=', record.recordId)
+        .execute()
+
+      const response = await request(app)
+        .get('/flight-log/da40tndra/audit')
+        .set('Cookie', `accessToken=${jukkaToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.entries).toContainEqual(
+        expect.objectContaining({
+          source: 'liquid',
+          operationType: 'SOFT_DELETE',
+          changes: [expect.objectContaining({ field: 'oilRecord', after: null })],
+        }),
+      )
+
+      await db.deleteFrom('liquid.record').where('recordId', '=', record.recordId).execute()
+    })
+
     // Blocked on fixture setup: a defect (#1223) needs an ajlb_seq_no referencing an
     // existing flight.aircraft_journey_log_book row, and this file has no seeded
     // logbook page to reference without duplicating a large chunk of baseline data.

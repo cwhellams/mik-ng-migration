@@ -453,6 +453,33 @@ describe('GET /liquid/records', () => {
     const res = await request(app).get(`/liquid/records/${id}`).set('Cookie', asMember)
     expect(res.body.lock).toEqual({ canEdit: true, canDelete: true })
   })
+
+  it('shows both parties’ records for a shared flight, not just the requester’s own', async () => {
+    // NEW_JET_FLIGHT is billable to Matti1 (asMember); Pekka1 added a record to
+    // the same flight. The flight's own liquid section must show both — the
+    // instructor viewing it should not see zero records just because the
+    // student was the one who fuelled.
+    const own = await insertRecord({ memberId: 'Matti1', flightLogId: NEW_JET_FLIGHT })
+    const clubmates = await insertRecord({ memberId: 'Pekka1', flightLogId: NEW_JET_FLIGHT })
+
+    const res = await request(app)
+      .get('/liquid/records')
+      .query({ flightLogId: NEW_JET_FLIGHT })
+      .set('Cookie', asMember)
+
+    const ids = res.body.records.map((r: { recordId: string }) => r.recordId)
+    expect(ids).toContain(own)
+    expect(ids).toContain(clubmates)
+  })
+
+  it('404s a flightLogId filter for a flight the requester was not on', async () => {
+    const res = await request(app)
+      .get('/liquid/records')
+      .query({ flightLogId: OTHER_MEMBERS_FLIGHT })
+      .set('Cookie', asMember)
+
+    expect(res.status).toBe(404)
+  })
 })
 
 // ─── Lock enforcement ─────────────────────────────────────────────────────────
@@ -689,6 +716,101 @@ describe('PATCH /liquid/records/:recordId', () => {
     expect(res.body.detail).toContain('Select the canister')
   })
 
+  it('rejects switching to a canister assigned to a different aircraft', async () => {
+    // POST already checked the canister's aircraft matches; PATCH used to
+    // skip this re-check entirely when the canister changed.
+    const canisterId = await insertCanister({ aircraftRegistration: PISTON_AIRCRAFT })
+    const otherAircraftCanister = await insertCanister({ aircraftRegistration: JET_AIRCRAFT })
+    const id = await insertRecord({
+      liquidType: 'OIL',
+      aircraftRegistration: PISTON_AIRCRAFT,
+      oilSource: 'CANISTER',
+      oilCanisterId: canisterId,
+      airport: null,
+      quantityLitres: 0.5,
+    })
+
+    const res = await request(app)
+      .patch(`/liquid/records/${id}`)
+      .set('Cookie', asMember)
+      .send({ oilCanisterId: otherAircraftCanister })
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toContain('belongs to')
+  })
+
+  it('rejects switching to a canister already marked empty', async () => {
+    const canisterId = await insertCanister({ aircraftRegistration: PISTON_AIRCRAFT })
+    const emptyCanisterId = await insertCanister({
+      aircraftRegistration: PISTON_AIRCRAFT,
+      isEmpty: true,
+    })
+    const id = await insertRecord({
+      liquidType: 'OIL',
+      aircraftRegistration: PISTON_AIRCRAFT,
+      oilSource: 'CANISTER',
+      oilCanisterId: canisterId,
+      airport: null,
+      quantityLitres: 0.5,
+    })
+
+    const res = await request(app)
+      .patch(`/liquid/records/${id}`)
+      .set('Cookie', asMember)
+      .send({ oilCanisterId: emptyCanisterId })
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toContain('marked empty')
+  })
+
+  it('does not re-check a canister that was not touched by the edit', async () => {
+    // Only re-validated when the canister or aircraft is actually part of
+    // this PATCH -- otherwise a canister that emptied through normal,
+    // unrelated use would block every later edit to a record it once filled.
+    const canisterId = await insertCanister({ aircraftRegistration: PISTON_AIRCRAFT })
+    const id = await insertRecord({
+      liquidType: 'OIL',
+      aircraftRegistration: PISTON_AIRCRAFT,
+      oilSource: 'CANISTER',
+      oilCanisterId: canisterId,
+      airport: null,
+      quantityLitres: 0.5,
+    })
+    await db
+      .updateTable('liquid.oilCanister')
+      .set({ isEmpty: true })
+      .where('canisterId', '=', canisterId)
+      .execute()
+
+    const res = await request(app)
+      .patch(`/liquid/records/${id}`)
+      .set('Cookie', asMember)
+      .send({ quantityLitres: 0.3 })
+
+    expect(res.status).toBe(200)
+    expect(res.body.quantityLitres).toBe(0.3)
+  })
+
+  it('rejects an oil quantity past the tighter oil-specific bound on edit too', async () => {
+    // CreateLiquidRecordSchema's refinement doesn't apply to UpdateLiquidRecordSchema
+    // (it can't know the liquid type from a partial body), so the route itself
+    // has to re-check this against the existing record's type.
+    const id = await insertRecord({
+      liquidType: 'OIL',
+      oilSource: 'OTHER',
+      airport: null,
+      quantityLitres: 0.5,
+    })
+
+    const res = await request(app)
+      .patch(`/liquid/records/${id}`)
+      .set('Cookie', asMember)
+      .send({ quantityLitres: 21 })
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toContain('20 litres')
+  })
+
   it('rejects a fuel type an away-from-home provider does not sell', async () => {
     // None of the seeded away providers (AirBP, Kanair, Other) restrict what
     // they sell, so this needs one that does — an away provider that only
@@ -881,6 +1003,39 @@ describe('flight log linking', () => {
     const res = await create(asMember, homeFuel({ flightLogId: NEW_JET_FLIGHT }))
     expect(res.status).toBe(201)
     expect(res.body.flightLogId).toBe(NEW_JET_FLIGHT)
+  })
+
+  it('refuses to create a record for one aircraft attached to a flight in another', async () => {
+    // NEW_JET_FLIGHT is OH-STL; this record claims OH-IHQ. The /link route
+    // already checked this — POST itself used to discard the aircraft
+    // assertFlightLogLinkable resolved and never compared it.
+    const res = await create(
+      asMember,
+      homeFuel({
+        aircraftRegistration: PISTON_AIRCRAFT,
+        fuelType: 'MOGAS 98E5',
+        flightLogId: NEW_JET_FLIGHT,
+      }),
+    )
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toContain(JET_AIRCRAFT)
+  })
+
+  it('refuses a PATCH that attaches a record to a flight in a different aircraft', async () => {
+    // The record is OH-IHQ; NEW_JET_FLIGHT is OH-STL. Same bug as the POST
+    // case above, on the PATCH path instead.
+    const id = await insertRecord({
+      aircraftRegistration: PISTON_AIRCRAFT,
+      fuelType: 'MOGAS 98E5',
+      providerCode: 'MPL',
+    })
+    const res = await request(app)
+      .patch(`/liquid/records/${id}`)
+      .set('Cookie', asMember)
+      .send({ flightLogId: NEW_JET_FLIGHT })
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toContain(JET_AIRCRAFT)
   })
 
   it('links a clubmate’s recent fuelling to a flight the caller is on, not the reporter', async () => {
