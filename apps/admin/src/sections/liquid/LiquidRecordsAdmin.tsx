@@ -200,6 +200,16 @@ export default function LiquidRecordsAdmin() {
                         </Stack>
                       </TableCell>
                       <TableCell align='right'>
+                        {record.lock.canEdit && (
+                          <IconButton
+                            size='small'
+                            component={MemberAppLink}
+                            to={`/liquid/${record.recordId}/edit`}
+                            aria-label={t('general.edit')}
+                          >
+                            <Icon icon='mdi:pencil-outline' />
+                          </IconButton>
+                        )}
                         {record.lock.canDelete && (
                           <IconButton
                             size='small'

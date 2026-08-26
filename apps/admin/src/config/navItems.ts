@@ -257,7 +257,7 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
         label: 'admin.nav.fuelPrices',
         icon: 'mdi:gas-station',
         path: '/fuel-prices',
-        permissions: [MIKPermissions.FUEL_PRICES_ADMIN],
+        permissions: [MIKPermissions.FUEL_PRICES_ADMIN, MIKPermissions.FUEL_PRICES_USER],
       },
       {
         label: 'admin.nav.documents',

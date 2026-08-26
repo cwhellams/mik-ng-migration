@@ -18,8 +18,8 @@ import LiquidRecordsAdmin from './LiquidRecordsAdmin'
  * no delete control at all.
  */
 
-const aircraftHandler = () =>
-  http.get(apiUrl('v1/aircrafts'), () => HttpResponse.json({ aircrafts: [] }))
+const aircraftHandler = (aircrafts: { registration: string }[] = []) =>
+  http.get(apiUrl('v1/aircrafts'), () => HttpResponse.json({ aircrafts }))
 
 const liquidRecords = (records: LiquidRecordWithLock[] = [aPaidFuelRecord()], total?: number) => {
   const state = {
@@ -169,5 +169,61 @@ describe('LiquidRecordsAdmin filtering', () => {
     await user.type(screen.getByLabelText('Member'), 'Matti1')
 
     await waitFor(() => expect(lastMemberFilter).toBe('Matti1'))
+  })
+
+  it('offers the fleet in the aircraft dropdown and re-fetches on a pick', async () => {
+    // Regression: this screen once read GET /v1/aircrafts as a bare array
+    // (useApi<Aircraft[]>) when the endpoint actually returns
+    // { aircrafts: [...] } — `aircraft.find is not a function` and a blank
+    // filter dropdown. The MSW handler here mirrors the real response shape,
+    // so a regression back to the bare-array assumption fails this test
+    // instead of only surfacing in the browser.
+    liquidRecords([aFuelRecord()])
+    let lastAircraftFilter: string | null = null
+    server.use(
+      aircraftHandler([{ registration: 'OH-IHQ' }, { registration: 'OH-STL' }]),
+      http.get(apiUrl('v1/liquid/records'), ({ request }) => {
+        lastAircraftFilter = new URL(request.url).searchParams.get('aircraftRegistration')
+        return HttpResponse.json({ records: [], total: 0 })
+      }),
+    )
+
+    const { user } = renderWithProviders(<LiquidRecordsAdmin />)
+    await user.click(await screen.findByRole('combobox', { name: 'Aircraft' }))
+
+    expect(await screen.findByRole('option', { name: 'OH-IHQ' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'OH-STL' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('option', { name: 'OH-STL' }))
+
+    await waitFor(() => expect(lastAircraftFilter).toBe('OH-STL'))
+  })
+})
+
+describe('LiquidRecordsAdmin editing', () => {
+  it('offers an edit link into the member app for an editable record', async () => {
+    liquidRecords([aFuelRecord({ lock: { canEdit: true, canDelete: true } })])
+
+    renderWithProviders(<LiquidRecordsAdmin />)
+    await screen.findByText('OH-STL')
+
+    const link = screen.getByRole('link', { name: 'Edit' })
+    expect(link).toHaveAttribute(
+      'href',
+      expect.stringContaining('/liquid/11111111-1111-4111-8111-111111111111/edit'),
+    )
+  })
+
+  it('has no edit link for a record locked to an expense claim', async () => {
+    // The claim lock has no admin escape hatch (#1119): canEdit is false for
+    // everyone once a record is on a claim, liquid admins included.
+    liquidRecords([
+      aPaidFuelRecord({ expenseClaimId: 'claim-1', lock: { canEdit: false, canDelete: false } }),
+    ])
+
+    renderWithProviders(<LiquidRecordsAdmin />)
+    await screen.findByText('On a claim')
+
+    expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
   })
 })

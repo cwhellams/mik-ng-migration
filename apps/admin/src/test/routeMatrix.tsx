@@ -195,7 +195,11 @@ export const ROUTES: RouteUnderTest[] = [
   // Split out of member-app pages in #1233 — each was an admin branch on an
   // otherwise member-facing screen.
   { path: '/documents', url: '/documents', permissions: [MIKPermissions.DOCUMENT_ADMIN] },
-  { path: '/fuel-prices', url: '/fuel-prices', permissions: [MIKPermissions.FUEL_PRICES_ADMIN] },
+  {
+    path: '/fuel-prices',
+    url: '/fuel-prices',
+    permissions: [MIKPermissions.FUEL_PRICES_ADMIN, MIKPermissions.FUEL_PRICES_USER],
+  },
   {
     path: '/stats/commercial',
     url: '/stats/commercial',

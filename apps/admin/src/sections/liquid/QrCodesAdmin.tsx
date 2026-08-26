@@ -38,8 +38,6 @@ import { AssignQrCode } from './AssignQrCode'
  * it only ever encoded `/liquid/scan/<code>`.
  */
 
-const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
-
 export default function QrCodesAdmin() {
   const { t } = useTranslation()
   const [label, setLabel] = useState('')
@@ -87,7 +85,12 @@ export default function QrCodesAdmin() {
    * the response is already `Content-Disposition: inline`, and the cookie goes
    * with a top-level navigation the same as with an XHR.
    */
-  const sheetUrl = (batchId: string) => `${API_BASE}/api/v1/liquid/qr/batches/${batchId}/sheet.pdf`
+  // Read live rather than captured at module scope: import.meta.env.VITE_* is
+  // read live under Vitest, so a module-level constant is captured once at
+  // first import and never sees a later vi.stubEnv (this bit both apps once
+  // already, see CLAUDE.md).
+  const apiBase = import.meta.env.VITE_API_TARGET ?? ''
+  const sheetUrl = (batchId: string) => `${apiBase}/api/v1/liquid/qr/batches/${batchId}/sheet.pdf`
 
   return (
     <Box>

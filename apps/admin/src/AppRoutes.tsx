@@ -432,7 +432,9 @@ const AppRoutes = () => {
         <Route
           path='/fuel-prices'
           element={
-            <RequirePermission permissions={[MIKPermissions.FUEL_PRICES_ADMIN]}>
+            <RequirePermission
+              permissions={[MIKPermissions.FUEL_PRICES_ADMIN, MIKPermissions.FUEL_PRICES_USER]}
+            >
               <FuelPricesAdmin />
             </RequirePermission>
           }
