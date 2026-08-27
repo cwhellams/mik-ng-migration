@@ -151,26 +151,41 @@ const ProjectSchema = z.object({
   code: z.string(), // Cost centre code
 })
 
+// Fields common to both the /invoices/create request Task and the Task SimplBooks
+// echoes back in a Get response.
+const taskCommonFields = {
+  id: z.number(),
+  warehouse_id: z.number(),
+  article_id: z.number(),
+  name: z.string(),
+  contents: z.string(),
+  unit: z.string(),
+  amount: z.number(),
+  price_per_unit: z.number(),
+  worker: z.string(),
+  vat: z.number(),
+  vat_type_id: z.number(),
+  discount: z.number(),
+  income_account_id: z.number(),
+  total_sum: z.number().optional(),
+  Projects: z.array(ProjectSchema).optional(),
+}
+
+// A Task as SimplBooks returns it (Get / Invoice responses). `code` only appears here.
 const TaskSchema = z
   .object({
-    id: z.number(),
-    warehouse_id: z.number(),
-    article_id: z.number(),
+    ...taskCommonFields,
     code: z.string(),
-    name: z.string(),
-    contents: z.string(),
-    unit: z.string(),
-    amount: z.number(),
-    price_per_unit: z.number(),
-    worker: z.string(),
-    vat: z.number(),
-    vat_type_id: z.number(),
-    discount: z.number(),
-    income_account_id: z.number(),
-    total_sum: z.number().optional(),
-    Projects: z.array(ProjectSchema).optional(),
   })
   .partial()
+
+// A Task as the /invoices/create request body wants it. SimplBooks' create-invoice
+// schema has no `code` field on Task — sending it caused prepaid-package credit lines
+// (whose article_id legitimately differs from the aircraft's own article, and so has a
+// different real `code`) to be rejected with "Tuotteen koodi ei vastaa tietokannan
+// tietoja." `.strict()` makes reintroducing `code` here a build-time type error instead
+// of a runtime SimplBooks rejection.
+const TaskPostSchema = z.object(taskCommonFields).partial().strict()
 
 export const InvoiceSchema = z
   .object({
@@ -224,8 +239,8 @@ export const InvoiceResponseSchema = z.object({
   }),
 })
 
-export const TasksSchema = z.object({
-  Task: TaskSchema,
+export const TasksPostSchema = z.object({
+  Task: TaskPostSchema,
   Projects: z.array(ProjectSchema),
 })
 
@@ -234,7 +249,7 @@ export type InvoiceBase = z.infer<typeof InvoiceSchema>
 
 export const InvoicePostRootSchema = z.object({
   Invoice: InvoiceSchema,
-  Tasks: z.array(TasksSchema),
+  Tasks: z.array(TasksPostSchema),
 })
 export const InvoiceRootSchema = z.object({
   Invoice: InvoiceSchema,

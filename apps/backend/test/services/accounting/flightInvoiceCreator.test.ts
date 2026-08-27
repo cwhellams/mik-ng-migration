@@ -381,15 +381,17 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       expect(invoice.Tasks).toHaveLength(2)
 
-      // First task is the flight
-      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
+      // First task is the flight. `code` is never sent — SimplBooks' create-invoice
+      // schema has no such field on Task.
+      expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
+      expect('code' in invoice.Tasks[0].Task).toBe(false)
       expect(invoice.Tasks[0].Task.amount).toBe(90)
       expect(invoice.Tasks[0].Task.price_per_unit).toBe(2.5)
 
       // Second task is the equipment usage fee
-      expect(invoice.Tasks[1].Task.code).toBe(ART_EQUIP_USAGE_FEE_CODE)
-      expect(invoice.Tasks[1].Task.amount).toBe(90)
       expect(invoice.Tasks[1].Task.article_id).toBe(equipmentFeeArticleId)
+      expect('code' in invoice.Tasks[1].Task).toBe(false)
+      expect(invoice.Tasks[1].Task.amount).toBe(90)
     })
 
     it('should NOT add equipment usage fee when member HAS requested equipment fee for the year', async () => {
@@ -403,7 +405,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks).toHaveLength(1)
 
       // Only the flight task, no equipment usage fee
-      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
+      expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
       expect(invoice.Tasks[0].Task.amount).toBe(90)
     })
 
@@ -418,9 +420,9 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       // Only 2 flight tasks, no equipment usage fees
       expect(invoice.Tasks).toHaveLength(2)
-      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
+      expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
       expect(invoice.Tasks[0].Task.amount).toBe(60)
-      expect(invoice.Tasks[1].Task.code).toBe(testAircraftRegistration)
+      expect(invoice.Tasks[1].Task.article_id).toBe(testArticleIds[1])
       expect(invoice.Tasks[1].Task.amount).toBe(45)
     })
 
@@ -433,13 +435,13 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       // 2 flight tasks + 2 equipment usage fee tasks
       expect(invoice.Tasks).toHaveLength(4)
-      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
+      expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
       expect(invoice.Tasks[0].Task.amount).toBe(60)
-      expect(invoice.Tasks[1].Task.code).toBe(ART_EQUIP_USAGE_FEE_CODE)
+      expect(invoice.Tasks[1].Task.article_id).toBe(equipmentFeeArticleId)
       expect(invoice.Tasks[1].Task.amount).toBe(60)
-      expect(invoice.Tasks[2].Task.code).toBe(testAircraftRegistration)
+      expect(invoice.Tasks[2].Task.article_id).toBe(testArticleIds[1])
       expect(invoice.Tasks[2].Task.amount).toBe(45)
-      expect(invoice.Tasks[3].Task.code).toBe(ART_EQUIP_USAGE_FEE_CODE)
+      expect(invoice.Tasks[3].Task.article_id).toBe(equipmentFeeArticleId)
       expect(invoice.Tasks[3].Task.amount).toBe(45)
     })
 
@@ -469,13 +471,13 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks).toHaveLength(3)
 
       // 2025 flight - no equipment fee
-      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
+      expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
       expect(invoice.Tasks[0].Task.amount).toBe(60)
 
       // 2026 flight - with equipment fee
-      expect(invoice.Tasks[1].Task.code).toBe(testAircraftRegistration)
+      expect(invoice.Tasks[1].Task.article_id).toBe(testArticleIds[1])
       expect(invoice.Tasks[1].Task.amount).toBe(75)
-      expect(invoice.Tasks[2].Task.code).toBe(ART_EQUIP_USAGE_FEE_CODE)
+      expect(invoice.Tasks[2].Task.article_id).toBe(equipmentFeeArticleId)
       expect(invoice.Tasks[2].Task.amount).toBe(75)
     })
 
@@ -529,7 +531,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       expect(invoice.Tasks).toHaveLength(1)
       expect(invoice.Tasks[0].Task.discount).toBe(100)
-      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
+      expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
     })
 
     it('should not include kalustonkaytto remarks for non-billable flight', async () => {
@@ -703,7 +705,9 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       // flight task + credit task + equipment fee (reduced)
       expect(invoice.Tasks).toHaveLength(3)
-      const equipmentFeeTask = invoice.Tasks.find((t) => t.Task.code === ART_EQUIP_USAGE_FEE_CODE)
+      const equipmentFeeTask = invoice.Tasks.find(
+        (t) => t.Task.article_id === equipmentFeeArticleId,
+      )
       expect(equipmentFeeTask?.Task.amount).toBe(80) // 90 - 10
     })
   })
@@ -788,8 +792,12 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       // Debit line: uses aircraft article
       expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
       expect(invoice.Tasks[0].Task.price_per_unit).toBe(1.5)
-      // Credit line: uses the package's dedicated article, not the aircraft article
+      // Credit line: uses the package's dedicated article, not the aircraft article. `code`
+      // is never sent on a Task — SimplBooks' create-invoice schema has no such field, only
+      // article_id — sending it caused SimplBooks to reject the task with "Tuotteen koodi ei
+      // vastaa tietokannan tietoja." whenever it didn't match article_id's real code.
       expect(invoice.Tasks[1].Task.article_id).toBe(testArticleIds[3])
+      expect('code' in invoice.Tasks[1].Task).toBe(false)
       expect(invoice.Tasks[1].Task.price_per_unit).toBe(-1.5)
     })
 
@@ -811,6 +819,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks[0].Task.price_per_unit).toBe(1.5)
       // Credit line: uses the numeric SimplBooks article ID directly, not the aircraft article
       expect(invoice.Tasks[1].Task.article_id).toBe(testArticleIds[3])
+      expect('code' in invoice.Tasks[1].Task).toBe(false)
       expect(invoice.Tasks[1].Task.price_per_unit).toBe(-1.5)
     })
   })
@@ -824,9 +833,9 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       const invoice = await createFlightInvoicePayload(payload, testMemberId)
 
       expect(invoice.Tasks).toHaveLength(2)
-      const errorFeeTask = invoice.Tasks.find((t) => t.Task.code === ART_ENTRY_ERROR_CODE)
+      const errorFeeTask = invoice.Tasks.find((t) => t.Task.article_id === testArticleIds[2])
       expect(errorFeeTask).toBeDefined()
-      expect(errorFeeTask?.Task.article_id).toBe(testArticleIds[2])
+      expect('code' in (errorFeeTask?.Task ?? {})).toBe(false)
       expect(errorFeeTask?.Task.price_per_unit).toBe(50)
       expect(errorFeeTask?.Task.amount).toBe(1)
     })
@@ -839,7 +848,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       expect(invoice.Tasks).toHaveLength(1)
       expect(invoice.Tasks[0].Task.discount).toBe(100)
-      const errorFeeTask = invoice.Tasks.find((t) => t.Task.code === ART_ENTRY_ERROR_CODE)
+      const errorFeeTask = invoice.Tasks.find((t) => t.Task.article_id === testArticleIds[2])
       expect(errorFeeTask).toBeUndefined()
     })
 
@@ -876,7 +885,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
         const flight = createTestFlight({ entryErrorFee: true })
         const invoice = await createFlightInvoicePayload({ flights: [flight] }, testMemberId)
 
-        const errorFeeTask = invoice.Tasks.find((t) => t.Task.code === ART_ENTRY_ERROR_CODE)
+        const errorFeeTask = invoice.Tasks.find((t) => t.Task.article_id === 22)
         expect(errorFeeTask).toBeDefined()
         expect(errorFeeTask?.Task.price_per_unit).toBe(10)
         expect(errorFeeTask?.Task.amount).toBe(1)

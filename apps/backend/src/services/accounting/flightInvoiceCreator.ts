@@ -227,6 +227,12 @@ interface FlightTaskContext {
   packageArticleIdMap: Map<string, number>
 }
 
+// NOTE: SimplBooks' /invoices/create request schema has no `code` field on Task —
+// it only appears on Task in GET responses, and on Projects (cost centre code, kept
+// below). Sending it here caused "Tuotteen koodi ei vastaa tietokannan tietoja." for
+// prepaid-package credit lines, where article_id legitimately differs from the
+// aircraft's own article and so has a different real code than the aircraft
+// registration we were sending.
 function addFlightTask(
   tasks: InvoicePost['Tasks'],
   flight: InvoicableFlight,
@@ -243,7 +249,6 @@ function addFlightTask(
   tasks.push({
     Task: {
       article_id: articleId,
-      code: flight.aircraftRegistration,
       discount,
       amount,
       price_per_unit: pricePerUnit,
@@ -377,7 +382,6 @@ function createTasksForFlight(
     tasks.push({
       Task: {
         article_id: ctx.kalustonkayttoFee.id,
-        code: ctx.kalustonkayttoFee.code,
         amount: billableMins - creditedMins,
         price_per_unit: resolveArticlePrice(ctx.kalustonkayttoFee),
         contents: createFlightTaskContents(flight),
@@ -399,7 +403,6 @@ function createTasksForFlight(
     tasks.push({
       Task: {
         article_id: ctx.virhemerkintaFee.id,
-        code: ART_ENTRY_ERROR_CODE,
         amount: ctx.virhemerkintaFee.amount || 1,
         price_per_unit: resolveArticlePrice(ctx.virhemerkintaFee),
         contents: createFlightTaskContents(flight, virhemerkintaAdditionalText),

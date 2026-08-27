@@ -5,7 +5,6 @@ exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations 
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -13,7 +12,6 @@ exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations 
   {
     "amount": 90,
     "article_id": 9999,
-    "code": "KALUSTONKAYTTO",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "name": "Kalustomaksun Käyttömaksu",
     "price_per_unit": 0.15,
@@ -26,7 +24,6 @@ exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations 
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -39,7 +36,6 @@ exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations 
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)  [Non-billable flight - 100% discount]",
     "discount": 100,
     "price_per_unit": 2.5,
@@ -52,7 +48,6 @@ exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations 
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -60,7 +55,6 @@ exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations 
   {
     "amount": 10,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (credit for 10 min)",
     "discount": 0,
     "price_per_unit": -2.5,
@@ -73,7 +67,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -81,7 +74,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -94,7 +86,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 40,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -102,7 +93,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 40,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -110,7 +100,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 50,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -123,7 +112,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 20,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFHK (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -131,7 +119,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 20,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFHK (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -144,7 +131,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 60,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -152,7 +138,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 60,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -165,7 +150,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -173,7 +157,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 90,
     "article_id": 9996,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -186,7 +169,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 40,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1,
@@ -194,7 +176,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 40,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1,
@@ -202,7 +183,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 20,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -210,7 +190,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 20,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -218,7 +197,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 10,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -226,7 +204,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 10,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -234,7 +211,6 @@ exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios
   {
     "amount": 20,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -247,7 +223,6 @@ exports[`Flight Invoice Outbox Integration Suite 3 — Training program pilot S3
   {
     "amount": 100,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (Training Program Flight - Block time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -255,7 +230,6 @@ exports[`Flight Invoice Outbox Integration Suite 3 — Training program pilot S3
   {
     "amount": 100,
     "article_id": 9999,
-    "code": "KALUSTONKAYTTO",
     "contents": "2025-06-15 EFHK -> EFTU (Training Program Flight - Block time)",
     "name": "Kalustomaksun Käyttömaksu",
     "price_per_unit": 0.15,
@@ -268,7 +242,6 @@ exports[`Flight Invoice Outbox Integration Suite 3 — Training program pilot S3
   {
     "amount": 100,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (Training Program Flight - Block time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -276,7 +249,6 @@ exports[`Flight Invoice Outbox Integration Suite 3 — Training program pilot S3
   {
     "amount": 100,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (Training Program Flight - Block time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -289,7 +261,6 @@ exports[`Flight Invoice Outbox Integration Suite 4 — Minimum billable time S4-
   {
     "amount": 15,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFHK (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -297,7 +268,6 @@ exports[`Flight Invoice Outbox Integration Suite 4 — Minimum billable time S4-
   {
     "amount": 5,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFHK (flight time)   (minimum billable time top-up: 5 min)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -310,7 +280,6 @@ exports[`Flight Invoice Outbox Integration Suite 4 — Minimum billable time S4-
   {
     "amount": 15,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -323,7 +292,6 @@ exports[`Flight Invoice Outbox Integration Suite 4 — Minimum billable time S4-
   {
     "amount": 15,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFHK (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -336,7 +304,6 @@ exports[`Flight Invoice Outbox Integration Suite 5 — Entry error fee (VIRHEMER
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   Error in entry",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -344,7 +311,6 @@ exports[`Flight Invoice Outbox Integration Suite 5 — Entry error fee (VIRHEMER
   {
     "amount": 1,
     "article_id": 9997,
-    "code": "VIRHEMERKINTA",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)   (Virhemerkintä) Error in entry",
     "name": "Virhemerkintämaksu",
     "price_per_unit": 50,
@@ -357,7 +323,6 @@ exports[`Flight Invoice Outbox Integration Suite 5 — Entry error fee (VIRHEMER
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)  [Non-billable flight - 100% discount]  Error in entry",
     "discount": 100,
     "price_per_unit": 2.5,
@@ -370,7 +335,6 @@ exports[`Flight Invoice Outbox Integration Suite 6 — Multi-flight dispatch and
   {
     "amount": 60,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -378,7 +342,6 @@ exports[`Flight Invoice Outbox Integration Suite 6 — Multi-flight dispatch and
   {
     "amount": 45,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 2.5,
@@ -391,7 +354,6 @@ exports[`Flight Invoice Outbox Integration Suite 7 — Test flight S7-1: test fl
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)  [Non-billable flight - 100% discount]",
     "discount": 100,
     "price_per_unit": 2.5,
@@ -404,7 +366,6 @@ exports[`Flight Invoice Outbox Integration Suite 8 — Ferry flight S8-1: ferry 
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-06-15 EFHK -> EFTU (flight time)  [Non-billable flight - 100% discount]",
     "discount": 100,
     "price_per_unit": 2.5,
@@ -417,7 +378,6 @@ exports[`Flight Invoice Outbox Integration Suite 9 — DB-driven aircraft pricin
   {
     "amount": 90,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-07-01 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 3,
@@ -430,7 +390,6 @@ exports[`Flight Invoice Outbox Integration Suite 9 — DB-driven aircraft pricin
   {
     "amount": 60,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-07-01 EFHK -> EFTU (flight time)   (prepaid package rate)",
     "discount": 0,
     "price_per_unit": 1.5,
@@ -438,7 +397,6 @@ exports[`Flight Invoice Outbox Integration Suite 9 — DB-driven aircraft pricin
   {
     "amount": 60,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-07-01 EFHK -> EFTU (flight time)   (prepaid package credit)",
     "discount": 0,
     "price_per_unit": -1.5,
@@ -446,7 +404,6 @@ exports[`Flight Invoice Outbox Integration Suite 9 — DB-driven aircraft pricin
   {
     "amount": 30,
     "article_id": 9998,
-    "code": "OH-IHQ",
     "contents": "2025-07-01 EFHK -> EFTU (flight time)",
     "discount": 0,
     "price_per_unit": 3,

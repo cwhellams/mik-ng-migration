@@ -780,8 +780,11 @@ export async function buildCreditNotePayload(
       due: new Date().toISOString().split('T')[0], // Due immediately
     },
     Tasks: originalInvoice.data.Task.map((invoiceTask) => {
-      // Extract task data without the embedded Projects array
-      const { Projects, ...taskData } = invoiceTask
+      // Extract task data without the embedded Projects array. `code` is also dropped:
+      // it's a field SimplBooks echoes back on Get responses, not one the
+      // /invoices/create request accepts (see TaskPostSchema in models.ts).
+      const { Projects, code, ...taskData } = invoiceTask
+      void code
 
       return {
         Task: {
