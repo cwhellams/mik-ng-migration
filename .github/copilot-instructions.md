@@ -188,12 +188,43 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 
 ## Known Issues and Workarounds
 
-1. **Node.js Version Requirement**: Use Node.js v26 — it is what the CI workflows and the production Dockerfile specify. The backend's own `dev`/`start` scripts run through `tsx` and are not version-sensitive, but `apps/migration`, `simplbooks/` and `.vscode/launch.json` still use `node --experimental-transform-types` to run `.ts` directly. **Do NOT change `engines.node` in `package.json` to `26.x`** — it is intentionally `24.x` because the Digital Ocean App Platform managed buildpack reads that field for the frontend static site build and does not support Node 26. The Dockerfile and GitHub Actions both install Node 26 explicitly and are not controlled by `engines.node`.
-2. **ESLint Configuration**: May fail due to missing `@eslint/js` dependency in backend
-3. **Test Environment Variables**: Tests require SimplBooks API configuration to pass fully
-4. **PostgreSQL Credentials**: Local development uses admin/password (never use in production)
-5. **SimplBooks Config**: Ensure `SIMPLBOOKS_COMPANY_ID` is set in .env to prevent startup errors
-6. **Shell Locale Affects Frontend Tests**: Several `apps/frontend` tests format times via `toLocaleTimeString([])`, which resolves to the shell's locale. A non-English `LANG`/`LC_ALL` (e.g. `fi_FI.UTF-8`) makes these render with `.` instead of `:` (e.g. `09.00` vs `09:00`) and fails ~8 tests that pass fine in CI. Run `pnpm test` with `LANG=C.UTF-8 LC_ALL=C.UTF-8` (or otherwise match the CI runner's default locale) to avoid this false negative.
+1. **Node.js Version Requirement**: Use Node.js v26 — it is what the CI workflows and the production Dockerfile specify. The backend's own `dev`/`start` scripts run through `tsx` and are not version-sensitive, but `simplbooks/` and `.vscode/launch.json` still use `node --experimental-transform-types` to run `.ts` directly. **Do NOT change `engines.node` in `package.json` to `26.x`** — it is intentionally `24.x` because the Digital Ocean App Platform managed buildpack reads that field for the frontend static site build and does not support Node 26. The Dockerfile and GitHub Actions both install Node 26 explicitly and are not controlled by `engines.node`.
+2. **Test Environment Variables**: Tests require SimplBooks API configuration to pass fully
+3. **PostgreSQL Credentials**: Local development uses admin/password (never use in production)
+4. **SimplBooks Config**: Ensure `SIMPLBOOKS_COMPANY_ID` is set in .env to prevent startup errors
+5. **Shell Locale Affects Frontend Tests**: Several `apps/frontend` tests format times via `toLocaleTimeString([])`, which resolves to the shell's locale. A non-English `LANG`/`LC_ALL` (e.g. `fi_FI.UTF-8`) makes these render with `.` instead of `:` (e.g. `09.00` vs `09:00`) and fails ~8 tests that pass fine in CI. Run `pnpm test` with `LANG=C.UTF-8 LC_ALL=C.UTF-8` (or otherwise match the CI runner's default locale) to avoid this false negative.
+
+## Repository Traps
+
+Five things here look like one thing and are another. Each has cost someone time.
+
+**`*.js` is gitignored repo-wide.** `.gitignore` ignores `*.js` with only three un-ignores
+(`eslint.config.js`, `global-teardown.js`, `apps/frontend/public/push-sw.js`). A new `.js`
+file is silently untracked — the commit appears to succeed and the file never reaches the
+branch. Check `git status` before assuming an add worked, or use `git add -f`. Almost
+everything here is TypeScript, so this rarely comes up and is baffling when it does.
+
+**The backend's Jest config lives in `apps/backend/package.json`** under a `"jest"` key.
+There is no `jest.config.*` file in `apps/backend`. The root `jest.config.base.js` is dead:
+nothing references it, and it describes a setup the backend does not use (`ts-jest` rather
+than `@swc/jest`, and a `spec|test` match rather than `**/*.test.ts`). Editing it changes
+nothing.
+
+**`tsconfig.base.json` and `.eslintrc.js` are both empty.** Zero bytes, and nothing reads
+either — `.eslintrc.js` survives only as a glob in `.dockerignore`. The real configuration
+is per package: a standalone `tsconfig.json` and an ESLint 9 flat `eslint.config.js` in
+each. Adding compiler options or lint rules to the root files has no effect.
+
+**`packages/contracts` runs its tests under `TZ=UTC`** while `apps/frontend`, `apps/admin`
+and `packages/ui` use `Europe/Helsinki`. This is deliberate, and the reasoning is in
+`packages/contracts/vitest.config.ts`: everything in that package converts to Helsinki
+explicitly, so running the suite in Helsinki would let a missing `.tz()` pass by accident.
+Do not "fix" the inconsistency.
+
+**Two root scripts are narrower than they look.** `pnpm clean` is a no-op — no package
+defines a `clean` script. `pnpm typecheck` reaches only `@mik/contracts` and `@mik/ui`,
+the two that define it; the backend and both apps typecheck through their `build` scripts
+instead, all of which are `noEmit`.
 
 ## Project Structure
 
@@ -201,15 +232,19 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 ├── apps/
 │   ├── backend/          # Node.js/Express API with TypeScript
 │   ├── frontend/         # React/Vite — the member app (intra.mik.fi)
-│   └── admin/            # React/Vite — the back-office app (twr.mik.fi, see below)
+│   ├── admin/            # React/Vite — the back-office app (twr.mik.fi, see below)
+│   └── simplbooks_sync/  # Standalone CLI that syncs SimplBooks into the MIK database
 ├── packages/
 │   ├── contracts/        # @mik/contracts — API models shared by every app (see below)
 │   └── ui/               # @mik/ui — components, utils and i18n shared by the two frontends (see below)
-├── simplbooks/           # Cloudflare Worker — mock SimplBooks API (see below)
+├── simplbooks/           # SimplBooks OpenAPI spec + local mock servers (see below)
 ├── sql/                  # Database migrations and test data
 ├── scripts/              # Utility scripts for development
 └── .github/workflows/    # CI/CD pipelines
 ```
+
+Only `apps/*` and `packages/*` are pnpm workspace members. `simplbooks/` is standalone and
+uses npm with its own lockfile.
 
 ## Key Development Files
 
@@ -220,8 +255,8 @@ Always check these locations when working on the codebase:
 - `sql/schema/migration/` - Database schema migrations
 - `sql/schema/testdata/` - Test data scripts
 - `sql/migration.conf` - Flyway configuration (defines schemas via `flyway.schemas`)
-- `simplbooks/src/worker/` - Cloudflare Worker source for the SimplBooks mock API
-- `simplbooks/wrangler.toml` - Cloudflare Worker configuration (must set real `database_id` before first deploy)
+- `simplbooks/simplbooks-api/api.yaml` - Downloaded SimplBooks OpenAPI spec, used by both mocks
+- `simplbooks/src/mock-server.ts` - The stateful "smart" SimplBooks mock (see below)
 - `packages/contracts/src/<domain>.ts` - Shared request/response models (see below)
 - `packages/ui/src/**` - Components, utils, API clients and the i18n bundle shared by both frontends (see below)
 - `apps/admin/src/config/navItems.ts` - The admin sidebar; must agree with `AppRoutes.tsx`'s gates
@@ -612,8 +647,11 @@ When asked to generate a changelog:
 
 The GitHub Actions workflows require:
 
-- ESLint error count below each project's ratchet (frontend 5, admin 0, backend 79,
-  `packages/contracts` 0, `packages/ui` 0)
+- ESLint error count below each project's ratchet (frontend 5, admin 0, backend 66,
+  `packages/contracts` 0, `packages/ui` 0). The ratchets live in the workflow files
+  themselves (`THRESHOLD=` in `backend-intra-api-review.yml` and
+  `intra-frontend-review.yml`) and **may only ever be lowered** — those files are the
+  source of truth if this list falls behind again.
 - Prettier formatting compliance (`pnpm format:check`)
 - Successful build completion
 - PostgreSQL service for backend tests
@@ -634,6 +672,34 @@ needs a `COPY` line in the `Dockerfile`** — its manifest before `pnpm install`
 after — or the image builds fine and then crashes on boot.
 
 Always run `pnpm format` and `pnpm build` before committing changes to ensure CI passes.
+
+## Cloudflare Services
+
+Three unrelated Cloudflare products are in play. Their credentials look alike and are easy
+to confuse for one another.
+
+**Turnstile** — the human check on the login and registration screens. Self-contained; it
+needs no Cloudflare account API token.
+
+| Name                      | Used by                                                                 |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `VITE_TURNSTILE_SITE_KEY` | frontend and admin builds, wired in `.do/mik-intranet-{prod,test}.yaml` |
+| `TURNSTILE_SECRET_KEY`    | backend — `apps/backend/src/services/turnstile.ts`                      |
+| `TURNSTILE_ENABLED`       | backend — with `true` but no secret key the check **fails closed**      |
+
+Verification posts the secret key to
+`https://challenges.cloudflare.com/turnstile/v0/siteverify`; that endpoint authenticates on
+the secret alone.
+
+**R2** — off-site Postgres backups, via the S3-compatible
+`CLOUDFLARE_R2_ACCESSKEY_ID` / `CLOUDFLARE_R2_SECRET_ACCESSKEY` pair used by
+`.do/pg-backup-job.yaml` and `deploy-backup-job.yml`.
+
+**Unattributed** — `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_API_KEY` are repository secrets
+that nothing in this repo reads. They are **not** Turnstile and **not** R2; both of those
+have their own credentials above. What they grant cannot be established from the repository
+— the token's name and permission scope in the Cloudflare dashboard will say. Do not assume
+they are unused and delete them.
 
 ## SimplBooks Dry-Run Mode
 
@@ -665,51 +731,95 @@ The email is clearly marked `[DEV DRY RUN]` in the subject and includes a warnin
 - `apps/backend/src/services/simplbooks/simplbooksOutboxHandler.ts` — dry-run branches in `createInvoice()` and `addMember()`
 - `apps/backend/src/services/simplbooks/simplBooksEmailer.ts` — `sendDryRunInvoiceEmail()`
 
-## Cloudflare Worker — SimplBooks Mock API
+## SimplBooks Mock API
 
-The `simplbooks/` directory contains a Cloudflare Worker that mocks the SimplBooks API. It stores data in Cloudflare D1 (SQLite) and can generate PDF invoices and send emails.
+The `simplbooks/` directory holds the downloaded SimplBooks OpenAPI spec and two local mock
+servers. It is **not** a pnpm workspace member — it uses npm and its own `package-lock.json`,
+and its scripts run under `node --experimental-transform-types` rather than `tsx`.
 
-### Local development
+The two mocks in this directory are local-only development aids — nothing in `simplbooks/`
+is built or deployed by any workflow here. Note that a set of secrets and variables for a
+_hosted_ mock does exist in GitHub settings; see "Hosted mock" below before assuming there
+is nothing deployed anywhere.
 
-```bash
-cd simplbooks
-# Copy secrets file (never commit this)
-cp .dev.vars.example .dev.vars   # fill in API_TOKEN and email credentials
+| Path                            | What it is                                                          |
+| ------------------------------- | ------------------------------------------------------------------- |
+| `simplbooks/src/app.ts`         | Downloads the SimplBooks OpenAPI spec and resolves its `$ref`s      |
+| `simplbooks/src/mock-server.ts` | The stateful "smart" mock (~665 lines, plain `node:http`)           |
+| `simplbooks/simplbooks-api/`    | The downloaded spec — `api.yaml` plus split `paths/` and `schemas/` |
 
-# Create the local D1 database
-npx wrangler d1 execute mik-simplbooks-db --local --file=src/d1-schema.sql
+Point the backend at whichever mock you start:
 
-# Start local dev server (Miniflare simulation)
-npx wrangler dev --local
-# Worker available at http://localhost:8787
+```
+SIMPLBOOKS_BASE_URI=http://127.0.0.1:4010
 ```
 
-Test it:
+### Prism mock — spec-accurate, stateless
 
 ```bash
-curl -X GET http://localhost:8787/api/clients \
-  -H "X-Simplbooks-Token: your_test_token"
+pnpm mock:simplbooks          # ./scripts/start-simplbooks-mock-server.sh
 ```
 
-### Deploying to Cloudflare
+Runs Stoplight Prism against `simplbooks-api/api.yaml` on port 4011, fronted by a small
+proxy on **4010** that strips the `/{companyId}/api` prefix the backend client sends and
+rate-limits to 1 request/second (returning a real `429` with `Retry-After`, so the client's
+backoff path gets exercised). Needs `SIMPLBOOKS_COMPANY_ID` in the environment or in
+`apps/backend/.env`.
 
-1. Create a D1 database: `npx wrangler d1 create mik-simplbooks-db`
-2. Replace `database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"` in `simplbooks/wrangler.toml` with the real ID
-3. Set secrets: `npx wrangler secret put SIMPLBOOKS_API_TOKEN` (and others listed in `wrangler.toml`)
-4. Push `main` — the GitHub Actions workflow `deploy-simplbooks-worker.yml` deploys automatically when `simplbooks/` files change
+Responses come straight from the spec, so they are schema-correct but static — nothing you
+create is remembered.
 
-### Security
+### Smart mock — stateful, generates PDFs and email
 
-- All requests require `X-Simplbooks-Token` header matching `SIMPLBOOKS_API_TOKEN` secret
-- Optional IP allowlist: set `ALLOWED_IPS` secret to a comma-separated list of allowed IPs (e.g. your Digital Ocean droplet IP). Uses Cloudflare's `CF-Connecting-IP` header (cannot be spoofed). Leave unset to allow any IP.
+```bash
+./scripts/start-simplbooks-smart-mock.sh
+```
 
-### Required GitHub Secrets for CI/CD
+Listens on **4010** directly and covers every endpoint the backend calls. Unlike Prism it:
 
-| Secret                                     | Purpose                                                            |
-| ------------------------------------------ | ------------------------------------------------------------------ |
-| `CLOUDFLARE_API_TOKEN`                     | Custom token with `Workers Scripts: Edit` + `D1: Edit` permissions |
-| `CLOUDFLARE_ACCOUNT_ID`                    | Your Cloudflare account ID                                         |
-| `SIMPLBOOKS_API_TOKEN`                     | Shared secret for `X-Simplbooks-Token` auth                        |
-| `SIMPLBOOKS_MOCK_ALLOWED_IPS`              | Comma-separated IP allowlist (optional)                            |
-| `SMTP_HOST`, `SMTP_LOGIN`, `SMTP_PASSWORD` | Email sending credentials                                          |
-| `DISABLE_EMAIL_SENDING`                    | Set `false` in production, `true` otherwise                        |
+- persists clients and invoices in memory until restart
+- generates a real PDF for each invoice via `pdfkit`
+- emails that PDF when `invoices/sent` is called, honouring `DISABLE_EMAIL_SENDING` and the
+  `SMTP_*` credentials it reads from `apps/backend/.env`
+- serves the articles list from the OpenAPI fixture
+
+Use this one when testing the invoice flow end to end; use Prism when you care about strict
+spec conformance. Override the port with `SIMPLBOOKS_MOCK_PORT`.
+
+To refresh the spec from SimplBooks:
+
+```bash
+cd simplbooks && npm start     # rewrites simplbooks-api/
+```
+
+### Hosted mock — credentials exist, source does not live here
+
+These are configured in GitHub settings and are **not** discoverable from the repository,
+so do not conclude from a `git grep` that they are unused or safe to delete:
+
+| Name                          | Scope | Kind     | Referenced by a workflow in this repo |
+| ----------------------------- | ----- | -------- | ------------------------------------- |
+| `SIMPLBOOKS_MOCK_API_KEY`     | DEV   | secret   | no                                    |
+| `SIMPLBOOKS_MOCK_ALLOWED_IPS` | DEV   | variable | no                                    |
+
+Together these imply a hosted SimplBooks mock behind an API key and an IP allowlist. No
+source for it, and no workflow that deploys it, is committed in this repository — so it is
+either maintained elsewhere or is a leftover. **Confirm with whoever owns the deployment
+before deleting either of them.**
+
+List the current names (values are not retrievable for secrets) with:
+
+```bash
+gh api repos/MIK-dev-team/mik-ng/actions/secrets --jq '.secrets[].name'
+gh api repos/MIK-dev-team/mik-ng/environments/DEV/variables --jq '.variables[].name'
+```
+
+Three names that earlier revisions of this document listed do **not** exist in settings, and
+looking for them wastes time: `CLOUDFLARE_ACCOUNT_ID`, `SIMPLBOOKS_API_TOKEN` (the real
+SimplBooks credentials are `SIMPLBOOKS_API_KEY`, plus `SIMPLBOOKS_API_KEY_PROD` in PROD) and
+`SMTP_HOST`. Note also that `SMTP_LOGIN` is a _variable_, not a secret — only `SMTP_PASSWORD`
+(and `SMTP_PASSWORD_PROD`) are secrets — and `DISABLE_EMAIL_SENDING` is neither; it is set in
+`apps/backend/.env` and in the backend's own `test` script.
+
+For the full environment variable and secret inventory, see
+[`docs/github-actions-variables-setup.md`](../docs/github-actions-variables-setup.md).
