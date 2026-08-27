@@ -114,6 +114,7 @@ export const ROUTES: RouteUnderTest[] = [
     url: '/liquid/00000000-0000-4000-8000-000000000000/edit',
   },
   { path: '/liquid/scan/:code', url: '/liquid/scan/MIK-L-ABCDE' },
+  { path: '/contact', url: '/contact' },
   { path: '/login', url: '/login' },
   { path: '/login/sent', url: '/login/sent' },
   { path: '/login/validate', url: '/login/validate' },
@@ -153,6 +154,7 @@ export const MATRIX_SCENARIOS = [
  * outside both layouts. Nothing under here calls the API, so nothing redirects.
  */
 export const PUBLIC_PATHS = new Set([
+  '/contact',
   '/login',
   '/login/sent',
   '/login/validate',

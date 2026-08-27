@@ -17,8 +17,11 @@ export const deleteCreatedInvoice = async (invoiceType: MIKInvoiceType) => {
     .execute()
 }
 
+// Baseline catalog rows go up to id 76 (V100__Items.sql, V380__MembershipFeeItemsTestData.sql,
+// which mirrors real accts.items ids and isn't sequential); everything above that is
+// test-created and safe to sweep.
 export const deleteCreatedInvoiceItems = async () =>
-  await db.deleteFrom('accts.items').where('id', '>', 30).execute()
+  await db.deleteFrom('accts.items').where('id', '>', 76).execute()
 
 // export const expectAddMember1Row = async () => {
 //   const result = await db.selectFrom('accts.outboxSimplbooks').selectAll().execute()

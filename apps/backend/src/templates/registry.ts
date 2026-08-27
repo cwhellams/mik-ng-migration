@@ -52,6 +52,12 @@ const BILLING_EMAIL = 'laskutus@mik.fi'
  */
 export const TRAINING_EMAIL = 'koulutus@mik.fi'
 
+/** The secretary/membership mailbox, used by the contact form's MEMBERSHIP category. */
+export const MEMBERSHIP_EMAIL = 'sihteeri@mik.fi'
+
+/** The general enquiries mailbox, used by the contact form's OTHER category. */
+export const GENERAL_EMAIL = 'info@mik.fi'
+
 const publicUrl = () => process.env.PUBLIC_URL ?? 'http://localhost:5173'
 
 export const emailTemplates = {
@@ -98,6 +104,21 @@ export const emailTemplates = {
       fi: 'Jos et pyytänyt tätä muutosta, voit huoletta sivuuttaa tämän sähköpostin.',
       sv: 'Om du inte begärde denna ändring kan du lugnt ignorera detta e-postmeddelande.',
       en: "If you didn't request this change, you can safely ignore this email.",
+    },
+  },
+  'contact-request': {
+    subject: {
+      fi: 'MIK – New contact enquiry: {{category}}',
+      sv: 'MIK – New contact enquiry: {{category}}',
+      en: 'MIK – New contact enquiry: {{category}}',
+    },
+    languages: ['en'],
+  },
+  'contact-received': {
+    subject: {
+      fi: 'Olemme vastaanottaneet viestisi – Malmin Ilmailukerho',
+      sv: 'Vi har tagit emot ditt meddelande – Malmin Ilmailukerho',
+      en: 'We have received your message – Malmin Ilmailukerho',
     },
   },
 
@@ -355,6 +376,8 @@ export interface EmailTemplateVars {
   'registration-submit': { firstName: string; href: string }
   'registration-approved': { firstName: string }
   'email-change-verify': { firstName: string; newEmail: string; href: string }
+  'contact-request': { name: string; email: string; category: string; message: string[] }
+  'contact-received': { name: string; category: string }
 
   // ─── Membership lifecycle ─────────────────────────────────────────────────
   'new-member': { firstName: string; href: string }

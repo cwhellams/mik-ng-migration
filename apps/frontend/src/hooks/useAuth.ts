@@ -4,7 +4,13 @@ import useApi, { APIResponse } from '@mik/ui/hooks/useApi'
 
 export const useAuth = <Input, Output>(
   endpoint:
-    'login' | 'login/validate' | 'login/verify-code' | 'register' | 'register/verify' | 'logout',
+    | 'login'
+    | 'login/validate'
+    | 'login/verify-code'
+    | 'register'
+    | 'register/verify'
+    | 'logout'
+    | 'contact',
 ): {
   isMutating: boolean
   trigger: (request?: Input) => Promise<APIResponse<Output>>

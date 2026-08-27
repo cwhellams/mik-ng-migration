@@ -174,6 +174,29 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 
+// The membership-fees checkbox is a public-registration-flow concern: a member
+// applying for themselves must tick it, but staff creating a member record
+// through the admin UI (POST /members) aren't filling in the application on
+// anyone's behalf and shouldn't be blocked by it. Only the public /register
+// endpoint uses this schema; admin member creation parses RegisterRequestSchema
+// directly.
+export const PublicRegisterRequestSchema = RegisterRequestSchema.superRefine((data, ctx) => {
+  if (data.applicationData && data.applicationData.feesAcknowledged !== true) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'register.feesAcknowledgementRequired',
+      path: ['applicationData', 'feesAcknowledged'],
+    })
+  }
+  if (data.applicationData && data.applicationData.rulesAccepted !== true) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'register.rulesRequired',
+      path: ['applicationData', 'rulesAccepted'],
+    })
+  }
+})
+
 // login
 
 export const LoginRequestSchema = z.object({
@@ -193,6 +216,10 @@ export const LoginResponseSchema = z.object({
   // NOTE: the JWT token is NO LONGER returned here. The client must call
   // POST /login/verify-code with {email, code} to obtain access tokens.
   code: z.number().optional(),
+
+  // Set only by POST /register — the new applicant's memberId, shown back to
+  // them as a reference for the application they just submitted.
+  memberId: z.string().optional(),
 
   error: z.string().optional(),
 })

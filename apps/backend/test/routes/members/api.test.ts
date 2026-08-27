@@ -15,6 +15,7 @@ import {
   PrimaryMotivation,
   PilotLicenceType,
   AircraftRating,
+  VoluntaryWorkAnswer,
   type Member,
   type MemberListFilters,
   type MemberListResponse,
@@ -1579,7 +1580,7 @@ describe('POST /members', () => {
       ratings: [AircraftRating.SEP_LAND],
       primaryMotivation: PrimaryMotivation.FLY,
       coverLetter: 'I love flying and want to join MIK.',
-      voluntaryWork: 'Yes, I am happy to help.',
+      voluntaryWork: VoluntaryWorkAnswer.YES,
       accidentHistory: false,
       criminalRecord: false,
       gdprAccepted: true as const,
@@ -1597,7 +1598,7 @@ describe('POST /members', () => {
       ratings: [AircraftRating.SEP_LAND],
       primaryMotivation: PrimaryMotivation.FLY,
       coverLetter: 'I love flying and want to join MIK.',
-      voluntaryWork: 'Yes, I am happy to help.',
+      voluntaryWork: VoluntaryWorkAnswer.YES,
       accidentHistory: false,
       criminalRecord: false,
       gdprAccepted: true,
@@ -1625,7 +1626,7 @@ describe('POST /members', () => {
           aircraftTypesFlown: 'C172',
           primaryMotivation: PrimaryMotivation.LEARN_TO_FLY,
           coverLetter: 'test',
-          voluntaryWork: 'yes',
+          voluntaryWork: VoluntaryWorkAnswer.YES,
           accidentHistory: true,
           // missing accidentHistoryDetails
           criminalRecord: false,
@@ -1646,7 +1647,7 @@ describe('POST /members', () => {
         applicationData: {
           primaryMotivation: PrimaryMotivation.FLY,
           coverLetter: 'test',
-          voluntaryWork: 'yes',
+          voluntaryWork: VoluntaryWorkAnswer.YES,
           accidentHistory: false,
           criminalRecord: true,
           // missing criminalRecordDetails
@@ -1669,7 +1670,7 @@ describe('POST /members', () => {
           // missing pilotLicenceTypeOther
           primaryMotivation: PrimaryMotivation.FLY,
           coverLetter: 'test',
-          voluntaryWork: 'yes',
+          voluntaryWork: VoluntaryWorkAnswer.YES,
           accidentHistory: false,
           criminalRecord: false,
           gdprAccepted: true as const,
@@ -1691,7 +1692,7 @@ describe('POST /members', () => {
           // missing ratingsOther
           primaryMotivation: PrimaryMotivation.FLY,
           coverLetter: 'test',
-          voluntaryWork: 'yes',
+          voluntaryWork: VoluntaryWorkAnswer.YES,
           accidentHistory: false,
           criminalRecord: false,
           gdprAccepted: true as const,
@@ -1712,7 +1713,7 @@ describe('POST /members', () => {
           primaryMotivation: PrimaryMotivation.OTHER,
           // missing motivationOther
           coverLetter: 'test',
-          voluntaryWork: 'yes',
+          voluntaryWork: VoluntaryWorkAnswer.YES,
           accidentHistory: false,
           criminalRecord: false,
           gdprAccepted: true as const,

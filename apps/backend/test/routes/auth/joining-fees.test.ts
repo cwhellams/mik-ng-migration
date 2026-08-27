@@ -19,6 +19,17 @@ jest.unstable_mockModule('../../../src/db/invoicing-queries.ts', () => ({
   getArticleFees: mockGetArticleFees,
 }))
 
+// Whether "today" falls on/after the October 1st half-year discount cutoff — real
+// implementation reads the wall clock, so it's mocked here for deterministic tests.
+const mockIsAfterMembershipFeeDiscountDate = jest.fn<() => boolean>()
+mockIsAfterMembershipFeeDiscountDate.mockReturnValue(false)
+
+jest.unstable_mockModule('../../../src/util/feeDiscounts.ts', () => ({
+  HALF_YEAR_DISCOUNT_PERCENT: 50,
+  isAfterMembershipFeeDiscountDate: mockIsAfterMembershipFeeDiscountDate,
+  isAfterEquipmentFeeDiscountDate: jest.fn(() => false),
+}))
+
 // Minimal stubs for the other modules that login.ts imports at module-load time.
 jest.unstable_mockModule('../../../src/db/member-queries.ts', () => ({
   addMember: jest.fn(),
@@ -88,6 +99,7 @@ app.use(problemErrorHandler)
 describe('GET /api/auth/joining-fees', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockIsAfterMembershipFeeDiscountDate.mockReturnValue(false)
   })
 
   it('returns fullMemberFee and reducedMemberFee when all three codes are present', async () => {
@@ -95,46 +107,80 @@ describe('GET /api/auth/joining-fees', () => {
       { id: 1, code: 'LIITTYMINEN', name: 'Full member joining fee', price_per_unit: 125 },
       { id: 2, code: 'NLIITTYMINEN', name: 'Junior joining fee', price_per_unit: 25 },
       { id: 3, code: 'KLIITTYMINEN', name: 'Supporting member joining fee', price_per_unit: 25 },
+      { id: 4, code: 'JASEN', name: 'Full member annual fee', price_per_unit: 100 },
+      { id: 5, code: 'NJASEN', name: 'Junior annual fee', price_per_unit: 40 },
+      { id: 6, code: 'KJASEN', name: 'Supporting annual fee', price_per_unit: 60 },
     ])
 
     const res = await request(app).get('/api/auth/joining-fees')
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ fullMemberFee: 125, reducedMemberFee: 25 })
+    expect(res.body).toEqual({
+      fullMemberFee: 125,
+      reducedMemberFee: 25,
+      fullMemberAnnualFee: 100,
+      juniorMemberAnnualFee: 40,
+      supportingMemberAnnualFee: 60,
+      membershipFeeDiscountApplied: false,
+    })
   })
 
   it('falls back to supporting-member code when junior code is absent', async () => {
     mockGetArticleFees.mockResolvedValue([
       { id: 1, code: 'LIITTYMINEN', name: 'Full member joining fee', price_per_unit: 125 },
       { id: 3, code: 'KLIITTYMINEN', name: 'Supporting member joining fee', price_per_unit: 30 },
+      { id: 4, code: 'JASEN', name: 'Full member annual fee', price_per_unit: 100 },
     ])
 
     const res = await request(app).get('/api/auth/joining-fees')
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ fullMemberFee: 125, reducedMemberFee: 30 })
+    expect(res.body).toEqual({
+      fullMemberFee: 125,
+      reducedMemberFee: 30,
+      fullMemberAnnualFee: 100,
+      juniorMemberAnnualFee: null,
+      supportingMemberAnnualFee: null,
+      membershipFeeDiscountApplied: false,
+    })
   })
 
   it('returns null for reducedMemberFee when neither junior nor supporting codes are present', async () => {
     mockGetArticleFees.mockResolvedValue([
       { id: 1, code: 'LIITTYMINEN', name: 'Full member joining fee', price_per_unit: 125 },
+      { id: 5, code: 'NJASEN', name: 'Junior annual fee', price_per_unit: 40 },
     ])
 
     const res = await request(app).get('/api/auth/joining-fees')
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ fullMemberFee: 125, reducedMemberFee: null })
+    expect(res.body).toEqual({
+      fullMemberFee: 125,
+      reducedMemberFee: null,
+      fullMemberAnnualFee: null,
+      juniorMemberAnnualFee: 40,
+      supportingMemberAnnualFee: null,
+      membershipFeeDiscountApplied: false,
+    })
   })
 
   it('returns null for fullMemberFee when full-member code is absent', async () => {
     mockGetArticleFees.mockResolvedValue([
       { id: 2, code: 'NLIITTYMINEN', name: 'Junior joining fee', price_per_unit: 25 },
+      { id: 6, code: 'KJASEN', name: 'Supporting annual fee', price_per_unit: 60 },
     ])
 
     const res = await request(app).get('/api/auth/joining-fees')
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ fullMemberFee: null, reducedMemberFee: 25 })
+    expect(res.body).toEqual({
+      fullMemberFee: null,
+      reducedMemberFee: 25,
+      fullMemberAnnualFee: null,
+      juniorMemberAnnualFee: null,
+      supportingMemberAnnualFee: 60,
+      membershipFeeDiscountApplied: false,
+    })
   })
 
   it('returns null for both fees when the database returns an empty list', async () => {
@@ -143,7 +189,14 @@ describe('GET /api/auth/joining-fees', () => {
     const res = await request(app).get('/api/auth/joining-fees')
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ fullMemberFee: null, reducedMemberFee: null })
+    expect(res.body).toEqual({
+      fullMemberFee: null,
+      reducedMemberFee: null,
+      fullMemberAnnualFee: null,
+      juniorMemberAnnualFee: null,
+      supportingMemberAnnualFee: null,
+      membershipFeeDiscountApplied: false,
+    })
   })
 
   it('does not require authentication', async () => {
@@ -156,7 +209,7 @@ describe('GET /api/auth/joining-fees', () => {
     expect(res.status).not.toBe(403)
   })
 
-  it('fetches all three article codes from the database', async () => {
+  it('fetches all joining-fee and membership-fee codes from the database', async () => {
     mockGetArticleFees.mockResolvedValue([])
 
     await request(app).get('/api/auth/joining-fees')
@@ -166,6 +219,9 @@ describe('GET /api/auth/joining-fees', () => {
     expect(calledWith).toContain('LIITTYMINEN')
     expect(calledWith).toContain('NLIITTYMINEN')
     expect(calledWith).toContain('KLIITTYMINEN')
+    expect(calledWith).toContain('JASEN')
+    expect(calledWith).toContain('NJASEN')
+    expect(calledWith).toContain('KJASEN')
   })
 
   it('reads the fee from markup_value when the article is markup-priced (production data)', async () => {
@@ -188,12 +244,27 @@ describe('GET /api/auth/joining-fees', () => {
         price_per_unit: 0,
         markup_value: 0,
       },
+      {
+        id: 4,
+        code: 'JASEN',
+        name: 'Full member annual fee',
+        markup_type: 'fixed',
+        price_per_unit: 0,
+        markup_value: 220,
+      },
     ])
 
     const res = await request(app).get('/api/auth/joining-fees')
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ fullMemberFee: 100, reducedMemberFee: 0 })
+    expect(res.body).toEqual({
+      fullMemberFee: 100,
+      reducedMemberFee: 0,
+      fullMemberAnnualFee: 220,
+      juniorMemberAnnualFee: null,
+      supportingMemberAnnualFee: null,
+      membershipFeeDiscountApplied: false,
+    })
   })
 
   it('returns a 500 instead of a silent €0 when a markup-priced article has no markup_value', async () => {
@@ -212,5 +283,32 @@ describe('GET /api/auth/joining-fees', () => {
 
     expect(res.status).toBe(500)
     expect(res.body).not.toEqual({ fullMemberFee: 0, reducedMemberFee: null })
+  })
+
+  it('halves the annual fees but not the joining fees once the October discount date has passed', async () => {
+    // Mirrors createNewMemberFeesInvoicePayload's half-year discount for new
+    // members approved from October onward — see recurringFeesInvoiceCreator.ts.
+    mockIsAfterMembershipFeeDiscountDate.mockReturnValue(true)
+    mockGetArticleFees.mockResolvedValue([
+      { id: 1, code: 'LIITTYMINEN', name: 'Full member joining fee', price_per_unit: 125 },
+      { id: 2, code: 'NLIITTYMINEN', name: 'Junior joining fee', price_per_unit: 25 },
+      { id: 3, code: 'KLIITTYMINEN', name: 'Supporting member joining fee', price_per_unit: 25 },
+      { id: 4, code: 'JASEN', name: 'Full member annual fee', price_per_unit: 100 },
+      { id: 5, code: 'NJASEN', name: 'Junior annual fee', price_per_unit: 40 },
+      { id: 6, code: 'KJASEN', name: 'Supporting annual fee', price_per_unit: 60 },
+    ])
+
+    const res = await request(app).get('/api/auth/joining-fees')
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({
+      // Joining fees are unaffected — only the annual fee is discounted for new members.
+      fullMemberFee: 125,
+      reducedMemberFee: 25,
+      fullMemberAnnualFee: 50,
+      juniorMemberAnnualFee: 20,
+      supportingMemberAnnualFee: 30,
+      membershipFeeDiscountApplied: true,
+    })
   })
 })

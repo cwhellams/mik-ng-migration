@@ -49,6 +49,7 @@ export const sendEmail = (
   subject: string,
   html: string,
   attachments?: EmailAttachment[],
+  replyTo?: string,
 ): Promise<void> => {
   // Validate email address to prevent injection attacks
   if (!validator.isEmail(to)) {
@@ -91,6 +92,7 @@ export const sendEmail = (
     subject: sanitizedSubject,
     html,
     attachments, // Add attachments if provided
+    replyTo: replyTo && validator.isEmail(replyTo) ? replyTo : undefined,
   }
 
   // Send email - wrap callback in a Promise so callers can await delivery success/failure

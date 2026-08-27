@@ -15,6 +15,7 @@ import { router as aircraftCardRoutes } from './routes/aircraft-cards/api.ts'
 import { router as aircraftNavdataRoutes } from './routes/aircraft-navdata/api.ts'
 import ajlbRoutes from './routes/ajlb/api.ts'
 import { router as authRoutes } from './routes/auth/login.ts'
+import { router as contactRoutes } from './routes/auth/contact.ts'
 import { passkeyRouter } from './routes/auth/passkey.ts'
 import { router as documentRoutes } from './routes/documents/api.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
@@ -165,6 +166,7 @@ app.get('/health', (_req, res) => {
 app.use('/t', tinyUrlRoute)
 
 app.use('/api/auth', authRoutes)
+app.use('/api/auth', contactRoutes)
 app.use('/api/auth/passkey', passkeyRouter)
 app.use('/api/v1/members', memberRoutes)
 app.use('/api/v1/secrets', secretRoutes)

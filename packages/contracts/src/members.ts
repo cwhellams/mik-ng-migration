@@ -293,6 +293,12 @@ export enum AircraftRating {
   OTHER = 'other',
 }
 
+export enum VoluntaryWorkAnswer {
+  YES = 'YES',
+  NO = 'NO',
+  MAYBE = 'MAYBE',
+}
+
 export const ApplicationDataSchema = z
   .object({
     totalFlightHours: z.number().min(0).max(99999).optional(),
@@ -304,13 +310,16 @@ export const ApplicationDataSchema = z
     primaryMotivation: z.nativeEnum(PrimaryMotivation),
     motivationOther: optionalTrimmedString(z.string().max(500)),
     coverLetter: z.string().trim().min(1).max(2000),
-    voluntaryWork: z.string().trim().min(1).max(1000),
-    otherAviationClubs: optionalTrimmedString(z.string().max(500)),
+    voluntaryWork: z.nativeEnum(VoluntaryWorkAnswer),
+    otherAviationClubs: z.boolean().optional(),
+    otherAviationClubsDetails: optionalTrimmedString(z.string().max(500)),
     accidentHistory: z.boolean(),
     accidentHistoryDetails: optionalTrimmedString(z.string().max(1000)),
     criminalRecord: z.boolean(),
     criminalRecordDetails: optionalTrimmedString(z.string().max(1000)),
     gdprAccepted: z.literal(true, { error: () => 'GDPR acceptance is required' }),
+    feesAcknowledged: z.boolean().optional(),
+    rulesAccepted: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.pilotLicenceType === PilotLicenceType.OTHER && !data.pilotLicenceTypeOther) {
@@ -346,6 +355,13 @@ export const ApplicationDataSchema = z
         code: z.ZodIssueCode.custom,
         message: 'criminalRecordDetails is required when criminalRecord is true',
         path: ['criminalRecordDetails'],
+      })
+    }
+    if (data.otherAviationClubs && !data.otherAviationClubsDetails) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'otherAviationClubsDetails is required when otherAviationClubs is true',
+        path: ['otherAviationClubsDetails'],
       })
     }
   })

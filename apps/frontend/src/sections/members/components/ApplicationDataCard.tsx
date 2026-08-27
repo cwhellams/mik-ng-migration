@@ -18,8 +18,15 @@ import {
   PilotLicenceType,
   AircraftRating,
   PrimaryMotivation,
+  VoluntaryWorkAnswer,
 } from '@mik/contracts/members'
 import { ReactNode } from 'react'
+
+const voluntaryWorkKey: Record<VoluntaryWorkAnswer, string> = {
+  [VoluntaryWorkAnswer.YES]: 'register.yes',
+  [VoluntaryWorkAnswer.NO]: 'register.no',
+  [VoluntaryWorkAnswer.MAYBE]: 'register.maybe',
+}
 
 const pilotLicenceKey: Record<PilotLicenceType, string> = {
   [PilotLicenceType.LAPL_A]: 'register.pilotLicence_LAPL_A',
@@ -118,11 +125,14 @@ export const ApplicationDataCard = ({ applicationData, isMembershipApproved }: P
     coverLetter,
     voluntaryWork,
     otherAviationClubs,
+    otherAviationClubsDetails,
     accidentHistory,
     accidentHistoryDetails,
     criminalRecord,
     criminalRecordDetails,
     gdprAccepted,
+    feesAcknowledged,
+    rulesAccepted,
   } = applicationData
 
   return (
@@ -225,12 +235,31 @@ export const ApplicationDataCard = ({ applicationData, isMembershipApproved }: P
 
             <TextBlock label={t('member.applicationData.coverLetter')} value={coverLetter} />
 
-            <TextBlock label={t('member.applicationData.voluntaryWork')} value={voluntaryWork} />
+            <InfoRow label={t('member.applicationData.voluntaryWork')}>
+              <Typography variant='body2'>{t(voluntaryWorkKey[voluntaryWork])}</Typography>
+            </InfoRow>
 
-            {otherAviationClubs && (
+            <InfoRow label={t('member.applicationData.otherAviationClubs')}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {otherAviationClubs ? (
+                  <CheckCircleIcon fontSize='small' color='success' />
+                ) : (
+                  <CancelIcon fontSize='small' color='disabled' />
+                )}
+                <Typography variant='body2'>
+                  {otherAviationClubs === undefined
+                    ? '—'
+                    : otherAviationClubs
+                      ? t('register.yes')
+                      : t('register.no')}
+                </Typography>
+              </Box>
+            </InfoRow>
+
+            {otherAviationClubs && otherAviationClubsDetails && (
               <TextBlock
-                label={t('member.applicationData.otherAviationClubs')}
-                value={otherAviationClubs}
+                label={t('member.applicationData.otherAviationClubsDetails')}
+                value={otherAviationClubsDetails}
               />
             )}
           </Stack>
@@ -284,6 +313,38 @@ export const ApplicationDataCard = ({ applicationData, isMembershipApproved }: P
                 <CheckCircleIcon fontSize='small' color={gdprAccepted ? 'success' : 'disabled'} />
                 <Typography variant='body2'>
                   {gdprAccepted ? t('register.yes') : t('register.no')}
+                </Typography>
+              </Box>
+            </InfoRow>
+
+            <InfoRow label={t('member.applicationData.feesAcknowledged')}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <CheckCircleIcon
+                  fontSize='small'
+                  color={feesAcknowledged === true ? 'success' : 'disabled'}
+                />
+                <Typography variant='body2'>
+                  {feesAcknowledged === undefined
+                    ? '—'
+                    : feesAcknowledged
+                      ? t('register.yes')
+                      : t('register.no')}
+                </Typography>
+              </Box>
+            </InfoRow>
+
+            <InfoRow label={t('member.applicationData.rulesAccepted')}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <CheckCircleIcon
+                  fontSize='small'
+                  color={rulesAccepted === true ? 'success' : 'disabled'}
+                />
+                <Typography variant='body2'>
+                  {rulesAccepted === undefined
+                    ? '—'
+                    : rulesAccepted
+                      ? t('register.yes')
+                      : t('register.no')}
                 </Typography>
               </Box>
             </InfoRow>

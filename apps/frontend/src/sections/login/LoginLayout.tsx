@@ -3,7 +3,16 @@ import MikLogo from '../../assets/mik-blue.svg'
 import { ReactNode } from 'react'
 import { Link } from 'react-router'
 
-export const LoginLayout = ({ title, children }: { title: string; children: ReactNode }) => (
+export const LoginLayout = ({
+  title,
+  children,
+  hideBrand = false,
+}: {
+  title: string
+  children: ReactNode
+  /** Hides the "Intranet" brand heading and gives the title itself the prominence instead. */
+  hideBrand?: boolean
+}) => (
   <Box
     sx={{
       display: 'flex',
@@ -42,20 +51,23 @@ export const LoginLayout = ({ title, children }: { title: string; children: Reac
               }}
             />
           </Link>
+          {!hideBrand && (
+            <Typography
+              variant='h4'
+              color='primary'
+              sx={{
+                fontWeight: 'bold',
+                mb: 1,
+              }}
+            >
+              Intranet
+            </Typography>
+          )}
           <Typography
-            variant='h4'
-            color='primary'
+            variant={hideBrand ? 'h5' : 'body2'}
             sx={{
-              fontWeight: 'bold',
-              mb: 1,
-            }}
-          >
-            Intranet
-          </Typography>
-          <Typography
-            variant='body2'
-            sx={{
-              color: 'text.secondary',
+              color: hideBrand ? 'primary.main' : 'text.secondary',
+              fontWeight: hideBrand ? 'bold' : undefined,
             }}
           >
             {title}

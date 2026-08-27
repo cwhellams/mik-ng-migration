@@ -33,6 +33,7 @@ import ItemReservationCalendar from './sections/inventoryReservations/ItemReserv
 import LogbookFlights from './sections/flightLog/LogbookPage'
 import LogbooksList from './sections/flightLog/LogbooksList'
 import Login from './sections/login/Login'
+import Contact from './sections/login/Contact'
 import LoginSent from './sections/login/Sent'
 import LoginValidate from './sections/login/Validate'
 import LogoutSuccess from './sections/login/LogoutSuccess'
@@ -204,6 +205,7 @@ export default function AppRoutes() {
 
       {/* Auth Layout without header */}
       <Route element={<AuthLayout />}>
+        <Route path='/contact' element={<Contact />} />
         <Route path='/login' element={<Login />} />
         <Route path='/login/sent' element={<LoginSent />} />
         <Route path='/login/validate' element={<LoginValidate />} />

@@ -14,7 +14,7 @@ import {
 import { MIKRegistrationVerificationStrategy } from './registration-verification.ts'
 import {
   LoginRequestSchema,
-  RegisterRequestSchema,
+  PublicRegisterRequestSchema,
   VerifyCodeRequestSchema,
   type LoginRequest,
   type LoginResponse,
@@ -42,9 +42,16 @@ import { getArticleFees } from '../../db/invoicing-queries.ts'
 import {
   ART_JOINING_FEE,
   ART_JUNIOR_JOINING_FEE,
+  ART_JUNIOR_MEMBER_FEE_CODE,
+  ART_MEMBER_FEE_CODE,
   ART_SUPPORTING_MEMBER_JOINING_FEE,
+  ART_SUPPORTING_MEMBER_FEE_CODE,
 } from '../../services/accounting/config.ts'
 import { resolveArticlePrice } from '../../services/accounting/articlePricing.ts'
+import {
+  HALF_YEAR_DISCOUNT_PERCENT,
+  isAfterMembershipFeeDiscountDate,
+} from '../../util/feeDiscounts.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { renderEmail } from '../../templates/renderEmail.ts'
@@ -183,16 +190,19 @@ router.post('/login/verify-code', async (req: Request, res: Response) => {
 
 // Register a new user
 router.post('/register', async (req: Request<RegisterRequest>, res: Response<LoginResponse>) => {
-  const member = RegisterRequestSchema.parse(req.body)
+  const member = PublicRegisterRequestSchema.parse(req.body)
 
   logger.info('registration request from %s', member.email)
 
-  // Verify Turnstile token if provided
+  if (process.env.TURNSTILE_ENABLED === 'true' && !member.turnstileToken) {
+    return problem({ status: 400, detail: 'Captcha verification is required' })
+  }
+
   if (member.turnstileToken) {
     const isValid = await verifyTurnstileToken(member.turnstileToken, req.ip)
     if (!isValid) {
       logger.warn('Registration attempt with invalid Turnstile token from %s', member.email)
-      return res.status(400).json({ error: 'Invalid captcha verification' })
+      return problem({ status: 400, detail: 'Invalid captcha verification' })
     }
   }
 
@@ -217,7 +227,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   sendEmail(member.email, registrationMail.subject, registrationMail.html)
   logger.info('registration verification email sent %j', link)
 
-  return res.json({ code: link.code })
+  return res.json({ code: link.code, memberId })
 })
 
 // Magic-link email click-through verification.
@@ -331,6 +341,9 @@ router.get('/joining-fees', async (_req: Request, res: Response) => {
     ART_JOINING_FEE,
     ART_JUNIOR_JOINING_FEE,
     ART_SUPPORTING_MEMBER_JOINING_FEE,
+    ART_MEMBER_FEE_CODE,
+    ART_JUNIOR_MEMBER_FEE_CODE,
+    ART_SUPPORTING_MEMBER_FEE_CODE,
   ])
 
   const fullMemberFeeArticle = fees.find((f) => f.code === ART_JOINING_FEE)
@@ -344,6 +357,40 @@ router.get('/joining-fees', async (_req: Request, res: Response) => {
   const reducedMemberFee = reducedMemberFeeArticle
     ? resolveArticlePrice(reducedMemberFeeArticle)
     : null
+  const fullMemberAnnualFeeArticle = fees.find((f) => f.code === ART_MEMBER_FEE_CODE)
+  const juniorMemberAnnualFeeArticle = fees.find((f) => f.code === ART_JUNIOR_MEMBER_FEE_CODE)
+  const supportingMemberAnnualFeeArticle = fees.find(
+    (f) => f.code === ART_SUPPORTING_MEMBER_FEE_CODE,
+  )
 
-  res.status(200).json({ fullMemberFee, reducedMemberFee })
+  // New members who join from October onward only cover the rest of the calendar
+  // year, so the annual fee (not the joining fee) gets the same half-year discount
+  // as createNewMemberFeesInvoicePayload applies at approval time — see
+  // apps/backend/src/services/accounting/recurringFeesInvoiceCreator.ts. Showing
+  // the discounted number here keeps the applicant's fee acknowledgement accurate
+  // instead of quoting a price they won't actually be invoiced.
+  const membershipFeeDiscountApplied = isAfterMembershipFeeDiscountDate()
+  const applyMembershipFeeDiscount = (fee: number | null) =>
+    fee === null || !membershipFeeDiscountApplied
+      ? fee
+      : Math.round(fee * (1 - HALF_YEAR_DISCOUNT_PERCENT / 100) * 100) / 100
+
+  const fullMemberAnnualFee = applyMembershipFeeDiscount(
+    fullMemberAnnualFeeArticle ? resolveArticlePrice(fullMemberAnnualFeeArticle) : null,
+  )
+  const juniorMemberAnnualFee = applyMembershipFeeDiscount(
+    juniorMemberAnnualFeeArticle ? resolveArticlePrice(juniorMemberAnnualFeeArticle) : null,
+  )
+  const supportingMemberAnnualFee = applyMembershipFeeDiscount(
+    supportingMemberAnnualFeeArticle ? resolveArticlePrice(supportingMemberAnnualFeeArticle) : null,
+  )
+
+  res.status(200).json({
+    fullMemberFee,
+    reducedMemberFee,
+    fullMemberAnnualFee,
+    juniorMemberAnnualFee,
+    supportingMemberAnnualFee,
+    membershipFeeDiscountApplied,
+  })
 })

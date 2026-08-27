@@ -268,6 +268,9 @@ const Login = () => {
               {t('login.join')}
             </Link>
           </Typography>
+          <Typography variant='body2' sx={{ color: 'text.secondary', mt: 1 }}>
+            <Link to='/contact'>{t('contact.title')} →</Link>
+          </Typography>
         </Box>
       </form>
     </LoginLayout>

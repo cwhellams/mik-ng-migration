@@ -7,8 +7,11 @@ import {
   FormControl,
   FormControlLabel,
   FormLabel,
+  FormHelperText,
   Radio,
   RadioGroup,
+  ToggleButton,
+  ToggleButtonGroup,
   Alert,
   Divider,
   Checkbox,
@@ -16,6 +19,7 @@ import {
   LinearProgress,
   List,
   ListItem,
+  Link as MuiLink,
 } from '@mui/material'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import 'dayjs/locale/fi'
@@ -31,10 +35,11 @@ import {
   PrimaryMotivation,
   PilotLicenceType,
   AircraftRating,
+  VoluntaryWorkAnswer,
   type ApplicationData,
 } from '@mik/contracts/members'
 import dayjs, { Dayjs } from 'dayjs'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import LanguageSelector from '../../components/LanguageSelector'
 import { TurnstileWidget } from '@mik/ui/components/TurnstileWidget'
 import { PhoneNumberInput } from '../../components/PhoneNumberInput'
@@ -53,6 +58,8 @@ type FormApplicationData = Omit<
   | 'criminalRecord'
   | 'primaryMotivation'
   | 'gdprAccepted'
+  | 'voluntaryWork'
+  | 'otherAviationClubs'
 > & {
   totalFlightHours?: number
   aircraftTypesFlown?: string
@@ -62,6 +69,8 @@ type FormApplicationData = Omit<
   criminalRecord?: boolean
   primaryMotivation?: PrimaryMotivation
   gdprAccepted: boolean
+  voluntaryWork?: VoluntaryWorkAnswer
+  otherAviationClubs?: boolean
 }
 
 type RegisterFormState = Omit<RegisterRequest, 'memberType' | 'applicationData'> & {
@@ -69,13 +78,16 @@ type RegisterFormState = Omit<RegisterRequest, 'memberType' | 'applicationData'>
   applicationData: FormApplicationData
 }
 
+const CLUB_RULES_URL = 'https://mik.fi/rules/'
+
 const Register = () => {
   const { t, i18n } = useTranslation()
 
   // Initialize selectedLanguage state based on current i18n language
   const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(i18n.language as MIKLang)
 
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
+  const [submittedMemberId, setSubmittedMemberId] = useState<string | undefined>(undefined)
 
   const [member, setMember] = useState<RegisterFormState>({
     email: '',
@@ -104,13 +116,16 @@ const Register = () => {
       primaryMotivation: undefined,
       motivationOther: '',
       coverLetter: '',
-      voluntaryWork: '',
-      otherAviationClubs: '',
+      voluntaryWork: undefined,
+      otherAviationClubs: undefined,
+      otherAviationClubsDetails: '',
       accidentHistory: undefined,
       accidentHistoryDetails: '',
       criminalRecord: undefined,
       criminalRecordDetails: '',
       gdprAccepted: false,
+      feesAcknowledged: false,
+      rulesAccepted: false,
     },
   })
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(null)
@@ -125,6 +140,10 @@ const Register = () => {
   const { data: joiningFees } = useApi<{
     fullMemberFee: number | null
     reducedMemberFee: number | null
+    fullMemberAnnualFee: number | null
+    juniorMemberAnnualFee: number | null
+    supportingMemberAnnualFee: number | null
+    membershipFeeDiscountApplied: boolean
   }>({
     url: 'auth/joining-fees',
     allowUnauthenticated: true,
@@ -145,6 +164,13 @@ const Register = () => {
   const getAge = (dob: Dayjs | null): number | null => {
     if (!dob || !dob.isValid()) return null
     return dayjs().diff(dob, 'year')
+  }
+
+  const handleStart = (e: React.FormEvent) => {
+    e.preventDefault()
+    setRegisterErrors([])
+    setStep(2)
+    window.scrollTo(0, 0)
   }
 
   const handleNextStep = (e: React.FormEvent) => {
@@ -174,7 +200,7 @@ const Register = () => {
     setRegisterErrors(errors)
     if (errors.length > 0) return
 
-    setStep(2)
+    setStep(3)
     window.scrollTo(0, 0)
   }
 
@@ -194,8 +220,20 @@ const Register = () => {
       errors.push(t('register.selectCriminalRecord'))
     }
 
+    if (member.applicationData?.voluntaryWork === undefined) {
+      errors.push(t('register.selectVoluntaryWork'))
+    }
+
     if (!member.applicationData?.gdprAccepted) {
       errors.push(t('register.gdprRequired'))
+    }
+
+    if (!member.applicationData?.feesAcknowledged) {
+      errors.push(t('register.feesAcknowledgementRequired'))
+    }
+
+    if (!member.applicationData?.rulesAccepted) {
+      errors.push(t('register.rulesRequired'))
     }
 
     setRegisterErrors(errors)
@@ -208,15 +246,15 @@ const Register = () => {
       phoneNumber: member.phoneNumber || undefined,
       turnstileToken: turnstileToken ?? undefined,
     })
-    if (!data?.code || error) {
+    if (!data?.memberId || error) {
       console.log('Error:', error)
       setRegisterErrors([error?.detail ?? error?.title ?? 'Error'])
       return
     }
 
-    navigate('/login/sent', {
-      state: { email: member.email, code: data?.code },
-    })
+    setSubmittedMemberId(data.memberId)
+    setStep(4)
+    window.scrollTo(0, 0)
   }
 
   const updateApplicationData = <K extends keyof FormApplicationData>(
@@ -245,8 +283,40 @@ const Register = () => {
     updateApplicationData('ratings', updated)
   }
 
+  const feesAcknowledgedTrans = () => {
+    const fmt = (fee: number | null | undefined) => fee ?? '–'
+    switch (member.memberType) {
+      case MIKMemberTypes.FLYING:
+        return {
+          i18nKey: 'register.feesAcknowledgedFull',
+          values: {
+            joiningFee: fmt(joiningFees?.fullMemberFee),
+            annualFee: fmt(joiningFees?.fullMemberAnnualFee),
+          },
+        }
+      case MIKMemberTypes.JUNIOR:
+        return {
+          i18nKey: 'register.feesAcknowledgedJunior',
+          values: {
+            joiningFee: fmt(joiningFees?.reducedMemberFee),
+            annualFee: fmt(joiningFees?.juniorMemberAnnualFee),
+          },
+        }
+      case MIKMemberTypes.NONFLYING:
+        return {
+          i18nKey: 'register.feesAcknowledgedSupporting',
+          values: {
+            joiningFee: fmt(joiningFees?.reducedMemberFee),
+            annualFee: fmt(joiningFees?.supportingMemberAnnualFee),
+          },
+        }
+      default:
+        return { i18nKey: 'register.feesAcknowledged', values: undefined }
+    }
+  }
+
   return (
-    <LoginLayout title={t('register.title')}>
+    <LoginLayout title={t('register.title')} hideBrand>
       {/* Language Selector */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <LanguageSelector
@@ -256,25 +326,129 @@ const Register = () => {
         />
       </Box>
       {/* Step indicator */}
-      <Box sx={{ mb: 2 }}>
-        <Typography
-          variant='caption'
-          sx={{
-            color: 'text.secondary',
-            mb: 0.5,
-            display: 'block',
-          }}
-        >
-          {step === 1 ? t('register.page1of2') : t('register.page2of2')}
-        </Typography>
-        <LinearProgress
-          variant='determinate'
-          value={step === 1 ? 50 : 100}
-          sx={{ borderRadius: 1, height: 6 }}
-        />
-      </Box>
-      {/* ── PAGE 1: Basic details ───────────────────────────────────────── */}
+      {step !== 4 && (
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              mb: 0.5,
+              display: 'block',
+            }}
+          >
+            {step === 1
+              ? t('register.page1of3')
+              : step === 2
+                ? t('register.page2of3')
+                : t('register.page3of3')}
+          </Typography>
+          <LinearProgress
+            variant='determinate'
+            value={step === 1 ? 33 : step === 2 ? 66 : 100}
+            sx={{ borderRadius: 1, height: 6 }}
+          />
+        </Box>
+      )}
+      {/* ── PAGE 1: About this application ──────────────────────────────── */}
       {step === 1 && (
+        <form onSubmit={handleStart}>
+          <Alert severity='info' sx={{ mb: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Typography variant='body2'>
+                <Trans i18nKey='register.applicationIntro' components={{ bold: <strong /> }} />
+              </Typography>
+              <Typography variant='body2'>{t('register.boardReview')}</Typography>
+              <Box>
+                <Typography variant='body2'>{t('register.feesIntro')}</Typography>
+                <Typography variant='body2' sx={{ fontWeight: 'bold', mt: 1 }}>
+                  {t('register.currentFeesLabel')}
+                </Typography>
+                <List dense disablePadding sx={{ listStyleType: 'disc', pl: 3 }}>
+                  <ListItem sx={{ display: 'list-item', py: 0.25, px: 0 }}>
+                    <Typography variant='body2'>
+                      {t('register.feeFullMember', {
+                        fullMemberAnnualFee: joiningFees?.fullMemberAnnualFee ?? '–',
+                        fullMemberFee: joiningFees?.fullMemberFee ?? '–',
+                      })}
+                    </Typography>
+                  </ListItem>
+                  <ListItem sx={{ display: 'list-item', py: 0.25, px: 0 }}>
+                    <Typography variant='body2'>
+                      {t('register.feeJuniorMember', {
+                        juniorMemberAnnualFee: joiningFees?.juniorMemberAnnualFee ?? '–',
+                        reducedMemberFee: joiningFees?.reducedMemberFee ?? '–',
+                      })}
+                    </Typography>
+                  </ListItem>
+                  <ListItem sx={{ display: 'list-item', py: 0.25, px: 0 }}>
+                    <Typography variant='body2'>
+                      {t('register.feeSupportingMember', {
+                        supportingMemberAnnualFee: joiningFees?.supportingMemberAnnualFee ?? '–',
+                        reducedMemberFee: joiningFees?.reducedMemberFee ?? '–',
+                      })}
+                    </Typography>
+                  </ListItem>
+                </List>
+                {joiningFees?.membershipFeeDiscountApplied && (
+                  <Typography variant='body2' sx={{ fontStyle: 'italic', mt: 1 }}>
+                    {t('register.membershipFeeDiscountNote')}
+                  </Typography>
+                )}
+              </Box>
+              <Typography variant='body2'>{t('register.rightToReserve')}</Typography>
+              <Typography variant='body2'>
+                <Trans
+                  i18nKey='register.rulesInfo'
+                  components={{
+                    rulesLink: (
+                      <MuiLink href={CLUB_RULES_URL} target='_blank' rel='noopener noreferrer' />
+                    ),
+                  }}
+                />
+              </Typography>
+              <Typography variant='body2'>
+                {t('register.notJoining')}{' '}
+                <Link to='/contact'>{t('register.contactUsInstead')}</Link>
+              </Typography>
+            </Box>
+          </Alert>
+
+          <Button
+            type='submit'
+            variant='contained'
+            color='primary'
+            fullWidth
+            size='large'
+            sx={{
+              mt: 1,
+              mb: 2,
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+            }}
+          >
+            {t('register.getStartedButton')}
+          </Button>
+
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              {t('register.withAccount')}{' '}
+              <Link to='/login' color='primary'>
+                {t('register.login')}
+              </Link>
+            </Typography>
+          </Box>
+        </form>
+      )}
+      {/* ── PAGE 2: Basic details ───────────────────────────────────────── */}
+      {step === 2 && (
         <form onSubmit={handleNextStep}>
           <TextField
             fullWidth
@@ -310,6 +484,49 @@ const Register = () => {
             onChange={(e) => setMember({ ...member, lastName: e.target.value })}
             required
           />
+          <DateField
+            label={t('member.dateOfBirth')}
+            required={member.memberType === MIKMemberTypes.JUNIOR}
+            margin='normal'
+            value={dateOfBirth}
+            onChange={(value) => {
+              setDateOfBirth(value)
+              setMember({
+                ...member,
+                dateOfBirth: value?.format('YYYY-MM-DD'),
+              })
+            }}
+          />
+          {(() => {
+            const age = getAge(dateOfBirth)
+            if (member.memberType === MIKMemberTypes.JUNIOR && age !== null && age >= 18) {
+              return (
+                <Alert severity='error' sx={{ mt: 1 }}>
+                  {t('register.juniorAgeError')}
+                </Alert>
+              )
+            }
+            if (
+              member.memberType === MIKMemberTypes.JUNIOR &&
+              age !== null &&
+              age >= 0 &&
+              age < 15
+            ) {
+              return (
+                <Alert severity='error' sx={{ mt: 1 }}>
+                  {t('register.juniorMinAgeError')}
+                </Alert>
+              )
+            }
+            if (member.memberType !== MIKMemberTypes.JUNIOR && age !== null && age < 18) {
+              return (
+                <Alert severity='info' sx={{ mt: 1 }}>
+                  {t('register.juniorRecommended')}
+                </Alert>
+              )
+            }
+            return null
+          })()}
           <Box sx={{ mt: 1, mb: 0.5 }}>
             <PhoneNumberInput
               label={t('member.phone')}
@@ -390,63 +607,6 @@ const Register = () => {
             </RadioGroup>
           </FormControl>
 
-          <DateField
-            label={t('member.dateOfBirth')}
-            required={member.memberType === MIKMemberTypes.JUNIOR}
-            margin='normal'
-            value={dateOfBirth}
-            onChange={(value) => {
-              setDateOfBirth(value)
-              setMember({
-                ...member,
-                dateOfBirth: value?.format('YYYY-MM-DD'),
-              })
-            }}
-          />
-          {(() => {
-            const age = getAge(dateOfBirth)
-            if (member.memberType === MIKMemberTypes.JUNIOR && age !== null && age >= 18) {
-              return (
-                <Alert severity='error' sx={{ mt: 1 }}>
-                  {t('register.juniorAgeError')}
-                </Alert>
-              )
-            }
-            if (
-              member.memberType === MIKMemberTypes.JUNIOR &&
-              age !== null &&
-              age >= 0 &&
-              age < 15
-            ) {
-              return (
-                <Alert severity='error' sx={{ mt: 1 }}>
-                  {t('register.juniorMinAgeError')}
-                </Alert>
-              )
-            }
-            if (member.memberType !== MIKMemberTypes.JUNIOR && age !== null && age < 18) {
-              return (
-                <Alert severity='info' sx={{ mt: 1 }}>
-                  {t('register.juniorRecommended')}
-                </Alert>
-              )
-            }
-            return null
-          })()}
-
-          <Typography
-            variant='body2'
-            sx={{
-              color: 'text.secondary',
-              mt: 2,
-            }}
-          >
-            {t('register.prices', {
-              fullMemberFee: joiningFees?.fullMemberFee ?? '–',
-              reducedMemberFee: joiningFees?.reducedMemberFee ?? '–',
-            })}
-          </Typography>
-
           {registerErrors.length > 0 && (
             <Alert variant='outlined' severity='error' sx={{ mt: 2 }}>
               {registerErrors.length === 1 ? (
@@ -463,42 +623,47 @@ const Register = () => {
             </Alert>
           )}
 
-          <Button
-            type='submit'
-            variant='contained'
-            color='primary'
-            fullWidth
-            size='large'
-            sx={{
-              mt: 3,
-              mb: 2,
-              py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-            }}
-          >
-            {t('register.nextButton')}
-          </Button>
-
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Typography
-              variant='body2'
+          <Box sx={{ display: 'flex', gap: 2, mt: 3, mb: 2 }}>
+            <Button
+              variant='outlined'
+              fullWidth
+              size='large'
               sx={{
-                color: 'text.secondary',
+                py: 1.5,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+              }}
+              onClick={() => {
+                setRegisterErrors([])
+                setStep(1)
+                window.scrollTo(0, 0)
               }}
             >
-              {t('register.withAccount')}{' '}
-              <Link to='/login' color='primary'>
-                {t('register.login')}
-              </Link>
-            </Typography>
+              {t('register.backButton')}
+            </Button>
+            <Button
+              type='submit'
+              variant='contained'
+              color='primary'
+              fullWidth
+              size='large'
+              sx={{
+                py: 1.5,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+              }}
+            >
+              {t('register.nextButton')}
+            </Button>
           </Box>
         </form>
       )}
-      {/* ── PAGE 2: Flight experience + application details ─────────────── */}
-      {step === 2 && (
+      {/* ── PAGE 3: Flight experience + application details ──────────────── */}
+      {step === 3 && (
         <form onSubmit={handleSubmit}>
           {/* Flight Experience Section */}
           <Typography variant='h6' sx={{ mb: 1 }}>
@@ -670,6 +835,7 @@ const Register = () => {
           <TextField
             fullWidth
             label={t('register.coverLetter')}
+            placeholder={t('register.coverLetterPlaceholder')}
             margin='normal'
             value={member.applicationData?.coverLetter ?? ''}
             onChange={(e) => updateApplicationData('coverLetter', e.target.value)}
@@ -681,32 +847,63 @@ const Register = () => {
             }}
           />
 
-          <TextField
-            fullWidth
-            label={t('register.voluntaryWork')}
-            margin='normal'
-            value={member.applicationData?.voluntaryWork ?? ''}
-            onChange={(e) => updateApplicationData('voluntaryWork', e.target.value)}
-            required
-            multiline
-            minRows={2}
-            slotProps={{
-              htmlInput: { maxLength: 1000 },
-            }}
-          />
+          <FormControl sx={{ mt: 1, mb: 1 }}>
+            <FormLabel id='voluntary-work-label'>{t('register.voluntaryWork')}</FormLabel>
+            <FormHelperText sx={{ mt: 0, mb: 1 }}>
+              {t('register.voluntaryWorkTooltip')}
+            </FormHelperText>
+            <ToggleButtonGroup
+              aria-labelledby='voluntary-work-label'
+              exclusive
+              value={member.applicationData?.voluntaryWork ?? null}
+              onChange={(_, value: VoluntaryWorkAnswer | null) => {
+                if (value) updateApplicationData('voluntaryWork', value)
+              }}
+            >
+              <ToggleButton value={VoluntaryWorkAnswer.YES}>{t('register.yes')}</ToggleButton>
+              <ToggleButton value={VoluntaryWorkAnswer.NO}>{t('register.no')}</ToggleButton>
+              <ToggleButton value={VoluntaryWorkAnswer.MAYBE}>{t('register.maybe')}</ToggleButton>
+            </ToggleButtonGroup>
+          </FormControl>
 
-          <TextField
-            fullWidth
-            label={t('register.otherAviationClubs')}
-            margin='normal'
-            value={member.applicationData?.otherAviationClubs ?? ''}
-            onChange={(e) => updateApplicationData('otherAviationClubs', e.target.value)}
-            multiline
-            minRows={2}
-            slotProps={{
-              htmlInput: { maxLength: 500 },
-            }}
-          />
+          <FormControl sx={{ mt: 1, mb: 1 }}>
+            <FormLabel id='other-aviation-clubs-label'>
+              {t('register.otherAviationClubs')}
+            </FormLabel>
+            <RadioGroup
+              aria-labelledby='other-aviation-clubs-label'
+              value={
+                member.applicationData?.otherAviationClubs === undefined
+                  ? ''
+                  : member.applicationData.otherAviationClubs
+                    ? 'yes'
+                    : 'no'
+              }
+              onChange={({ target }) =>
+                updateApplicationData('otherAviationClubs', target.value === 'yes')
+              }
+            >
+              <FormControlLabel value='no' control={<Radio />} label={t('register.no')} />
+              <FormControlLabel value='yes' control={<Radio />} label={t('register.yes')} />
+            </RadioGroup>
+          </FormControl>
+
+          {member.applicationData?.otherAviationClubs && (
+            <TextField
+              fullWidth
+              label={t('register.otherAviationClubsDetails')}
+              placeholder={t('register.otherAviationClubsDetailsPlaceholder')}
+              margin='normal'
+              value={member.applicationData?.otherAviationClubsDetails ?? ''}
+              onChange={(e) => updateApplicationData('otherAviationClubsDetails', e.target.value)}
+              required
+              multiline
+              minRows={2}
+              slotProps={{
+                htmlInput: { maxLength: 500 },
+              }}
+            />
+          )}
 
           {/* Declarations Section */}
           <Divider sx={{ my: 3 }} />
@@ -738,6 +935,7 @@ const Register = () => {
             <TextField
               fullWidth
               label={t('register.accidentHistoryDetails')}
+              placeholder={t('register.accidentHistoryDetailsPlaceholder')}
               margin='normal'
               value={member.applicationData?.accidentHistoryDetails ?? ''}
               onChange={(e) => updateApplicationData('accidentHistoryDetails', e.target.value)}
@@ -774,6 +972,7 @@ const Register = () => {
             <TextField
               fullWidth
               label={t('register.criminalRecordDetails')}
+              placeholder={t('register.criminalRecordDetailsPlaceholder')}
               margin='normal'
               value={member.applicationData?.criminalRecordDetails ?? ''}
               onChange={(e) => updateApplicationData('criminalRecordDetails', e.target.value)}
@@ -797,6 +996,41 @@ const Register = () => {
               />
             }
             label={<Typography variant='body2'>{t('register.gdprAcceptance')}</Typography>}
+            sx={{ alignItems: 'flex-start', mt: 1 }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={member.applicationData?.feesAcknowledged ?? false}
+                onChange={(e) => updateApplicationData('feesAcknowledged', e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant='body2'>
+                <Trans {...feesAcknowledgedTrans()} components={{ bold: <strong /> }} />
+              </Typography>
+            }
+            sx={{ alignItems: 'flex-start', mt: 1 }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={member.applicationData?.rulesAccepted ?? false}
+                onChange={(e) => updateApplicationData('rulesAccepted', e.target.checked)}
+              />
+            }
+            label={
+              <Typography variant='body2'>
+                <Trans
+                  i18nKey='register.rulesAcceptance'
+                  components={{
+                    rulesLink: (
+                      <MuiLink href={CLUB_RULES_URL} target='_blank' rel='noopener noreferrer' />
+                    ),
+                  }}
+                />
+              </Typography>
+            }
             sx={{ alignItems: 'flex-start', mt: 1 }}
           />
 
@@ -836,7 +1070,7 @@ const Register = () => {
               }}
               onClick={() => {
                 setRegisterErrors([])
-                setStep(1)
+                setStep(2)
                 window.scrollTo(0, 0)
               }}
             >
@@ -868,6 +1102,55 @@ const Register = () => {
             </Button>
           </Box>
         </form>
+      )}
+      {/* ── PAGE 4: Submission confirmation ─────────────────────────────── */}
+      {step === 4 && (
+        <Box sx={{ textAlign: 'center' }}>
+          <Icon icon='mdi:check-circle' width={64} height={64} color='#4caf50' />
+          <Typography variant='h6' sx={{ mt: 2, mb: 1 }}>
+            {t('register.submittedTitle')}
+          </Typography>
+          <Typography variant='body2' sx={{ color: 'text.secondary', mb: 2 }}>
+            {t('register.submittedMessage')}
+          </Typography>
+          {submittedMemberId && (
+            <Box
+              sx={{
+                display: 'inline-block',
+                px: 2,
+                py: 1,
+                mb: 2,
+                borderRadius: 1,
+                bgcolor: 'action.hover',
+              }}
+            >
+              <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
+                {t('register.referenceLabel')}
+              </Typography>
+              <Typography variant='h6' sx={{ fontFamily: 'monospace' }}>
+                {submittedMemberId}
+              </Typography>
+            </Box>
+          )}
+          <Typography variant='body2' sx={{ color: 'text.secondary', mb: 3 }}>
+            {t('register.submittedNextSteps')}
+          </Typography>
+          <Button
+            variant='contained'
+            color='primary'
+            size='large'
+            onClick={() => navigate('/login')}
+            sx={{
+              px: 4,
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 'bold',
+            }}
+          >
+            {t('register.backToLogin')}
+          </Button>
+        </Box>
       )}
     </LoginLayout>
   )

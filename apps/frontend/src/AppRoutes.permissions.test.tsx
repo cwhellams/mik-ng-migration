@@ -80,9 +80,12 @@ describe('route table', () => {
     // and /expenses rather than a route-level <Forbidden />. The three
     // liquid-admin console pages and the treasurer's fuel tax page went to
     // apps/admin instead, gated there.
-    expect(ROUTES).toHaveLength(65)
+    //
+    // #1252 added /contact, the 66th route: a public page (see PUBLIC_PATHS
+    // below) and so ungated like the rest of the sign-in flow.
+    expect(ROUTES).toHaveLength(66)
     expect(GATED_ROUTES).toHaveLength(1)
-    expect(UNGATED_ROUTES).toHaveLength(64)
+    expect(UNGATED_ROUTES).toHaveLength(65)
   })
 
   it('opens nothing to the public beyond the sign-in routes and the 404', () => {
@@ -104,7 +107,7 @@ describe('route table', () => {
     const authLayoutPaths = [...(authLayoutBlock?.[1] ?? '').matchAll(/path='([^']+)'/g)].map(
       (match) => match[1],
     )
-    expect(authLayoutPaths.length, 'AuthLayout parsed as empty — the regex has rotted').toBe(6)
+    expect(authLayoutPaths.length, 'AuthLayout parsed as empty — the regex has rotted').toBe(7)
 
     // Plus '/*', the 404 fallback, which sits outside both layouts and so makes
     // no API call either.
