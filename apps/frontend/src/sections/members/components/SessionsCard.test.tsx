@@ -11,8 +11,15 @@ import { SessionsCard } from './SessionsCard'
 
 const MEMBER_ID = 'Matti1'
 
+// Real UUIDs: the contract declares `Session.id` as one and the terminate route
+// 404s anything that is not, so a fixture id of 'session-1' would describe a
+// payload the backend cannot produce.
+const BASE_ID = '2ec94d3d-2c97-4036-9d48-14cd6fa8980d'
+const CURRENT_ID = '3e1b015a-3248-41b1-982b-ead7bd2b3afd'
+const OTHER_ID = '7006633a-30a8-44af-b112-b4c15e9696d4'
+
 const aSession = (overrides: Partial<Session> = {}): Session => ({
-  id: 'session-1',
+  id: BASE_ID,
   ipAddress: '192.0.2.1',
   userAgent: 'Mozilla/5.0',
   device: 'Chrome on Windows',
@@ -22,9 +29,9 @@ const aSession = (overrides: Partial<Session> = {}): Session => ({
   ...overrides,
 })
 
-const currentSession = aSession({ id: 'current', device: 'Firefox on Linux', isCurrent: true })
+const currentSession = aSession({ id: CURRENT_ID, device: 'Firefox on Linux', isCurrent: true })
 const otherSession = aSession({
-  id: 'other',
+  id: OTHER_ID,
   device: 'Safari on iPhone',
   ipAddress: '198.51.100.4',
 })
@@ -97,7 +104,7 @@ describe('SessionsCard', () => {
     const otherRow = screen.getByText('Safari on iPhone').closest('li')!
     await user.click(within(otherRow).getByRole('button', { name: 'Terminate session' }))
 
-    await waitFor(() => expect(deleted).toEqual(['other']))
+    await waitFor(() => expect(deleted).toEqual([OTHER_ID]))
     expect(globalThis.confirm).toHaveBeenCalledWith(expect.stringContaining('up to 15 minutes'))
   })
 
@@ -200,7 +207,12 @@ describe('SessionsCard', () => {
     it('is offered for every row when an admin views another member, none being theirs', async () => {
       // None of the target's sessions is ever isCurrent for the admin, so all of
       // them are "other" and every terminate button is live.
-      listReturns([aSession({ id: 'a' }), aSession({ id: 'b', device: 'Edge on Windows' })])
+      // Not CURRENT_ID: on an admin's view of somebody else no row is current,
+      // and naming one that would imply otherwise.
+      listReturns([
+        aSession({ id: BASE_ID }),
+        aSession({ id: OTHER_ID, device: 'Edge on Windows' }),
+      ])
 
       renderAs(authScenarios.admin, <SessionsCard memberId={MEMBER_ID} isAdmin />)
       await screen.findByText('Edge on Windows')
