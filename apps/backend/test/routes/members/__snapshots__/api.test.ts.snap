@@ -507,6 +507,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
   "createdAt": Any<String>,
   "createdBy": "k1mnimda",
   "dateOfBirth": "1980-01-15",
+  "defaultInstructorMemberId": "Jukka1",
   "email": "chris.whellams@gmail.com",
   "emailVerifiedAt": Any<String>,
   "firstName": "Matti",
