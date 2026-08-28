@@ -350,6 +350,25 @@ export const emailTemplates = {
     },
     languages: ['en'],
   },
+
+  // ─── Shop ─────────────────────────────────────────────────────────────────
+  // Sent to the shared orders inbox (ORDER_NOTIFICATION_EMAIL), which works in
+  // English by the same argument as the kalusto mails above — #1248.
+  'shop-order-notification': {
+    subject: {
+      fi: 'New shop order #{{orderId}}',
+      sv: 'New shop order #{{orderId}}',
+      en: 'New shop order #{{orderId}}',
+    },
+    languages: ['en'],
+  },
+  'shop-order-confirmation': {
+    subject: {
+      fi: 'MIK verkkokauppa – tilausvahvistus #{{orderId}}',
+      sv: 'MIK webbutik – orderbekräftelse #{{orderId}}',
+      en: 'MIK shop – order confirmation #{{orderId}}',
+    },
+  },
 } as const satisfies Record<string, EmailTemplateSpec>
 
 export type EmailTemplateKey = keyof typeof emailTemplates
@@ -459,6 +478,28 @@ export interface EmailTemplateVars {
   }
   'aircraft-document-expiry-reminder': AircraftDocumentEmailVars & { daysUntilExpiry: number }
   'aircraft-document-expired': AircraftDocumentEmailVars
+
+  // ─── Shop ─────────────────────────────────────────────────────────────────
+  // Both built from an `Order` by ./shopEmailHelpers.ts.
+  'shop-order-notification': ShopOrderEmailVars & { memberName: string; memberEmail: string }
+  'shop-order-confirmation': ShopOrderEmailVars & { firstName: string }
+}
+
+/**
+ * What a shop order email says about the order itself.
+ *
+ * `itemsTableHtml` is pre-rendered, already-escaped HTML and is interpolated
+ * with a triple-stash; `notes` is member-supplied text and deliberately is not.
+ */
+interface ShopOrderEmailVars {
+  orderId: string
+  orderedAt: string
+  itemsTableHtml: string | undefined
+  /** Grand total, already fixed to two decimals. */
+  totalAmount: string
+  /** Empty string when the member left no note, so `{{#if notes}}` skips it. */
+  notes: string
+  href: string
 }
 
 interface BookingEmailVars {

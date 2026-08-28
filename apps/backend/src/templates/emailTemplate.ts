@@ -22,23 +22,40 @@ export const markdownEmailTemplate = (
       },
       extensions: [buttonExtension],
     })
-    .parse(template(escapeMarkdownVariables(variables)), {
+    .parse(template(escapeMarkdownVariables(variables, rawHtmlVariables(markdown))), {
       async: false,
     })
 
   return emailTemplate(body, footer)
 }
 
+// A variable the body inserts with a Handlebars triple-stash. That is the
+// template's own declaration that the value is HTML we built ourselves —
+// `itemsTableHtml`, `barcodeImageHtml`, `qrCodeImageHtml` — rather than text
+// from a member, and it is the one thing `escapeMarkdownVariables` below must
+// leave alone. Read from the markdown rather than kept as a hand-maintained
+// list, so a new raw variable cannot be forgotten.
+const rawHtmlVariables = (markdown: string): Set<string> =>
+  new Set(Array.from(markdown.matchAll(/\{\{\{\s*([\w.]+)\s*\}\}\}/g), (m) => m[1]))
+
 // Handlebars only HTML-escapes template output, so user-controlled values
 // (e.g. a member's display name) can still contain literal markdown link
 // syntax like `[button:Click me](http://evil.example)`. Escaping `[` and `]`
 // stops that text from being parsed as a markdown link or button once the
 // substituted string reaches `marked` below.
-const escapeMarkdownVariables = (variables: Record<string, unknown>): Record<string, unknown> =>
+//
+// Pre-rendered HTML is exempt: it is already escaped, `marked` passes an HTML
+// block through verbatim, and so the backslashes would be printed rather than
+// consumed. A product named `MIK cap [Navy]` inside `itemsTableHtml` reached
+// the member as `MIK cap \[Navy\]` until this exemption existed.
+const escapeMarkdownVariables = (
+  variables: Record<string, unknown>,
+  rawHtmlKeys: Set<string>,
+): Record<string, unknown> =>
   Object.fromEntries(
     Object.entries(variables).map(([key, value]) => [
       key,
-      typeof value === 'string' ? value.replace(/[[\]]/g, '\\$&') : value,
+      typeof value === 'string' && !rawHtmlKeys.has(key) ? value.replace(/[[\]]/g, '\\$&') : value,
     ]),
   )
 
@@ -124,8 +141,16 @@ const buttonExtension: TokenizerExtension & RendererExtension = {
     return src.match(/\[button:/)?.index
   },
 
+  // `(?<!\\)` on the closing bracket is what makes `escapeMarkdownVariables`'
+  // backslashes bite here. They do not on their own: `marked` consumes a
+  // leading `\[` as an inline escape and then restarts block tokenizing on the
+  // remainder, so this extension was handed a clean `[button:…` and built a
+  // real button out of a member's own text — with the member's own href on it.
+  // The closing `\]` survives that consumption, so refusing an escaped one
+  // rejects exactly the substituted values and leaves a template's own buttons
+  // (which carry no backslashes) alone.
   tokenizer(src: string): ButtonToken | undefined {
-    const rule = /^\[button:([^\]]+)\]\(([^)]+)\)/
+    const rule = /^\[button:([^\]]+)(?<!\\)\]\(([^)]+)\)/
     const match = rule.exec(src)
     if (!match) return
 

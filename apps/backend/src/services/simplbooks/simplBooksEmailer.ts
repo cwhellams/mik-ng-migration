@@ -5,6 +5,7 @@ import { sendEmail, type EmailAttachment } from '../../lib/sendGmail.ts'
 import { getInvoice, getInvoicePdf } from './simplbooksApiClient.ts'
 import { escapeHtml } from '@mik/contracts/sanitizers'
 import { markdownEmailTemplate } from '../../templates/emailTemplate.ts'
+import { buildItemsTableHtml, type ItemsTableRow } from '../../templates/itemsTableHtml.ts'
 import type { EmailLang } from '../../templates/registry.ts'
 import { normaliseEmailLang } from '../../templates/renderEmail.ts'
 import {
@@ -106,7 +107,7 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
 
   let itemsTableHtml: string | undefined
   if (invoiceRows.length > 0) {
-    itemsTableHtml = buildItemsTableHtml(invoiceRows, member.lang)
+    itemsTableHtml = buildItemsTableHtml(invoiceRows.map(taskToItemsTableRow), member.lang)
   }
 
   const emailVars = {
@@ -193,92 +194,30 @@ const INVOICE_SUBJECTS: Record<EmailLang, string> = {
  * This email deliberately sits outside the template registry (it carries PDF
  * and barcode attachments, and has a dry-run variant), so the subject/body
  * language pairing has to be kept in step by hand here — hence the shared
- * `EmailLang` keying above and in {@link ITEMS_TABLE_HEADERS}.
+ * `EmailLang` keying above.
  */
 export function invoiceEmailSubject(lang: string | undefined, invoiceId: string): string {
   return `${INVOICE_SUBJECTS[normaliseEmailLang(lang)]} - ${invoiceId}`
 }
 
-/** Line-item table column headings, keyed like {@link INVOICE_SUBJECTS}. */
-const ITEMS_TABLE_HEADERS: Record<
-  EmailLang,
-  { description: string; qty: string; unitPrice: string; total: string }
-> = {
-  fi: { description: 'Kuvaus', qty: 'Määrä', unitPrice: 'À-hinta', total: 'Yhteensä' },
-  sv: { description: 'Beskrivning', qty: 'Antal', unitPrice: 'À-pris', total: 'Totalt' },
-  en: { description: 'Description', qty: 'Qty', unitPrice: 'Unit price', total: 'Total' },
-}
-
-function buildItemsTableHtml(rows: TaskRow[], lang: string): string | undefined {
-  if (rows.length === 0) return undefined
-
-  const headers = ITEMS_TABLE_HEADERS[normaliseEmailLang(lang)]
-
-  const items = rows.map((row) => {
-    const name = escapeHtml(row.name ?? '')
-    const contents = row.contents
-      ? `<br><small style="color:#666">${escapeHtml(row.contents)}</small>`
-      : ''
-    const qty = row.amount != null ? String(row.amount) : ''
-    const unit = row.unit ? escapeHtml(row.unit) : ''
-    const unitPrice = row.price_per_unit != null ? Number(row.price_per_unit).toFixed(2) : ''
-    const lineTotal =
-      row.amount != null && row.price_per_unit != null
-        ? (row.amount * row.price_per_unit * (1 - (row.discount ?? 0) / 100)).toFixed(2)
-        : ''
-    return { name, contents, qty, unit, unitPrice, lineTotal }
-  })
-
-  const rowsHtml = items
-    .map(
-      ({ name, contents, qty, unit, unitPrice, lineTotal }) => `<tr>
-          <td style="padding:6px 8px;border-bottom:1px solid #eee">${name}${contents}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right">${qty}${unit ? `&nbsp;${unit}` : ''}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right">${unitPrice ? `€${unitPrice}` : ''}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:bold">${lineTotal ? `€${lineTotal}` : ''}</td>
-        </tr>`,
-    )
-    .join('')
-
-  const desktopTable = `<table class="items-table-desktop" style="width:100%;border-collapse:collapse;font-size:0.9em;margin:16px 0">
-      <thead>
-        <tr style="background:#f5f5f5">
-          <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #ddd">${headers.description}</th>
-          <th style="padding:6px 8px;text-align:right;border-bottom:2px solid #ddd">${headers.qty}</th>
-          <th style="padding:6px 8px;text-align:right;border-bottom:2px solid #ddd">${headers.unitPrice}</th>
-          <th style="padding:6px 8px;text-align:right;border-bottom:2px solid #ddd">${headers.total}</th>
-        </tr>
-      </thead>
-      <tbody>${rowsHtml}</tbody>
-    </table>`
-
-  // Card-stacking layout shown only on narrow screens (see .items-table-mobile
-  // media query in emailTemplate.ts) — a 4-column table can't reflow legibly
-  // on a phone, so each row becomes a labeled block instead.
-  const cardsHtml = items
-    .map(
-      ({
-        name,
-        contents,
-        qty,
-        unit,
-        unitPrice,
-        lineTotal,
-      }) => `<div style="padding:10px 0;border-bottom:1px solid #eee">
-          <div style="font-weight:bold">${name}${contents}</div>
-          <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:0.9em;color:#333">
-            <span>${headers.qty}: ${qty}${unit ? `&nbsp;${unit}` : ''}</span>
-            <span>${headers.unitPrice}: ${unitPrice ? `€${unitPrice}` : ''}</span>
-          </div>
-          <div style="text-align:right;font-weight:bold;margin-top:4px">${headers.total}: ${lineTotal ? `€${lineTotal}` : ''}</div>
-        </div>`,
-    )
-    .join('')
-
-  const mobileCards = `<div class="items-table-mobile" style="display:none;margin:16px 0;font-size:0.9em">${cardsHtml}</div>`
-
-  return desktopTable + mobileCards
-}
+/**
+ * An invoice task as the line-item table wants it.
+ *
+ * SimplBooks applies `discount` as a percentage off the line, which is why the
+ * line total is worked out here rather than inside the shared builder — see
+ * {@link ItemsTableRow}.
+ */
+const taskToItemsTableRow = (row: TaskRow): ItemsTableRow => ({
+  name: row.name ?? '',
+  note: row.contents,
+  qty: row.amount,
+  unit: row.unit,
+  unitPrice: row.price_per_unit,
+  lineTotal:
+    row.amount != null && row.price_per_unit != null
+      ? row.amount * row.price_per_unit * (1 - (row.discount ?? 0) / 100)
+      : null,
+})
 
 // ─── Dry-run invoice email ─────────────────────────────────────────────────────
 
@@ -319,7 +258,7 @@ export async function sendDryRunInvoiceEmail(
   const pmt_ref = localInvoice.pmtRef?.trim()
   const reference = pmt_ref ? pmt_ref.replace(/\s+/g, '') : undefined
 
-  const itemsTableHtml = buildItemsTableHtml(tasks, member.lang)
+  const itemsTableHtml = buildItemsTableHtml(tasks.map(taskToItemsTableRow), member.lang)
 
   const devNotice =
     `<p style="background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:10px;font-size:0.85em;color:#856404">` +

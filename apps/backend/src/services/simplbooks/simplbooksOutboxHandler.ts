@@ -1,6 +1,7 @@
 import { db } from '../../db/connection.ts'
 import { updateExpenseSimplbooksId, getExpenseClaimById } from '../../db/expense-queries.ts'
 import { getMemberById } from '../../db/member-queries.ts'
+import { localisedText } from '../../lib/localisedText.ts'
 import logger from '../../lib/logger.ts'
 import { storageService } from '../storage.ts'
 import { mergeAttachmentsToPdf } from '../../util/mergeAttachmentsToPdf.ts'
@@ -391,18 +392,12 @@ const ShopOrderItemRowSchema = z
 
 type ShopOrderItemRow = z.infer<typeof ShopOrderItemRowSchema>
 
-function extractLocalizedName(nameValue: unknown): string | undefined {
-  if (!nameValue || typeof nameValue !== 'object') {
-    return undefined
-  }
-
-  const localized = nameValue as Record<string, unknown>
-  const preferred = [localized.fi, localized.en, ...Object.values(localized)].find(
-    (value) => typeof value === 'string' && value.trim() !== '',
-  )
-
-  return typeof preferred === 'string' ? preferred : undefined
-}
+// Finnish first: an invoice line is read off a Finnish accounting document, not
+// by a member in their own language. The rest of the chain (en, then any
+// language that has text) and the shop order emails' version of it are the same
+// function — see ../../lib/localisedText.ts for why there is only one.
+const extractLocalizedName = (nameValue: unknown): string | undefined =>
+  localisedText(nameValue, 'fi') || undefined
 
 function parseProductSnapshot(value: unknown): {
   simplbooksItemId?: string

@@ -6,6 +6,11 @@ import { renderEmail } from '../../src/templates/renderEmail.ts'
 import { bookingEmailVars } from '../../src/templates/bookingEmailHelpers.ts'
 import { itemReservationEmailVars } from '../../src/templates/itemReservationEmailHelpers.ts'
 import { occurrenceEmailVars } from '../../src/templates/occurrenceEmailHelpers.ts'
+import {
+  shopOrderConfirmationVars,
+  shopOrderNotificationVars,
+} from '../../src/templates/shopEmailHelpers.ts'
+import type { Order } from '@mik/contracts/shop'
 
 // These suites snapshot the rendered HTML of every markdown-backed email. The
 // test names are deliberately unchanged from when each template had its own
@@ -416,4 +421,97 @@ describe('Responsive email wrapper', () => {
   it('includes a mobile media query', () => {
     expect(html).toMatch(/@media only screen and \(max-width: 600px\)/)
   })
+})
+
+describe('Shop order email template tests', () => {
+  // #1248 replaced the hand-rolled HTML in routes/shop/api.ts with these two
+  // registry templates. PUBLIC_URL is pinned so the snapshots do not depend on
+  // the developer's .env.
+  const originalPublicUrl = process.env.PUBLIC_URL
+
+  beforeAll(() => {
+    process.env.PUBLIC_URL = 'https://intra.example.fi'
+  })
+
+  afterAll(() => {
+    if (originalPublicUrl === undefined) delete process.env.PUBLIC_URL
+    else process.env.PUBLIC_URL = originalPublicUrl
+  })
+
+  const order = {
+    orderId: 'ORD00123',
+    memberId: 'Matti1',
+    status: 'PENDING',
+    totalAmount: 97.5,
+    discountCodeId: null,
+    discountAmount: null,
+    invoiceId: null,
+    notes: null,
+    createdAt: '2026-08-20T09:15:00.000Z',
+    createdBy: 'Matti1',
+    updatedAt: '2026-08-20T09:15:00.000Z',
+    updatedBy: 'Matti1',
+    member: {
+      memberId: 'Matti1',
+      firstName: 'Matti',
+      lastName: 'Virtanen',
+      email: 'matti@example.com',
+      phoneNumber: null,
+    },
+    items: [
+      {
+        orderItemId: 1,
+        orderId: 'ORD00123',
+        productId: 'PROD001',
+        quantity: 2,
+        unitPrice: 25,
+        totalPrice: 50,
+        selectedOptions: null,
+        productSnapshot: {
+          name: { en: 'MIK cap, navy', fi: 'MIK-lippalakki, sininen', sv: 'MIK-keps, marinblå' },
+          price: 25,
+        },
+      },
+      {
+        orderItemId: 2,
+        orderId: 'ORD00123',
+        productId: 'PROD002',
+        quantity: 1,
+        unitPrice: 47.5,
+        totalPrice: 47.5,
+        selectedOptions: null,
+        // A product deleted before anyone looked at the order: the snapshot has
+        // no name left, so the email falls back to `Product #<id>`.
+        productSnapshot: {},
+      },
+    ],
+  } as unknown as Order
+
+  const orderWithNotes = { ...order, notes: 'Please leave at the clubhouse desk' } as Order
+
+  it('shopOrderNotificationEmailBodyHtml', () => {
+    expect(
+      renderEmail('shop-order-notification', MIKLang.EN, shopOrderNotificationVars(order)).html,
+    ).toMatchSnapshot()
+  })
+
+  it('shopOrderNotificationEmailBodyHtml with the member’s notes', () => {
+    expect(
+      renderEmail('shop-order-notification', MIKLang.EN, shopOrderNotificationVars(orderWithNotes))
+        .html,
+    ).toMatchSnapshot()
+  })
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'shopOrderConfirmationEmailBodyHtml for lang: %s',
+    (lang) => {
+      expect(
+        renderEmail(
+          'shop-order-confirmation',
+          lang,
+          shopOrderConfirmationVars(orderWithNotes, 'Matti', lang),
+        ).html,
+      ).toMatchSnapshot()
+    },
+  )
 })

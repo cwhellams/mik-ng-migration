@@ -47,6 +47,7 @@ import {
 import { isAdminShopView, isPurchasableProduct } from './shop-visibility.ts'
 import { getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
+import { sendShopOrderEmails } from '../../templates/shopOrderEmails.ts'
 import logger from '../../lib/logger.ts'
 
 export const router = Router()
@@ -349,29 +350,14 @@ router.post(
     }
     const order = await createOrderFromCart(req.user!.memberId, data, req.user!)
 
-    // Send order notification email to the orders inbox (fire-and-forget)
-    const notifyEmail = process.env.ORDER_NOTIFICATION_EMAIL
-    if (notifyEmail) {
-      const member = order.member
-      const itemRows = (order.items ?? [])
-        .map(
-          (i) =>
-            `<tr><td>${i.productId}</td><td>${i.quantity}</td><td>€${i.unitPrice.toFixed(2)}</td><td>€${i.totalPrice.toFixed(2)}</td></tr>`,
-        )
-        .join('')
-      const html = `
-        <h2>New shop order #${order.orderId}</h2>
-        <p><strong>Member:</strong> ${member?.firstName ?? ''} ${member?.lastName ?? ''} &lt;${member?.email ?? req.user!.email}&gt;</p>
-        <table border="1" cellpadding="4" cellspacing="0">
-          <thead><tr><th>Product</th><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead>
-          <tbody>${itemRows}</tbody>
-        </table>
-        <p><strong>Order total: €${order.totalAmount.toFixed(2)}</strong></p>
-        ${order.notes ? `<p><strong>Notes:</strong> ${order.notes}</p>` : ''}
-      `
-      sendEmail(notifyEmail, `New order #${order.orderId}`, html).catch((err: unknown) =>
-        logger.error('Failed to send order notification email', err),
-      )
+    // Notify the shop inbox and confirm to the member. Best-effort: the order
+    // is committed, so nothing here may turn a successful purchase into a 500.
+    // Rendering is synchronous and the sends are fire-and-forget, so this adds
+    // no latency and no database round-trip to the response.
+    try {
+      sendShopOrderEmails(sendEmail, order, req.user!.email)
+    } catch (err: unknown) {
+      logger.error('Failed to send shop order emails', err)
     }
 
     res.status(HttpStatusCode.Created).json(order)

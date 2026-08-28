@@ -26,6 +26,7 @@ import type { Json, JsonValue } from './schema.d.ts'
 import { insertOutboxItem } from './outbox-simplbooks-queries.ts'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
 import { problem } from '../routes/response.ts'
+import type { MIKLang } from '@mik/contracts/members'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -993,6 +994,9 @@ export async function getOrders(filters?: OrderFilters): Promise<OrderListRespon
       'm.lastName as memberLastName',
       'm.email as memberEmail',
       'm.phoneNumber as memberPhoneNumber',
+      // Carried so the order confirmation email can be written in the member's
+      // own language without a second query — see ../templates/shopOrderEmails.ts.
+      'm.langIso639 as memberLang',
     ])
   let countQuery = db
     .selectFrom('shop.orders as o')
@@ -1079,6 +1083,9 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
       'm.lastName as memberLastName',
       'm.email as memberEmail',
       'm.phoneNumber as memberPhoneNumber',
+      // Carried so the order confirmation email can be written in the member's
+      // own language without a second query — see ../templates/shopOrderEmails.ts.
+      'm.langIso639 as memberLang',
     ])
     .where('o.orderId', '=', id)
     .executeTakeFirst()
@@ -1109,6 +1116,7 @@ function mapOrder(r: Record<string, unknown>): Order {
   const firstName = r.memberFirstName as string | undefined
   const lastName = r.memberLastName as string | undefined
   const email = r.memberEmail as string | undefined
+  const lang = r.memberLang as MIKLang | undefined
 
   return {
     orderId: r.orderId as string,
@@ -1127,6 +1135,7 @@ function mapOrder(r: Record<string, unknown>): Order {
             lastName,
             email,
             phoneNumber: (r.memberPhoneNumber as string | null) ?? null,
+            lang,
           }
         : undefined,
     createdAt: (r.createdAt instanceof Date

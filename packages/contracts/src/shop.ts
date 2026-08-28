@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MIKLang } from './members.ts'
 import {
   AuditableSchema,
   LocalisedSchema,
@@ -190,6 +191,13 @@ export const OrderMemberSchema = z.object({
   lastName: z.string(),
   email: z.string().email(),
   phoneNumber: z.string().nullable().optional(),
+  /**
+   * The member's own language, carried so the order confirmation email can be
+   * written in it without a second lookup — `getOrderById` already joins
+   * `member.register` for the four fields above. Optional because an order
+   * whose member row has since gone still parses.
+   */
+  lang: z.nativeEnum(MIKLang).nullable().optional(),
 })
 export type OrderMember = z.infer<typeof OrderMemberSchema>
 
