@@ -1,6 +1,15 @@
 -- Default instructors, so the pre-fill in #1304 is something a developer can
 -- actually click through in `pnpm dev`.
 --
+-- V420 is deliberately skipped, not missing: open PR #1301 holds
+-- V420__DispatchDayTestData.sql. Flyway's `outOfOrder` is false everywhere here, so
+-- whichever of the two merges *second* has to be the higher number — if this one lands
+-- first, #1301 renumbers. Nothing in the deployed path is affected either way: this
+-- directory is dev/CI-only (the beta and prod workflows mount schema/static_data, and
+-- only borrow testdata.conf for its flyway_data_history table), and both places that do
+-- apply it start from an empty history — `baseline_database.sh` runs flyway clean first,
+-- and CI gets a fresh Postgres service container per job.
+--
 -- The column arrived in V1500__AddDefaultInstructorToMemberRegister.sql without any
 -- test data, which is why neither the flight log's instructor crew slot nor the new
 -- training-booking pre-fill did anything against a freshly baselined database.
