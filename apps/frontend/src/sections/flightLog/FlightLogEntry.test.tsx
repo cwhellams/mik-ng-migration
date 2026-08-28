@@ -3,7 +3,7 @@ import type { Defect } from '@mik/contracts/defects'
 import type { Remark } from '@mik/contracts/remarks'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   aFlightLog,
@@ -99,6 +99,7 @@ describe('FlightLogEntry wizard-to-classic-form draft transfer', () => {
 
   afterEach(() => {
     window.matchMedia = originalMatchMedia
+    vi.useRealTimers()
   })
 
   it('prefills the classic form from the wizard draft when switching via "Use full form instead", and clears the draft', async () => {
@@ -135,6 +136,16 @@ describe('FlightLogEntry wizard-to-classic-form draft transfer', () => {
     // already had, so RHF's own onChange-triggered validation never re-ran for
     // them and the stale "required" error from before the field was resolved
     // used to sit in formState.errors forever, keeping Save disabled.
+    //
+    // FlightTime defaults `flightDate` to today when the form has no `data` prop
+    // (a brand-new entry, as here), then recombines that "today" with the
+    // fixture's fixed time-of-day (09:00-11:00 UTC, see aFlightLog). Freeze the
+    // clock inside that window so the recombined times never land in the future
+    // and trip the "None of the times may be in the future" validation -- outside
+    // this window (e.g. before 09:00 UTC) the un-frozen test flakes for exactly
+    // that reason.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date('2025-06-02T12:00:00.000Z'))
     wizardToClassicApi()
     const posted: unknown[] = []
     server.use(
