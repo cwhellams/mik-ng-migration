@@ -56,6 +56,7 @@ import { NotesStep } from './steps/NotesStep'
 import { ReviewStep } from './steps/ReviewStep'
 import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
 import { useOverlapCheck } from '../useOverlapCheck'
+import { LongTaxiWarningDialog } from '../components/LongTaxiWarningDialog'
 import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
 import { useDefectGroundingConfirm } from '../useDefectGroundingConfirm'
 import { useLongTaxiCheck } from '../useLongTaxiCheck'
@@ -400,14 +401,7 @@ const FlightLogEntryWizardInner = ({
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(flightId)
   const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
-  const { withLongTaxiCheck, longLegs, longTaxiDialogProps } = useLongTaxiCheck()
-  const longTaxiMessage = longLegs
-    .map((leg) =>
-      t(leg.leg === 'out' ? 'flightLog.longTaxi.outMessage' : 'flightLog.longTaxi.inMessage', {
-        minutes: leg.minutes,
-      }),
-    )
-    .join(' ')
+  const { withLongTaxiCheck, longTaxiDialogProps } = useLongTaxiCheck()
 
   // Set the instant the draft is intentionally cleared (discard, or a successful
   // save) so the debounced autosave below can never resurrect it. Clearing storage
@@ -823,14 +817,7 @@ const FlightLogEntryWizardInner = ({
       </Dialog>
 
       <OverlapWarningDialog {...overlapDialogProps} />
-      <ConfirmDialog
-        {...longTaxiDialogProps}
-        title={t('flightLog.longTaxi.confirmTitle')}
-        message={longTaxiMessage}
-        confirmText={t('flightLog.longTaxi.confirmButton')}
-        cancelText={t('general.cancel')}
-        severity='info'
-      />
+      <LongTaxiWarningDialog {...longTaxiDialogProps} />
       <ConfirmDialog
         {...groundingDialogProps}
         title={t('flightLog.defects.groundingConfirmTitle')}

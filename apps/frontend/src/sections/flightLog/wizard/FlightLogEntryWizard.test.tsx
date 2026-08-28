@@ -880,7 +880,7 @@ describe('FlightLogEntryWizard long taxi confirmation', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }))
 
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByText(/65 minutes of taxi-out time/)).toBeInTheDocument()
+    expect(within(dialog).getByText('Taxi-out (off-block → takeoff): 65 min')).toBeInTheDocument()
     // still on the departure-times step -- the confirmation gates advancing, it
     // doesn't wait until Review/Accept at the end of the wizard.
     expect(screen.getByText('Off-block & takeoff time')).toBeInTheDocument()
@@ -937,8 +937,43 @@ describe('FlightLogEntryWizard long taxi confirmation', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }))
 
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByText(/35 minutes of taxi-in time/)).toBeInTheDocument()
+    expect(within(dialog).getByText('Taxi-in (landing → on-block): 35 min')).toBeInTheDocument()
     expect(screen.getByText('Landing & on-block time')).toBeInTheDocument()
+  })
+
+  it('keeps one box per step -- the departure step never mentions the arrival leg', async () => {
+    // #1250 asked for both legs in one box; that applies to the classic form, which
+    // collects all four times on one page. The wizard asks on the step that collected
+    // the times (#1223 follow-up), so a flight long on both legs is asked about twice,
+    // each time about the leg the pilot is looking at.
+    wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog({ ...longTaxiOutOverrides, ...longTaxiInOverrides }),
+      initialStep: 'timeDeparture',
+      onClose: () => {},
+    })
+    await screen.findByText('Off-block & takeoff time')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Taxi-out (off-block → takeoff): 65 min')).toBeInTheDocument()
+    expect(within(dialog).queryByText(/Taxi-in/)).not.toBeInTheDocument()
+
+    // ... and the arrival step then asks about the other leg on its own.
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
+    await screen.findByText('Landing & on-block time')
+    // The confirmed dialog is still in the DOM mid-transition, and while it is, it
+    // hides the step's own controls from the accessibility tree.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+
+    const arrivalDialog = await screen.findByRole('dialog')
+    expect(
+      within(arrivalDialog).getByText('Taxi-in (landing → on-block): 35 min'),
+    ).toBeInTheDocument()
+    expect(within(arrivalDialog).queryByText(/Taxi-out/)).not.toBeInTheDocument()
   })
 
   it('does not ask again on Review/Accept for a flight opened straight there with an already-long taxi', async () => {

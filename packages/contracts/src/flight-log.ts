@@ -258,7 +258,7 @@ export const FlightLogTimesSchema = z.object({
 
 type FlightLogTimes = z.infer<typeof FlightLogTimesSchema>
 
-// Taxi legs have no hard cap at the useLongTaxiCheck thresholds (60/30 min) -- a
+// Taxi legs have no hard cap at the useLongTaxiCheck threshold (30 min) -- a
 // long one due to taxiway congestion is only a client-side confirmation (#1223),
 // not a blocked submission. But leaving them fully unbounded meant a caller that
 // bypasses the UI (or a garbage input, e.g. an off-block epoch of 0) fell through

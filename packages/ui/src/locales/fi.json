@@ -1508,8 +1508,9 @@
     },
     "longTaxi": {
       "confirmTitle": "Pitkä rullausaika",
-      "outMessage": "Olet syöttänyt {{minutes}} minuuttia rullausaikaa lähtöön, vahvista että tämä on oikein.",
-      "inMessage": "Olet syöttänyt {{minutes}} minuuttia rullausaikaa saapumisen jälkeen, vahvista että tämä on oikein.",
+      "intro": "Tarkista alla olevat rullausajat ja vahvista, että ne ovat oikein.",
+      "outItem": "Rullaus lähtöön (lähtöaika → nousuaika): {{minutes}} min",
+      "inItem": "Rullaus saapumisessa (laskuaika → saapumisaika): {{minutes}} min",
       "confirmButton": "Vahvista ja tallenna"
     },
     "includeCrewFlights": "Näytä myös lennot ohjaamomiehistössä",
