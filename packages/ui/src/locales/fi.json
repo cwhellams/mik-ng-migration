@@ -326,6 +326,23 @@
       "unsupportedBrowser": "Selaimesi ei tue avainkoodeja.",
       "insecureContext": "Avainkoodit vaativat suojatun HTTPS-yhteyden."
     },
+    "sessions": {
+      "title": "Istunnot",
+      "empty": "Ei muita aktiivisia istuntoja.",
+      "thisDevice": "Tämä laite",
+      "unknownDevice": "Tuntematon laite",
+      "created": "Kirjauduttu",
+      "lastActive": "Viimeksi aktiivinen",
+      "unknownIp": "IP-osoite tuntematon",
+      "terminate": "Päätä istunto",
+      "terminateConfirm": "Päätetäänkö istunto laitteella {{device}}? Voimaantulo voi kestää jopa 15 minuuttia — istunto pysyy aktiivisena kyseisellä laitteella, kunnes sen nykyinen kirjautuminen vanhenee.",
+      "terminateAdminConfirm": "Päätetäänkö jäsenen istunto laitteella {{device}}? Voimaantulo voi kestää jopa 15 minuuttia — istunto pysyy aktiivisena kyseisellä laitteella, kunnes sen nykyinen kirjautuminen vanhenee.",
+      "terminateCurrent": "Päätä tämän laitteen istunto kirjautumalla ulos.",
+      "revokeOthers": "Kirjaa ulos kaikista muista istunnoista",
+      "revokeOthersConfirm": "Kirjataanko ulos kaikista muista istunnoista? Pysyt kirjautuneena tällä laitteella. Voimaantulo voi kestää jopa 15 minuuttia — jokainen muu istunto pysyy aktiivisena, kunnes sen nykyinen kirjautuminen vanhenee.",
+      "revokeOthersAdminConfirm": "Kirjataanko jäsen ulos kaikista istunnoistaan? Voimaantulo voi kestää jopa 15 minuuttia — jokainen istunto pysyy aktiivisena, kunnes sen nykyinen kirjautuminen vanhenee.",
+      "delayNotice": "Istunnon päättäminen voi kestää jopa 15 minuuttia — se pysyy aktiivisena muualla, kunnes kyseisen laitteen nykyinen kirjautuminen vanhenee."
+    },
     "pushNotifications": {
       "title": "Push-ilmoitukset",
       "description": "Saat selainilmoituksen tunti ennen varauksesi alkua tällä laitteella.",

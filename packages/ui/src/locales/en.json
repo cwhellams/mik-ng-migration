@@ -327,6 +327,23 @@
       "unsupportedBrowser": "Your browser does not support passkeys.",
       "insecureContext": "Passkeys require a secure HTTPS connection."
     },
+    "sessions": {
+      "title": "Sessions",
+      "empty": "No other active sessions.",
+      "thisDevice": "This device",
+      "unknownDevice": "Unknown device",
+      "created": "Signed in",
+      "lastActive": "Last active",
+      "unknownIp": "IP address unknown",
+      "terminate": "Terminate session",
+      "terminateConfirm": "Terminate the session on {{device}}? It can take up to 15 minutes to take effect — the session stays active on that device until its current sign-in expires.",
+      "terminateAdminConfirm": "Terminate this member's session on {{device}}? It can take up to 15 minutes to take effect — the session stays active on that device until its current sign-in expires.",
+      "terminateCurrent": "Use Log out to end the session on this device.",
+      "revokeOthers": "Log out of all other sessions",
+      "revokeOthersConfirm": "Log out of all other sessions? You will stay signed in on this device. It can take up to 15 minutes to take effect — each other session stays active until its current sign-in expires.",
+      "revokeOthersAdminConfirm": "Log this member out of all their sessions? It can take up to 15 minutes to take effect — each session stays active until its current sign-in expires.",
+      "delayNotice": "Terminating a session can take up to 15 minutes to take effect — it stays active elsewhere until that device's current sign-in expires."
+    },
     "pushNotifications": {
       "title": "Push Notifications",
       "description": "Get a browser notification 1 hour before your bookings start on this device.",

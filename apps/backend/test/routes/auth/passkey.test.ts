@@ -45,6 +45,17 @@ jest.unstable_mockModule('../../../src/db/auth-queries.ts', () => ({
   createLoginEvent: mockCreateLoginEvent,
 }))
 
+const mockCreateSession = jest.fn<(...a: any[]) => Promise<string>>()
+
+jest.unstable_mockModule('../../../src/db/session-queries.ts', () => ({
+  createSession: mockCreateSession,
+  touchSession: jest.fn(),
+  revokeSession: jest.fn(),
+  revokeOtherSessions: jest.fn(),
+  getActiveSessionsForMember: jest.fn(),
+  getSessionById: jest.fn(),
+}))
+
 jest.unstable_mockModule('@simplewebauthn/server', () => ({
   generateRegistrationOptions: mockGenerateRegistrationOptions,
   verifyRegistrationResponse: mockVerifyRegistrationResponse,
@@ -79,6 +90,7 @@ process.env.REFRESH_TOKEN_EXPIRATION = '7d'
 
 const { passkeyRouter, memberPasskeysRouter } = await import('../../../src/routes/auth/passkey.ts')
 const { problemErrorHandler } = await import('../../../src/routes/response.ts')
+const { decodeRefreshToken } = await import('../../../src/routes/auth/token.ts')
 
 const app = express()
 app.use(express.json())
@@ -95,6 +107,7 @@ app.use(problemErrorHandler)
 describe('Passkey routes', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockCreateSession.mockResolvedValue('cccccccc-cccc-cccc-cccc-cccccccccccc')
     mockUser = {
       memberId: 'tester01',
       lastName: 'Tester',
@@ -354,6 +367,7 @@ describe('Passkey routes', () => {
 
       const res = await request(app)
         .post('/api/auth/passkey/authentication/verify')
+        .set('user-agent', 'jest-agent')
         .send({ email: 'm1@example.com', response: { id: 'cred-1' } })
 
       expect(res.status).toBe(200)
@@ -363,8 +377,11 @@ describe('Passkey routes', () => {
         'm1',
         'passkey_login_success',
         expect.any(String),
-        undefined,
+        'jest-agent',
       )
+      // A passkey login is a sign-in like any other, so it opens a session
+      // registry row (#1234) whose id is what the refresh token below carries.
+      expect(mockCreateSession).toHaveBeenCalledWith('m1', expect.any(String), 'jest-agent')
       // Cookies must be set
       const setCookies = res.headers['set-cookie'] as unknown as string[]
       expect(Array.isArray(setCookies) ? setCookies : [setCookies]).toEqual(
@@ -373,6 +390,12 @@ describe('Passkey routes', () => {
           expect.stringContaining('refreshToken='),
         ]),
       )
+
+      const refresh = setCookies
+        .find((c) => c.startsWith('refreshToken='))!
+        .split(';')[0]
+        .slice('refreshToken='.length)
+      expect(decodeRefreshToken(refresh).jti).toBe('cccccccc-cccc-cccc-cccc-cccccccccccc')
     })
   })
 

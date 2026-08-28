@@ -109,6 +109,7 @@ import logger from '../../lib/logger.ts'
 import { removeMemberFromBrevo } from '../../workers/brevoSyncWorker.ts'
 import { getCurrentYear } from '../../services/simplbooks/simplbooksOutboxHandler.ts'
 import { memberPasskeysRouter } from '../auth/passkey.ts'
+import { memberSessionsRouter } from '../auth/session.ts'
 import { generateMagicLinkToken } from '../auth/magiclink.ts'
 import {
   createPendingEmailChange,
@@ -123,6 +124,10 @@ export const router = Router()
 // Mount passkey-management subroutes for self (/me/passkeys) and admin (/:memberId/passkeys).
 router.use('/me/passkeys', memberPasskeysRouter)
 router.use('/:memberId/passkeys', memberPasskeysRouter)
+
+// Same self-or-admin split for the active-session list (#1234).
+router.use('/me/sessions', memberSessionsRouter)
+router.use('/:memberId/sessions', memberSessionsRouter)
 
 const isMemberAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.MEMBER_ADMIN) ?? false

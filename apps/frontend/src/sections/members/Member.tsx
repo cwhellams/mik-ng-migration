@@ -73,6 +73,7 @@ import { Title } from '@mik/ui/components/Title'
 import { sanitizeUrl } from '@mik/contracts/sanitizers'
 import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { PasskeysCard } from './components/PasskeysCard'
+import { SessionsCard } from './components/SessionsCard'
 import { PushNotificationsCard } from './components/PushNotificationsCard'
 import { ApplicationDataCard } from './components/ApplicationDataCard'
 import { GdprExportCard } from './components/GdprExportCard'
@@ -727,6 +728,11 @@ const MemberProfile = () => {
           />
 
           {!isExternalUser && <PasskeysCard memberId={memberId!} isAdmin={isAdmin} />}
+
+          {/* Same gate as PasskeysCard's, and for the same reason: the backend
+              already answers 403 for a non-admin asking about someone else, so a
+              second frontend gate here would only be able to disagree with it. */}
+          {!isExternalUser && <SessionsCard memberId={memberId!} isAdmin={isAdmin} />}
 
           {!isExternalUser && memberId === 'me' && <PushNotificationsCard />}
 
