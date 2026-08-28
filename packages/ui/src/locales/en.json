@@ -1672,6 +1672,14 @@
       "oilLinkFailed": "The flight saved, but the oil record could not be linked: {{detail}} You can link it manually below.",
       "fuelLabel": "Fuel",
       "oilLabel": "Oil"
+    },
+    "safetyPrompt": {
+      "title": "Safety related incidents or observations?",
+      "body": "You logged a remark, defect or observation on this flight. If safety was affected, please file an occurrence report — we'll carry this flight's details over so you don't have to type them again.",
+      "yes": "Yes, start a report",
+      "no": "No",
+      "defectLabel": "Defect",
+      "remarkLabel": "Remark"
     }
   },
   "invoicing": {
@@ -2331,6 +2339,13 @@
       "exportButton": "Generate PDF",
       "exporting": "Generating...",
       "failed": "Generating the register failed. Please try again."
+    },
+    "draft": {
+      "restored": "Resumed your unfinished report.",
+      "startFresh": "Start fresh",
+      "ambiguousTitle": "Unfinished reports found",
+      "ambiguousBody": "You have {{count}} unfinished occurrence reports saved from other tabs.",
+      "resumeMostRecent": "Resume most recent"
     }
   },
   "outbox": {

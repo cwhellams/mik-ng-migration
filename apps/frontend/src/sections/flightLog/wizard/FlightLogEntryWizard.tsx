@@ -59,6 +59,8 @@ import { useOverlapCheck } from '../useOverlapCheck'
 import { LongTaxiWarningDialog } from '../components/LongTaxiWarningDialog'
 import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
 import { useDefectGroundingConfirm } from '../useDefectGroundingConfirm'
+import { useSafetyReportPrompt } from '../useSafetyReportPrompt'
+import { SafetyReportPromptDialog } from '../components/SafetyReportPromptDialog'
 import { useLongTaxiCheck } from '../useLongTaxiCheck'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { hasBlankReportedDefect, submitReportedDefects } from '../reportDefectsApi'
@@ -401,6 +403,7 @@ const FlightLogEntryWizardInner = ({
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(flightId)
   const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
+  const { withSafetyPrompt, safetyPromptProps } = useSafetyReportPrompt()
   const { withLongTaxiCheck, longTaxiDialogProps } = useLongTaxiCheck()
 
   // Set the instant the draft is intentionally cleared (discard, or a successful
@@ -627,10 +630,32 @@ const FlightLogEntryWizardInner = ({
       }
 
       discardDraft()
-      if (isEditing) {
-        onClose?.()
+      const goOn = () => {
+        if (isEditing) {
+          onClose?.()
+        } else {
+          navigate(`/logs${location.state ?? ''}#${saved?.flightId ?? ''}`)
+        }
+      }
+      // #1225: a remark, defect or observation on this flight may be a safety
+      // matter, and only the pilot knows. Asked here rather than before the save,
+      // since the answer changes where they go next, not whether the entry is stored.
+      if (savedFlightId) {
+        withSafetyPrompt(
+          {
+            sourceFlightId: savedFlightId,
+            flight: data,
+            content: {
+              incidentOrObservations: data.incidentOrObservations,
+              previousIncidentOrObservations: initialData?.incidentOrObservations,
+              reportedDefects,
+              reportedRemarks,
+            },
+          },
+          goOn,
+        )
       } else {
-        navigate(`/logs${location.state ?? ''}#${saved?.flightId ?? ''}`)
+        goOn()
       }
     } finally {
       setSubmitting(false)
@@ -826,6 +851,7 @@ const FlightLogEntryWizardInner = ({
         cancelText={t('general.cancel')}
         severity='warning'
       />
+      <SafetyReportPromptDialog {...safetyPromptProps} />
     </WizardShell>
   )
 }

@@ -2,6 +2,7 @@ import { FlightLogStatus, FlightLogUpsertSchema, type FlightLog } from '@mik/con
 import type { Defect } from '@mik/contracts/defects'
 import type { Remark } from '@mik/contracts/remarks'
 import { screen, waitFor, within } from '@testing-library/react'
+import { Route, Routes, useLocation } from 'react-router'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -18,6 +19,7 @@ import { apiUrl, problemResponse } from '../../../test/msw/handlers'
 import { server } from '../../../test/msw/server'
 import { renderWithProviders } from '../../../test/renderWithProviders'
 import { FlightLogEntryWizard } from './FlightLogEntryWizard'
+import { readOccurrencePrefill } from '../safetyOccurrence'
 
 /**
  * The mobile flight log wizard (#1115 §11). Eleven steps, each gated on its own
@@ -994,5 +996,147 @@ describe('FlightLogEntryWizard long taxi confirmation', () => {
 
     await waitFor(() => expect(state.writes).toHaveLength(1))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * The "was safety affected?" prompt (#1225). Fires after the save has already
+ * succeeded, so it never stands between the pilot and a stored entry — it only
+ * decides whether they go on to a pre-filled occurrence report.
+ */
+const OccurrenceLanding = () => {
+  const prefill = readOccurrencePrefill(useLocation().state)
+  return <span>occurrence form for {prefill?.description}</span>
+}
+
+const renderWizardRouted = (props: Partial<Parameters<typeof FlightLogEntryWizard>[0]> = {}) =>
+  renderWithProviders(
+    <Routes>
+      <Route
+        path='/logs/new'
+        element={<FlightLogEntryWizard onSwitchToClassicForm={() => {}} {...props} />}
+      />
+      <Route path='/logs/occurrences/new' element={<OccurrenceLanding />} />
+    </Routes>,
+    { route: '/logs/new' },
+  )
+
+describe('FlightLogEntryWizard safety report prompt', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  const observedOnReview = (observation: string | null) => {
+    const validValues = FlightLogUpsertSchema.strip().parse(anEditableLog())
+    seedDraft('new', {
+      // A brand new entry must have oil resolved before the resolver accepts it;
+      // the fixture leaves it null.
+      values: { ...validValues, oilUpliftLitres: 0, incidentOrObservations: observation },
+      stepIndex: 10,
+      flightDateIso: new Date(Number(validValues.offBlockTimeEpoch) * 1000).toISOString(),
+      nightOrIfr: false,
+      reportedDefects: [],
+      reportedRemarks: [],
+    })
+  }
+
+  it('asks whether safety was affected once the pilot notes an observation', async () => {
+    const state = wizardApi()
+    observedOnReview('Engine ran rough on climb')
+
+    const { user } = renderWizard()
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    expect(await screen.findByText('Safety related incidents or observations?')).toBeInTheDocument()
+    // Asked after the fact: the entry is already stored either way.
+    expect(state.writes).toHaveLength(1)
+  })
+
+  it('asks nothing when the entry noted nothing', async () => {
+    const state = wizardApi()
+    observedOnReview(null)
+
+    const { user } = renderWizard()
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(screen.queryByText('Safety related incidents or observations?')).toBeNull()
+  })
+
+  it('does not ask again about an observation the entry was opened with', async () => {
+    const state = wizardApi()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog({ incidentOrObservations: 'Engine ran rough on climb' }),
+      initialStep: 'review',
+      onClose: () => {},
+    })
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(screen.queryByText('Safety related incidents or observations?')).toBeNull()
+  })
+
+  it('closes the editor as usual when the answer is no', async () => {
+    wizardApi()
+    const onClose = vi.fn()
+
+    const { user } = renderWizard({
+      flightId: 'fi_inst1',
+      initialData: anEditableLog({ incidentOrObservations: null }),
+      initialStep: 'notes',
+      onClose,
+    })
+    await screen.findByText('Notes')
+    await user.type(screen.getByLabelText(/incidents or observations/i), 'Rough')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+
+    await user.click(await screen.findByRole('button', { name: 'No' }))
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
+  })
+
+  it('hands the flight over to a pre-filled occurrence report when the answer is yes', async () => {
+    wizardApi()
+    observedOnReview('Engine ran rough on climb')
+
+    const { user } = renderWizardRouted()
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+    await user.click(await screen.findByRole('button', { name: 'Yes, start a report' }))
+
+    expect(
+      await screen.findByText('occurrence form for Engine ran rough on climb'),
+    ).toBeInTheDocument()
+  })
+
+  it('carries a defect reported alongside the entry into the report’s description', async () => {
+    wizardApi()
+    const validValues = FlightLogUpsertSchema.strip().parse(anEditableLog())
+    seedDraft('new', {
+      values: { ...validValues, oilUpliftLitres: 0, incidentOrObservations: null },
+      stepIndex: 10,
+      flightDateIso: new Date(Number(validValues.offBlockTimeEpoch) * 1000).toISOString(),
+      nightOrIfr: false,
+      reportedDefects: ['Nosewheel shimmy'],
+      reportedRemarks: [],
+    })
+
+    const { user } = renderWizardRouted()
+    await screen.findByText('Review')
+    await user.click(screen.getByRole('button', { name: 'Accept' }))
+    // A reported defect grounds the aircraft, which is confirmed first.
+    await user.click(await screen.findByRole('button', { name: 'Confirm & Save' }))
+    await user.click(await screen.findByRole('button', { name: 'Yes, start a report' }))
+
+    expect(
+      await screen.findByText('occurrence form for Defect: Nosewheel shimmy'),
+    ).toBeInTheDocument()
   })
 })

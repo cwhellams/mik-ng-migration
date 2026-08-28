@@ -1,5 +1,6 @@
 import { MIKPermissions } from '@mik/contracts/members'
 import { OccurrenceStatus, type Occurrence } from '@mik/contracts/occurrences'
+import type { OccurrencePrefill } from '../flightLog/safetyOccurrence'
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -474,5 +475,275 @@ describe('OccurrenceEntry comments', () => {
     renderExisting()
 
     expect(await screen.findByRole('button', { name: 'Add Comment' })).toBeInTheDocument()
+  })
+})
+
+/**
+ * The receiving half of the flight log's "was safety affected?" prompt (#1225).
+ * Nothing is written server-side by answering yes — the flight's data is handed over
+ * in the router's own state, and the report exists only once the pilot submits it.
+ * What is persisted is the *draft*, in localStorage, so a reload on the apron doesn't
+ * throw away a half-written report.
+ */
+const DRAFT_KEY_PREFIX = 'wizardDraft:occurrence:new'
+
+const aPrefill = (overrides: Partial<OccurrencePrefill> = {}): OccurrencePrefill => ({
+  sourceFlightId: 'fl-1',
+  occurrenceDate: '2026-05-01T09:00:00.000Z',
+  aircraftRegistration: 'OH-STL',
+  departureAirport: 'EFNU',
+  arrivalAirport: 'EFHK',
+  description: 'Engine ran rough on climb',
+  ...overrides,
+})
+
+const renderFromFlight = (prefill: OccurrencePrefill = aPrefill()) =>
+  renderWithProviders(<OccurrenceEntry />, {
+    route: '/logs/occurrences/new',
+    routeState: { occurrencePrefill: prefill },
+    path: '/logs/occurrences/:reportId',
+  })
+
+/** Writes a draft straight into storage under this tab's own key. */
+const seedDraft = (value: unknown, savedAt = Date.now()) => {
+  const tabId = sessionStorage.getItem('wizardDraft:tabId')
+  localStorage.setItem(`${DRAFT_KEY_PREFIX}:${tabId}`, JSON.stringify({ savedAt, value }))
+}
+
+const draftValues = () => {
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key?.startsWith(`${DRAFT_KEY_PREFIX}:`)) {
+      return JSON.parse(localStorage.getItem(key)!).value as {
+        values: Record<string, unknown>
+        sourceFlightId: string | null
+      }
+    }
+  }
+  return undefined
+}
+
+describe('OccurrenceEntry prefilled from a flight log', () => {
+  it('carries the flight’s account over as the description', async () => {
+    occurrencesApi()
+
+    renderFromFlight()
+
+    expect(await screen.findByRole('textbox', { name: /Description/ })).toHaveValue(
+      'Engine ran rough on climb',
+    )
+  })
+
+  it('carries the aircraft and both airports over', async () => {
+    occurrencesApi()
+
+    renderFromFlight()
+
+    expect(await screen.findByRole('combobox', { name: /Aircraft/ })).toHaveTextContent('OH-STL')
+    // The airfield autocomplete renders its resolved label, not the bare ident.
+    expect(screen.getByRole('combobox', { name: /Departure Airport/ })).toHaveValue(
+      'EFNU: EFNU airport',
+    )
+    expect(screen.getByRole('combobox', { name: /Arrival Airport/ })).toHaveValue(
+      'EFHK: EFHK airport',
+    )
+  })
+
+  it('dates the occurrence from the flight', async () => {
+    occurrencesApi()
+
+    renderFromFlight()
+
+    expect(await screen.findByRole('group', { name: /Occurrence Date/ })).toHaveTextContent(
+      '01.05.2026 09:00',
+    )
+  })
+
+  it('leaves the pilot to write the headline and location themselves', async () => {
+    occurrencesApi()
+
+    renderFromFlight()
+
+    // Prefilling these from the flight would assert something the flight log never
+    // said — where along the route it happened, and what it was.
+    expect(await screen.findByRole('textbox', { name: /Headline/ })).toHaveValue('')
+    expect(screen.getByRole('textbox', { name: /Location/ })).toHaveValue('')
+  })
+
+  it('files the prefilled report through the normal create endpoint', async () => {
+    const state = occurrencesApi()
+
+    const { user } = renderFromFlight()
+    await screen.findByRole('heading', { name: 'New Report' })
+
+    await user.type(screen.getByRole('textbox', { name: /Headline/ }), 'Rough running on climb')
+    await user.type(screen.getByRole('textbox', { name: /Location/ }), 'EFNU circuit')
+    await user.click(screen.getByRole('combobox', { name: /Categories/ }))
+    await user.click(
+      await screen.findByRole('option', { name: 'Powerplant failure or malfunction' }),
+    )
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(state.writes).toHaveLength(1))
+    expect(state.writes[0]).toMatchObject({
+      method: 'POST',
+      body: {
+        headline: 'Rough running on climb',
+        description: 'Engine ran rough on climb',
+        aircraftRegistration: 'OH-STL',
+        departureAirport: 'EFNU',
+        arrivalAirport: 'EFHK',
+        occurrenceDate: '2026-05-01T09:00:00.000Z',
+      },
+    })
+  })
+
+  it('goes back to the list, not to a query string built out of the prefill', async () => {
+    occurrencesApi()
+
+    const { user } = renderFromFlight()
+    await screen.findByRole('heading', { name: 'New Report' })
+
+    // The list page puts its own filters in location.state as a plain search
+    // string; a prefill object pasted in there would read '[object Object]'.
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByText('[object Object]')).toBeNull()
+  })
+})
+
+describe('OccurrenceEntry drafts', () => {
+  it('autosaves the report as it is written', async () => {
+    occurrencesApi()
+
+    const { user } = renderNew()
+    await screen.findByRole('heading', { name: 'New Report' })
+
+    await user.type(screen.getByRole('textbox', { name: /Headline/ }), 'Rough running')
+
+    await waitFor(() => expect(draftValues()?.values.headline).toBe('Rough running'))
+  })
+
+  it('remembers which flight the draft came from', async () => {
+    occurrencesApi()
+
+    renderFromFlight()
+    await screen.findByRole('heading', { name: 'New Report' })
+
+    await waitFor(() => expect(draftValues()?.sourceFlightId).toBe('fl-1'))
+  })
+
+  it('resumes an unfinished report, and says so', async () => {
+    occurrencesApi()
+    seedDraft({ values: { headline: 'Half-written report' }, sourceFlightId: null })
+
+    renderNew()
+
+    expect(await screen.findByRole('textbox', { name: /Headline/ })).toHaveValue(
+      'Half-written report',
+    )
+    expect(screen.getByText('Resumed your unfinished report.')).toBeInTheDocument()
+  })
+
+  it('shows no banner when there was nothing to resume', async () => {
+    occurrencesApi()
+
+    renderNew()
+    await screen.findByRole('heading', { name: 'New Report' })
+
+    expect(screen.queryByText('Resumed your unfinished report.')).toBeNull()
+  })
+
+  it('keeps the pilot’s own edits to this flight’s prefill', async () => {
+    occurrencesApi()
+    seedDraft({
+      values: { headline: 'Rough running', description: 'Engine ran rough, then settled' },
+      sourceFlightId: 'fl-1',
+    })
+
+    renderFromFlight()
+
+    expect(await screen.findByRole('textbox', { name: /Headline/ })).toHaveValue('Rough running')
+    expect(screen.getByRole('textbox', { name: /Description/ })).toHaveValue(
+      'Engine ran rough, then settled',
+    )
+  })
+
+  it('does not let an older flight’s draft overwrite the flight just handed over', async () => {
+    occurrencesApi()
+    seedDraft({
+      values: { headline: 'A different flight entirely', description: 'Bird strike' },
+      sourceFlightId: 'fl-earlier',
+    })
+
+    renderFromFlight()
+
+    expect(await screen.findByRole('textbox', { name: /Description/ })).toHaveValue(
+      'Engine ran rough on climb',
+    )
+    expect(screen.getByRole('textbox', { name: /Headline/ })).toHaveValue('')
+    expect(screen.queryByText('Resumed your unfinished report.')).toBeNull()
+  })
+
+  it('lets the resumed draft be thrown away, back to an empty form', async () => {
+    occurrencesApi()
+    seedDraft({ values: { headline: 'Half-written report' }, sourceFlightId: null })
+
+    const { user } = renderNew()
+    await screen.findByRole('textbox', { name: /Headline/ })
+
+    await user.click(screen.getByRole('button', { name: 'Start fresh' }))
+
+    expect(screen.getByRole('textbox', { name: /Headline/ })).toHaveValue('')
+    expect(screen.queryByText('Resumed your unfinished report.')).toBeNull()
+  })
+
+  it('throws away a draft that came from a flight back to that flight’s own data', async () => {
+    occurrencesApi()
+    seedDraft({
+      values: { headline: 'Rough running', description: 'Edited' },
+      sourceFlightId: 'fl-1',
+    })
+
+    const { user } = renderFromFlight()
+    await screen.findByRole('textbox', { name: /Headline/ })
+
+    await user.click(screen.getByRole('button', { name: 'Start fresh' }))
+
+    expect(screen.getByRole('textbox', { name: /Headline/ })).toHaveValue('')
+    expect(screen.getByRole('textbox', { name: /Description/ })).toHaveValue(
+      'Engine ran rough on climb',
+    )
+  })
+
+  it('clears the draft once the report is filed', async () => {
+    occurrencesApi()
+
+    const { user } = renderFromFlight()
+    await screen.findByRole('heading', { name: 'New Report' })
+
+    await user.type(screen.getByRole('textbox', { name: /Headline/ }), 'Rough running on climb')
+    await user.type(screen.getByRole('textbox', { name: /Location/ }), 'EFNU circuit')
+    await user.click(screen.getByRole('combobox', { name: /Categories/ }))
+    await user.click(
+      await screen.findByRole('option', { name: 'Powerplant failure or malfunction' }),
+    )
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(draftValues()).toBeUndefined())
+  })
+
+  it('keeps no draft for a report that already exists', async () => {
+    occurrencesApi(anOccurrence())
+
+    const { user } = renderExisting()
+    const headline = await screen.findByRole('textbox', { name: /Headline/ })
+
+    await user.clear(headline)
+    await user.type(headline, 'Bird strike on short final')
+
+    expect(draftValues()).toBeUndefined()
   })
 })

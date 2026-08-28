@@ -50,15 +50,16 @@ it('shows the aircraft registration', async () => {
 the date-picker localization provider, SWR (with a **fresh cache per render**, so tests can't leak
 data into each other), the server clock and a `MemoryRouter`. Options:
 
-| Option        | Default | Purpose                                                                |
-| ------------- | ------- | ---------------------------------------------------------------------- |
-| `route`       | `/`     | URL the router starts at                                               |
-| `path`        | —       | Route pattern to mount at, so `useParams` resolves                     |
-| `sudo`        | `false` | Start in admin mode                                                    |
-| `language`    | `en`    | UI language                                                            |
-| `timezone`    | `utc`   | Preferred timezone, as persisted by `ThemeContext`                     |
-| `themeMode`   | `light` | Colour mode                                                            |
-| `serverClock` | `true`  | Wrap in `ServerClockProvider` (which syncs against `GET /api/v1/time`) |
+| Option        | Default | Purpose                                                                   |
+| ------------- | ------- | ------------------------------------------------------------------------- |
+| `route`       | `/`     | URL the router starts at                                                  |
+| `routeState`  | —       | Router state on that entry, for a component reading `useLocation().state` |
+| `path`        | —       | Route pattern to mount at, so `useParams` resolves                        |
+| `sudo`        | `false` | Start in admin mode                                                       |
+| `language`    | `en`    | UI language                                                               |
+| `timezone`    | `utc`   | Preferred timezone, as persisted by `ThemeContext`                        |
+| `themeMode`   | `light` | Colour mode                                                               |
+| `serverClock` | `true`  | Wrap in `ServerClockProvider` (which syncs against `GET /api/v1/time`)    |
 
 For hooks, use `renderHookWithProviders` — same options, same providers, plus `initialProps` for
 hooks you want to `rerender` with new arguments. A hook that needs no providers at all (pure state,

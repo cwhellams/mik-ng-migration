@@ -10,7 +10,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { useEffect, useMemo, useRef, type ReactElement, type ReactNode } from 'react'
 import { I18nextProvider } from 'react-i18next'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, parsePath, Route, Routes } from 'react-router'
 import { SWRConfig } from 'swr'
 import { ApiConfigProvider } from '@mik/ui/hooks/apiConfig'
 import { TimezoneProvider } from '@mik/ui/hooks/useTimezone'
@@ -23,6 +23,13 @@ import { ThemeProvider, useThemeMode } from '../theme/ThemeContext'
 export interface ProviderOptions {
   /** URL the memory router starts at. Defaults to `/`. */
   route?: string
+
+  /**
+   * Router state to start that entry with, as `navigate(to, { state })` would have
+   * left behind — for a component that reads `useLocation().state` (e.g. the
+   * occurrence form's flight-log prefill).
+   */
+  routeState?: unknown
 
   /**
    * Route pattern to mount the element at, e.g. `/club/members/:memberId`.
@@ -90,7 +97,14 @@ const ApiConfigFromThemeMode = ({ children }: { children: ReactNode }) => {
 const adapterLocale = (language: string) => (language === 'en' ? 'en-gb' : language)
 
 const Providers = ({ children, options }: { children: ReactNode; options: ProviderOptions }) => {
-  const { route = '/', path, sudo = false, language = 'en', serverClock = true } = options
+  const {
+    route = '/',
+    routeState,
+    path,
+    sudo = false,
+    language = 'en',
+    serverClock = true,
+  } = options
 
   const routed = path ? (
     <Routes>
@@ -125,7 +139,13 @@ const Providers = ({ children, options }: { children: ReactNode; options: Provid
                   shouldRetryOnError: false,
                 }}
               >
-                <MemoryRouter initialEntries={[route]}>{clocked}</MemoryRouter>
+                <MemoryRouter
+                  initialEntries={[
+                    routeState === undefined ? route : { ...parsePath(route), state: routeState },
+                  ]}
+                >
+                  {clocked}
+                </MemoryRouter>
               </SWRConfig>
             </LocalizationProvider>
           </ApiConfigFromThemeMode>

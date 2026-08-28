@@ -83,6 +83,8 @@ import {
 import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
 import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'
+import { useSafetyReportPrompt } from './useSafetyReportPrompt'
+import { SafetyReportPromptDialog } from './components/SafetyReportPromptDialog'
 import { useLongTaxiCheck } from './useLongTaxiCheck'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { LongTaxiWarningDialog } from './components/LongTaxiWarningDialog'
@@ -475,6 +477,7 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(isNew ? undefined : flightId)
   const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
+  const { withSafetyPrompt, safetyPromptProps } = useSafetyReportPrompt()
   const { withLongTaxiCheck, longTaxiDialogProps } = useLongTaxiCheck()
   // Local-only state for fuel type — not stored in the flight log, used only for expense prefill
   const [fuelUpliftType, setFuelUpliftType] = useState<(typeof FUEL_TYPES)[number] | ''>('')
@@ -563,6 +566,10 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
   }, [isNew, flightId])
 
   const backLink = `/logs${location.state ?? ''}#${flightId}`
+
+  // What the entry held before this save — read out here because doSave's own
+  // `data` parameter shadows the fetched entry inside it (#1225).
+  const savedIncidentOrObservations = data?.incidentOrObservations
 
   const doSave = async (data: FlightLogUpsertRequest) => {
     if (hasBlankReportedDefect(reportedDefects)) {
@@ -655,7 +662,26 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
         return
       }
 
-      navigate(backLink)
+      // #1225: a remark, defect or observation on this flight may be a safety
+      // matter, and only the pilot knows. Asked here rather than before the save,
+      // since the answer changes where they go next, not whether the entry is stored.
+      if (savedFlightId) {
+        withSafetyPrompt(
+          {
+            sourceFlightId: savedFlightId,
+            flight: data,
+            content: {
+              incidentOrObservations: data.incidentOrObservations,
+              previousIncidentOrObservations: savedIncidentOrObservations,
+              reportedDefects,
+              reportedRemarks,
+            },
+          },
+          () => navigate(backLink),
+        )
+      } else {
+        navigate(backLink)
+      }
     } catch (err) {
       console.error('Unexpected error:', err)
       setProblem({ status: 500, detail: t('general.savingError') })
@@ -1535,6 +1561,7 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
         cancelText={t('general.cancel')}
         severity='warning'
       />
+      <SafetyReportPromptDialog {...safetyPromptProps} />
     </RemoteContent>
   )
 }
