@@ -135,4 +135,46 @@ describe('GET /flight-log/page-for-mins', () => {
       await db.deleteFrom('flight.defect').where('defectId', '=', defect.defectId).execute()
     }
   })
+
+  it('deep-links a frozen note to the page written on its row, not the flightMins guess', async () => {
+    // A note whose page has been validated keeps its position on that page for good
+    // (#1267). 620 mins resolves to page 1 by the flightMins heuristic (see above), so
+    // page 3 can only come from the frozen position -- which is the whole point of it.
+    // Absolute row 13 of this logbook, well behind its last validated flight's row, so
+    // freezing it here shifts nothing else.
+    const note = await db
+      .insertInto('flight.maintenanceNote')
+      .values({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'page-for-mins frozen note test',
+        performedBy: 'AME',
+        flightMins: 620,
+        rows: 1,
+        ajlbPageNumber: 3,
+        ajlbRowNumber: 1,
+        createdBy: 'Matti1',
+        updatedBy: 'Matti1',
+      })
+      .returning('noteId')
+      .executeTakeFirstOrThrow()
+
+    try {
+      const res = await request(app)
+        .get('/flight-log/page-for-mins')
+        .set('Cookie', `accessToken=${userToken}`)
+        .query({
+          aircraftRegistration: AIRCRAFT,
+          ajlbSeqNo: AJLB_SEQ_NO,
+          flightMins: 620,
+          itemType: 'note',
+          itemId: note.noteId,
+        })
+
+      expect(res.status).toBe(200)
+      expect(res.body.page).toBe(3)
+    } finally {
+      await db.deleteFrom('flight.maintenanceNote').where('noteId', '=', note.noteId).execute()
+    }
+  })
 })

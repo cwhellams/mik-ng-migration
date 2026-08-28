@@ -688,6 +688,21 @@ describe('PATCH /maintenance-notes/:id', () => {
     expect(res.status).toBe(400)
   })
 
+  it('lets a note stranded behind the baseline be corrected as long as its time stays put', async () => {
+    // The beforeEach note sits at 200, well behind OH-STL/1's 21301 baseline -- the shape
+    // production data got into before #1267, and the shape the fix makes visible again.
+    // Resubmitting that same time with a description fix must not be read as an attempt to
+    // move it into the frozen region.
+    const res = await request(app)
+      .patch(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ description: 'corrected wording', flightMins: 200, rows: 1 })
+
+    expect(res.status).toBe(200)
+    expect(res.body.description).toBe('corrected wording')
+    expect(res.body.flightMins).toBe(200)
+  })
+
   it('returns 200 when flightMins is updated to exactly the last validated flight', async () => {
     // OH-STL/1's last validated flight total is 21301 in the test data -- a note isn't
     // tied to a specific flight, so this legitimately matches the baseline exactly.
@@ -698,6 +713,56 @@ describe('PATCH /maintenance-notes/:id', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.flightMins).toBe(21301)
+  })
+
+  describe('once the note is frozen onto a validated page', () => {
+    // Stamped straight onto the row rather than by validating a flight: what matters here
+    // is the guard, and page 1 row 1 of this closed logbook sits far behind everything
+    // else, so it can't shift any other expectation in this file (#1267).
+    beforeEach(async () => {
+      await db
+        .updateTable('flight.maintenanceNote')
+        .set({ ajlbPageNumber: 1, ajlbRowNumber: 1 })
+        .where('noteId', '=', noteId)
+        .execute()
+    })
+
+    it('returns 400 when flightMins is changed', async () => {
+      const res = await request(app)
+        .patch(`/maintenance-notes/${noteId}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ flightMins: LIVE_FLIGHT_MINS })
+
+      expect(res.status).toBe(400)
+    })
+
+    it('returns 400 when rows is changed', async () => {
+      const res = await request(app)
+        .patch(`/maintenance-notes/${noteId}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ rows: 3 })
+
+      expect(res.status).toBe(400)
+    })
+
+    it('still lets the description be corrected', async () => {
+      // The text on the page can be wrong and still be worth fixing; only what would move
+      // the note off its written row is refused. MaintenanceNoteDialog resubmits flightMins
+      // and rows unchanged with every description edit, so the guard has to test what the
+      // request would change, not what it mentions.
+      const res = await request(app)
+        .patch(`/maintenance-notes/${noteId}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({
+          description: 'corrected wording on a written page',
+          performedBy: 'Matti Virtanen',
+          flightMins: 200,
+          rows: 1,
+        })
+
+      expect(res.status).toBe(200)
+      expect(res.body.description).toBe('corrected wording on a written page')
+    })
   })
 
   it('returns 200 when the owner corrects recordedOn', async () => {
@@ -844,6 +909,22 @@ describe('DELETE /maintenance-notes/:id', () => {
     expect(res.status).toBe(400)
 
     await deleteMaintenanceNote(belowBaseline.noteId)
+  })
+
+  it('returns 400 when the note is frozen onto a validated page', async () => {
+    // A frozen row is written on paper: deleting it would leave a hole in a validated page
+    // and pull everything below it up into the gap (#1267).
+    await db
+      .updateTable('flight.maintenanceNote')
+      .set({ ajlbPageNumber: 1, ajlbRowNumber: 1 })
+      .where('noteId', '=', noteId)
+      .execute()
+
+    const res = await request(app)
+      .delete(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(res.status).toBe(400)
   })
 
   it('returns 204 when the note is exactly at the last validated flight', async () => {

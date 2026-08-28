@@ -12,7 +12,7 @@ import {
   updateMaintenanceNote,
   deleteMaintenanceNote,
 } from '../../db/maintenance-note-queries.ts'
-import { getAjlbLiveBaselineFlightMins } from '../../db/flight-log-queries.ts'
+import { getAjlbLiveBaselineFlightMins, isAjlbItemFrozen } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
@@ -55,7 +55,26 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Maintena
   const existing = await getMaintenanceNote(id)
   if (!existing) return problem({ status: 404, detail: 'Maintenance note not found' })
 
-  if (data.flightMins !== undefined) {
+  // Both position guards below test what the request would CHANGE, not what it mentions:
+  // the edit dialog resubmits flightMins and rows with every description fix, so guarding
+  // on presence alone would make a note that is legitimately parked in the frozen region
+  // impossible to correct the wording of.
+  const movesNote =
+    (data.flightMins !== undefined && data.flightMins !== existing.flightMins) ||
+    (data.rows !== undefined && data.rows !== existing.rows)
+
+  // Once the page the note sits on has been validated, its position is written on paper:
+  // moving its time or changing how many rows it takes would either move it off that row
+  // or run it into whatever was frozen next to it (#1267). Its text stays correctable.
+  if (movesNote && (await isAjlbItemFrozen('note', id))) {
+    return problem({
+      status: 400,
+      detail:
+        "This note is on a validated logbook page, so its time and row count can't be changed",
+    })
+  }
+
+  if (data.flightMins !== undefined && data.flightMins !== existing.flightMins) {
     const baseline = await getAjlbLiveBaselineFlightMins(
       existing.aircraftRegistration,
       existing.ajlbSeqNo,
@@ -84,6 +103,15 @@ router.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
 
   const existing = await getMaintenanceNote(id)
   if (!existing) return problem({ status: 404, detail: 'Maintenance note not found' })
+
+  // Deleting a note whose row is already written would leave a hole in a validated page
+  // and pull the live rows below it up into the gap (#1267).
+  if (await isAjlbItemFrozen('note', id)) {
+    return problem({
+      status: 400,
+      detail: "This note is on a validated logbook page and can't be deleted",
+    })
+  }
 
   const baseline = await getAjlbLiveBaselineFlightMins(
     existing.aircraftRegistration,

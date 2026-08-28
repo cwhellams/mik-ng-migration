@@ -34,6 +34,7 @@ import type { DB } from './schema.d.ts'
 import {
   sql,
   type ExpressionBuilder,
+  type Kysely,
   type SqlBool,
   type StringReference,
   type UpdateObject,
@@ -210,8 +211,11 @@ export async function getFlightLogPageForMins(
  * "right now" and may legitimately match it exactly. In-flight defects (tied
  * to a specific flight) must be strictly after it, since that flight itself
  * must still be unvalidated. Anything strictly before the baseline belongs to
- * an already-frozen, immutable page (see flight.vw_ajlb_live_sequence, which
- * only reflows notes/defects at or past this same boundary).
+ * an already-frozen, immutable page.
+ *
+ * This is the guard against writing new content into the frozen region. It is NOT what
+ * decides whether an existing note/defect is still movable -- that is whether its own
+ * position has been frozen, see isAjlbItemFrozen (#1267).
  */
 export async function getAjlbLiveBaselineFlightMins(
   aircraftRegistration: string,
@@ -1519,6 +1523,197 @@ export const updateFlightLog = async (
       : undefined,
   }))
 
+/** An own-row note/defect and the physical logbook row its content starts on. */
+type AjlbItemPosition = {
+  itemType: 'note' | 'defect'
+  itemId: string
+  pageNumber: number
+  rowNumber: number
+}
+
+/**
+ * Own-row (rows > 0) notes/defects that validating `flightId` leaves at or behind the new
+ * frozen baseline -- that flight's own running total -- each with the physical row it
+ * currently occupies.
+ *
+ * Must be read BEFORE anything is written. The flight's own frozen position and these both
+ * come out of flight.vw_ajlb_live_sequence, and either write moves the other's answer:
+ * freeze the notes first and the flight is numbered after them, flip the flight first and
+ * the notes lose the anchor that put them where they are (#1267).
+ */
+const readAjlbItemsToFreeze = async (
+  trx: Kysely<DB>,
+  flightId: string,
+): Promise<AjlbItemPosition[]> => {
+  const flight = await trx
+    .selectFrom('flight.logs')
+    .leftJoin('flight.vwFlightLogs as totals', 'flight.logs.flightId', 'totals.flightId')
+    .select([
+      'flight.logs.aircraftRegistration',
+      'flight.logs.ajlbSeqNo',
+      'totals.acTotalFlightMins',
+    ])
+    .where('flight.logs.flightId', '=', flightId)
+    .executeTakeFirst()
+
+  // No running total means the flight isn't in the live view at all (already validated, or
+  // gone), so there is no live layout to read positions out of.
+  if (flight?.acTotalFlightMins == null) return []
+  const { aircraftRegistration, ajlbSeqNo, acTotalFlightMins } = flight
+
+  const notes = await trx
+    .selectFrom('flight.maintenanceNote')
+    .select('noteId')
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('ajlbSeqNo', '=', ajlbSeqNo)
+    .where('rows', '>', 0)
+    .where('ajlbPageNumber', 'is', null)
+    .where('flightMins', '<=', acTotalFlightMins)
+    .execute()
+
+  const defects = await trx
+    .selectFrom('flight.defect')
+    .select('defectId')
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('ajlbSeqNo', '=', ajlbSeqNo)
+    .where('rows', '>', 0)
+    .where('ajlbPageNumber', 'is', null)
+    .where('flightMins', '<=', acTotalFlightMins)
+    .execute()
+
+  const itemIds = [...notes.map((note) => note.noteId), ...defects.map((defect) => defect.defectId)]
+  if (!itemIds.length) return []
+
+  const rows = await trx
+    .selectFrom('flight.vwAjlbLiveRows')
+    .select(['itemType', 'itemId', 'pageNumber', 'rowNumber'])
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('ajlbSeqNo', '=', ajlbSeqNo)
+    .where('isContentRow', '=', true)
+    .where('itemId', 'in', itemIds)
+    .execute()
+
+  return rows.map((row) => ({
+    itemType: row.itemType as 'note' | 'defect',
+    itemId: row.itemId!,
+    pageNumber: row.pageNumber!,
+    rowNumber: row.rowNumber!,
+  }))
+}
+
+/** Writes the positions read by readAjlbItemsToFreeze onto the note/defect rows. */
+const freezeAjlbItems = async (
+  trx: Kysely<DB>,
+  items: AjlbItemPosition[],
+  user: JWTUser,
+): Promise<void> => {
+  const now = new Date()
+  for (const item of items) {
+    const frozen = {
+      ajlbPageNumber: item.pageNumber,
+      ajlbRowNumber: item.rowNumber,
+      ...auditUpdate(user, now),
+    }
+    if (item.itemType === 'note') {
+      await trx
+        .updateTable('flight.maintenanceNote')
+        .set(frozen)
+        .where('noteId', '=', item.itemId)
+        .where('ajlbPageNumber', 'is', null)
+        .execute()
+    } else {
+      await trx
+        .updateTable('flight.defect')
+        .set(frozen)
+        .where('defectId', '=', item.itemId)
+        .where('ajlbPageNumber', 'is', null)
+        .execute()
+    }
+  }
+}
+
+/**
+ * Releases every note/defect frozen onto a row after the reverted flight's own, so they
+ * reflow with it again. Items frozen before it are deliberately left alone: their rows
+ * belong to the still-validated region, and leaving them frozen is what holds the baseline
+ * where it is, so the reverted flight comes back on the row it left.
+ *
+ * (page, row) compares as position because pages step by 2 and rows never leave
+ * 1..rows_per_page, so the pair orders exactly as the absolute row index does.
+ */
+const thawAjlbItemsAfter = async (
+  trx: Kysely<DB>,
+  flight: {
+    aircraftRegistration: string
+    ajlbSeqNo: number
+    ajlbPageNumber: number | null
+    ajlbRowNumber: number | null
+  },
+  user: JWTUser,
+): Promise<void> => {
+  const { aircraftRegistration, ajlbSeqNo, ajlbPageNumber, ajlbRowNumber } = flight
+  // Not frozen itself (a status the validate route can't revert from) -- then nothing was
+  // frozen against it either, and there is nothing to release.
+  if (ajlbPageNumber == null || ajlbRowNumber == null) return
+
+  const thawed = {
+    ajlbPageNumber: null,
+    ajlbRowNumber: null,
+    ...auditUpdate(user, new Date()),
+  }
+
+  await trx
+    .updateTable('flight.maintenanceNote')
+    .set(thawed)
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('ajlbSeqNo', '=', ajlbSeqNo)
+    .where((eb) =>
+      eb.or([
+        eb('ajlbPageNumber', '>', ajlbPageNumber),
+        eb.and([
+          eb('ajlbPageNumber', '=', ajlbPageNumber),
+          eb('ajlbRowNumber', '>', ajlbRowNumber),
+        ]),
+      ]),
+    )
+    .execute()
+
+  await trx
+    .updateTable('flight.defect')
+    .set(thawed)
+    .where('aircraftRegistration', '=', aircraftRegistration)
+    .where('ajlbSeqNo', '=', ajlbSeqNo)
+    .where((eb) =>
+      eb.or([
+        eb('ajlbPageNumber', '>', ajlbPageNumber),
+        eb.and([
+          eb('ajlbPageNumber', '=', ajlbPageNumber),
+          eb('ajlbRowNumber', '>', ajlbRowNumber),
+        ]),
+      ]),
+    )
+    .execute()
+}
+
+/**
+ * Whether an own-row note/defect's logbook position has been frozen onto its row -- i.e.
+ * the physical page it sits on has been validated and written, so its position, its row
+ * count and its existence are all fixed (#1267).
+ */
+export const isAjlbItemFrozen = async (
+  itemType: 'note' | 'defect',
+  itemId: string,
+): Promise<boolean> => {
+  const row = await db
+    .selectFrom('flight.vwAjlbFrozenItems')
+    .select('itemId')
+    .where('itemType', '=', itemType)
+    .where('itemId', '=', itemId)
+    .executeTakeFirst()
+
+  return row !== undefined
+}
+
 export const updateFlightLogStatus = async (
   flightId: string,
   oldStatus: FlightLogStatus,
@@ -1528,39 +1723,70 @@ export const updateFlightLogStatus = async (
 ): Promise<boolean> => {
   switch (newStatus) {
     case FlightLogStatus.NEW:
-      // reset ajlb values back to null
-      return updateFlightLogWithAudit(flightId, user, () => ({
-        status: newStatus,
-        ajlbTotalFlightMins: null,
-        ajlbPageNumber: null,
-        ajlbRowNumber: null,
-        ajlbTotalLandings: null,
-      }))
+      // reset ajlb values back to null -- the flight's own, and the frozen position of
+      // any note/defect sitting on a row after it (#1267)
+      return db.transaction().execute(async (trx) => {
+        const flight = await trx
+          .selectFrom('flight.logs')
+          .select(['aircraftRegistration', 'ajlbSeqNo', 'ajlbPageNumber', 'ajlbRowNumber'])
+          .where('flightId', '=', flightId)
+          .executeTakeFirst()
+        if (flight) await thawAjlbItemsAfter(trx, flight, user)
+
+        return updateFlightLogWithAudit(
+          flightId,
+          user,
+          () => ({
+            status: newStatus,
+            ajlbTotalFlightMins: null,
+            ajlbPageNumber: null,
+            ajlbRowNumber: null,
+            ajlbTotalLandings: null,
+          }),
+          trx,
+        )
+      })
     case FlightLogStatus.VALIDATED:
       // copy values from the view
-      return updateFlightLogWithAudit(flightId, user, (eb) => ({
-        status: newStatus,
-        ...(oldStatus == FlightLogStatus.NEW
-          ? {
-              ajlbTotalFlightMins: eb
-                .selectFrom('flight.vwFlightLogs')
-                .select('acTotalFlightMins')
-                .where('flightId', '=', flightId),
-              ajlbPageNumber: eb
-                .selectFrom('flight.vwFlightLogs')
-                .select('pageNumber')
-                .where('flightId', '=', flightId),
-              ajlbRowNumber: eb
-                .selectFrom('flight.vwFlightLogs')
-                .select('rowNumber')
-                .where('flightId', '=', flightId),
-              ajlbTotalLandings: eb
-                .selectFrom('flight.vwFlightLogs')
-                .select('acTotalLandings')
-                .where('flightId', '=', flightId),
-            }
-          : {}),
-      }))
+      return db.transaction().execute(async (trx) => {
+        // Read before writing anything -- see readAjlbItemsToFreeze. The flight's own four
+        // columns stay subqueries in the UPDATE below: one statement, so they still see
+        // this flight NEW and every note live.
+        const items =
+          oldStatus == FlightLogStatus.NEW ? await readAjlbItemsToFreeze(trx, flightId) : []
+
+        const updated = await updateFlightLogWithAudit(
+          flightId,
+          user,
+          (eb) => ({
+            status: newStatus,
+            ...(oldStatus == FlightLogStatus.NEW
+              ? {
+                  ajlbTotalFlightMins: eb
+                    .selectFrom('flight.vwFlightLogs')
+                    .select('acTotalFlightMins')
+                    .where('flightId', '=', flightId),
+                  ajlbPageNumber: eb
+                    .selectFrom('flight.vwFlightLogs')
+                    .select('pageNumber')
+                    .where('flightId', '=', flightId),
+                  ajlbRowNumber: eb
+                    .selectFrom('flight.vwFlightLogs')
+                    .select('rowNumber')
+                    .where('flightId', '=', flightId),
+                  ajlbTotalLandings: eb
+                    .selectFrom('flight.vwFlightLogs')
+                    .select('acTotalLandings')
+                    .where('flightId', '=', flightId),
+                }
+              : {}),
+          }),
+          trx,
+        )
+
+        await freezeAjlbItems(trx, items, user)
+        return updated
+      })
     default:
       // update only the status
       return updateFlightLogWithAudit(flightId, user, () => ({
@@ -1602,8 +1828,9 @@ const updateFlightLogWithAudit = async (
   flightId: string,
   user: JWTUser,
   update: (eb: ExpressionBuilder<DB, 'flight.logs'>) => UpdateObject<DB, 'flight.logs'>,
+  executor: Kysely<DB> = db,
 ): Promise<boolean> => {
-  let updQuery = db
+  let updQuery = executor
     .updateTable('flight.logs')
     .set(update)
     .set({

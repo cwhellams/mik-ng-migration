@@ -370,6 +370,52 @@ describe('PATCH /defects/:id', () => {
     expect(res.body.rows).toBe(1)
   })
 
+  it('returns 400 when changing rows on a defect frozen onto a validated page', async () => {
+    // Stamped straight onto the row rather than by validating a flight: what matters here
+    // is the guard, and page 1 row 1 of this closed logbook is far behind everything else
+    // so it can't shift any other expectation in this file (#1267).
+    await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ rows: 1 })
+    await db
+      .updateTable('flight.defect')
+      .set({ ajlbPageNumber: 1, ajlbRowNumber: 1 })
+      .where('defectId', '=', defectId)
+      .execute()
+
+    const res = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ rows: 2 })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('still lets the description be corrected on a defect frozen onto a validated page', async () => {
+    // The text on the page can be wrong and still be worth fixing; only what would move
+    // the defect off its written row is refused.
+    await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ rows: 1 })
+    await db
+      .updateTable('flight.defect')
+      .set({ ajlbPageNumber: 1, ajlbRowNumber: 1 })
+      .where('defectId', '=', defectId)
+      .execute()
+
+    const res = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      // DefectDialog resubmits rows unchanged with every description edit on a pre-flight
+      // defect, so the guard has to test what the request would change, not what it sends.
+      .send({ description: 'corrected wording on a written page', rows: 1 })
+
+    expect(res.status).toBe(200)
+    expect(res.body.description).toBe('corrected wording on a written page')
+  })
+
   it('lets the owner correct recordedOn', async () => {
     const res = await request(app)
       .patch(`/defects/${defectId}`)

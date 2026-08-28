@@ -884,6 +884,8 @@ export interface FlightAircraftNavdata {
 
 export interface FlightDefect {
   aircraftRegistration: string
+  ajlbPageNumber: number | null
+  ajlbRowNumber: number | null
   ajlbSeqNo: number
   createdAt: Generated<Timestamp>
   createdBy: string
@@ -1006,6 +1008,8 @@ export interface FlightLogsAudit {
 
 export interface FlightMaintenanceNote {
   aircraftRegistration: string
+  ajlbPageNumber: number | null
+  ajlbRowNumber: number | null
   ajlbSeqNo: number
   createdAt: Generated<Timestamp>
   createdBy: string
@@ -1111,6 +1115,18 @@ export interface FlightRemarkAudit {
 export interface FlightVwAircraftGroundingStatus {
   openDefectCount: Int8 | null
   registration: string | null
+}
+
+export interface FlightVwAjlbFrozenItems {
+  aircraftRegistration: string | null
+  ajlbLastRow: number | null
+  ajlbPageNumber: number | null
+  ajlbRowNumber: number | null
+  ajlbSeqNo: number | null
+  itemId: string | null
+  itemType: string | null
+  rowsConsumed: number | null
+  rowsPerPage: number | null
 }
 
 export interface FlightVwAjlbLiveRows {
@@ -2479,6 +2495,7 @@ export interface DB {
   'flight.remark': FlightRemark
   'flight.remarkAudit': FlightRemarkAudit
   'flight.vwAircraftGroundingStatus': FlightVwAircraftGroundingStatus
+  'flight.vwAjlbFrozenItems': FlightVwAjlbFrozenItems
   'flight.vwAjlbLiveRows': FlightVwAjlbLiveRows
   'flight.vwAjlbLiveSequence': FlightVwAjlbLiveSequence
   'flight.vwFlightLogs': FlightVwFlightLogs

@@ -8,7 +8,7 @@ import {
 import { getDefects, createDefect, updateDefect, getDefect } from '../../db/defect-queries.ts'
 import { getAircraftHilEntry } from '../../db/aircraft-hil-queries.ts'
 import { getMaintenanceNote } from '../../db/maintenance-note-queries.ts'
-import { getAjlbLiveBaselineFlightMins } from '../../db/flight-log-queries.ts'
+import { getAjlbLiveBaselineFlightMins, isAjlbItemFrozen } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '@mik/contracts/members'
 import { problem } from '../response.ts'
@@ -65,6 +65,22 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Defect>)
     return problem({
       status: 400,
       detail: 'rows cannot be changed for an in-flight defect',
+    })
+  }
+
+  // Once the page the defect sits on has been validated, how many rows it takes is written
+  // on paper -- changing it would run into whatever was frozen next to it (#1267). Its
+  // description, hold-item link and resolution stay editable, since none of those move it:
+  // hence the check on what rows would CHANGE to, not on whether it was sent. The edit
+  // dialog resubmits rows with every description fix on a pre-flight defect.
+  if (
+    data.rows !== undefined &&
+    data.rows !== defect.rows &&
+    (await isAjlbItemFrozen('defect', id))
+  ) {
+    return problem({
+      status: 400,
+      detail: "This defect is on a validated logbook page, so its row count can't be changed",
     })
   }
 
