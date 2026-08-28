@@ -203,7 +203,22 @@ export default defineConfig({
         // had any tests), the shared recorded-date field, the reported-defect submitter
         // and the logbook's own-row item dates under test, and extended the two defect
         // dialogs' suites over the new field. 48.03/44.66/33.69 measured.
-        'src/sections/**': { statements: 47, branches: 44, functions: 33 },
+        //
+        // 47/44/33 -> 50/47/36 (#1249). Two numbers, because they are not the same
+        // story. This change measures 51.26/48.88/37.60; the commit it sits on
+        // (#1254's merge) already measured 50.75/48.46/37.33 on its own. So #1249's
+        // contribution is +0.51/+0.42/+0.27 — the flight-log list's member filter, the
+        // export dialog (which had no test file at all) and the member profile's "view
+        // all flights" gate — and the other three points are coverage that earlier PRs
+        // earned without the bar following them.
+        //
+        // That gap is worth naming, because it is how a ratchet quietly stops
+        // ratcheting: every bar in this block is measured on the branch that raises it,
+        // and a branch measures whatever base it happened to be cut from. #1254's own
+        // 48.03/44.66/33.69 above was honest when taken and was 2.7 points stale by the
+        // time it merged. Caught up to a point under measured here rather than left as
+        // slack for the next change to spend.
+        'src/sections/**': { statements: 50, branches: 47, functions: 36 },
       },
     },
   },

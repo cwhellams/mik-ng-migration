@@ -1339,6 +1339,10 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
 const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
   const { t } = useTranslation()
   const { formatDate, formatTime } = useTimezone()
+  // This card is MEMBER_ADMIN's, but the list it links out to is FLIGHTLOG_ADMIN's, so
+  // the two permissions have to be held separately — a member admin without flight-log
+  // admin used to be offered "View all flights" and land on a 403 (#1249).
+  const { isFlightLogAdmin } = useRoles()
   const { data, isLoading, error } = useApi<FlightLogListResponse>({
     url: endpoints.members.flights(memberId),
     alwaysSudo: true,
@@ -1396,16 +1400,18 @@ const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
                   ))}
                 </TableBody>
               </Table>
-              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-                <Button
-                  component={Link}
-                  to={`/logs?${new URLSearchParams({ anyCrewMemberId: memberId }).toString()}`}
-                  variant='outlined'
-                  startIcon={<Icon icon='mdi:airplane' />}
-                >
-                  {t('member.adminFlights.viewAll')}
-                </Button>
-              </Box>
+              {isFlightLogAdmin && (
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                  <Button
+                    component={Link}
+                    to={`/logs?${new URLSearchParams({ anyCrewMemberId: memberId }).toString()}`}
+                    variant='outlined'
+                    startIcon={<Icon icon='mdi:airplane' />}
+                  >
+                    {t('member.adminFlights.viewAll')}
+                  </Button>
+                </Box>
+              )}
             </>
           )}
         </RemoteContent>

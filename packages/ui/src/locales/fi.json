@@ -1388,6 +1388,7 @@
       "startDate": "Alkupäivä",
       "endDate": "Loppupäivä",
       "allAircraft": "Kaikki ilma-alukset",
+      "memberScope": "Viedään vain jäsenen {{name}} lennot.",
       "countLoading": "Lasketaan...",
       "countResult": "{{count}} lentoa valitulla aikavälillä",
       "countResultZero": "Ei lentoja valitulla aikavälillä",
@@ -1514,6 +1515,10 @@
     "includeCrewFlights": "Näytä myös lennot ohjaamomiehistössä",
     "includeCrewFlightsTooltip": "Näytä lennot, jotka lensit miehistön jäsenenä — opettajana, tarkastuslentäjänä tai oppilaana — myös silloin kun ne laskutetaan toiselta jäseneltä. Poista käytöstä, jos haluat listan vain omista laskutettavista lennoista.",
     "crewFlightTooltip": "Lensit tämän tehtävässä {{role}}. Lento laskutetaan toiselta jäseneltä, joten arvioitua hintaa ei näytetä.",
+    "memberFilter": "Jäsenen {{name}} lennot",
+    "memberFilterTooltip": "Näytetään yhden jäsenen lennot. Tyhjennä näyttääksesi kaikki lennot.",
+    "memberFilterProfile": "Takaisin jäsenen tietoihin",
+    "clearMemberFilter": "Näytä kaikki lennot",
     "crewReadOnlyNotice": "Lensit tämän tehtävässä {{role}}, mutta lento laskutetaan toiselta jäseneltä, joten se on vain luettavissa. Laskutustietoja ei näytetä.",
     "instructorEditNotice": "Muokkaat lentoa, joka laskutetaan toiselta jäseneltä. Jokainen muutos kirjataan muutoshistoriaan nimelläsi.",
     "crewRoles": {

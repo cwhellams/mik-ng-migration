@@ -80,6 +80,27 @@ export async function getMemberById(memberId: string): Promise<Member | undefine
   }
 }
 
+/**
+ * Just the member's name, for labelling something they are not the subject of.
+ *
+ * Deliberately not `getMemberById`: that one resolves the member's roles and presigns an
+ * avatar URL, which is three round trips too many when the caller wants two words -- and
+ * it hands the caller the whole register row, medicals and addresses included, which has
+ * no business travelling with a flight-log list (#1249).
+ *
+ * Reads `member.register` directly, so a removed member is named like any other: an admin
+ * auditing a deactivated member's log is exactly who most needs the label.
+ */
+export async function getMemberNameById(
+  memberId: string,
+): Promise<{ memberId: string; firstName: string; lastName: string } | undefined> {
+  return await db
+    .selectFrom('member.register')
+    .select(['memberId', 'firstName', 'lastName'])
+    .where('memberId', '=', memberId)
+    .executeTakeFirst()
+}
+
 // Get member using email
 export async function getMemberByEmail(email: string): Promise<Member | undefined> {
   const member = await db

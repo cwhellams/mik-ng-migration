@@ -10,6 +10,7 @@ import {
   useTheme,
   Pagination,
   PaginationItem,
+  Stack,
   Tooltip,
   Typography,
   Divider,
@@ -48,10 +49,34 @@ const formatEur = (value: number) =>
 const CREW_PARAM = 'includeCrew'
 const crewFlightsIncluded = (params: URLSearchParams) => params.get(CREW_PARAM) !== '0'
 
+/**
+ * The member-filter params the list understands, in precedence order.
+ *
+ * `anyCrewMemberId` is what the member-admin "view all flights" deep link writes
+ * (#1236); `onBoardMemberId` is the narrower question, which the backend accepts and
+ * holds to the same permission rule. Reading only the first would leave the second
+ * quietly filtering the list with nothing on screen to say whose flights these are —
+ * which is the confusion #1249 is about.
+ */
+const MEMBER_FILTER_PARAMS = ['anyCrewMemberId', 'onBoardMemberId'] as const
+
+type MemberFilterParam = (typeof MEMBER_FILTER_PARAMS)[number]
+
+/** The member filter in the URL, as `{ key, memberId }`, or undefined for an unfiltered list. */
+const memberFilterOf = (
+  params: URLSearchParams,
+): { key: MemberFilterParam; memberId: string } | undefined => {
+  for (const key of MEMBER_FILTER_PARAMS) {
+    const memberId = params.get(key)
+    if (memberId) return { key, memberId }
+  }
+  return undefined
+}
+
 const FlightLogsList = () => {
   const { t } = useTranslation()
 
-  const { me, isFlightLogAdmin } = useRoles()
+  const { me, isFlightLogAdmin, isMembersAdmin } = useRoles()
 
   const [searchParams, setSearchParams] = useSearchParams()
   const scrollToRef = useScrollOnRender()
@@ -61,6 +86,7 @@ const FlightLogsList = () => {
     page: searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
     aircraftRegistration: searchParams.get('aircraftRegistration') ?? undefined,
     anyCrewMemberId: searchParams.get('anyCrewMemberId') ?? undefined,
+    onBoardMemberId: searchParams.get('onBoardMemberId') ?? undefined,
     includeCrewFlights: crewFlightsIncluded(searchParams),
   })
 
@@ -70,31 +96,42 @@ const FlightLogsList = () => {
     const aircraftRegistration = searchParams.get('aircraftRegistration') ?? undefined
     const page = searchParams.get('page') ? Number(searchParams.get('page')) : undefined
     const anyCrewMemberId = searchParams.get('anyCrewMemberId') ?? undefined
+    const onBoardMemberId = searchParams.get('onBoardMemberId') ?? undefined
 
     setFilters((old) => ({
       ...old,
       aircraftRegistration,
       page,
       anyCrewMemberId,
+      onBoardMemberId,
       includeCrewFlights: crewFlightsIncluded(searchParams),
     }))
   }, [searchParams])
 
   const includeCrewFlights = crewFlightsIncluded(searchParams)
 
+  const memberFilter = memberFilterOf(searchParams)
+
   // Both filters are written together because changing either invalidates the current
   // page number: the result set is a different size, so page 4 of the old list is not
   // page 4 of the new one.
-  const setListParams = (next: { aircraftRegistration?: string; includeCrew?: boolean }) => {
+  const setListParams = (next: {
+    aircraftRegistration?: string
+    includeCrew?: boolean
+    /** Set to `null` to drop the member filter; omitted means "keep whatever is there". */
+    memberFilter?: null
+  }) => {
     const params = new URLSearchParams()
     const registration = next.aircraftRegistration ?? filters.aircraftRegistration ?? ''
     if (registration) params.set('aircraftRegistration', registration)
     if (!(next.includeCrew ?? includeCrewFlights)) params.set(CREW_PARAM, '0')
     // Carried over rather than rebuilt: this is the member-admin "view all flights" deep
     // link from Member.tsx (#1236), and dropping it would silently switch the list back
-    // to the admin's own flights on the first filter change.
-    const anyCrewMemberId = searchParams.get('anyCrewMemberId')
-    if (anyCrewMemberId) params.set('anyCrewMemberId', anyCrewMemberId)
+    // to the admin's own flights on the first filter change. Clearing it is a deliberate
+    // `memberFilter: null` — the chip's own control, and the only way out of the filter.
+    if (memberFilter && next.memberFilter !== null) {
+      params.set(memberFilter.key, memberFilter.memberId)
+    }
     setSearchParams(params)
   }
 
@@ -112,13 +149,74 @@ const FlightLogsList = () => {
   const theme = useTheme()
   const isSmUp = useMediaQuery(theme.breakpoints.up('sm'))
 
+  // Whose flights these are, when they are not the reader's own. The server names the
+  // member it filtered on; until that lands — and for an id it could not resolve — the
+  // raw id stands in, so the heading never flickers between "no context" and "context".
+  //
+  // A filter naming the reader themselves is not labelled: nobody needs telling they are
+  // looking at their own log, and the backend strips the filter on that path anyway.
+  const showMemberFilter = !!memberFilter && memberFilter.memberId !== me?.memberId
+  const filteredMember = data?.filteredCrewMember
+  const memberFilterLabel = filteredMember
+    ? `${filteredMember.firstName} ${filteredMember.lastName}`
+    : (memberFilter?.memberId ?? '')
+
   return (
     <Box>
-      <Title label={t('flightLog.title')} />
+      <Title label={t('flightLog.title')}>
+        {showMemberFilter && (
+          <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
+            {/* `describeChild`, so the tooltip explains the chip rather than replacing
+                the member's name as its accessible name. */}
+            <Tooltip title={t('flightLog.memberFilterTooltip')} describeChild>
+              <Chip
+                icon={<Icon icon='mdi:account' />}
+                color='primary'
+                variant='outlined'
+                label={t('flightLog.memberFilter', { name: memberFilterLabel })}
+              />
+            </Tooltip>
+            {/* A named button rather than the chip's own `onDelete`: that renders the
+                clear affordance as a bare <svg> with no accessible name, which is no use
+                to anyone not looking at it. */}
+            <Tooltip title={t('flightLog.clearMemberFilter')}>
+              <IconButton
+                onClick={() => setListParams({ memberFilter: null })}
+                aria-label={t('flightLog.clearMemberFilter')}
+                size='small'
+              >
+                <Icon icon='mdi:close-circle' />
+              </IconButton>
+            </Tooltip>
+            {/* The profile page is MEMBER_ADMIN-gated while this filter is
+                FLIGHTLOG_ADMIN-gated, so a flight-log-only admin gets the chip without
+                the link rather than an invitation to a 403. */}
+            {isMembersAdmin && (
+              <Tooltip title={t('flightLog.memberFilterProfile')}>
+                <IconButton
+                  component={Link}
+                  to={`/club/members/${memberFilter.memberId}`}
+                  aria-label={t('flightLog.memberFilterProfile')}
+                  size='small'
+                >
+                  <Icon icon='mdi:account-arrow-left' />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Stack>
+        )}
+      </Title>
       <FlightLogExportDialog
         open={exportOpen}
         onClose={() => setExportOpen(false)}
         defaultAircraftRegistration={filters.aircraftRegistration}
+        // Without this the export ignores the member filter and hands back everyone's
+        // flights, which is the same confusion the chip above exists to end (#1249).
+        memberFilter={
+          showMemberFilter
+            ? { memberId: memberFilter.memberId, label: memberFilterLabel }
+            : undefined
+        }
       />
       <Grid
         size={12}

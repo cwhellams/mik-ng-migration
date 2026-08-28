@@ -1381,6 +1381,7 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "allAircraft": "All Aircraft",
+      "memberScope": "Exporting the flights of {{name}} only.",
       "countLoading": "Counting...",
       "countResult": "{{count}} flight logs in this range",
       "countResultZero": "No flight logs in this range",
@@ -1507,6 +1508,10 @@
     "includeCrewFlights": "Include flights as crew",
     "includeCrewFlightsTooltip": "Show flights you flew as crew — instructor, examiner or student — even when another member is invoiced for them. Turn off to list only the flights you will be billed for.",
     "crewFlightTooltip": "You flew this as {{role}}. Another member is invoiced for it, so no estimated cost is shown.",
+    "memberFilter": "Flights of {{name}}",
+    "memberFilterTooltip": "Showing one member's flights. Clear to show all flights.",
+    "memberFilterProfile": "Back to member profile",
+    "clearMemberFilter": "Show all flights",
     "crewReadOnlyNotice": "You flew this as {{role}} but another member is invoiced for it, so it is read-only. Billing details are not shown.",
     "instructorEditNotice": "You are editing a flight another member is invoiced for. Every change is recorded in the change history with your name.",
     "crewRoles": {

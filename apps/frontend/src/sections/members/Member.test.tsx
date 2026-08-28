@@ -5,7 +5,13 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { MIKMemberTypes, MIKPermissions } from '@mik/contracts/members'
 import { renderAs, authScenarios } from '../../test/auth'
-import { aMember, aRoleWithPermissions, FIXTURE_TIMESTAMP } from '../../test/fixtures'
+import {
+  aFlightLogListEntry,
+  aFlightLogListResponse,
+  aMember,
+  aRoleWithPermissions,
+  FIXTURE_TIMESTAMP,
+} from '../../test/fixtures'
 import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import MemberProfile from './Member'
@@ -233,5 +239,56 @@ describe('Own profile avatar upload', () => {
 
     await waitFor(() => expect(patchCount).toBe(1))
     expect(patchedStyle).toBe('bottts')
+  })
+})
+
+/**
+ * #1249: the card is MEMBER_ADMIN's, but the flight log it links out to is
+ * FLIGHTLOG_ADMIN's — the backend refuses `anyCrewMemberId` to anyone else. A member
+ * admin without flight-log admin was being offered the button and landing on a 403.
+ */
+describe('Member profile — view all flights', () => {
+  const withFlights = () => {
+    mockMemberEndpoints()
+    server.use(
+      http.get(apiUrl(`v1/members/${removedMember.memberId}/flights`), () =>
+        HttpResponse.json(aFlightLogListResponse([aFlightLogListEntry()])),
+      ),
+    )
+  }
+
+  const renderAsAdminWith = (...permissions: MIKPermissions[]) =>
+    renderAs(
+      {
+        name: 'admin',
+        member: aMember({
+          memberId: 'FlightsAdmin1',
+          roles: [aRoleWithPermissions(...permissions)],
+        }),
+        sudo: true,
+      },
+      <MemberProfile />,
+      { route: `/club/members/${removedMember.memberId}`, path: '/club/members/:memberId' },
+    )
+
+  it('links a flight-log admin to the member own filtered log', async () => {
+    withFlights()
+
+    renderAsAdminWith(MIKPermissions.MEMBER_ADMIN, MIKPermissions.FLIGHTLOG_ADMIN)
+
+    expect(await screen.findByRole('link', { name: /view all flights/i })).toHaveAttribute(
+      'href',
+      `/logs?anyCrewMemberId=${removedMember.memberId}`,
+    )
+  })
+
+  it('offers no such link to a member admin who is not a flight-log admin', async () => {
+    withFlights()
+
+    renderAsAdminWith(MIKPermissions.MEMBER_ADMIN)
+
+    // The card itself is still there — only the way into the flight log is withheld.
+    expect(await screen.findByText('Recent Flights')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /view all flights/i })).not.toBeInTheDocument()
   })
 })

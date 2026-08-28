@@ -169,10 +169,12 @@ export const aFlightLogListEntry = (
 
 export const aFlightLogListResponse = (
   logs: FlightLogListEntry[] = [aFlightLogListEntry()],
+  overrides: Partial<FlightLogListResponse> = {},
 ): FlightLogListResponse => ({
   logs,
   page: 1,
   limit: 50,
   pages: 1,
   rows: logs.length,
+  ...overrides,
 })

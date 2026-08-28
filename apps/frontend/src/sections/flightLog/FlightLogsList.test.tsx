@@ -1,5 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react'
-import { http, HttpResponse } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
 import { useLocation } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 
@@ -9,6 +9,16 @@ import { INSTRUCTOR_MEMBER_ID, MEMBER_ID } from '@mik/ui/test/fixtures/cast'
 import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import FlightLogsList from './FlightLogsList'
+
+/**
+ * The member a filtered list is showing, as the server names them. Jukka is the cast's
+ * instructor, and the one a member-admin is most plausibly auditing.
+ */
+const FILTERED_MEMBER = {
+  memberId: INSTRUCTOR_MEMBER_ID,
+  firstName: 'Jukka',
+  lastName: 'Nieminen',
+}
 
 /** Query strings the list actually asked for, in request order. */
 let requestedQueries: string[]
@@ -43,12 +53,18 @@ beforeEach(() => {
         url.searchParams.get('includeCrewFlights') === 'false'
           ? [ownFlight]
           : [ownFlight, crewFlight]
-      return HttpResponse.json({
-        ...aFlightLogListResponse(logs),
-        // more than one page, so the pagination control is there to click
-        pages: 3,
-        unbilledEstimatedTotal: 380,
-      })
+      // Mirrors the server: the list names whoever the crew filter narrowed it to, and
+      // only when that is somebody it can resolve (#1249).
+      const filteredId =
+        url.searchParams.get('anyCrewMemberId') ?? url.searchParams.get('onBoardMemberId')
+      return HttpResponse.json(
+        aFlightLogListResponse(logs, {
+          // more than one page, so the pagination control is there to click
+          pages: 3,
+          unbilledEstimatedTotal: 380,
+          filteredCrewMember: filteredId === FILTERED_MEMBER.memberId ? FILTERED_MEMBER : undefined,
+        }),
+      )
     }),
   )
 })
@@ -177,5 +193,114 @@ describe('FlightLogsList crew flights', () => {
 
     await waitFor(() => expect(searchParams()).toContain('page=2'))
     expect(searchParams()).toContain('includeCrew=0')
+  })
+})
+
+/**
+ * #1249: `/logs?anyCrewMemberId=<id>` narrowed the list to one member with nothing on the
+ * page saying so, which reads as "my flight log has gone wrong" rather than "I am looking
+ * at somebody else's".
+ */
+describe('FlightLogsList member filter', () => {
+  const filteredRoute = `/logs/flights?anyCrewMemberId=${FILTERED_MEMBER.memberId}`
+
+  const chip = () => screen.findByText(/Flights of/)
+
+  it('names the member the list was narrowed to', async () => {
+    renderList(authScenarios.admin, filteredRoute)
+
+    expect(await chip()).toHaveTextContent('Flights of Jukka Nieminen')
+  })
+
+  it('reads onBoardMemberId as well, since the server honours both', async () => {
+    renderList(authScenarios.admin, `/logs/flights?onBoardMemberId=${FILTERED_MEMBER.memberId}`)
+
+    expect(await chip()).toHaveTextContent('Flights of Jukka Nieminen')
+    expect(requestedQueries[0]).toContain(`onBoardMemberId=${FILTERED_MEMBER.memberId}`)
+  })
+
+  it('falls back to the raw id while the name is still in flight', async () => {
+    // The label has to be there on the first paint, from the URL alone: a heading that
+    // starts unlabelled and then gains a name is the same confusion, just briefer.
+    server.use(
+      http.get(apiUrl('v1/flight-logs'), async () => {
+        await delay('infinite')
+      }),
+    )
+    renderList(authScenarios.admin, filteredRoute)
+
+    expect(await chip()).toHaveTextContent(`Flights of ${FILTERED_MEMBER.memberId}`)
+  })
+
+  it.each(Object.values(authScenarios))(
+    'shows no label on an unfiltered list for $name',
+    async (scenario) => {
+      renderList(scenario)
+
+      await waitFor(() => expect(requestedQueries.length).toBeGreaterThan(0))
+      expect(screen.queryByText(/Flights of/)).not.toBeInTheDocument()
+    },
+  )
+
+  it('shows no label when the filter names the reader themselves', async () => {
+    // Nobody needs telling they are looking at their own log — and the server strips the
+    // filter on that path anyway, so there would be nothing to name.
+    renderList(authScenarios.user, `/logs/flights?anyCrewMemberId=${MEMBER_ID}`)
+
+    await waitFor(() => expect(requestedQueries.length).toBeGreaterThan(0))
+    expect(screen.queryByText(/Flights of/)).not.toBeInTheDocument()
+  })
+
+  it('clears the filter from the URL and from the request', async () => {
+    const { user } = renderList(authScenarios.admin, filteredRoute)
+
+    await chip()
+    await user.click(screen.getByRole('button', { name: 'Show all flights' }))
+
+    await waitFor(() => expect(searchParams()).not.toContain('anyCrewMemberId'))
+    // Asserting only the URL would pass on a filter that never stopped reaching the
+    // server, which is the half that decides what the list actually contains.
+    await waitFor(() => expect(requestedQueries.at(-1)).not.toContain('anyCrewMemberId'))
+    expect(screen.queryByText(/Flights of/)).not.toBeInTheDocument()
+  })
+
+  it('keeps the filter through an aircraft change', async () => {
+    // This carry-over is what setListParams exists for, and it was untested.
+    const { user } = renderList(authScenarios.admin, filteredRoute)
+
+    await chip()
+    await user.click(screen.getByRole('combobox', { name: /aircraft/i }))
+    await user.click(await screen.findByRole('option', { name: 'OH-STL' }))
+
+    await waitFor(() => expect(searchParams()).toContain('aircraftRegistration=OH-STL'))
+    expect(searchParams()).toContain(`anyCrewMemberId=${FILTERED_MEMBER.memberId}`)
+    expect(await chip()).toBeInTheDocument()
+  })
+
+  it('keeps the filter through a crew-toggle flip', async () => {
+    const { user } = renderList(authScenarios.user, filteredRoute)
+
+    await user.click(await screen.findByRole('switch', { name: /crew/i }))
+
+    await waitFor(() => expect(searchParams()).toContain('includeCrew=0'))
+    expect(searchParams()).toContain(`anyCrewMemberId=${FILTERED_MEMBER.memberId}`)
+  })
+
+  it('offers the way back to the profile to a members admin', async () => {
+    renderList(authScenarios.admin, filteredRoute)
+
+    expect(await screen.findByRole('link', { name: 'Back to member profile' })).toHaveAttribute(
+      'href',
+      `/club/members/${FILTERED_MEMBER.memberId}`,
+    )
+  })
+
+  it('offers no profile link to someone who cannot open the profile', async () => {
+    // The profile page is MEMBER_ADMIN's; this filter is FLIGHTLOG_ADMIN's. A link into a
+    // 403 is worse than no link.
+    renderList(authScenarios.user, filteredRoute)
+
+    await chip()
+    expect(screen.queryByRole('link', { name: 'Back to member profile' })).not.toBeInTheDocument()
   })
 })

@@ -63,7 +63,7 @@ import {
   resolveFlightAccess,
 } from './flightAccess.ts'
 import { problem } from '../response.ts'
-import { getMemberById } from '../../db/member-queries.ts'
+import { getMemberById, getMemberNameById } from '../../db/member-queries.ts'
 import { getAirfields } from '../../db/airfields-queries.ts'
 import { getAjlbs } from '../../db/ajlb-queries.ts'
 import type { z } from 'zod'
@@ -196,6 +196,17 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
     logs.unbilledEstimatedTotal = total > 0 ? total : null
   }
 
+  // Name whoever the list was narrowed to, so the page can say whose log it is showing
+  // instead of leaving the reader to infer it from the rows (#1249). Read from `filters`
+  // rather than `data`, so it can never fire on the self-view path above, which strips
+  // the crew filters back to the caller's own id. The 403 guard has already run, so this
+  // only ever names a member the caller was allowed to list. An id that matches nobody
+  // leaves the field absent and the list empty -- there is nothing here to 404 over.
+  const filteredCrewMemberId = filters.anyCrewMemberId ?? filters.onBoardMemberId
+  if (filteredCrewMemberId && filteredCrewMemberId !== memberId) {
+    logs.filteredCrewMember = await getMemberNameById(filteredCrewMemberId)
+  }
+
   res.status(200).json(logs)
 })
 
@@ -265,10 +276,32 @@ router.get('/:registration/totals', async (req: Request<Record<string, string>>,
   res.status(200).json(totals)
 })
 
+/**
+ * Whose logbook an export covers: the requested member for an admin, the caller for
+ * everyone else, or `undefined` for an admin who asked for no member at all (every
+ * flight, which is what the export did before #1249).
+ *
+ * The permission rule is the list's, verbatim (#1222): only a flight-log admin may point
+ * an export at another member. Silently re-scoping a member's request to themselves would
+ * be friendlier and wrong -- they would get a file they did not ask for and no sign that
+ * they had been refused.
+ */
+const resolveExportMemberId = (req: Request, requested: string | undefined) => {
+  const callerId = req.user!.memberId
+  if (isFlightLogAdmin(req.user)) return requested
+  if (requested && requested !== callerId) {
+    return problem({
+      status: 403,
+      detail: "Insufficient permissions to export other members' flights",
+    })
+  }
+  return callerId
+}
+
 // GET /export/count — returns { count: N } for filter preview
 router.get('/export/count', async (req: Request<Record<string, string>>, res: Response) => {
-  const filters = FlightLogExportFiltersSchema.parse(req.query)
-  const memberId = isFlightLogAdmin(req.user) ? undefined : req.user!.memberId
+  const { onBoardMemberId, ...filters } = FlightLogExportFiltersSchema.parse(req.query)
+  const memberId = resolveExportMemberId(req, onBoardMemberId)
   const count = await countFlightLogsForExport(filters, memberId)
   res.status(200).json({ count })
 })
@@ -277,10 +310,12 @@ const MAX_EXPORT_ROWS = 10_000
 
 // GET /export — streams a CSV or PDF file download
 router.get('/export', async (req: Request<Record<string, string>>, res: Response) => {
-  const { format = FlightLogExportFormat.CSV, ...rest } = FlightLogExportFiltersSchema.parse(
-    req.query,
-  )
-  const memberId = isFlightLogAdmin(req.user) ? undefined : req.user!.memberId
+  const {
+    format = FlightLogExportFormat.CSV,
+    onBoardMemberId,
+    ...rest
+  } = FlightLogExportFiltersSchema.parse(req.query)
+  const memberId = resolveExportMemberId(req, onBoardMemberId)
   const count = await countFlightLogsForExport(rest, memberId)
   if (count > MAX_EXPORT_ROWS) {
     return problem({
@@ -291,7 +326,11 @@ router.get('/export', async (req: Request<Record<string, string>>, res: Response
   const logs = await getFlightLogsForExport(rest, memberId)
   const filename = getFilename(format, rest.startDate, rest.endDate)
   if (format === FlightLogExportFormat.EASA_PDF) {
-    const member = await getMemberById(req.user!.memberId)
+    // The logbook belongs to whoever the export was scoped to, not to whoever asked for
+    // it: an admin exporting another member's log gets that member's name and licence on
+    // the cover. Falls back to the caller for an unscoped admin export, which has no one
+    // pilot to name.
+    const member = await getMemberById(memberId ?? req.user!.memberId)
     const memberInfo: PdfMemberInfo = {
       firstName: member?.firstName ?? '',
       lastName: member?.lastName ?? '',

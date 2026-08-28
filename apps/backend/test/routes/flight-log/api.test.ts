@@ -363,6 +363,126 @@ describe('GET /flight-log', () => {
   })
 })
 
+/**
+ * #1249: `/logs?anyCrewMemberId=<id>` filtered the list to one member with nothing on the
+ * page saying whose flights they were. The name comes back with the list rather than from
+ * a second request, because the endpoint has already decided the caller may ask for this
+ * member — a separate `GET /members/:id` is MEMBER_ADMIN-gated, which is not the same
+ * permission, and would hide a removed member besides.
+ */
+describe('GET /flight-log — naming the member the list was filtered to', () => {
+  const sannaName = { memberId: 'Sanna1', firstName: 'Sanna', lastName: 'Koskinen' }
+
+  const listAs = (token: string, query: Record<string, string>) =>
+    request(app).get('/flight-log').set('Cookie', `accessToken=${token}`).query(query)
+
+  it('names the member an admin filtered on with anyCrewMemberId', async () => {
+    const response = await listAs(adminToken, { anyCrewMemberId: 'Sanna1' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.filteredCrewMember).toEqual(sannaName)
+  })
+
+  it('names the member an admin filtered on with onBoardMemberId', async () => {
+    // The two filters are held to one rule by the 403 guard; they must not diverge here.
+    const response = await listAs(adminToken, { onBoardMemberId: 'Sanna1' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.filteredCrewMember).toEqual(sannaName)
+  })
+
+  it('says nothing when an admin filters on themselves', async () => {
+    const response = await listAs(adminToken, { anyCrewMemberId: admin_member_id })
+
+    expect(response.status).toBe(200)
+    expect(response.body.filteredCrewMember).toBeUndefined()
+  })
+
+  it('says nothing when there is no member filter at all', async () => {
+    const response = await listAs(adminToken, { aircraftRegistration: 'OH-STL' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.filteredCrewMember).toBeUndefined()
+  })
+
+  it('answers 200 with an empty list for an id that matches nobody', async () => {
+    // There is nothing to 404 over: the filter is well-formed, it just selects no rows.
+    // The frontend falls back to the raw id, so the page is never left unlabelled.
+    const response = await listAs(adminToken, { anyCrewMemberId: 'nosuchmember' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.logs).toEqual([])
+    expect(response.body.filteredCrewMember).toBeUndefined()
+  })
+
+  it('names nobody on a member self-view, even when they name themselves', async () => {
+    // The self-view path strips the crew filters back to the caller's own id, so there is
+    // no way to talk this route into naming somebody from a non-admin request.
+    const response = await listAs(mattiToken, { anyCrewMemberId: test_member_id })
+
+    expect(response.status).toBe(200)
+    expect(response.body.filteredCrewMember).toBeUndefined()
+  })
+
+  it('leaks no name with the 403 when a member asks about somebody else', async () => {
+    const response = await listAs(mattiToken, { anyCrewMemberId: 'Sanna1' })
+
+    expect(response.status).toBe(403)
+    expect(response.body.filteredCrewMember).toBeUndefined()
+    expect(JSON.stringify(response.body)).not.toContain('Koskinen')
+  })
+})
+
+/**
+ * #1249, second half: the export dialog sent only the date range and the aircraft, so an
+ * admin looking at one member's filtered log and hitting Export got the whole club's
+ * flights back. The export now takes the same member filter, under the same permission
+ * rule as the list.
+ */
+describe('GET /flight-log/export — scoping to one member', () => {
+  const countAs = (token: string, query: Record<string, string>) =>
+    request(app).get('/flight-log/export/count').set('Cookie', `accessToken=${token}`).query(query)
+
+  it('narrows an admin export to the requested member', async () => {
+    const all = await countAs(adminToken, {})
+    const sannas = await countAs(adminToken, { onBoardMemberId: 'Sanna1' })
+
+    expect(all.status).toBe(200)
+    expect(sannas.status).toBe(200)
+    // An unscoped admin export is every flight in the club, which is what it was before
+    // #1249 and stays the default; naming a member has to actually narrow it.
+    expect(sannas.body.count).toBeLessThan(all.body.count)
+  })
+
+  it('refuses a member asking for somebody else', async () => {
+    const response = await countAs(mattiToken, { onBoardMemberId: 'Sanna1' })
+
+    expect(response.status).toBe(403)
+    expect(response.body.detail).toMatch(/Insufficient permissions/)
+  })
+
+  it('still lets a member ask for their own log by name', async () => {
+    const own = await countAs(mattiToken, { onBoardMemberId: test_member_id })
+    const implicit = await countAs(mattiToken, {})
+
+    expect(own.status).toBe(200)
+    expect(own.body.count).toBe(implicit.body.count)
+  })
+
+  it('scopes the downloaded file too, not just the count', async () => {
+    const response = await request(app)
+      .get('/flight-log/export')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .query({ onBoardMemberId: 'Sanna1' })
+
+    expect(response.status).toBe(200)
+    const rows = response.text.trim().split('\n')
+    const sannasCount = (await countAs(adminToken, { onBoardMemberId: 'Sanna1' })).body.count
+    // Header row plus one line per flight.
+    expect(rows).toHaveLength(sannasCount + 1)
+  })
+})
+
 describe('GET /flight-log/overlap-check', () => {
   // 'mikify' is a NEW OH-STL flight covering 1740816000 - 1740824100
   it('returns the conflicting entry for an overlapping interval', async () => {

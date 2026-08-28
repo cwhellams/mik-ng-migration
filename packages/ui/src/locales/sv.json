@@ -1389,6 +1389,7 @@
       "startDate": "Startdatum",
       "endDate": "Slutdatum",
       "allAircraft": "Alla flygplan",
+      "memberScope": "Exporterar endast {{name}}s flygningar.",
       "countLoading": "Räknar...",
       "countResult": "{{count}} flygningar i detta intervall",
       "countResultZero": "Inga flygningar i detta intervall",
@@ -1515,6 +1516,10 @@
     "includeCrewFlights": "Visa även flygningar som besättning",
     "includeCrewFlightsTooltip": "Visa flygningar du flög som besättning — lärare, kontrollant eller elev — även när en annan medlem faktureras för dem. Stäng av för att bara lista de flygningar du själv faktureras för.",
     "crewFlightTooltip": "Du flög denna som {{role}}. En annan medlem faktureras för den, så ingen beräknad kostnad visas.",
+    "memberFilter": "{{name}}s flygningar",
+    "memberFilterTooltip": "Visar en medlems flygningar. Rensa för att visa alla flygningar.",
+    "memberFilterProfile": "Tillbaka till medlemsprofilen",
+    "clearMemberFilter": "Visa alla flygningar",
     "crewReadOnlyNotice": "Du flög denna som {{role}} men en annan medlem faktureras för den, så den är endast läsbar. Faktureringsuppgifter visas inte.",
     "instructorEditNotice": "Du redigerar en flygning som en annan medlem faktureras för. Varje ändring registreras i ändringshistoriken med ditt namn.",
     "crewRoles": {

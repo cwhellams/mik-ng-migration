@@ -573,6 +573,20 @@ export const PageItemRowSchema = z.object({
 
 export type PageItemRow = z.infer<typeof PageItemRowSchema>
 
+/**
+ * The member a flight-log list was narrowed to, named rather than left as a bare id.
+ *
+ * Three fields, not the whole `Member`: a list response is no place to ship medicals
+ * and addresses to render two words.
+ */
+export const FilteredCrewMemberSchema = z.object({
+  memberId: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+})
+
+export type FilteredCrewMember = z.infer<typeof FilteredCrewMemberSchema>
+
 export const FlightLogListResponseSchema = z.object({
   logs: z.array(FlightLogListEntrySchema),
   page: z.number().int().optional(),
@@ -582,6 +596,14 @@ export const FlightLogListResponseSchema = z.object({
   pageStartFlightMins: z.number().int().nullable().optional(),
   pageItemRows: z.array(PageItemRowSchema).optional(),
   unbilledEstimatedTotal: z.number().nullable().optional(),
+  /**
+   * Who the list was narrowed to, when that is somebody other than the caller. Present
+   * only for the crew filters (`anyCrewMemberId` / `onBoardMemberId`), which only a
+   * flight-log admin may point at another member -- so this names a member the caller is
+   * already authorised to have listed (#1249). Absent on a member's own log: nobody needs
+   * to be told they are looking at themselves.
+   */
+  filteredCrewMember: FilteredCrewMemberSchema.nullish(),
 })
 
 export type FlightLogListResponse = z.infer<typeof FlightLogListResponseSchema>
@@ -828,6 +850,17 @@ export const FlightLogExportFiltersSchema = z
     endDate: z.string().datetime().optional(),
     aircraftRegistration: z.string().optional(),
     format: z.nativeEnum(FlightLogExportFormat).optional(),
+    /**
+     * Whose logbook to export. Only a flight-log admin may name somebody else -- the
+     * export route holds this to the same rule as the list's crew filters (#1222), so a
+     * member asking for another member's logbook is a 403 rather than a silent
+     * re-scoping. Absent means "my own log" for a member and "every flight" for an admin,
+     * which is what the export did before #1249.
+     *
+     * On-board rather than any-crew on purpose: an export is an EASA pilot logbook, and
+     * flights the member was only carried on (OBS) do not belong in its totals (#1019 Q6).
+     */
+    onBoardMemberId: z.string().optional(),
   })
   .strict()
 

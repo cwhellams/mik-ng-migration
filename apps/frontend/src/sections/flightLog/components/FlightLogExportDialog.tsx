@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -43,9 +44,24 @@ type Props = {
   open: boolean
   onClose: () => void
   defaultAircraftRegistration?: string
+  /**
+   * The member whose log the list is currently showing, when that is somebody other than
+   * the reader. The export follows the list rather than quietly widening to every
+   * member's flights — an admin who filtered the list to one member and then hit Export
+   * used to get the whole club back (#1249).
+   *
+   * `label` is what the list has on screen for them: the resolved name, or the raw id
+   * while that is still in flight.
+   */
+  memberFilter?: { memberId: string; label: string }
 }
 
-export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistration }: Props) => {
+export const FlightLogExportDialog = ({
+  open,
+  onClose,
+  defaultAircraftRegistration,
+  memberFilter,
+}: Props) => {
   const { t } = useTranslation()
   // The same flag useApi sends, from the same place — this dialog talks to
   // sharedApi directly (a debounced count and a blob download) rather than
@@ -61,6 +77,11 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
   const [count, setCount] = useState<number | null>(null)
   const [isCountLoading, setIsCountLoading] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+
+  // The id, not the object: the parent builds `memberFilter` fresh on every render, so
+  // depending on the object itself would reset the debounce below on renders that changed
+  // nothing about who is being exported.
+  const memberFilterId = memberFilter?.memberId
 
   // Sync default aircraft when dialog opens
   useEffect(() => {
@@ -86,6 +107,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       if (startDate) params.startDate = startDate.toISOString()
       if (endDate) params.endDate = endDate.toISOString()
       if (aircraftRegistration) params.aircraftRegistration = aircraftRegistration
+      if (memberFilterId) params.onBoardMemberId = memberFilterId
 
       setIsCountLoading(true)
       try {
@@ -104,7 +126,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [open, startDate, endDate, aircraftRegistration, sudo])
+  }, [open, startDate, endDate, aircraftRegistration, memberFilterId, sudo])
 
   const handleExport = async () => {
     setIsExporting(true)
@@ -113,6 +135,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       if (startDate) params.startDate = startDate.toISOString()
       if (endDate) params.endDate = endDate.toISOString()
       if (aircraftRegistration) params.aircraftRegistration = aircraftRegistration
+      if (memberFilterId) params.onBoardMemberId = memberFilterId
 
       const res = await sharedApi.get('v1/flight-logs/export', {
         params,
@@ -152,6 +175,15 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       <DialogTitle>{t('flightLog.export.title')}</DialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 1 }}>
+          {/* Whose log is being exported. Stated rather than implied: the dialog offers no
+              member picker, so this is the only thing on it that says the file will not
+              cover every member's flights. */}
+          {memberFilter && (
+            <Alert severity='info' icon={false} sx={{ py: 0.5 }}>
+              {t('flightLog.export.memberScope', { name: memberFilter.label })}
+            </Alert>
+          )}
+
           {/* Aircraft filter */}
           <FormControl fullWidth>
             <InputLabel id='export-aircraft-label'>{t('flightLog.aircraft')}</InputLabel>
