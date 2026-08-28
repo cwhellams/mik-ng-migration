@@ -23,6 +23,7 @@ const aDefect = (overrides: Partial<Defect> = {}) =>
     description: 'Nose wheel shimmy on landing',
     status: 'ACTIVE',
     flightMins: 285_000,
+    recordedOn: '2025-06-02',
     rows: 1,
     createdBy: MEMBER_ID,
     createdAt: '2025-06-02T09:00:00.000Z',
@@ -248,5 +249,82 @@ describe('DefectDialog editing', () => {
     await user.click(await screen.findByRole('button', { name: 'Edit' }))
 
     expect(screen.queryByRole('spinbutton', { name: /Rows/ })).toBeNull()
+  })
+})
+
+describe('DefectDialog recorded date', () => {
+  it('shows the date the defect was observed', async () => {
+    defectApi()
+    signInAs(aMember())
+
+    renderDialog(aDefect({ recordedOn: '2026-03-14' }))
+
+    expect(await screen.findByText('14.03.2026')).toBeInTheDocument()
+  })
+
+  it('shows the recorded date, not the date the row was written', async () => {
+    // #1254: these were the same value before the field existed, and the whole
+    // point is that they no longer have to be.
+    defectApi()
+    signInAs(aMember())
+
+    renderDialog(aDefect({ recordedOn: '2026-03-14', createdAt: '2026-03-20T09:00:00.000Z' }))
+
+    expect(await screen.findByText('14.03.2026')).toBeInTheDocument()
+    expect(screen.queryByText('20.03.2026')).toBeNull()
+  })
+
+  it('offers it for correction on Edit, seeded with the stored date', async () => {
+    defectApi()
+    signInAs(aMember())
+
+    const { user } = renderDialog(aDefect({ recordedOn: '2026-03-14' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit' }))
+
+    expect(screen.getByRole('group', { name: /Date/ })).toHaveTextContent('14/03/2026')
+  })
+
+  it('patches the corrected date', async () => {
+    const patches = defectApi()
+    signInAs(aMember())
+
+    const { user } = renderDialog(aDefect({ recordedOn: '2026-03-14' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit' }))
+    await user.click(screen.getByRole('spinbutton', { name: 'Day' }))
+    await user.keyboard('16032026')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(patches).toHaveLength(1))
+    expect(patches[0]).toMatchObject({ recordedOn: '2026-03-16' })
+  })
+
+  it('keeps the stored date on a save that only changes the description', async () => {
+    const patches = defectApi()
+    signInAs(aMember())
+
+    const { user } = renderDialog(aDefect({ recordedOn: '2026-03-14' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit' }))
+    const description = screen.getByRole('textbox', { name: /Description/ })
+    await user.clear(description)
+    await user.type(description, 'Nose wheel replaced')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(patches).toHaveLength(1))
+    expect(patches[0]).toMatchObject({ recordedOn: '2026-03-14' })
+  })
+
+  it('refuses a save once the date has been cleared', async () => {
+    const patches = defectApi()
+    signInAs(aMember())
+
+    const { user } = renderDialog(aDefect({ recordedOn: '2026-03-14' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit' }))
+    await user.click(screen.getByRole('spinbutton', { name: 'Day' }))
+    await user.keyboard('{Delete}')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(patches).toHaveLength(0))
+    // Still in edit mode rather than silently accepting a dateless defect.
+    expect(screen.getByRole('textbox', { name: /Description/ })).toBeInTheDocument()
   })
 })

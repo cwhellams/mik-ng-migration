@@ -27,14 +27,19 @@ import { useMaintenanceNotes } from '../../hooks/useMaintenanceNotes'
 import type { Defect } from '@mik/contracts/defects'
 import type { AircraftHil } from '@mik/contracts/aircraft-hil'
 import { useRoles } from '@mik/ui/hooks/useRoles'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { SaveButton } from '@mik/ui/components/SaveButton'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 import { EditHilModal, type HilEditMode } from '../aircrafts/components/hil/EditHilModal'
 import { useOpenNoteLink } from './useOpenNoteLink'
+import { RecordedOnField } from './components/RecordedOnField'
 
 const EditDefectFormSchema = z.object({
   description: z.string().min(1),
+  // The wire format, straight from RecordedOnField — a cleared or half-typed date
+  // arrives as '' and fails here, so a defect can never lose its date on an edit.
+  recordedOn: z.string().date(),
   rows: z.coerce.number().int().min(0).optional(),
 })
 
@@ -57,6 +62,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
 }) => {
   const { t } = useTranslation()
   const { me, isFlightLogAdmin } = useRoles()
+  const { formatDate } = useTimezone()
   const [isEditing, setIsEditing] = useState(false)
   const [problem, setProblem] = useState<Problem | undefined>()
   const [selectedHilId, setSelectedHilId] = useState<string>(defect.hilId ?? '')
@@ -114,6 +120,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
     resolver: zodResolver(EditDefectFormSchema) as Resolver<EditDefectFormValues>,
     values: {
       description: defect.description,
+      recordedOn: defect.recordedOn,
       rows: defect.rows,
     },
   })
@@ -127,6 +134,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
   const onSubmit = async (values: EditDefectFormValues) => {
     const { error } = await updateMutation.trigger('PATCH', {
       description: values.description,
+      recordedOn: values.recordedOn,
       ...(isPreFlight && {
         rows: values.rows,
       }),
@@ -208,6 +216,8 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
                 )}
               />
 
+              <RecordedOnField control={control} name='recordedOn' />
+
               {isPreFlight && (
                 <Controller
                   name='rows'
@@ -252,6 +262,18 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
                   {t('flightLog.defects.flightTime')}
                 </Typography>
                 <Typography>{flightTimeLabel}</Typography>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
+                  {t('flightLog.recordedOn')}
+                </Typography>
+                <Typography>{formatDate(defect.recordedOn)}</Typography>
               </Box>
 
               {isPreFlight && (

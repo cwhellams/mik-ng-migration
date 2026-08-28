@@ -19,6 +19,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
+import { toHelsinkiDate } from '@mik/contracts/date'
 import { zodResolver } from '@hookform/resolvers/zod'
 import useApi from '@mik/ui/hooks/useApi'
 import { useDefects } from '../../hooks/useDefects'
@@ -32,6 +33,7 @@ import {
   type MaintenanceNoteFormValues,
 } from './maintenanceNoteFormSchema'
 import { refreshAircraftHil } from '../aircrafts/components/hil/useAircraftHil'
+import { RecordedOnField } from './components/RecordedOnField'
 
 interface AddMaintenanceNoteDialogProps {
   open: boolean
@@ -90,6 +92,7 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
       performedBy: '',
       flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
       flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
+      recordedOn: toHelsinkiDate(),
       rows: 1,
     },
   })
@@ -104,6 +107,10 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
         performedBy: '',
         flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
         flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
+        // Re-read on every open, so a dialog left mounted overnight still defaults
+        // to today rather than to the day it was first rendered. Helsinki's today,
+        // not the reader's: the journey log book keeps one club-wide calendar.
+        recordedOn: toHelsinkiDate(),
         rows: 1,
       })
     }
@@ -116,6 +123,7 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
       description: values.description,
       performedBy: values.performedBy,
       flightMins: values.flightHours * 60 + values.flightMinutes,
+      recordedOn: values.recordedOn,
       rows: values.rows,
       ...(selectedHilIds.length ? { hilIds: selectedHilIds } : {}),
       ...(selectedDefectIds.length ? { defectIds: selectedDefectIds } : {}),
@@ -224,6 +232,8 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
                 />
               </Box>
             </Box>
+
+            <RecordedOnField control={control} name='recordedOn' />
 
             <Controller
               name='rows'

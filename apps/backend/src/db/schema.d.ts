@@ -892,6 +892,7 @@ export interface FlightDefect {
   flightId: string | null
   flightMins: number
   hilId: string | null
+  recordedOn: Generated<string>
   resolvedNoteId: string | null
   rows: Generated<number>
   status: Generated<FlightDefectStatus>
@@ -1012,6 +1013,7 @@ export interface FlightMaintenanceNote {
   flightMins: number
   noteId: Generated<string>
   performedBy: string
+  recordedOn: Generated<string>
   rows: Generated<number>
   updatedAt: Generated<Timestamp>
   updatedBy: Generated<string>

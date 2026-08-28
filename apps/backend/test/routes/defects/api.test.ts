@@ -8,6 +8,7 @@ import { router } from '../../../src/routes/defects/api.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
+import { toHelsinkiDate } from '@mik/contracts/date'
 
 const app = express()
 app.use(express.json())
@@ -278,6 +279,48 @@ describe('POST /defects', () => {
   })
 })
 
+describe('POST /defects recordedOn', () => {
+  const create = (body: Record<string, unknown>) =>
+    request(app)
+      .post('/defects')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: `${TEST_MARKER} recordedOn defect`,
+        flightMins: LIVE_FLIGHT_MINS,
+        rows: 1,
+        ...body,
+      })
+
+  it('stores the day the defect was observed, days before it was typed in', async () => {
+    // The whole point of #1254: a defect found on the ramp and written up later must
+    // not be filed under the day it was written up.
+    const res = await create({ recordedOn: '2026-03-14' })
+
+    expect(res.status).toBe(201)
+    expect(res.body.recordedOn).toBe('2026-03-14')
+    createdDefectIds.push(res.body.defectId)
+  })
+
+  it('defaults to today in the club timezone when the caller omits it', async () => {
+    const res = await create({})
+
+    expect(res.status).toBe(201)
+    expect(res.body.recordedOn).toBe(toHelsinkiDate())
+    createdDefectIds.push(res.body.defectId)
+  })
+
+  it.each(['14.03.2026', '2026-03-14T00:00:00.000Z', '2026-02-30', 'yesterday', ''])(
+    'returns 400 for the malformed date %p',
+    async (recordedOn) => {
+      const res = await create({ recordedOn })
+
+      expect(res.status).toBe(400)
+    },
+  )
+})
+
 describe('PATCH /defects/:id', () => {
   let defectId: string
 
@@ -325,6 +368,40 @@ describe('PATCH /defects/:id', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.rows).toBe(1)
+  })
+
+  it('lets the owner correct recordedOn', async () => {
+    const res = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ recordedOn: '2026-03-14' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.recordedOn).toBe('2026-03-14')
+  })
+
+  it('leaves recordedOn alone when the patch does not mention it', async () => {
+    await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ recordedOn: '2026-03-14' })
+
+    const res = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ description: 'description only' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.recordedOn).toBe('2026-03-14')
+  })
+
+  it('returns 400 for a malformed recordedOn', async () => {
+    const res = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ recordedOn: '14.03.2026' })
+
+    expect(res.status).toBe(400)
   })
 
   it('returns 400 when changing rows on an in-flight defect', async () => {

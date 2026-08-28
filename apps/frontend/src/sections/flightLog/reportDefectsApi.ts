@@ -1,4 +1,5 @@
 import { sharedApi } from '@mik/ui/hooks/useApi'
+import { toHelsinkiDate } from '@mik/contracts/date'
 import type { FlightLog } from '@mik/contracts/flight-log'
 
 // A row the user started typing into but left as only whitespace -- unlike a genuinely
@@ -40,6 +41,10 @@ export async function submitReportedDefects(
         flightId,
         description,
         flightMins,
+        // An in-flight defect belongs to the day of the flight it was found on, not
+        // the day the entry is typed up -- a flight logged a week late would otherwise
+        // carry a defect dated a week after the flight (#1254).
+        recordedOn: toHelsinkiDate(flight.offBlockTimeUtc),
         rows: 0,
       }),
     ),

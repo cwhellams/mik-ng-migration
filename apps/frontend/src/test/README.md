@@ -179,6 +179,14 @@ repeatedly there:
   the event with `fireEvent` instead.
 - **`useMediaQuery` always reports no match** (the `matchMedia` stub returns `matches: false`), so
   components render their desktop layout.
+- **A MUI `DatePicker` is not a textbox.** It renders a `role="group"` (named by its label, so
+  `getByRole('group', { name: /Date/ })`, whose `textContent` is the formatted value) wrapping one
+  `role="spinbutton"` section per part, labelled `Day`/`Month`/`Year`. To set one, click the `Day`
+  section and type the digits straight through — `user.keyboard('14032026')` fills all three, since
+  each section hands off to the next when it is full. `{Delete}` on a section clears it, which is
+  how you test a required date being emptied. Note that typing only part of a date leaves the
+  untouched sections at their previous values, so a field seeded with today does **not** become
+  invalid from `user.keyboard('1403')`.
 
 ## Conventions
 

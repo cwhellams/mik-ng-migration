@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useForm, Controller, type Resolver } from 'react-hook-form'
+import { toHelsinkiDate } from '@mik/contracts/date'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import useApi from '@mik/ui/hooks/useApi'
@@ -21,11 +22,15 @@ import { SaveButton } from '@mik/ui/components/SaveButton'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
 import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'
+import { RecordedOnField } from './components/RecordedOnField'
 
 const AddDefectFormSchema = z.object({
   description: z.string().min(1),
   flightHours: z.coerce.number().int().min(0),
   flightMinutes: z.coerce.number().int().min(0).max(59),
+  // The wire format, straight from RecordedOnField — a cleared or half-typed date
+  // arrives as '' and fails here, so a defect can never be saved without one.
+  recordedOn: z.string().date(),
   rows: z.coerce.number().int().min(0),
 })
 
@@ -71,6 +76,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
       description: '',
       flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
       flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
+      recordedOn: toHelsinkiDate(),
       rows: isPreFlight ? 1 : 0,
     },
   })
@@ -83,6 +89,10 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
         description: '',
         flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
         flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
+        // Re-read on every open, so a dialog left mounted overnight still defaults
+        // to today rather than to the day it was first rendered. Helsinki's today,
+        // not the reader's: the journey log book keeps one club-wide calendar.
+        recordedOn: toHelsinkiDate(),
         rows: isPreFlight ? 1 : 0,
       })
     }
@@ -103,6 +113,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
       flightId: flightId ?? undefined,
       description: values.description,
       flightMins: values.flightHours * 60 + values.flightMinutes,
+      recordedOn: values.recordedOn,
       // In-flight defects (flightId set) are always inline chips: the row model
       // anchors own-row items by flightMins, not flightId, so a non-zero rows
       // value here could drift the defect onto a different flight's row if
@@ -151,6 +162,8 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
                   />
                 )}
               />
+
+              <RecordedOnField control={control} name='recordedOn' />
 
               {isPreFlight && (
                 <>

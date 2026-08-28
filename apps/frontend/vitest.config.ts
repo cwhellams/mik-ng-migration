@@ -198,7 +198,12 @@ export default defineConfig({
         // point lower. Nothing became less tested — the assertions moved with it
         // and are now explicit rather than incidental to two page suites — and a
         // bar may only ever be raised, so these stay put.
-        'src/sections/**': { statements: 46, branches: 43, functions: 32 },
+        //
+        // 46/43/32 -> 47/44/33: #1254 brought the two maintenance-note dialogs (neither
+        // had any tests), the shared recorded-date field, the reported-defect submitter
+        // and the logbook's own-row item dates under test, and extended the two defect
+        // dialogs' suites over the new field. 48.03/44.66/33.69 measured.
+        'src/sections/**': { statements: 47, branches: 44, functions: 33 },
       },
     },
   },

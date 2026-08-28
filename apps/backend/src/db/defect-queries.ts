@@ -1,3 +1,4 @@
+import { toHelsinkiDate } from '@mik/contracts/date'
 import { auditCreate, mapAudit } from './audit.ts'
 import { sql, type Kysely } from 'kysely'
 
@@ -14,6 +15,7 @@ function mapRowToDefect(row: DbRow<'flight.defect'>): Defect {
     flightId: row.flightId,
     description: row.description,
     flightMins: row.flightMins,
+    recordedOn: row.recordedOn,
     rows: row.rows,
     status: row.status,
     hilId: row.hilId,
@@ -57,6 +59,7 @@ export async function createDefect(data: CreateDefectRequest, createdBy: string)
       flightId: data.flightId ?? null,
       description: data.description,
       flightMins: data.flightMins,
+      recordedOn: data.recordedOn ?? toHelsinkiDate(now),
       rows: data.rows,
       status: 'ACTIVE',
       hilId: null,
@@ -79,6 +82,7 @@ export async function updateDefect(
     .updateTable('flight.defect')
     .set({
       ...(data.description !== undefined && { description: data.description }),
+      ...(data.recordedOn !== undefined && { recordedOn: data.recordedOn }),
       ...(data.rows !== undefined && { rows: data.rows }),
       ...(data.hilId !== undefined && {
         hilId: data.hilId,

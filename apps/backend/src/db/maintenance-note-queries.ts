@@ -1,3 +1,4 @@
+import { toHelsinkiDate } from '@mik/contracts/date'
 import { auditCreate, auditUpdate } from './audit.ts'
 import * as connection from './connection.ts'
 import type { DbRow } from './connection.ts'
@@ -16,6 +17,7 @@ function mapRowToNote(row: DbRow<'flight.maintenanceNote'>): MaintenanceNote {
     description: row.description,
     performedBy: row.performedBy,
     flightMins: row.flightMins,
+    recordedOn: row.recordedOn,
     rows: row.rows,
     createdAt: row.createdAt.toISOString(),
     createdBy: row.createdBy,
@@ -52,6 +54,7 @@ export async function createMaintenanceNote(
         description: data.description,
         performedBy: data.performedBy,
         flightMins: data.flightMins,
+        recordedOn: data.recordedOn ?? toHelsinkiDate(now),
         rows: data.rows,
         ...auditCreate(createdBy, now),
       })
@@ -97,6 +100,7 @@ export async function updateMaintenanceNote(
       ...(data.description !== undefined && { description: data.description }),
       ...(data.performedBy !== undefined && { performedBy: data.performedBy }),
       ...(data.flightMins !== undefined && { flightMins: data.flightMins }),
+      ...(data.recordedOn !== undefined && { recordedOn: data.recordedOn }),
       ...(data.rows !== undefined && { rows: data.rows }),
       updatedAt: new Date(),
       updatedBy,

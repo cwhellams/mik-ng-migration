@@ -14,6 +14,7 @@ const aDefect = (overrides: Partial<Defect> = {}): Defect =>
     description: 'Nose wheel shimmy on landing',
     status: 'ACTIVE',
     flightMins: 285_000,
+    recordedOn: '2025-06-02',
     rows: 1,
     createdBy: MEMBER_ID,
     createdAt: '2025-06-02T09:00:00.000Z',

@@ -25,9 +25,11 @@ import {
   type MaintenanceNoteFormValues,
 } from './maintenanceNoteFormSchema'
 import { useRoles } from '@mik/ui/hooks/useRoles'
+import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { useAircraftHil } from '../aircrafts/components/hil/useAircraftHil'
 import { useOpenDefectLink } from '../aircrafts/components/hil/useOpenDefectLink'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { RecordedOnField } from './components/RecordedOnField'
 import { SaveButton } from '@mik/ui/components/SaveButton'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
 import { Problem } from '@mik/contracts/problem'
@@ -47,6 +49,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
 }) => {
   const { t } = useTranslation()
   const { me, isFlightLogAdmin } = useRoles()
+  const { formatDate } = useTimezone()
   const [isEditing, setIsEditing] = useState(false)
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
   const [problem, setProblem] = useState<Problem | undefined>()
@@ -84,6 +87,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
       performedBy: note.performedBy,
       flightHours: Math.floor(note.flightMins / 60),
       flightMinutes: note.flightMins % 60,
+      recordedOn: note.recordedOn,
       rows: note.rows,
     },
   })
@@ -101,6 +105,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
       description: values.description,
       performedBy: values.performedBy,
       flightMins: values.flightHours * 60 + values.flightMinutes,
+      recordedOn: values.recordedOn,
       rows: values.rows,
     })
 
@@ -228,6 +233,8 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                   </Box>
                 </Box>
 
+                <RecordedOnField control={control} name='recordedOn' />
+
                 <Controller
                   name='rows'
                   control={control}
@@ -289,6 +296,18 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                     {t('flightLog.maintenanceNotes.flightTime')}
                   </Typography>
                   <Typography>{flightTimeLabel}</Typography>
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {t('flightLog.recordedOn')}
+                  </Typography>
+                  <Typography>{formatDate(note.recordedOn)}</Typography>
                 </Box>
 
                 <Box>

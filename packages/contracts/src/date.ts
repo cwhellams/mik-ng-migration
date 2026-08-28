@@ -16,5 +16,17 @@ export const HELSINKI_TIMEZONE = 'Europe/Helsinki'
 export const toHelsinki = (value: Dayjs | string | Date): Dayjs =>
   dayjs(value).tz(HELSINKI_TIMEZONE)
 
+/**
+ * The Helsinki calendar date an instant falls on, as `YYYY-MM-DD`; today when called
+ * with no argument.
+ *
+ * How the journey log book's `recorded_on` dates are derived (#1254). Deliberately not
+ * Postgres' `CURRENT_DATE`: the backend pool pins its sessions to `timezone=UTC` (see
+ * `db/connection.ts`), so the database's idea of "today" rolls over at 02:00/03:00
+ * Helsinki and a note entered late on a summer evening would be filed under tomorrow.
+ */
+export const toHelsinkiDate = (at: Dayjs | string | Date = dayjs()): string =>
+  toHelsinki(at).format('YYYY-MM-DD')
+
 /** Convert a Unix-epoch-seconds string (as stored on bookings and flights) to Helsinki time. */
 export const epochToHelsinki = (epoch: string): Dayjs => toHelsinki(dayjs.unix(Number(epoch)))

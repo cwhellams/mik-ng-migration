@@ -17,6 +17,7 @@ const aNote = (overrides: Partial<MaintenanceNote> = {}): MaintenanceNote => ({
   description: 'Annual inspection',
   performedBy: 'AME',
   flightMins: 285_000,
+  recordedOn: '2025-06-02',
   rows: 1,
   createdAt: '2025-06-02T09:00:00.000Z',
   createdBy: MEMBER_ID,

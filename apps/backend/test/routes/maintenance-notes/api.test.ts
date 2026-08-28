@@ -13,6 +13,7 @@ import {
 } from '../../../src/db/maintenance-note-queries.ts'
 import { db } from '../../../src/db/connection.ts'
 import { createDefect } from '../../../src/db/defect-queries.ts'
+import { toHelsinkiDate } from '@mik/contracts/date'
 
 const app = express()
 app.use(express.json())
@@ -301,6 +302,57 @@ describe('POST /maintenance-notes', () => {
     expect(res.status).toBe(201)
     createdNoteId = res.body.noteId
   })
+})
+
+describe('POST /maintenance-notes recordedOn', () => {
+  let createdNoteId: string
+
+  afterEach(async () => {
+    if (createdNoteId) {
+      await deleteMaintenanceNote(createdNoteId)
+      createdNoteId = ''
+    }
+  })
+
+  const create = (body: Record<string, unknown>) =>
+    request(app)
+      .post('/maintenance-notes')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Annual inspection',
+        performedBy: 'Matti Virtanen',
+        flightMins: LIVE_FLIGHT_MINS,
+        ...body,
+      })
+
+  it('stores the date the work was done, days before the note was typed in', async () => {
+    // The whole point of #1254: the note is entered late and must not be filed under
+    // the day it was entered.
+    const res = await create({ recordedOn: '2026-03-14' })
+
+    expect(res.status).toBe(201)
+    expect(res.body.recordedOn).toBe('2026-03-14')
+    createdNoteId = res.body.noteId
+  })
+
+  it('defaults to today in the club timezone when the caller omits it', async () => {
+    const res = await create({})
+
+    expect(res.status).toBe(201)
+    expect(res.body.recordedOn).toBe(toHelsinkiDate())
+    createdNoteId = res.body.noteId
+  })
+
+  it.each(['14.03.2026', '2026-03-14T00:00:00.000Z', '2026-02-30', 'yesterday', ''])(
+    'returns 400 for the malformed date %p',
+    async (recordedOn) => {
+      const res = await create({ recordedOn })
+
+      expect(res.status).toBe(400)
+    },
+  )
 })
 
 describe('POST /maintenance-notes with hilIds', () => {
@@ -646,6 +698,40 @@ describe('PATCH /maintenance-notes/:id', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.flightMins).toBe(21301)
+  })
+
+  it('returns 200 when the owner corrects recordedOn', async () => {
+    const res = await request(app)
+      .patch(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ recordedOn: '2026-03-14' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.recordedOn).toBe('2026-03-14')
+  })
+
+  it('leaves recordedOn alone when the patch does not mention it', async () => {
+    await request(app)
+      .patch(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ recordedOn: '2026-03-14' })
+
+    const res = await request(app)
+      .patch(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ description: 'description only' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.recordedOn).toBe('2026-03-14')
+  })
+
+  it('returns 400 for a malformed recordedOn', async () => {
+    const res = await request(app)
+      .patch(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ recordedOn: '14.03.2026' })
+
+    expect(res.status).toBe(400)
   })
 
   it('returns 404 for non-existent note id', async () => {
