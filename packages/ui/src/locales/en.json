@@ -336,7 +336,7 @@
     },
     "lang": "Language",
     "defaultInstructor": "Default Instructor",
-    "defaultInstructorHelper": "Used to pre-fill the instructor when logging a school flight.",
+    "defaultInstructorHelper": "Used to pre-fill the instructor on training bookings and when logging a school flight.",
     "iban": "IBAN (for expense reimbursements)",
     "ibanHelper": "Save your bank account IBAN here so it can be auto-filled in expense claims.",
     "ibanAccountName": "Account holder name",

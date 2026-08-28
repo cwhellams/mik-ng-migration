@@ -224,7 +224,19 @@ export default defineConfig({
         // well-covered component against this directory's ~9 000 statements is
         // +0.15/+0.07/+0.11 — noise, and under the point of movement this block
         // has always treated as the threshold for touching a bar.
-        'src/sections/**': { statements: 50, branches: 47, functions: 36 },
+        //
+        // branches 47 -> 48, functions 36 -> 37 (#1304). Re-measured after the rebase
+        // onto #1230's merge: 51.58/49.08/38.13 here, against the 51.41/48.95/37.71 the
+        // entry above records for the commit this now sits on. So the training booking's
+        // default instructor contributes +0.17/+0.13/+0.42 — a small feature in a
+        // directory of 8 969 statements, and its own new code is fully covered (+17
+        // covered for +9 added, the surplus being modal branches the type select's tests
+        // reach on the way past).
+        //
+        // Statements stays at 50 deliberately: 51 would leave 0.58 of headroom, and the
+        // rule this block follows is the highest bar that still leaves about a point.
+        // 49.08 and 38.13 clear 48 and 37 by 1.08 and 1.13, so those two move.
+        'src/sections/**': { statements: 50, branches: 48, functions: 37 },
       },
     },
   },
