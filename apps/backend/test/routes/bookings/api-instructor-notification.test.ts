@@ -8,7 +8,7 @@
  * api-member-notification.test.ts for the same pattern.
  */
 
-import { jest, describe, it, beforeEach, expect } from '@jest/globals'
+import { jest, describe, it, beforeAll, beforeEach, afterAll, expect } from '@jest/globals'
 
 // dotenv must load before any module that reads env vars
 import 'dotenv/config'
@@ -33,6 +33,7 @@ const { problemErrorHandler } = await import('../../../src/routes/response.ts')
 const { MIKPermissions } = await import('@mik/contracts/members')
 const { BookingStatus, BookingType } = await import('@mik/contracts/bookings')
 const { getMemberById } = await import('../../../src/db/member-queries.ts')
+const { db } = await import('../../../src/db/connection.ts')
 const { emailTemplates } = await import('../../../src/templates/registry.ts')
 const { normaliseEmailLang } = await import('../../../src/templates/renderEmail.ts')
 
@@ -80,15 +81,60 @@ const callsTo = (email: string) => mockSendEmail.mock.calls.filter((args) => arg
 const icsDate = (unixSeconds: number): string =>
   new Date(unixSeconds * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
-// Deletes a booking and drains any fire-and-forget instructor notification it
-// triggers, so a lingering async call can't land during the *next* test (after
-// its beforeEach clears the mock) and pollute that test's assertions.
+// Every booking this suite creates carries this description prefix, so a sweep
+// can find the suite's rows even when a test failed before it captured an id.
+const testDescriptionPrefix = 'instructor notification test'
+const bookingDescription = (name: string) => `${testDescriptionPrefix} - ${name}`
+
+// Removes every booking this suite has ever left behind, in this run or an
+// earlier one.
+const sweepSuiteBookings = () =>
+  db
+    .deleteFrom('schedule.bookings')
+    .where('description', 'like', `${testDescriptionPrefix}%`)
+    .execute()
+
+// Drains any fire-and-forget instructor notification the booking triggered, so
+// a lingering async call can't land during the *next* test (after its
+// beforeEach clears the mock) and pollute that test's assertions, then deletes
+// the booking.
+//
+// The delete goes straight to the database, as it does in every other suite
+// that creates bookings. It used to be `DELETE /bookings/:id` — a route the
+// bookings router has never had — which answered 404 into an ignored promise,
+// so each run leaked nine CONFIRMED, future-dated OH-IHQ bookings and the next
+// run's overlapping create auto-cancelled them, mailing the instructor a
+// cancellation where the assertion wanted an assignment (#1306). Cleanup that
+// ignores its own result cannot fail loudly, hence the throw below.
 const cleanupBooking = async (bookingId: string) => {
-  await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${adminToken}`)
   await new Promise((resolve) => setTimeout(resolve, 300))
+  const { numDeletedRows } = await db
+    .deleteFrom('schedule.bookings')
+    .where('bookingId', '=', bookingId)
+    .executeTakeFirst()
+  if (numDeletedRows !== 1n) {
+    throw new Error(
+      `Cleanup failed to delete booking ${bookingId}: deleted ${numDeletedRows} rows, expected 1`,
+    )
+  }
 }
 
 describe('Booking instructor notifications', () => {
+  // Clear out anything an earlier run left behind before booking the same
+  // aircraft again. A leftover CONFIRMED booking here is not inert: creating an
+  // overlapping one as a booking admin auto-cancels it and mails its instructor,
+  // which is exactly how the leak in #1306 surfaced as a failing assertion.
+  beforeAll(async () => {
+    await sweepSuiteBookings()
+  })
+
+  // Belt and braces for the per-test cleanup: a test that fails before it can
+  // capture its booking id still leaves a row, and it must not reach the next
+  // run. This suite's rows are all it touches.
+  afterAll(async () => {
+    await sweepSuiteBookings()
+  })
+
   beforeEach(() => {
     mockSendEmail.mockClear()
   })
@@ -103,7 +149,7 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.TRAINING,
-      description: 'instructor notification test - create',
+      description: bookingDescription('create'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
       instructorMemberId: 'Matti1',
@@ -141,7 +187,7 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.TRAINING,
-      description: 'instructor notification test - update',
+      description: bookingDescription('update'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
       instructorMemberId: 'Matti1',
@@ -195,7 +241,7 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.TRAINING,
-      description: 'instructor notification test - instructor change',
+      description: bookingDescription('instructor change'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
       instructorMemberId: 'Matti1',
@@ -249,32 +295,41 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.TRAINING,
-      description: 'instructor notification test - cancel',
+      description: bookingDescription('cancel'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
       instructorMemberId: 'Matti1',
     }
 
-    const createResponse = await request(app)
-      .post('/bookings')
-      .set('Cookie', `accessToken=${adminToken}`)
-      .send(payload)
-    expect(createResponse.status).toBe(201)
-    const bookingId = createResponse.body.bookingId
-    await waitFor(() => callsTo(instructor.email!).length > 0)
-    mockSendEmail.mockClear()
+    // Cancelling leaves the row behind — a cancelled booking is still a row on
+    // OH-IHQ 203 days out — so this test cleans up like the others do.
+    let bookingId: string | undefined
+    try {
+      const createResponse = await request(app)
+        .post('/bookings')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send(payload)
+      expect(createResponse.status).toBe(201)
+      bookingId = createResponse.body.bookingId
+      await waitFor(() => callsTo(instructor.email!).length > 0)
+      mockSendEmail.mockClear()
 
-    const cancelResponse = await request(app)
-      .post(`/bookings/${bookingId}/cancel`)
-      .set('Cookie', `accessToken=${adminToken}`)
-      .send({ reason: 'OTHER', note: 'test cleanup' })
-    expect(cancelResponse.status).toBe(200)
+      const cancelResponse = await request(app)
+        .post(`/bookings/${bookingId}/cancel`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ reason: 'OTHER', note: 'test cleanup' })
+      expect(cancelResponse.status).toBe(200)
 
-    await waitFor(() => callsTo(instructor.email!).length > 0)
+      await waitFor(() => callsTo(instructor.email!).length > 0)
 
-    const [, subject, , attachments] = callsTo(instructor.email!)[0]
-    expect(subject).toEqual(bookingInstructorCancelledEmailSubject(instructor.lang))
-    expect(attachments![0].content).toContain('METHOD:CANCEL')
+      const [, subject, , attachments] = callsTo(instructor.email!)[0]
+      expect(subject).toEqual(bookingInstructorCancelledEmailSubject(instructor.lang))
+      expect(attachments![0].content).toContain('METHOD:CANCEL')
+    } finally {
+      if (bookingId) {
+        await cleanupBooking(bookingId)
+      }
+    }
   })
 
   it('emails the instructor an update naming the new student when a booking is transferred', async () => {
@@ -287,7 +342,7 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.TRAINING,
-      description: 'instructor notification test - transfer',
+      description: bookingDescription('transfer'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
       instructorMemberId: 'Matti1',
@@ -336,7 +391,7 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.TRAINING,
-      description: 'instructor notification test - instructor + time change',
+      description: bookingDescription('instructor + time change'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
       instructorMemberId: 'Matti1',
@@ -394,32 +449,39 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.TRAINING,
-      description: 'instructor notification test - cancel via generic patch',
+      description: bookingDescription('cancel via generic patch'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
       instructorMemberId: 'Matti1',
     }
 
-    const createResponse = await request(app)
-      .post('/bookings')
-      .set('Cookie', `accessToken=${adminToken}`)
-      .send(payload)
-    expect(createResponse.status).toBe(201)
-    const bookingId = createResponse.body.bookingId
-    await waitFor(() => callsTo(instructor.email!).length > 0)
-    mockSendEmail.mockClear()
+    let bookingId: string | undefined
+    try {
+      const createResponse = await request(app)
+        .post('/bookings')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send(payload)
+      expect(createResponse.status).toBe(201)
+      bookingId = createResponse.body.bookingId
+      await waitFor(() => callsTo(instructor.email!).length > 0)
+      mockSendEmail.mockClear()
 
-    const patchResponse = await request(app)
-      .patch(`/bookings/${bookingId}`)
-      .set('Cookie', `accessToken=${adminToken}`)
-      .send({ status: BookingStatus.CANCELLED })
-    expect(patchResponse.status).toBe(200)
+      const patchResponse = await request(app)
+        .patch(`/bookings/${bookingId}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ status: BookingStatus.CANCELLED })
+      expect(patchResponse.status).toBe(200)
 
-    await waitFor(() => callsTo(instructor.email!).length > 0)
+      await waitFor(() => callsTo(instructor.email!).length > 0)
 
-    const [, subject, , attachments] = callsTo(instructor.email!)[0]
-    expect(subject).toEqual(bookingInstructorCancelledEmailSubject(instructor.lang))
-    expect(attachments![0].content).toContain('METHOD:CANCEL')
+      const [, subject, , attachments] = callsTo(instructor.email!)[0]
+      expect(subject).toEqual(bookingInstructorCancelledEmailSubject(instructor.lang))
+      expect(attachments![0].content).toContain('METHOD:CANCEL')
+    } finally {
+      if (bookingId) {
+        await cleanupBooking(bookingId)
+      }
+    }
   })
 
   it('does not crash the request when the instructor notification fails to send', async () => {
@@ -432,7 +494,7 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.TRAINING,
-      description: 'instructor notification test - send failure is swallowed',
+      description: bookingDescription('send failure is swallowed'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
       instructorMemberId: 'Matti1',
@@ -474,7 +536,7 @@ describe('Booking instructor notifications', () => {
       registration: 'OH-IHQ',
       status: BookingStatus.CONFIRMED,
       type: BookingType.PRIVATE,
-      description: 'instructor notification test - no instructor',
+      description: bookingDescription('no instructor'),
       startTimeEpoch: start.unix().toString(),
       endTimeEpoch: start.add(30, 'minutes').unix().toString(),
     }
