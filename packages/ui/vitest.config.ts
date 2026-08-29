@@ -65,7 +65,14 @@ export default defineConfig({
 
         'src/hooks/**': { statements: 96, branches: 96, functions: 99 },
         'src/utils/**': { statements: 75, branches: 71, functions: 84 },
-        'src/components/**': { statements: 39, branches: 32, functions: 24 },
+        // statements 39 -> 40: #1230 moved the findings kind/status chips here
+        // from apps/admin, with their tests — both apps render them unchanged,
+        // which is what this package is for. 42.38/34.48/27.13 measured
+        // (41.34/34.24/26.34 without them), so only statements moved by the
+        // point this block treats as the threshold for touching a bar; the
+        // rest of the gap is slack earlier changes earned without the bars
+        // following, and is not this change's to spend.
+        'src/components/**': { statements: 40, branches: 32, functions: 24 },
         'src/api/**': { statements: 0, branches: 0, functions: 0 },
       },
     },

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { z } from 'zod'
 
 import { DefectStatusSchema } from './defects.ts'
@@ -77,21 +78,46 @@ export const FindingSearchHitSchema = SearchableFindingSchema.extend({
 export type FindingSearchHit = z.infer<typeof FindingSearchHitSchema>
 
 /**
+ * Rejects an inverted range on a pair of *optional* date bounds.
+ *
+ * `withDateRangeCheck` in `./schema.ts` does this for the report filters, but
+ * it requires both bounds; here either may be absent, which is what "no lower
+ * bound" and "no upper bound" mean. Without the check an inverted range is not
+ * an error at all -- the SQL predicate simply matches nothing, and the screen
+ * says "no defects or remarks match these filters", which reads as an answer
+ * about the fleet rather than about the question.
+ */
+const withOptionalRangeCheck = <T extends z.ZodType<{ fromDate?: string; toDate?: string }>>(
+  schema: T,
+) =>
+  schema.superRefine((data, ctx) => {
+    if (data.fromDate && data.toDate && dayjs(data.fromDate).isAfter(dayjs(data.toDate), 'day')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Start date cannot be after end date.',
+        path: ['fromDate'],
+      })
+    }
+  })
+
+/**
  * `GET /v1/findings`'s query. Dates filter on `createdAt` -- when the finding
  * was *reported* -- rather than on the flight or logbook date behind it, which
  * is the second answer on the issue. Both bounds are inclusive whole days in
  * the club's timezone, resolved by the backend so this stays clock-free.
  */
-export const FindingSearchFiltersSchema = z
-  .object({
-    aircraftRegistration: z.string().min(1).optional(),
-    kind: SearchableFindingKindSchema.optional(),
-    fromDate: z.string().date().optional(),
-    toDate: z.string().date().optional(),
-    /** Free-text fragment matched against the description, case-insensitively. */
-    q: z.string().trim().min(1).optional(),
-  })
-  .merge(PaginationSchema(25))
+export const FindingSearchFiltersSchema = withOptionalRangeCheck(
+  z
+    .object({
+      aircraftRegistration: z.string().min(1).optional(),
+      kind: SearchableFindingKindSchema.optional(),
+      fromDate: z.string().date().optional(),
+      toDate: z.string().date().optional(),
+      /** Free-text fragment matched against the description, case-insensitively. */
+      q: z.string().trim().min(1).optional(),
+    })
+    .merge(PaginationSchema(25)),
+)
 
 export type FindingSearchFilters = z.infer<typeof FindingSearchFiltersSchema>
 
@@ -119,6 +145,14 @@ export type RelatedFinding = z.infer<typeof RelatedFindingSchema>
 
 export const RelatedFindingsResponseSchema = z.object({
   findings: z.array(RelatedFindingSchema),
+  /**
+   * How many related findings exist, which is not always `findings.length`:
+   * the list is capped so one pathological description cannot return an
+   * aircraft's whole history. The search row's `similarCount` counts them all,
+   * so without this the expansion would quietly show ten of fifteen while the
+   * row promised fifteen.
+   */
+  total: z.number().int().min(0),
 })
 
 export type RelatedFindingsResponse = z.infer<typeof RelatedFindingsResponseSchema>
@@ -161,11 +195,36 @@ export type TrendingFindingsResponse = z.infer<typeof TrendingFindingsResponseSc
 /** Two reports of the same thing are a pattern -- issue #1230, answer 5. */
 export const TRENDING_MIN_CLUSTER_SIZE = 2
 
-export const TrendingFindingsQuerySchema = z.object({
-  aircraftRegistration: z.string().min(1).optional(),
-  fromDate: z.string().date().optional(),
-  toDate: z.string().date().optional(),
-})
+/**
+ * The widest window trending will cluster over.
+ *
+ * Clustering is a self-join within one aircraft, so its cost grows with the
+ * square of how many findings the window holds, and the caller chooses the
+ * window. Three years is past the point where a repeat report is still a
+ * pattern rather than history, and it bounds the join with a number rather
+ * than with a hope about how much the club flies.
+ */
+export const TRENDING_MAX_WINDOW_DAYS = 1095
+
+export const TrendingFindingsQuerySchema = withOptionalRangeCheck(
+  z
+    .object({
+      aircraftRegistration: z.string().min(1).optional(),
+      fromDate: z.string().date().optional(),
+      toDate: z.string().date().optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (!data.fromDate) return
+      const end = data.toDate ? dayjs(data.toDate) : dayjs()
+      if (end.diff(dayjs(data.fromDate), 'day') > TRENDING_MAX_WINDOW_DAYS) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `The pattern window cannot be longer than ${TRENDING_MAX_WINDOW_DAYS} days.`,
+          path: ['fromDate'],
+        })
+      }
+    }),
+)
 
 export type TrendingFindingsQuery = z.infer<typeof TrendingFindingsQuerySchema>
 

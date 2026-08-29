@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Grid, Stack, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import type {
   FindingSearchFilters,
@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 
 import { endpoints } from '../../api/endpoints'
 import { MemberAppLink } from '../../components/MemberAppLink'
-import { KindChip, StatusChip } from './findingKinds'
+import { KindChip, StatusChip } from '@mik/ui/components/FindingChips'
 import { RelatedFindings } from './RelatedFindings'
 
 const rowKey = (finding: FindingSearchHit) => `${finding.kind}-${finding.findingId}`
@@ -122,6 +122,24 @@ export const FindingSearchResults = ({
           </>
         )}
       />
+
+      {total > 0 && data?.entries.length === 0 && (
+        // A page number outliving the result set it was taken from -- the
+        // filters narrowed, or somebody resolved a defect between requests.
+        // Without this the table reads as "nothing matches these filters",
+        // which is a claim about the fleet rather than about the page.
+        <Alert
+          severity='info'
+          sx={{ mt: 2 }}
+          action={
+            <Button color='inherit' size='small' onClick={() => onPageChange(1)}>
+              {t('findings.backToFirstPage')}
+            </Button>
+          }
+        >
+          {t('findings.pastEnd', { total })}
+        </Alert>
+      )}
 
       {total > pageSize && (
         <Box

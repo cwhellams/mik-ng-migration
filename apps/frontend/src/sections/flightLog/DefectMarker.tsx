@@ -24,10 +24,31 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
 }) => {
   const { t } = useTranslation()
   const { formatDate } = useTimezone()
-  // A deep link (e.g. from the admin findings search) highlights this marker by
-  // matching its id against ?highlightDefect= — open its details right away rather
-  // than making the admin who followed the link click the chip a second time.
+
+  /**
+   * A link that highlights this marker — the admin findings search, and the
+   * hold item list's "view defect", which both navigate with
+   * `?highlightDefect=<id>` — opens its details rather than making the reader
+   * click the chip a second time.
+   *
+   * Synced to the prop rather than only seeded from it. `LogbookPage` keys its
+   * markers by `defectId` and a query-param-only navigation matches the same
+   * route, so nothing remounts: with a `useState(!!highlighted)` initializer
+   * alone, following a second link to a different defect on a page already
+   * open left both dialogs as they were. Adjusting during render rather than
+   * in an effect is React's own recipe for this, and it keeps the marker out
+   * of the way of `react-hooks/set-state-in-effect`.
+   *
+   * Tracking the previous value (rather than just `open === highlighted`) is
+   * what lets the reader close the dialog and have it stay closed while the
+   * marker is still the highlighted one.
+   */
   const [open, setOpen] = useState(!!highlighted)
+  const [lastHighlighted, setLastHighlighted] = useState(highlighted)
+  if (highlighted !== lastHighlighted) {
+    setLastHighlighted(highlighted)
+    setOpen(!!highlighted)
+  }
 
   const color =
     defect.status === 'ACTIVE' ? 'error' : defect.status === 'MOVED_TO_HIL' ? 'warning' : 'success'

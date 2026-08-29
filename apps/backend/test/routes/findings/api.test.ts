@@ -1,10 +1,11 @@
 import 'dotenv/config'
 import { HELSINKI_TIMEZONE, toHelsinkiDate } from '@mik/contracts/date'
-import type {
-  FindingSearchResponse,
-  RelatedFindingsResponse,
-  TechnicalNotesResponse,
-  TrendingFindingsResponse,
+import {
+  TRENDING_MAX_WINDOW_DAYS,
+  type FindingSearchResponse,
+  type RelatedFindingsResponse,
+  type TechnicalNotesResponse,
+  type TrendingFindingsResponse,
 } from '@mik/contracts/findings'
 import { MIKPermissions } from '@mik/contracts/members'
 import cookieParser from 'cookie-parser'
@@ -240,6 +241,19 @@ describe('permissions', () => {
     expect(res.status).toBe(403)
   })
 
+  it.each(adminOnly)('refuses a member with no permissions on $path', async ({ path, query }) => {
+    // The third leg of the backend's identity triad. The FLIGHTLOG_USER case
+    // above already exercises "holds a permission, but not this one"; this is
+    // "holds nothing at all", and the policy is that a gate is tested against
+    // the whole set rather than from the inside.
+    const res = await request(app)
+      .get(path)
+      .set('Cookie', `accessToken=${noAccessToken}`)
+      .query(query)
+
+    expect(res.status).toBe(403)
+  })
+
   it.each(adminOnly)('allows a flight log admin on $path', async ({ path, query }) => {
     const res = await request(app).get(path).set('Cookie', `accessToken=${adminToken}`).query(query)
 
@@ -431,6 +445,21 @@ describe('GET /findings', () => {
     expect(second.entries.map((entry) => entry.description)).toEqual([`${MARK} first`])
   })
 
+  it('still reports the real total on a page past the end of the results', async () => {
+    // `COUNT(*) OVER ()` rides along on the rows, so an empty page carries no
+    // total. Reporting 0 stranded the admin: the screen said "no matches" and
+    // hid the pager, leaving no way back to page 1 from a stale page number.
+    await insertRemark(FLIGHTS[0], `${MARK} first`, daysAgo(3))
+    await insertRemark(FLIGHTS[1], `${MARK} second`, daysAgo(2))
+
+    const body = (await search(adminToken, { q: MARK, page: 4, pageSize: 2 }))
+      .body as FindingSearchResponse
+
+    expect(body.entries).toEqual([])
+    expect(body.total).toBe(2)
+    expect(body.page).toBe(4)
+  })
+
   it('reports a total of zero rather than failing when nothing matches', async () => {
     const body = (await search(adminToken, { q: 'no finding says this' }))
       .body as FindingSearchResponse
@@ -469,6 +498,22 @@ describe('GET /findings', () => {
 
     expect(res.status).toBe(400)
   })
+
+  it('rejects a range that ends before it starts', async () => {
+    // Unvalidated this is not an error at all -- the predicate simply matches
+    // nothing, and the screen says "no defects or remarks match these
+    // filters", which reads as an answer about the fleet rather than about
+    // the question.
+    const res = await search(adminToken, { fromDate: '2026-08-10', toDate: '2026-08-01' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('accepts a range of one single day', async () => {
+    const res = await search(adminToken, { fromDate: '2026-08-10', toDate: '2026-08-10' })
+
+    expect(res.status).toBe(200)
+  })
 })
 
 describe('GET /findings/related', () => {
@@ -499,6 +544,26 @@ describe('GET /findings/related', () => {
     ).body as RelatedFindingsResponse
 
     expect(body.findings).toEqual([])
+  })
+
+  it('reports how many related findings there are, not how many it returned', async () => {
+    // The list is capped, and the search row that opens it counts every match,
+    // so without a total the expansion would show ten of fifteen while the row
+    // promised fifteen.
+    const target = await insertRemark(FLIGHTS[0], CARB_HEAT, daysAgo(1))
+    for (let index = 0; index < 12; index += 1) {
+      await insertRemark(FLIGHTS[1], `${CARB_HEAT_AGAIN} (${index})`, daysAgo(index + 2))
+    }
+
+    const body = (
+      await request(app)
+        .get('/findings/related')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .query({ kind: 'REMARK', findingId: target })
+    ).body as RelatedFindingsResponse
+
+    expect(body.total).toBe(12)
+    expect(body.findings).toHaveLength(10)
   })
 
   it('404s for a finding that does not exist', async () => {
@@ -591,6 +656,20 @@ describe('GET /findings/trending', () => {
     for (const other of cluster?.others ?? []) {
       expect(other.similarity).toBeGreaterThan(0.3)
     }
+  })
+
+  it('refuses a window wider than the cap', async () => {
+    // Clustering is a self-join inside one aircraft, so its cost grows with
+    // the square of what the window holds and the caller picks the window.
+    const res = await trending({ fromDate: isoDate(daysAgo(TRENDING_MAX_WINDOW_DAYS + 30)) })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('accepts a window at the cap', async () => {
+    const res = await trending({ fromDate: isoDate(daysAgo(TRENDING_MAX_WINDOW_DAYS - 1)) })
+
+    expect(res.status).toBe(200)
   })
 
   it('excludes findings reported outside the window', async () => {

@@ -74,7 +74,7 @@ router.get(
       return problem({ status: 404, detail: 'Finding not found' })
     }
 
-    res.status(200).json({ findings: await findRelatedFindings(kind, findingId) })
+    res.status(200).json(await findRelatedFindings(kind, findingId))
   },
 )
 

@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -11,8 +10,8 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import type { DefectStatus } from '@mik/contracts/defects'
-import type { Finding, FindingKind, TechnicalNotesResponse } from '@mik/contracts/findings'
+import type { Finding, TechnicalNotesResponse } from '@mik/contracts/findings'
+import { KindChip, StatusChip } from '@mik/ui/components/FindingChips'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import useApi from '@mik/ui/hooks/useApi'
 import { useTimezone } from '@mik/ui/hooks/useTimezone'
@@ -36,18 +35,6 @@ import { endpoints } from '../../../api/endpoints'
  * phone, by whoever is about to fly it.
  */
 
-const KIND_COLOR: Record<FindingKind, 'error' | 'info' | 'success'> = {
-  DEFECT: 'error',
-  REMARK: 'info',
-  MAINTENANCE_NOTE: 'success',
-}
-
-const STATUS_COLOR: Record<DefectStatus, 'error' | 'warning' | 'success'> = {
-  ACTIVE: 'error',
-  MOVED_TO_HIL: 'warning',
-  RESOLVED: 'success',
-}
-
 const HISTORY_LENGTH = 20
 
 const TechnicalNote = ({ finding }: { finding: Finding }) => {
@@ -57,19 +44,8 @@ const TechnicalNote = ({ finding }: { finding: Finding }) => {
   return (
     <Stack spacing={0.5}>
       <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-        <Chip
-          size='small'
-          color={KIND_COLOR[finding.kind]}
-          label={t(`findings.kind.${finding.kind}`)}
-        />
-        {finding.status && (
-          <Chip
-            size='small'
-            variant='outlined'
-            color={STATUS_COLOR[finding.status]}
-            label={t(`findings.status.${finding.status}`)}
-          />
-        )}
+        <KindChip kind={finding.kind} />
+        <StatusChip status={finding.status} />
         <Typography variant='caption' color='text.secondary'>
           {formatDateTime(finding.createdAt)}
         </Typography>

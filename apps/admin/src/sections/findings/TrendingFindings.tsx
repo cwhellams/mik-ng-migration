@@ -7,7 +7,7 @@ import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { useTranslation } from 'react-i18next'
 
 import { endpoints } from '../../api/endpoints'
-import { KindChip, StatusChip } from './findingKinds'
+import { KindChip, StatusChip } from '@mik/ui/components/FindingChips'
 import { findingLocation } from './findingLocation'
 
 /**

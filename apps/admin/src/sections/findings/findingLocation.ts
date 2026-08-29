@@ -5,9 +5,10 @@ import type { Finding } from '@mik/contracts/findings'
  * beside each description. A remark on a flight whose logbook page is unknown
  * shows the registration alone rather than a dangling separator.
  *
- * Its own module rather than a fourth export of `findingKinds.tsx`: mixing a
- * plain function in with components there breaks Fast Refresh, which the lint
- * config warns about.
+ * A plain function in its own module rather than an export beside a component:
+ * mixing the two in one file breaks Fast Refresh, which the lint config warns
+ * about. The chips it used to sit next to now live in
+ * `@mik/ui/components/FindingChips`, since both apps render them.
  */
 export const findingLocation = (finding: Finding, bookLabel: string): string =>
   finding.ajlbSeqNo == null

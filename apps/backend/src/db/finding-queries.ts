@@ -1,4 +1,4 @@
-import { HELSINKI_TIMEZONE } from '@mik/contracts/date'
+import { HELSINKI_TIMEZONE, toHelsinkiDate } from '@mik/contracts/date'
 import type { DefectStatus } from '@mik/contracts/defects'
 import {
   TRENDING_MIN_CLUSTER_SIZE,
@@ -7,15 +7,18 @@ import {
   type FindingSearchFilters,
   type FindingSearchHit,
   type FindingSearchResponse,
-  type RelatedFinding,
+  type RelatedFindingsResponse,
+  type SearchableFinding,
   type SearchableFindingKind,
   type TechnicalNotesQuery,
   type TrendingFindingCluster,
   type TrendingFindingsQuery,
 } from '@mik/contracts/findings'
-import { sql } from 'kysely'
+import dayjs from 'dayjs'
+import { sql, type Kysely } from 'kysely'
 
 import { db } from './connection.ts'
+import type { DB } from './schema.d.ts'
 
 /**
  * Queries behind the defect/remark search and monitoring tool (#1230).
@@ -66,6 +69,50 @@ export const TRENDING_DEFAULT_WINDOW_DAYS = 365
 
 /** How many related findings one lookup will hand back. */
 const RELATED_LIMIT = 10
+
+/**
+ * Two descriptions are related.
+ *
+ * Written as `%` **and** `similarity() >= threshold`, which looks redundant and
+ * is not. Only `%` can use the `gin_trgm_ops` indexes V2150 adds: pg_trgm's
+ * GIN opclass serves the operators (`%`, `<->`), never a bare `similarity()`
+ * comparison, so the function form degrades every one of these queries to a
+ * sequential scan no matter what indexes exist. But `%` takes its cutoff from
+ * `pg_trgm.similarity_threshold`, a GUC -- so it is the *index* condition, and
+ * the explicit comparison beside it is what actually defines the answer. That
+ * way the result does not depend on a session setting, and a cluster-wide
+ * change to the GUC can cost a little index selectivity but never silently
+ * move what this feature calls a pattern.
+ *
+ * The operands go in through `sql.raw`, since they are column references
+ * rather than values -- hence the narrow parameter type, so the only strings
+ * that can reach it are the five aliases the queries below actually use.
+ */
+type DescriptionRef = `${'o' | 'p' | 'a' | 'b' | 't'}.description`
+
+const isSimilar = (left: DescriptionRef, right: DescriptionRef) => sql`
+  ${sql.raw(left)} % ${sql.raw(right)}
+  AND public.similarity(${sql.raw(left)}, ${sql.raw(right)}) >= ${SIMILARITY_THRESHOLD}
+`
+
+/**
+ * Runs `run` in a transaction with `pg_trgm.similarity_threshold` pinned to
+ * ours, so the `%` operator above selects the same rows the explicit
+ * comparison keeps.
+ *
+ * `set_config(..., true)` rather than `SET LOCAL` because the third argument
+ * makes it transaction-local *and* the value can be a bind parameter, which
+ * `SET` will not take. Transaction-local matters: these run on a pooled
+ * connection, and a session-level `SET` would leak this feature's threshold
+ * into every other query that connection went on to serve.
+ */
+const withSimilarityThreshold = async <T>(run: (trx: Kysely<DB>) => Promise<T>): Promise<T> =>
+  db.transaction().execute(async (trx) => {
+    await sql`SELECT set_config('pg_trgm.similarity_threshold', ${String(SIMILARITY_THRESHOLD)}, true)`.execute(
+      trx,
+    )
+    return run(trx)
+  })
 
 /**
  * Defects and remarks flattened onto one shape. `f.` is the alias every caller
@@ -225,27 +272,30 @@ export async function searchFindings(
 ): Promise<FindingSearchResponse> {
   const offset = (filters.page - 1) * filters.pageSize
 
-  const { rows } = await sql<
-    FindingRow<SearchableFindingKind> & { similarCount: number; totalRows: number }
-  >`
-    WITH findings AS (${searchableFindings}),
-    page AS (
-      SELECT f.*, (COUNT(*) OVER ())::int AS total_rows
-        FROM findings f
-        ${findingsWhere(filters)}
-       ORDER BY f.created_at DESC, f.finding_id
-       LIMIT ${filters.pageSize} OFFSET ${offset}
-    )
-    SELECT p.*,
-           (SELECT COUNT(*)
-              FROM findings o
-             WHERE o.aircraft_registration = p.aircraft_registration
-               AND NOT (o.finding_id = p.finding_id AND o.kind = p.kind)
-               AND public.similarity(o.description, p.description) >= ${SIMILARITY_THRESHOLD}
-           )::int AS similar_count
-      FROM page p
-     ORDER BY p.created_at DESC, p.finding_id
-  `.execute(db)
+  const rows = await withSimilarityThreshold(async (trx) => {
+    const result = await sql<
+      FindingRow<SearchableFindingKind> & { similarCount: number; totalRows: number }
+    >`
+      WITH findings AS NOT MATERIALIZED (${searchableFindings}),
+      page AS (
+        SELECT f.*, (COUNT(*) OVER ())::int AS total_rows
+          FROM findings f
+          ${findingsWhere(filters)}
+         ORDER BY f.created_at DESC, f.finding_id
+         LIMIT ${filters.pageSize} OFFSET ${offset}
+      )
+      SELECT p.*,
+             (SELECT COUNT(*)
+                FROM findings o
+               WHERE o.aircraft_registration = p.aircraft_registration
+                 AND NOT (o.finding_id = p.finding_id AND o.kind = p.kind)
+                 AND ${isSimilar('o.description', 'p.description')}
+             )::int AS similar_count
+        FROM page p
+       ORDER BY p.created_at DESC, p.finding_id
+    `.execute(trx)
+    return result.rows
+  })
 
   const entries: FindingSearchHit[] = rows.map((row) => ({
     ...mapRow(row),
@@ -254,12 +304,35 @@ export async function searchFindings(
 
   return {
     entries,
-    // No rows means no window function ran, so the total has to come from here
-    // rather than from a row that does not exist.
-    total: rows[0]?.totalRows ?? 0,
+    total: rows[0]?.totalRows ?? (await totalWhenPageIsEmpty(filters)),
     page: filters.page,
     pageSize: filters.pageSize,
   }
+}
+
+/**
+ * The unpaged total for a page that came back empty.
+ *
+ * `COUNT(*) OVER ()` rides along on the rows, so an empty page carries no
+ * total -- and an empty page does not mean an empty result set. Ask for page 4
+ * of something that has since shrunk to two pages and the window function
+ * never runs, which reported `total: 0`: the screen then said "no defects or
+ * remarks match these filters" and hid the pager, stranding the admin on a
+ * page number with no way back to the first one.
+ *
+ * Only reached when the page really is empty, so the common path stays a
+ * single round trip. Page 1 is skipped because an empty page 1 genuinely is an
+ * empty result set.
+ */
+const totalWhenPageIsEmpty = async (filters: FindingSearchFilters): Promise<number> => {
+  if (filters.page === 1) return 0
+
+  const { rows } = await sql<{ total: number }>`
+    WITH findings AS NOT MATERIALIZED (${searchableFindings})
+    SELECT COUNT(*)::int AS total FROM findings f ${findingsWhere(filters)}
+  `.execute(db)
+
+  return rows[0]?.total ?? 0
 }
 
 /**
@@ -273,23 +346,38 @@ export async function searchFindings(
 export async function findRelatedFindings(
   kind: SearchableFindingKind,
   findingId: string,
-): Promise<RelatedFinding[]> {
-  const { rows } = await sql<FindingRow<SearchableFindingKind> & { similarity: number }>`
-    WITH findings AS (${searchableFindings}),
-    target AS (
-      SELECT * FROM findings f WHERE f.kind = ${kind} AND f.finding_id = ${findingId}
-    )
-    SELECT o.*, public.similarity(o.description, t.description)::float8 AS similarity
-      FROM findings o
-     CROSS JOIN target t
-     WHERE o.aircraft_registration = t.aircraft_registration
-       AND NOT (o.finding_id = t.finding_id AND o.kind = t.kind)
-       AND public.similarity(o.description, t.description) >= ${SIMILARITY_THRESHOLD}
-     ORDER BY similarity DESC, o.created_at DESC
-     LIMIT ${RELATED_LIMIT}
-  `.execute(db)
+): Promise<RelatedFindingsResponse> {
+  const rows = await withSimilarityThreshold(async (trx) => {
+    const result = await sql<
+      FindingRow<SearchableFindingKind> & { similarity: number; totalRows: number }
+    >`
+      WITH findings AS NOT MATERIALIZED (${searchableFindings}),
+      target AS (
+        SELECT * FROM findings f WHERE f.kind = ${kind} AND f.finding_id = ${findingId}
+      ),
+      matches AS (
+        SELECT o.*, public.similarity(o.description, t.description)::float8 AS similarity
+          FROM findings o
+         CROSS JOIN target t
+         WHERE o.aircraft_registration = t.aircraft_registration
+           AND NOT (o.finding_id = t.finding_id AND o.kind = t.kind)
+           AND ${isSimilar('o.description', 't.description')}
+      )
+      SELECT m.*, (COUNT(*) OVER ())::int AS total_rows
+        FROM matches m
+       ORDER BY m.similarity DESC, m.created_at DESC
+       LIMIT ${RELATED_LIMIT}
+    `.execute(trx)
+    return result.rows
+  })
 
-  return rows.map((row) => ({ ...mapRow(row), similarity: row.similarity }))
+  return {
+    findings: rows.map((row) => ({ ...mapRow(row), similarity: row.similarity })),
+    // Counted before the LIMIT, so the caller can say "10 of 15" rather than
+    // implying the capped list is all of them -- the search row that opened
+    // this expansion counts them all.
+    total: rows[0]?.totalRows ?? 0,
+  }
 }
 
 /** Whether a finding exists at all, so "no related findings" and "no such finding" differ. */
@@ -298,7 +386,7 @@ export async function findingExists(
   findingId: string,
 ): Promise<boolean> {
   const { rows } = await sql<{ exists: boolean }>`
-    WITH findings AS (${searchableFindings})
+    WITH findings AS NOT MATERIALIZED (${searchableFindings})
     SELECT EXISTS (
       SELECT 1 FROM findings f WHERE f.kind = ${kind} AND f.finding_id = ${findingId}
     ) AS exists
@@ -307,18 +395,68 @@ export async function findingExists(
   return rows[0]?.exists ?? false
 }
 
-const defaultTrendingFrom = (): string => {
-  const from = new Date()
-  from.setUTCDate(from.getUTCDate() - TRENDING_DEFAULT_WINDOW_DAYS)
-  return from.toISOString().slice(0, 10)
+/**
+ * The default window's lower bound, as a Helsinki calendar day.
+ *
+ * `findingsWhere` reads every date string as a Helsinki day, so this one has to
+ * be computed in that calendar too. Built from UTC arithmetic it disagreed with
+ * an explicit `fromDate` of "a year ago" for the hours each day when the two
+ * calendars differ, which put a finding sitting on the edge of the window
+ * inside it or outside it depending on what time the page was opened.
+ */
+const defaultTrendingFrom = (): string =>
+  toHelsinkiDate(dayjs().subtract(TRENDING_DEFAULT_WINDOW_DAYS, 'day'))
+
+/**
+ * A pair of similar findings, each side carried in full.
+ *
+ * The columns are prefixed rather than nested: the CamelCase plugin rewrites
+ * result keys but not the shape of a row, so `a_finding_id` comes back as
+ * `aFindingId`, and `sideOf` below reads one side back out as a `FindingRow`.
+ */
+type PairSide<P extends 'a' | 'b'> = {
+  [
+    K in keyof FindingRow<SearchableFindingKind> as `${P}${Capitalize<K & string>}`
+  ]: FindingRow<SearchableFindingKind>[K]
 }
 
-type PairRow = {
-  aKind: SearchableFindingKind
-  aId: string
-  bKind: SearchableFindingKind
-  bId: string
-  score: number
+type PairRow = PairSide<'a'> & PairSide<'b'> & { score: number }
+
+/** The row columns of one side of a pair, aliased with that side's prefix. */
+const PAIR_COLUMNS = [
+  'finding_id',
+  'kind',
+  'aircraft_registration',
+  'ajlb_seq_no',
+  'flight_id',
+  'description',
+  'status',
+  'performed_by',
+  'recorded_on',
+  'created_at',
+  'created_by',
+] as const
+
+const pairColumns = (side: 'a' | 'b'): string =>
+  PAIR_COLUMNS.map((column) => `${side}.${column} AS ${side}_${column}`).join(', ')
+
+/** Reads one side of a pair row back out as the finding it describes. */
+const sideOf = (pair: PairRow, side: 'a' | 'b'): FindingRow<SearchableFindingKind> => {
+  const row = pair as unknown as Record<string, never>
+  const at = (column: string) => row[`${side}${column[0].toUpperCase()}${column.slice(1)}`]
+  return {
+    findingId: at('findingId'),
+    kind: at('kind'),
+    aircraftRegistration: at('aircraftRegistration'),
+    ajlbSeqNo: at('ajlbSeqNo'),
+    flightId: at('flightId'),
+    description: at('description'),
+    status: at('status'),
+    performedBy: at('performedBy'),
+    recordedOn: at('recordedOn'),
+    createdAt: at('createdAt'),
+    createdBy: at('createdBy'),
+  }
 }
 
 /** `kind:id`, the key clusters are built on — ids are unique per kind, not across them. */
@@ -341,16 +479,17 @@ export async function findTrendingFindings(
   const fromDate = query.fromDate ?? defaultTrendingFrom()
   const window = { ...query, fromDate }
 
-  const [scoped, pairs] = await Promise.all([
-    sql<FindingRow<SearchableFindingKind>>`
-      WITH findings AS (${searchableFindings})
-      SELECT f.* FROM findings f ${findingsWhere(window)}
-    `.execute(db),
-    sql<PairRow>`
-      WITH findings AS (${searchableFindings}),
+  // One query, not two. The pairs already carry both of their sides in full,
+  // and a finding that appears in no pair can never reach a cluster -- so the
+  // separate "every scoped finding" query this used to run alongside fetched a
+  // second copy of the same filtered union and then mapped rows that were
+  // thrown away a few lines later.
+  const pairs = await withSimilarityThreshold(async (trx) => {
+    const result = await sql<PairRow>`
+      WITH findings AS NOT MATERIALIZED (${searchableFindings}),
       scoped AS (SELECT f.* FROM findings f ${findingsWhere(window)})
-      SELECT a.kind AS a_kind, a.finding_id AS a_id,
-             b.kind AS b_kind, b.finding_id AS b_id,
+      SELECT ${sql.raw(pairColumns('a'))},
+             ${sql.raw(pairColumns('b'))},
              public.similarity(a.description, b.description)::float8 AS score
         FROM scoped a
        INNER JOIN scoped b
@@ -358,11 +497,18 @@ export async function findTrendingFindings(
          -- Each unordered pair once. Ordering on the id alone would drop a
          -- pair whose two members were created in the same millisecond.
          AND (a.created_at, a.finding_id) < (b.created_at, b.finding_id)
-       WHERE public.similarity(a.description, b.description) >= ${SIMILARITY_THRESHOLD}
-    `.execute(db),
-  ])
+       WHERE ${isSimilar('a.description', 'b.description')}
+    `.execute(trx)
+    return result.rows
+  })
 
-  const findings = new Map(scoped.rows.map((row) => [keyOf(row.kind, row.findingId), mapRow(row)]))
+  const findings = new Map<string, SearchableFinding>()
+  for (const pair of pairs) {
+    for (const side of ['a', 'b'] as const) {
+      const row = sideOf(pair, side)
+      findings.set(keyOf(row.kind, row.findingId), mapRow(row))
+    }
+  }
 
   /**
    * Each finding's best score against anything it was paired with. Reporting
@@ -376,9 +522,9 @@ export async function findTrendingFindings(
   const recordScore = (key: string, score: number) => {
     bestScores.set(key, Math.max(bestScores.get(key) ?? 0, score))
   }
-  for (const pair of pairs.rows) {
-    recordScore(keyOf(pair.aKind, pair.aId), pair.score)
-    recordScore(keyOf(pair.bKind, pair.bId), pair.score)
+  for (const pair of pairs) {
+    recordScore(keyOf(pair.aKind, pair.aFindingId), pair.score)
+    recordScore(keyOf(pair.bKind, pair.bFindingId), pair.score)
   }
 
   const parent = new Map<string, string>()
@@ -388,9 +534,9 @@ export async function findTrendingFindings(
     return root
   }
   for (const key of findings.keys()) parent.set(key, key)
-  for (const pair of pairs.rows) {
-    const a = find(keyOf(pair.aKind, pair.aId))
-    const b = find(keyOf(pair.bKind, pair.bId))
+  for (const pair of pairs) {
+    const a = find(keyOf(pair.aKind, pair.aFindingId))
+    const b = find(keyOf(pair.bKind, pair.bFindingId))
     if (a !== b) parent.set(a, b)
   }
 

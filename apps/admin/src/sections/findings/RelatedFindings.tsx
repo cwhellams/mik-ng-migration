@@ -6,7 +6,7 @@ import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { useTranslation } from 'react-i18next'
 
 import { endpoints } from '../../api/endpoints'
-import { KindChip, StatusChip } from './findingKinds'
+import { KindChip, StatusChip } from '@mik/ui/components/FindingChips'
 
 /**
  * The "this might be related" expansion under a search hit.
@@ -53,6 +53,14 @@ export const RelatedFindings = ({
               </Typography>
             </Stack>
           ))}
+          {data && data.total > data.findings.length && (
+            // The list is capped, and the row that opened it counts every
+            // match -- so without saying so, "15 similar reports" would expand
+            // to ten and imply that was all of them.
+            <Typography variant='caption' color='text.secondary'>
+              {t('findings.showingOf', { shown: data.findings.length, total: data.total })}
+            </Typography>
+          )}
           {data?.findings.length === 0 && (
             <Typography variant='body2' color='text.secondary'>
               {t('findings.noRelated')}

@@ -2,6 +2,7 @@ import type {
   FindingSearchHit,
   FindingSearchResponse,
   RelatedFinding,
+  RelatedFindingsResponse,
   SearchableFinding,
   TrendingFindingCluster,
 } from '@mik/contracts/findings'
@@ -38,6 +39,11 @@ export const aRelatedFinding = (overrides: Partial<RelatedFinding> = {}): Relate
   similarity: 0.42,
   ...overrides,
 })
+
+export const aRelatedResponse = (
+  findings: RelatedFinding[],
+  total = findings.length,
+): RelatedFindingsResponse => ({ findings, total })
 
 export const aSearchResponse = (
   entries: FindingSearchHit[],

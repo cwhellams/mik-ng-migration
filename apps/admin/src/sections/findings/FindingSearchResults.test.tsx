@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { apiUrl, problemResponse } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import { renderWithProviders } from '../../test/renderWithProviders'
-import { aHit, aRelatedFinding, aSearchResponse } from './findingFixtures'
+import { aHit, aRelatedFinding, aRelatedResponse, aSearchResponse } from './findingFixtures'
 import { FINDINGS_PAGE_SIZE, FindingSearchResults } from './FindingSearchResults'
 
 const searchUrl = apiUrl('v1/findings')
@@ -175,7 +175,7 @@ describe('FindingSearchResults', () => {
       ),
       http.get(relatedUrl, ({ request }) => {
         seen(Object.fromEntries(new URL(request.url).searchParams))
-        return HttpResponse.json({ findings: [] })
+        return HttpResponse.json(aRelatedResponse([]))
       }),
     )
 
@@ -190,7 +190,7 @@ describe('FindingSearchResults', () => {
   it('says when a row that promised similar reports turns out to have none', async () => {
     server.use(
       http.get(searchUrl, () => HttpResponse.json(aSearchResponse([aHit({ similarCount: 1 })]))),
-      http.get(relatedUrl, () => HttpResponse.json({ findings: [] })),
+      http.get(relatedUrl, () => HttpResponse.json(aRelatedResponse([]))),
     )
 
     const { user } = renderResults()
@@ -200,6 +200,78 @@ describe('FindingSearchResults', () => {
     expect(
       await screen.findByText('Nothing else on this aircraft resembles this report.'),
     ).toBeInTheDocument()
+  })
+
+  it('says when the expansion is showing only the closest of many matches', async () => {
+    // The row promised 15; the endpoint caps the list at 10. Without saying so
+    // the expansion implies the ten it shows are all there are.
+    server.use(
+      http.get(searchUrl, () => HttpResponse.json(aSearchResponse([aHit({ similarCount: 15 })]))),
+      http.get(relatedUrl, () =>
+        HttpResponse.json(
+          aRelatedResponse(
+            Array.from({ length: 10 }, (_, index) =>
+              aRelatedFinding({ findingId: `r-${index}`, description: `Match ${index}` }),
+            ),
+            15,
+          ),
+        ),
+      ),
+    )
+
+    const { user } = renderResults()
+
+    await user.click(await screen.findByRole('button', { name: '15 similar reports' }))
+
+    expect(await screen.findByText('Showing the closest 10 of 15.')).toBeInTheDocument()
+  })
+
+  it('says nothing about a cap when the expansion is complete', async () => {
+    server.use(
+      http.get(searchUrl, () => HttpResponse.json(aSearchResponse([aHit({ similarCount: 1 })]))),
+      http.get(relatedUrl, () =>
+        HttpResponse.json(aRelatedResponse([aRelatedFinding({ description: 'The only one' })])),
+      ),
+    )
+
+    const { user } = renderResults()
+
+    await user.click(await screen.findByRole('button', { name: '1 similar report' }))
+
+    expect(await screen.findByText('The only one')).toBeInTheDocument()
+    expect(screen.queryByText(/Showing the closest/)).not.toBeInTheDocument()
+  })
+
+  it('offers a way back when the page number outlives the result set', async () => {
+    // The filters narrowed, or a defect was resolved between requests. The
+    // table alone would read as "nothing matches these filters", which is a
+    // claim about the fleet rather than about the page.
+    const onPageChange = vi.fn()
+    server.use(
+      http.get(searchUrl, () => HttpResponse.json(aSearchResponse([], { total: 40, page: 4 }))),
+    )
+
+    const { user } = renderResults({ page: 4, onPageChange })
+
+    expect(
+      await screen.findByText(
+        'This page is past the end of the results. 40 findings match these filters.',
+      ),
+    ).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'First page' }))
+    expect(onPageChange).toHaveBeenCalledWith(1)
+  })
+
+  it('says nothing about a stale page when the result set is genuinely empty', async () => {
+    server.use(http.get(searchUrl, () => HttpResponse.json(aSearchResponse([]))))
+
+    renderResults()
+
+    expect(
+      await screen.findByText('No defects or remarks match these filters.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'First page' })).not.toBeInTheDocument()
   })
 
   it('pages only when there is more than one page', async () => {

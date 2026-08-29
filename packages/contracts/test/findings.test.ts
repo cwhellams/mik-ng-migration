@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
+import dayjs from 'dayjs'
 import {
   FindingSearchFiltersSchema,
   FindingSearchHitSchema,
   RelatedFindingsQuerySchema,
   TechnicalNotesQuerySchema,
   TrendingFindingsQuerySchema,
+  TRENDING_MAX_WINDOW_DAYS,
   TRENDING_MIN_CLUSTER_SIZE,
 } from '../src/findings.ts'
 
@@ -43,6 +45,25 @@ describe('FindingSearchFiltersSchema', () => {
   it('accepts a calendar date and rejects anything else', () => {
     expect(FindingSearchFiltersSchema.parse({ fromDate: '2026-01-31' }).fromDate).toBe('2026-01-31')
     expect(() => FindingSearchFiltersSchema.parse({ fromDate: '31.01.2026' })).toThrow()
+  })
+
+  it('rejects a range that ends before it starts', () => {
+    // Unchecked this is not a validation failure at all: the SQL predicate
+    // matches nothing and the screen says "no defects or remarks match these
+    // filters", which reads as an answer about the fleet rather than about
+    // the question. `withDateRangeCheck` in ./schema.ts does the same for the
+    // report filters, but it requires both bounds; here either may be absent.
+    expect(() =>
+      FindingSearchFiltersSchema.parse({ fromDate: '2026-08-10', toDate: '2026-08-01' }),
+    ).toThrow()
+  })
+
+  it('accepts a range of a single day, and one open at either end', () => {
+    expect(
+      FindingSearchFiltersSchema.parse({ fromDate: '2026-08-10', toDate: '2026-08-10' }).fromDate,
+    ).toBe('2026-08-10')
+    expect(FindingSearchFiltersSchema.parse({ fromDate: '2026-08-10' }).toDate).toBeUndefined()
+    expect(FindingSearchFiltersSchema.parse({ toDate: '2026-08-01' }).fromDate).toBeUndefined()
   })
 
   it('only searches the two kinds that are findings in their own right', () => {
@@ -107,6 +128,38 @@ describe('RelatedFindingsQuerySchema', () => {
 describe('TrendingFindingsQuerySchema', () => {
   it('takes no filters at all, so the fleet-wide view needs no arguments', () => {
     expect(TrendingFindingsQuerySchema.parse({})).toEqual({})
+  })
+
+  it('rejects an inverted range, like the search filters', () => {
+    expect(() =>
+      TrendingFindingsQuerySchema.parse({ fromDate: '2026-08-10', toDate: '2026-08-01' }),
+    ).toThrow()
+  })
+
+  it('refuses a window wider than the cap', () => {
+    // Clustering is a self-join within one aircraft, so its cost grows with
+    // the square of what the window holds -- and the caller picks the window.
+    const start = dayjs()
+      .subtract(TRENDING_MAX_WINDOW_DAYS + 1, 'day')
+      .format('YYYY-MM-DD')
+
+    expect(() => TrendingFindingsQuerySchema.parse({ fromDate: start })).toThrow()
+  })
+
+  it('accepts a window at the cap', () => {
+    const start = dayjs()
+      .subtract(TRENDING_MAX_WINDOW_DAYS - 1, 'day')
+      .format('YYYY-MM-DD')
+
+    expect(TrendingFindingsQuerySchema.parse({ fromDate: start }).fromDate).toBe(start)
+  })
+
+  it('measures the window against toDate when one is given, not against today', () => {
+    // A three-year window ending three years ago is the same amount of work as
+    // one ending today.
+    expect(() =>
+      TrendingFindingsQuerySchema.parse({ fromDate: '2016-01-01', toDate: '2016-06-01' }),
+    ).not.toThrow()
   })
 })
 
