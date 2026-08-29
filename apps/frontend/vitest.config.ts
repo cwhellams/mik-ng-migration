@@ -218,6 +218,12 @@ export default defineConfig({
         // 48.03/44.66/33.69 above was honest when taken and was 2.7 points stale by the
         // time it merged. Caught up to a point under measured here rather than left as
         // slack for the next change to spend.
+        //
+        // Unchanged at 50/47/36, now measuring 51.41/48.95/37.71: #1230 added the
+        // aircraft card's "Recent technical notes" dialog with its tests. One
+        // well-covered component against this directory's ~9 000 statements is
+        // +0.15/+0.07/+0.11 — noise, and under the point of movement this block
+        // has always treated as the threshold for touching a bar.
         'src/sections/**': { statements: 50, branches: 47, functions: 36 },
       },
     },

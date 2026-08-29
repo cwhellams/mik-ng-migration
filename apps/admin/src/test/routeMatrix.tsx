@@ -200,6 +200,10 @@ export const ROUTES: RouteUnderTest[] = [
     url: '/fuel-prices',
     permissions: [MIKPermissions.FUEL_PRICES_ADMIN, MIKPermissions.FUEL_PRICES_USER],
   },
+  // Defect and remark search and monitoring (#1230). Gated tighter than the
+  // per-aircraft defect and remark routes in the member app, which any
+  // FLIGHTLOG_USER may call: fleet-wide monitoring is the fleet manager's.
+  { path: '/findings', url: '/findings', permissions: [MIKPermissions.FLIGHTLOG_ADMIN] },
   {
     path: '/stats/commercial',
     url: '/stats/commercial',

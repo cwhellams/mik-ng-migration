@@ -53,9 +53,31 @@ export default defineConfig({
       // renders 45 routes rather than 93, so less of the figure is "a page
       // rendered once and never asserted on".
       thresholds: {
-        statements: 51,
-        branches: 45,
-        functions: 40,
+        // 51/45/40 -> 52/46/41, and `src/sections/**` 56/50/44 -> 57/51/45.
+        // Measured on this suite (725 passing, 2 todo):
+        //
+        //                            statements     branches     functions
+        //   src/api/**               90.00%          100%          87.50%
+        //   src/components/**        91.67%         85.00%         83.33%
+        //   src/layouts/**           82.14%         85.71%         72.73%
+        //   src/sections/**          58.79%         52.67%         47.57%
+        //   -------------------------------------------------------------
+        //   all files                59.48%         53.01%         48.67%
+        //
+        // #1230's defect and remark search is what earned the raise: four files
+        // in `src/sections/findings` at 97.4% statements. Its own contribution
+        // is +0.78/+0.54/+1.11 globally — the same figures without that
+        // directory are 58.70/52.47/47.56 — so the bars go up by a point each
+        // rather than to the measured figure. The rest of the gap between 52
+        // and 59 is coverage earlier PRs earned without the bar following them,
+        // and hoovering it up in a change that did not earn it would break
+        // somebody else's branch to make this one look thorough.
+        //
+        // The three per-directory bars above `src/sections` are left alone for
+        // the same reason: this change did not move them.
+        statements: 52,
+        branches: 46,
+        functions: 41,
 
         'src/api/**': { statements: 84, branches: 99, functions: 79 },
         'src/components/**': { statements: 89, branches: 81, functions: 79 },
@@ -84,7 +106,9 @@ export default defineConfig({
         // rest of src/sections (accounting, ame, fuelPrices/FuelPriceComparison.tsx)
         // is still well below this bar, so it stays conservative rather than set
         // at the ceiling.
-        'src/sections/**': { statements: 56, branches: 50, functions: 44 },
+        // 56/50/44 -> 57/51/45, measuring 58.79/52.67/47.57 (57.96/52.12/46.39
+        // without #1230's findings pages) — see the note on the global bars above.
+        'src/sections/**': { statements: 57, branches: 51, functions: 45 },
         'src/{*,hooks/**,theme/**,config/**}': { statements: 74, branches: 36, functions: 50 },
       },
     },

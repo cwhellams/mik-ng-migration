@@ -625,6 +625,14 @@
     "totalTime": "Last landing {{lastLanding}}, hours {{totalTime}}, {{remainingFuelLitres}} litres of fuel remaining ({{remainingFuelGallons}} USG).",
     "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTime}}, Remaining {{usableTime}}h usable flight time until the ferry flight. ",
     "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} day(s).",
+    "technicalNotes": {
+      "open": "Recent technical notes",
+      "title": "{{registration}} — recent technical notes",
+      "intro": "Defects, remarks and maintenance work on this aircraft, newest first.",
+      "empty": "Nothing has been recorded for this aircraft yet.",
+      "performedBy": "by {{name}}",
+      "close": "Close"
+    },
     "tabs": {
       "info": "Info",
       "documents": "Documents",
@@ -1118,6 +1126,49 @@
       "sent": "Sent:",
       "due": "Due:"
     }
+  },
+  "findings": {
+    "title": "Defect and remark search",
+    "tabs": { "search": "Search", "patterns": "Patterns" },
+    "filters": {
+      "aircraft": "Aircraft",
+      "allAircraft": "All aircraft",
+      "kind": "Type",
+      "bothKinds": "Defects and remarks",
+      "fromDate": "Reported from",
+      "toDate": "Reported until",
+      "text": "Search the descriptions"
+    },
+    "kind": {
+      "DEFECT": "Defect",
+      "REMARK": "Remark",
+      "MAINTENANCE_NOTE": "Maintenance note"
+    },
+    "status": {
+      "ACTIVE": "Open",
+      "MOVED_TO_HIL": "On hold item list",
+      "RESOLVED": "Resolved"
+    },
+    "table": {
+      "reported": "Reported",
+      "aircraft": "Aircraft",
+      "description": "Description",
+      "related": "Related"
+    },
+    "book": "book {{seqNo}}",
+    "noResults": "No defects or remarks match these filters.",
+    "mightBeRelated_one": "{{count}} similar report",
+    "mightBeRelated_other": "{{count}} similar reports",
+    "noRelated": "Nothing else on this aircraft resembles this report.",
+    "matchStrength": "{{percent}}% match",
+    "pageOf": "Page {{page}} of {{lastPage}} · {{total}} findings",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "trendingIntro": "Reports of the same thing on one aircraft, grouped. Covers the last 12 months unless you set a date range.",
+    "noPatterns": "Nothing has been reported twice in this period.",
+    "reportCount_one": "{{count}} report",
+    "reportCount_other": "{{count}} reports",
+    "since": "since {{date}}"
   },
   "flightLog": {
     "title": "Flight Logs",
@@ -3393,6 +3444,7 @@
       "mileageAllowances": "Mileage allowances",
       "fuelTax": "Fuel tax",
       "costCentres": "Cost centres",
+      "findings": "Defects & remarks",
       "fuelPrices": "Fuel prices",
       "documents": "Documents",
       "commercialFlightTime": "Commercial flight time",

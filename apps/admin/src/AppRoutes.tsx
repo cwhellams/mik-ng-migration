@@ -21,6 +21,7 @@ import DtoImportPage from './sections/dto/DtoImportPage'
 import DtoProgramsAdminPage from './sections/dto/DtoProgramsAdminPage'
 import DtoSyllabusEditorPage from './sections/dto/DtoSyllabusEditorPage'
 import EventsAdmin from './sections/events/EventsAdmin'
+import FindingsPage from './sections/findings/FindingsPage'
 import ExamsAdminPage from './sections/exams/ExamsAdminPage'
 import ExamVersionEditorPage from './sections/exams/ExamVersionEditorPage'
 import FlightPackagesAdmin from './sections/shop/FlightPackagesAdmin'
@@ -436,6 +437,14 @@ const AppRoutes = () => {
               permissions={[MIKPermissions.FUEL_PRICES_ADMIN, MIKPermissions.FUEL_PRICES_USER]}
             >
               <FuelPricesAdmin />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/findings'
+          element={
+            <RequirePermission permissions={[MIKPermissions.FLIGHTLOG_ADMIN]}>
+              <FindingsPage />
             </RequirePermission>
           }
         />
