@@ -13,8 +13,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { endpoints } from '../../api/endpoints'
+import { MemberAppLink } from '../../components/MemberAppLink'
 import { KindChip, StatusChip } from './findingKinds'
-import { findingLocation } from './findingLocation'
 import { RelatedFindings } from './RelatedFindings'
 
 const rowKey = (finding: FindingSearchHit) => `${finding.kind}-${finding.findingId}`
@@ -79,9 +79,23 @@ export const FindingSearchResults = ({
               <Typography variant='body2'>{formatDateTime(finding.createdAt)}</Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 2 }}>
-              <Typography variant='body2'>
-                {findingLocation(finding, t('findings.book', { seqNo: finding.ajlbSeqNo }))}
-              </Typography>
+              <Typography variant='body2'>{finding.aircraftRegistration}</Typography>
+              {finding.ajlbSeqNo != null &&
+                (finding.flightId != null ? (
+                  <MemberAppLink to={`/logs/flights/${finding.flightId}`} variant='body2'>
+                    {t('findings.book', { seqNo: finding.ajlbSeqNo })}
+                  </MemberAppLink>
+                ) : (
+                  // Not tied to any one flight (a ground/pre-flight defect) -- send the
+                  // admin to the logbook page instead, with the defect highlighted and
+                  // its details dialog opened automatically (DefectMarker's `highlighted`).
+                  <MemberAppLink
+                    to={`/logs/books/${finding.aircraftRegistration}/${finding.ajlbSeqNo}?highlightDefect=${finding.findingId}`}
+                    variant='body2'
+                  >
+                    {t('findings.book', { seqNo: finding.ajlbSeqNo })}
+                  </MemberAppLink>
+                ))}
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>

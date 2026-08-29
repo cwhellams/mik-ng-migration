@@ -43,14 +43,39 @@ describe('FindingSearchResults', () => {
     expect(screen.getByText('Open')).toBeInTheDocument()
   })
 
-  it('names the aircraft and the logbook the finding sits in', async () => {
+  it('names the aircraft and links the logbook entry to its flight', async () => {
     server.use(
-      http.get(searchUrl, () => HttpResponse.json(aSearchResponse([aHit({ ajlbSeqNo: 3 })]))),
+      http.get(searchUrl, () =>
+        HttpResponse.json(aSearchResponse([aHit({ ajlbSeqNo: 3, flightId: 'flt-42' })])),
+      ),
     )
 
     renderResults()
 
-    expect(await screen.findByText('OH-STL · book 3')).toBeInTheDocument()
+    expect(await screen.findByText('OH-STL')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'book 3' })
+    expect(link).toHaveAttribute('href', expect.stringContaining('/logs/flights/flt-42'))
+  })
+
+  it('links a defect with no flight of its own to its logbook page, highlighted', async () => {
+    server.use(
+      http.get(searchUrl, () =>
+        HttpResponse.json(
+          aSearchResponse([
+            aHit({ findingId: 'd-7', kind: 'DEFECT', ajlbSeqNo: 3, flightId: null }),
+          ]),
+        ),
+      ),
+    )
+
+    renderResults()
+
+    expect(await screen.findByText('OH-STL')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'book 3' })
+    expect(link).toHaveAttribute(
+      'href',
+      expect.stringContaining('/logs/books/OH-STL/3?highlightDefect=d-7'),
+    )
   })
 
   it('sends the filters and the page as query parameters', async () => {

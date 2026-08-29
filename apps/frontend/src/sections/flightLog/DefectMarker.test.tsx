@@ -54,4 +54,34 @@ describe('DefectMarker', () => {
     expect(await screen.findByText('Nose wheel shimmy on landing')).toBeInTheDocument()
     expect(screen.queryByText('02.06.2025')).not.toBeInTheDocument()
   })
+
+  it('opens the details dialog right away when it is the highlighted marker', async () => {
+    signInAs(aMember())
+
+    renderWithProviders(
+      <DefectMarker
+        defect={aDefect()}
+        aircraftRegistration={AIRCRAFT_REGISTRATION}
+        onChanged={vi.fn()}
+        highlighted
+      />,
+    )
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('stays closed when it is not the highlighted marker', async () => {
+    signInAs(aMember())
+
+    renderWithProviders(
+      <DefectMarker
+        defect={aDefect()}
+        aircraftRegistration={AIRCRAFT_REGISTRATION}
+        onChanged={vi.fn()}
+      />,
+    )
+
+    await screen.findByText('Nose wheel shimmy on landing')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
 })

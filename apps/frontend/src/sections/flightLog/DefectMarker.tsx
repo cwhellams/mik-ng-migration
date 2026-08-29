@@ -24,7 +24,10 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
 }) => {
   const { t } = useTranslation()
   const { formatDate } = useTimezone()
-  const [open, setOpen] = useState(false)
+  // A deep link (e.g. from the admin findings search) highlights this marker by
+  // matching its id against ?highlightDefect= — open its details right away rather
+  // than making the admin who followed the link click the chip a second time.
+  const [open, setOpen] = useState(!!highlighted)
 
   const color =
     defect.status === 'ACTIVE' ? 'error' : defect.status === 'MOVED_TO_HIL' ? 'warning' : 'success'
