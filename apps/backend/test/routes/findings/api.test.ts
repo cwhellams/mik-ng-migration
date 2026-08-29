@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { HELSINKI_TIMEZONE, toHelsinkiDate } from '@mik/contracts/date'
 import type {
   FindingSearchResponse,
   RelatedFindingsResponse,
@@ -7,6 +8,9 @@ import type {
 } from '@mik/contracts/findings'
 import { MIKPermissions } from '@mik/contracts/members'
 import cookieParser from 'cookie-parser'
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone.js'
+import utc from 'dayjs/plugin/utc.js'
 import express from 'express'
 import request from 'supertest'
 
@@ -14,6 +18,9 @@ import { db } from '../../../src/db/connection.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { router } from '../../../src/routes/findings/api.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const app = express()
 app.use(express.json())
@@ -96,7 +103,28 @@ const createdNoteIds: string[] = []
 
 const daysAgo = (days: number): Date => new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
-const isoDate = (at: Date): string => at.toISOString().slice(0, 10)
+/**
+ * The instant at which the Helsinki clock read `time` on the Helsinki day
+ * `daysAgo(days)` fell on. Lets a test place a row at a named wall-clock hour
+ * of a named day without depending on what time the suite happens to run.
+ */
+const atHelsinkiTime = (days: number, time: string): Date =>
+  dayjs.tz(`${toHelsinkiDate(daysAgo(days))} ${time}`, HELSINKI_TIMEZONE).toDate()
+
+/**
+ * The Helsinki calendar date an instant falls on -- deliberately not
+ * `toISOString().slice(0, 10)`, which is the *UTC* date.
+ *
+ * `fromDate`/`toDate` name whole days in the club's timezone, so a test that
+ * inserts a row at an instant and then asks for the day that instant fell on
+ * has to agree with the endpoint about which day that is. Taking the UTC date
+ * instead made this suite fail for the three hours a day when the two differ:
+ * a row written at 00:46 Helsinki is 21:46 UTC the day before, so `toDate`
+ * came out one day early and excluded the row it was supposed to include.
+ * It passed every time it was run in the morning, which is exactly the shape
+ * of flake that reaches main.
+ */
+const isoDate = (at: Date): string => toHelsinkiDate(at)
 
 const insertRemark = async (
   flightId: string,
@@ -312,6 +340,52 @@ describe('GET /findings', () => {
       `${MARK} five days ago`,
       `${MARK} ten days ago`,
     ])
+  })
+
+  it('bounds the range on the Helsinki day, not the UTC one', async () => {
+    // Both bounds name a whole day in the club's timezone, so the row written
+    // half an hour after Helsinki midnight belongs to `fromDate` and the one
+    // half an hour before Helsinki midnight belongs to `toDate`.
+    //
+    // The `fromDate` half is a regression test. `AT TIME ZONE` takes its
+    // direction from the operand's type, and the lower bound was built on a
+    // bare `::date`, which Postgres routes through timestamptz and converts the
+    // wrong way -- see `dayStart` in finding-queries.ts. The effective lower
+    // bound was 06:00 Helsinki, so a defect reported at 00:30 on the first day
+    // of the range was missing from the results and nothing said so.
+    const day = 6
+    await insertRemark(FLIGHTS[0], `${MARK} just after midnight`, atHelsinkiTime(day, '00:30'))
+    await insertRemark(FLIGHTS[1], `${MARK} just before midnight`, atHelsinkiTime(day, '23:30'))
+
+    const body = (
+      await search(adminToken, {
+        q: MARK,
+        fromDate: isoDate(daysAgo(day)),
+        toDate: isoDate(daysAgo(day)),
+      })
+    ).body as FindingSearchResponse
+
+    expect(body.entries.map((entry) => entry.description).sort()).toEqual([
+      `${MARK} just after midnight`,
+      `${MARK} just before midnight`,
+    ])
+  })
+
+  it('excludes the days either side of the range', async () => {
+    const day = 6
+    await insertRemark(FLIGHTS[0], `${MARK} the day before`, atHelsinkiTime(day + 1, '23:30'))
+    await insertRemark(FLIGHTS[1], `${MARK} in range`, atHelsinkiTime(day, '12:00'))
+    await insertRemark(FLIGHTS[2], `${MARK} the day after`, atHelsinkiTime(day - 1, '00:30'))
+
+    const body = (
+      await search(adminToken, {
+        q: MARK,
+        fromDate: isoDate(daysAgo(day)),
+        toDate: isoDate(daysAgo(day)),
+      })
+    ).body as FindingSearchResponse
+
+    expect(body.entries.map((entry) => entry.description)).toEqual([`${MARK} in range`])
   })
 
   it('matches the free-text fragment case-insensitively, anywhere in the description', async () => {

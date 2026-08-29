@@ -169,8 +169,19 @@ const likePattern = (q: string): string => `%${q.replace(/[\\%_]/g, (char) => `\
  * Start of the Helsinki day named by `date`, as an instant. Written in SQL
  * rather than with dayjs so the conversion is DST-correct on the same rows the
  * comparison runs against.
+ *
+ * **The `::timestamp` is load-bearing.** `AT TIME ZONE` reads its direction off
+ * the operand's type: given a `timestamp` it means "this wall-clock time, in
+ * that zone" and yields an instant, which is what is wanted here; given a
+ * `timestamptz` it means the opposite, and yields the wall-clock reading of an
+ * instant. A bare `::date` takes the second path -- Postgres casts date to
+ * timestamptz at midnight in the *session* zone (UTC, pinned by the pool) and
+ * hands back a naive `timestamp` three hours off, which the comparison against
+ * `created_at` then re-reads as UTC. The lower bound silently became 06:00
+ * Helsinki, dropping anything reported in the small hours of `fromDate`.
+ * `dayAfter` never had the bug: `date + interval` is already a `timestamp`.
  */
-const dayStart = (date: string) => sql`(${date}::date AT TIME ZONE ${HELSINKI_TIMEZONE})`
+const dayStart = (date: string) => sql`(${date}::date::timestamp AT TIME ZONE ${HELSINKI_TIMEZONE})`
 
 /** Start of the Helsinki day *after* `date`, so `toDate` is an inclusive bound. */
 const dayAfter = (date: string) =>
