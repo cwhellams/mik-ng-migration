@@ -625,6 +625,14 @@
     "totalTime": "Senaste landning {{lastLanding}}, timmar {{totalTime}}, {{remainingFuelLitres}} liter bränsle kvar ({{remainingFuelGallons}} USG).",
     "maintenanceHours": "Nästa {{nextMaintenanceType}} underhåll vid {{nextMaintenanceTime}} timmar. Återstående {{usableTime}}h användbart flygtimme(r) till färjeflyg.",
     "maintenanceDays": "Underhåll om {{daysUntilNextMaintenance}} dag(ar).",
+    "technicalNotes": {
+      "open": "Senaste tekniska noteringar",
+      "title": "{{registration}} — senaste tekniska noteringar",
+      "intro": "Fel, anmärkningar och underhållsarbete på detta flygplan, senaste först.",
+      "empty": "Inget har registrerats för detta flygplan ännu.",
+      "performedBy": "av {{name}}",
+      "close": "Stäng"
+    },
     "tabs": {
       "info": "Info",
       "documents": "Dokument",
@@ -1126,6 +1134,52 @@
       "sent": "Skickad:",
       "due": "Förfaller:"
     }
+  },
+  "findings": {
+    "title": "Sökning av fel och anmärkningar",
+    "tabs": { "search": "Sök", "patterns": "Mönster" },
+    "filters": {
+      "aircraft": "Flygplan",
+      "allAircraft": "Alla flygplan",
+      "kind": "Typ",
+      "bothKinds": "Fel och anmärkningar",
+      "fromDate": "Rapporterat från",
+      "toDate": "Rapporterat till",
+      "text": "Sök i beskrivningarna"
+    },
+    "kind": {
+      "DEFECT": "Fel",
+      "REMARK": "Anmärkning",
+      "MAINTENANCE_NOTE": "Underhållsanteckning"
+    },
+    "status": {
+      "ACTIVE": "Öppen",
+      "MOVED_TO_HIL": "På hold item list",
+      "RESOLVED": "Åtgärdad"
+    },
+    "table": {
+      "reported": "Rapporterat",
+      "aircraft": "Flygplan",
+      "description": "Beskrivning",
+      "related": "Relaterade"
+    },
+    "book": "resedagbok {{seqNo}}",
+    "noResults": "Inga fel eller anmärkningar matchar dessa filter.",
+    "mightBeRelated_one": "{{count}} liknande rapport",
+    "mightBeRelated_other": "{{count}} liknande rapporter",
+    "noRelated": "Inget annat på detta flygplan liknar denna rapport.",
+    "matchStrength": "{{percent}} % träff",
+    "pageOf": "Sida {{page}} av {{lastPage}} · {{total}} noteringar",
+    "showingOf": "Visar de {{shown}} närmaste av {{total}}.",
+    "pastEnd": "Denna sida ligger efter resultatens slut. {{total}} noteringar matchar dessa filter.",
+    "backToFirstPage": "Första sidan",
+    "previousPage": "Föregående sida",
+    "nextPage": "Nästa sida",
+    "trendingIntro": "Rapporter om samma sak på ett flygplan, grupperade. Omfattar de senaste 12 månaderna om inget datumintervall anges.",
+    "noPatterns": "Inget har rapporterats två gånger under denna period.",
+    "reportCount_one": "{{count}} rapport",
+    "reportCount_other": "{{count}} rapporter",
+    "since": "sedan {{date}}"
   },
   "flightLog": {
     "title": "Flygloggar",
@@ -3366,6 +3420,7 @@
       "mileageAllowances": "Milersättning",
       "fuelTax": "Bränsleskatt",
       "costCentres": "Kostnadsställen",
+      "findings": "Fel och anmärkningar",
       "fuelPrices": "Bränslepriser",
       "documents": "Dokument",
       "commercialFlightTime": "Kommersiell flygtid",

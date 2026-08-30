@@ -254,6 +254,12 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
     label: 'admin.nav.groups.operations',
     items: [
       {
+        label: 'admin.nav.findings',
+        icon: 'mdi:clipboard-search',
+        path: '/findings',
+        permissions: [MIKPermissions.FLIGHTLOG_ADMIN],
+      },
+      {
         label: 'admin.nav.fuelPrices',
         icon: 'mdi:gas-station',
         path: '/fuel-prices',

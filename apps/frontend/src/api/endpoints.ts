@@ -77,6 +77,16 @@ export const endpoints = {
     byRegistration: (registration: string) => `v1/aircrafts/${registration}`,
   },
 
+  /**
+   * Defects, remarks and maintenance notes as one feed (#1230). The member app
+   * only calls the per-aircraft one — the fleet-wide search and the repeat-report
+   * monitoring behind the same prefix are `FLIGHTLOG_ADMIN` and live in the admin
+   * app, which has its own entry for them.
+   */
+  findings: {
+    technicalNotes: 'v1/findings/technical-notes',
+  },
+
   bookings: {
     root: 'v1/bookings',
     byId: (bookingId: string) => `v1/bookings/${bookingId}`,

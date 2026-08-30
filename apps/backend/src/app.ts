@@ -59,6 +59,7 @@ import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import aircraftHilRoutes from './routes/aircraft-hil/api.ts'
 import defectRoutes from './routes/defects/api.ts'
 import remarkRoutes from './routes/remarks/api.ts'
+import findingRoutes from './routes/findings/api.ts'
 import liquidRoutes from './routes/liquid/api.ts'
 import meetingRoutes from './routes/meetings/api.ts'
 import { router as pricesRoutes } from './routes/prices/api.ts'
@@ -215,6 +216,7 @@ app.use('/api/v1/maintenance-notes', maintenanceNoteRoutes)
 app.use('/api/v1/aircraft-hil', aircraftHilRoutes)
 app.use('/api/v1/defects', defectRoutes)
 app.use('/api/v1/remarks', remarkRoutes)
+app.use('/api/v1/findings', findingRoutes)
 app.use('/api/v1/meetings', meetingRoutes)
 app.use('/api/v1/liquid', liquidRoutes)
 

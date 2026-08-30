@@ -32,6 +32,17 @@ export const endpoints = {
     root: 'v1/aircrafts',
   },
   /**
+   * Fleet-wide defect and remark search (#1230). `related` and `trending` take
+   * their arguments as `params`, like every other path here -- the query
+   * string is what `useApi` folds into the SWR cache key, so a row's related
+   * findings and the next row's cannot collide.
+   */
+  findings: {
+    root: 'v1/findings',
+    related: 'v1/findings/related',
+    trending: 'v1/findings/trending',
+  },
+  /**
    * Per-unit inventory (#1139). Unit management sits under the catalog's
    * `/v1/inventory` prefix because creating a unit is stock-keeping; the
    * reservations that consume them are the member app's, under their own

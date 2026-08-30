@@ -602,6 +602,24 @@ If a correction to existing data or logic is needed, create a new, higher-versio
 2. Use the schema directly in migration SQL (e.g. `CREATE TABLE dto.my_table ...`) without any preceding `CREATE SCHEMA` statement.
 3. **In the same migration, grant `USAGE` on the new schema to the app DB role**, e.g. `GRANT USAGE ON SCHEMA dto TO ${app_db_user};`. A newly created schema does not grant `USAGE` to `PUBLIC` by default, so table-level grants alone are not enough — the app's runtime DB role (`mik_app_prod`/`mik_app_test`) will get `permission denied for schema <name>` on every query against it otherwise. This is easy to miss locally because local dev connects as the `admin` superuser, which bypasses all grants; the failure only shows up against the restricted production/test role.
 
+### Postgres extensions
+
+`pg_trgm` is the only extension this database installs, added by
+`V2150__AddFindingSearchIndexes.sql` for the defect/remark search (#1230): it supplies
+`similarity()` and the GIN trigram indexes that make `description ILIKE '%fragment%'`
+indexable. Three things about it are worth knowing before adding another:
+
+- It is installed **`WITH SCHEMA public`**, and the query module calls it fully qualified
+  (`public.similarity(...)`). An unqualified call would depend on whatever `search_path`
+  the pool happens to have, which is not the same as Flyway's.
+- It needs no superuser. `pg_trgm` has been a _trusted_ extension since PostgreSQL 13, so
+  `CREATE` on the database is enough — which the Flyway role has everywhere (the DO
+  managed cluster's admin user in the deploy workflows, `admin` locally and in CI). An
+  untrusted extension would not install on the managed cluster at all; check before
+  reaching for one.
+- `CREATE EXTENSION IF NOT EXISTS` is what makes it survive `flyway clean`, which the
+  local `baseline_database.sh` runs every time.
+
 ## Browser Login Flow
 
 When a browser opens and shows the login screen, test both users:

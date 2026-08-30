@@ -88,13 +88,13 @@ export default tseslint.config(
         noHtmlSink,
         {
           selector:
-            'Literal[value=/^v1\\u002F(members|aircrafts|bookings|inventory-reservations|liquid)(\\u002F|$)/]',
+            'Literal[value=/^v1\\u002F(members|aircrafts|bookings|findings|inventory-reservations|liquid)(\\u002F|$)/]',
           message:
             'Use the path from src/api/endpoints.ts (e.g. endpoints.members.byId(id)) instead of a raw API path. Defining it once keeps renames to one edit and keeps SWR cache keys in step with the URL that was fetched.',
         },
         {
           selector:
-            'TemplateElement[value.raw=/^v1\\u002F(members|aircrafts|bookings|inventory-reservations|liquid)\\u002F/]',
+            'TemplateElement[value.raw=/^v1\\u002F(members|aircrafts|bookings|findings|inventory-reservations|liquid)\\u002F/]',
           message:
             'Use the path builder from src/api/endpoints.ts (e.g. endpoints.members.byId(id)) instead of interpolating an API path.',
         },

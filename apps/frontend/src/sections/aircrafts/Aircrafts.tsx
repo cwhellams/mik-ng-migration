@@ -35,6 +35,7 @@ import { AircraftDocumentSection } from './components/AircraftDocumentSection'
 import { AircraftCardSection } from './components/AircraftCardSection'
 import { NavdataSection, NavdataInfoStatus } from './components/NavdataSection'
 import { AircraftHilSection } from './components/hil/AircraftHilSection'
+import { TechnicalNotesLink } from './components/TechnicalNotesDialog'
 import { AircraftGroundedAlert } from './components/hil/AircraftGroundedAlert'
 import { useRoles } from '@mik/ui/hooks/useRoles'
 import { useEffect, useState } from 'react'
@@ -583,6 +584,14 @@ const Aircrafts = () => {
                         />
 
                         <NavdataInfoStatus aircraftRegistration={aircraft.registration} />
+
+                        {/*
+                          #1230: the whole of this aircraft's recent technical
+                          history — defects, remarks and the maintenance work
+                          that answered them — behind one link, rather than
+                          spread over its logbook pages three lists at a time.
+                        */}
+                        <TechnicalNotesLink aircraftRegistration={aircraft.registration} />
                       </>
                     )}
 

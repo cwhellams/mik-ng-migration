@@ -58,7 +58,7 @@ describe('route table', () => {
     // redirect), the four sign-in routes and the 404 — the dashboard used to be
     // ungated too, until a member with no admin permissions at all turned out
     // to be able to load it and see an empty shell (#1233 follow-up).
-    expect(ROUTES).toHaveLength(53)
+    expect(ROUTES).toHaveLength(54)
     // 21 from the /admin/* subtree, 14 from /accounting/*, 3 member-admin
     // screens, 3 split out of interleaved member pages, the dashboard itself,
     // and `/`, which inherits the dashboard's expectation since it redirects
@@ -70,7 +70,12 @@ describe('route table', () => {
     // liquid-admin console pages (records, oil inventory, QR codes) — the
     // back-office half of the Liquid Management System. Reporting stayed in
     // the member app, ungated there for the same reason /inventory is.
-    expect(GATED_ROUTES).toHaveLength(48)
+    //
+    // #1230 added one more: /findings, the fleet-wide defect and remark search
+    // and monitoring tool. It is a new page rather than a moved one — the
+    // per-aircraft defect and remark views it complements are still in the
+    // member app, where a pilot at the aircraft needs them.
+    expect(GATED_ROUTES).toHaveLength(49)
     expect(UNGATED_ROUTES.map((route) => route.path).sort()).toEqual(
       ['/*', '/login', '/login/sent', '/login/validate', '/logout'].sort(),
     )

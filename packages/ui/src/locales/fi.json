@@ -624,6 +624,14 @@
     "totalTime": "Viimeinen laskeutuminen {{lastLanding}}, tunnit {{totalTime}}, polttoainetta jäljellä {{remainingFuelLitres}} litraa ({{remainingFuelGallons}} USG). ",
     "maintenanceHours": "Seuraava {{nextMaintenanceType}} huolto tunneilla {{nextMaintenanceTime}}, Käytettävissä {{usableTime}} lentotuntia ennen siirtolentoa. ",
     "maintenanceDays": "Huoltoon {{daysUntilNextMaintenance}} päivää.",
+    "technicalNotes": {
+      "open": "Viimeisimmät tekniset merkinnät",
+      "title": "{{registration}} — viimeisimmät tekniset merkinnät",
+      "intro": "Tämän koneen viat, huomiot ja huoltotyöt, uusin ensin.",
+      "empty": "Tälle koneelle ei ole vielä kirjattu mitään.",
+      "performedBy": "tekijä {{name}}",
+      "close": "Sulje"
+    },
     "tabs": {
       "info": "Tiedot",
       "documents": "Asiakirjat",
@@ -1125,6 +1133,52 @@
       "sent": "Lähetetty:",
       "due": "Eräpäivä:"
     }
+  },
+  "findings": {
+    "title": "Vikojen ja huomioiden haku",
+    "tabs": { "search": "Haku", "patterns": "Toistuvat" },
+    "filters": {
+      "aircraft": "Kone",
+      "allAircraft": "Kaikki koneet",
+      "kind": "Tyyppi",
+      "bothKinds": "Viat ja huomiot",
+      "fromDate": "Kirjattu alkaen",
+      "toDate": "Kirjattu asti",
+      "text": "Hae kuvauksista"
+    },
+    "kind": {
+      "DEFECT": "Vika",
+      "REMARK": "Huomio",
+      "MAINTENANCE_NOTE": "Huoltomerkintä"
+    },
+    "status": {
+      "ACTIVE": "Avoin",
+      "MOVED_TO_HIL": "Siirretty HIL-listalle",
+      "RESOLVED": "Korjattu"
+    },
+    "table": {
+      "reported": "Kirjattu",
+      "aircraft": "Kone",
+      "description": "Kuvaus",
+      "related": "Liittyvät"
+    },
+    "book": "matkapäiväkirja {{seqNo}}",
+    "noResults": "Yksikään vika tai huomio ei vastaa näitä rajauksia.",
+    "mightBeRelated_one": "{{count}} samankaltainen ilmoitus",
+    "mightBeRelated_other": "{{count}} samankaltaista ilmoitusta",
+    "noRelated": "Tässä koneessa ei ole muita tämän kaltaisia ilmoituksia.",
+    "matchStrength": "{{percent}} % vastaavuus",
+    "pageOf": "Sivu {{page}} / {{lastPage}} · {{total}} kirjausta",
+    "showingOf": "Näytetään {{total}} osumasta lähimmät {{shown}}.",
+    "pastEnd": "Tämä sivu on tulosten lopun jälkeen. Rajaukseen täsmää {{total}} kirjausta.",
+    "backToFirstPage": "Ensimmäinen sivu",
+    "previousPage": "Edellinen sivu",
+    "nextPage": "Seuraava sivu",
+    "trendingIntro": "Saman koneen samaa asiaa koskevat ilmoitukset ryhmiteltyinä. Kattaa viimeiset 12 kuukautta, ellei aikaväliä ole rajattu.",
+    "noPatterns": "Mitään ei ole ilmoitettu kahdesti tällä aikavälillä.",
+    "reportCount_one": "{{count}} ilmoitus",
+    "reportCount_other": "{{count}} ilmoitusta",
+    "since": "alkaen {{date}}"
   },
   "flightLog": {
     "title": "Lentopäiväkirja",
@@ -3399,6 +3453,7 @@
       "mileageAllowances": "Kilometrikorvaukset",
       "fuelTax": "Polttoainevero",
       "costCentres": "Kustannuspaikat",
+      "findings": "Viat ja huomiot",
       "fuelPrices": "Polttoaineen hinnat",
       "documents": "Dokumentit",
       "commercialFlightTime": "Kaupallinen lentoaika",
