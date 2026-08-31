@@ -25,6 +25,7 @@ import {
   decodeRefreshToken,
   respondWithAccessAndRefreshToken,
   type DecodedRefreshToken,
+  type SessionScopedJWTUser,
 } from './token.ts'
 import { clearAuthCookies, readAccessToken, readRefreshToken } from './cookies.ts'
 import { generateJWTUser } from './token.ts'
@@ -378,18 +379,35 @@ router.post('/logout', async (req: Request, res: Response) => {
   // sent here. Everything in this block is best-effort — a logout must clear
   // cookies and return 200 even when the token is missing, expired or garbage,
   // because the alternative is a member who cannot sign out.
+  //
+  // The decode and the two writes are caught separately on purpose. An
+  // unreadable token is the expected case this block exists for; a throw out of
+  // revokeSession or createLoginEvent is a database failure, and folding both
+  // into one bare catch would have logged a real revocation failure under a
+  // message saying the token was garbage.
   const accessToken = readAccessToken(req)
   if (accessToken) {
+    let payload: SessionScopedJWTUser | undefined
     try {
-      const payload = decodeAccessTokenIgnoringExpiry(accessToken)
-      if (payload.sid) {
-        await revokeSession(payload.sid, 'logout')
-      }
-      // 'logout' has been in the auth_event_type enum since the beginning and
-      // has never once been written. Closing that gap here.
-      await createLoginEvent(payload.memberId, 'logout', req.ip, req.headers['user-agent'])
+      payload = decodeAccessTokenIgnoringExpiry(accessToken)
     } catch {
       logger.warn('logout with an unreadable access token; clearing cookies anyway')
+    }
+
+    if (payload) {
+      try {
+        if (payload.sid) {
+          await revokeSession(payload.sid, 'logout')
+        }
+        // 'logout' has been in the auth_event_type enum since the beginning and
+        // has never once been written. Closing that gap here.
+        await createLoginEvent(payload.memberId, 'logout', req.ip, req.headers['user-agent'])
+      } catch (err) {
+        // The session row may still be active. Logging out is still allowed to
+        // succeed -- the cookies go either way -- but this is a genuine failure
+        // and has to be visible as one.
+        logger.error('logout failed to revoke session %s: %s', payload.sid ?? 'none', err)
+      }
     }
   }
 

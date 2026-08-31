@@ -4,7 +4,7 @@ import { db } from './connection.ts'
 import { noExtraKeys } from './rowToContract.ts'
 
 /**
- * Server-side session registry (#1234) -- see V2140__CreateSessionsTable.sql for
+ * Server-side session registry (#1234) -- see V2160__CreateSessionsTable.sql for
  * why it exists and what it deliberately does not do.
  *
  * Split out of auth-queries.ts the same way passkey-queries.ts was: this is one
@@ -147,16 +147,12 @@ export async function revokeOtherSessions(
   currentSessionId: string | null,
   reason: SessionRevokeReason,
 ): Promise<number> {
-  let query = db
+  const result = await db
     .updateTable('member.sessions')
     .set({ revokedAt: new Date(), revokedReason: reason })
     .where('memberId', '=', memberId)
     .where('revokedAt', 'is', null)
-
-  if (currentSessionId) {
-    query = query.where('id', '!=', currentSessionId)
-  }
-
-  const result = await query.executeTakeFirst()
+    .$if(!!currentSessionId, (qb) => qb.where('id', '!=', currentSessionId!))
+    .executeTakeFirst()
   return Number(result.numUpdatedRows)
 }

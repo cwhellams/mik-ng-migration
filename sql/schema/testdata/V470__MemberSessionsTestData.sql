@@ -1,5 +1,5 @@
 -- ============================================================
--- V440__MemberSessionsTestData
+-- V470__MemberSessionsTestData
 --
 -- Seed sessions for the "Sessions" card on the member profile (issue #1234), so
 -- the feature is clickable in a running `pnpm dev` without having to sign in

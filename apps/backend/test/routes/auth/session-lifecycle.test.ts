@@ -51,6 +51,13 @@ jest.unstable_mockModule('../../../src/db/invoicing-queries.ts', () => ({
   getArticleFees: jest.fn<(codes: string[]) => Promise<unknown[]>>().mockResolvedValue([]),
 }))
 
+const mockLoggerError = jest.fn()
+const mockLoggerWarn = jest.fn()
+
+jest.unstable_mockModule('../../../src/lib/logger.ts', () => ({
+  default: { error: mockLoggerError, warn: mockLoggerWarn, info: jest.fn(), debug: jest.fn() },
+}))
+
 jest.unstable_mockModule('../../../src/lib/sendGmail.ts', () => ({ sendEmail: jest.fn() }))
 jest.unstable_mockModule('../../../src/services/turnstile.ts', () => ({
   verifyTurnstileToken: jest.fn(),
@@ -274,6 +281,29 @@ describe('Session lifecycle across the auth routes', () => {
 
       expect(res.status).toBe(200)
       expect(mockRevokeSession).toHaveBeenCalledWith(SESSION_ID, 'logout')
+    })
+
+    it('reports a failing revoke as an error rather than an unreadable token', async () => {
+      // The decode succeeded; the database did not. One bare catch around both
+      // logged this under 'unreadable access token', which reads as working as
+      // designed and hides a session that is still live.
+      mockRevokeSession.mockRejectedValue(new Error('connection terminated'))
+
+      const res = await request(app)
+        .post('/api/auth/logout')
+        .set('Cookie', accessCookie(SESSION_ID))
+
+      // The member still gets signed out of this browser: the cookies go either way.
+      expect(res.status).toBe(200)
+      expect(setCookies(res).join(';')).toMatch(/accessToken=;/)
+      expect(mockLoggerWarn).not.toHaveBeenCalledWith(
+        expect.stringContaining('unreadable access token'),
+      )
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.stringContaining('failed to revoke session'),
+        SESSION_ID,
+        expect.any(Error),
+      )
     })
 
     it('clears cookies but revokes nothing for a token that predates session ids', async () => {

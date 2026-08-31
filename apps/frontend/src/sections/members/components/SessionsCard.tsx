@@ -17,7 +17,7 @@ import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import useApi from '@mik/ui/hooks/useApi'
+import useApi, { type MutateMethods } from '@mik/ui/hooks/useApi'
 import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { FormTitle } from '@mik/ui/components/FormTitle'
 import { SnackAlert } from '@mik/ui/components/SnackAlert'
@@ -25,6 +25,10 @@ import { Problem } from '@mik/contracts/problem'
 import type { SessionListResponse } from '@mik/contracts/session'
 
 import { endpoints } from '../../../api/endpoints'
+
+/** The bulk action's path segment, and the `pending` value that marks it in
+ * flight. A session id is a UUID, so the two key spaces cannot collide. */
+const REVOKE_OTHERS = 'revoke-others'
 
 interface SessionsCardProps {
   /** Either 'me' (own profile) or a memberId (admin viewing another member). */
@@ -58,6 +62,15 @@ export const SessionsCard = ({ memberId, isAdmin }: SessionsCardProps) => {
 
   const [problem, setProblem] = useState<Problem | undefined>()
 
+  // Which action is in flight, as the session id it targets or REVOKE_OTHERS.
+  // `mutation.isMutating` cannot answer this: one useApi() call serves both
+  // buttons, so it is true for whichever action is running and says nothing
+  // about which. Reading it per row made every Terminate button and the bulk
+  // button spin together, and left the row that was already being revoked
+  // clickable — a second click there lands on an already-revoked session and
+  // comes back a 404 the member has no way to make sense of.
+  const [pending, setPending] = useState<string | null>(null)
+
   // Matching PasskeysCard: a failed GET (a 403 for a non-admin on someone else's
   // profile, most of all) falls through to the empty state rather than being
   // reported. Doing something cleverer here would make the two cards on the same
@@ -65,35 +78,53 @@ export const SessionsCard = ({ memberId, isAdmin }: SessionsCardProps) => {
   const sessions = data?.sessions ?? []
   const otherSessions = sessions.filter((s) => !s.isCurrent)
 
-  const handleTerminate = async (id: string, device: string) => {
+  /**
+   * Both destructive actions on this card are the same sequence — clear the last
+   * problem, confirm with the wording that matches who is looking, fire the
+   * request, then either report the failure or reload the list — differing only
+   * in the confirm key and the request itself. Keeping one copy is what stops
+   * the two drifting the next time either end of it changes.
+   */
+  const confirmAndMutate = async (
+    action: string,
+    confirmKey: string,
+    confirmVars: Record<string, string> | undefined,
+    method: MutateMethods,
+    path: string,
+  ) => {
     setProblem(undefined)
-    const confirmKey = isAdmin
-      ? 'member.sessions.terminateAdminConfirm'
-      : 'member.sessions.terminateConfirm'
-    if (!globalThis.confirm(t(confirmKey, { device }))) return
+    if (!globalThis.confirm(t(confirmKey, confirmVars))) return
 
-    const { error } = await mutation.trigger('DELETE', undefined, id)
-    if (error) {
-      setProblem(error)
-      return
+    setPending(action)
+    try {
+      const { error } = await mutation.trigger(method, undefined, path)
+      if (error) {
+        setProblem(error)
+        return
+      }
+      await mutate()
+    } finally {
+      setPending(null)
     }
-    await mutate()
   }
 
-  const handleRevokeOthers = async () => {
-    setProblem(undefined)
-    const confirmKey = isAdmin
-      ? 'member.sessions.revokeOthersAdminConfirm'
-      : 'member.sessions.revokeOthersConfirm'
-    if (!globalThis.confirm(t(confirmKey))) return
+  const handleTerminate = (id: string, device: string) =>
+    confirmAndMutate(
+      id,
+      isAdmin ? 'member.sessions.terminateAdminConfirm' : 'member.sessions.terminateConfirm',
+      { device },
+      'DELETE',
+      id,
+    )
 
-    const { error } = await mutation.trigger('POST', undefined, 'revoke-others')
-    if (error) {
-      setProblem(error)
-      return
-    }
-    await mutate()
-  }
+  const handleRevokeOthers = () =>
+    confirmAndMutate(
+      REVOKE_OTHERS,
+      isAdmin ? 'member.sessions.revokeOthersAdminConfirm' : 'member.sessions.revokeOthersConfirm',
+      undefined,
+      'POST',
+      REVOKE_OTHERS,
+    )
 
   return (
     <Card>
@@ -152,11 +183,15 @@ export const SessionsCard = ({ memberId, isAdmin }: SessionsCardProps) => {
                       <IconButton
                         edge='end'
                         size='small'
-                        disabled={s.isCurrent}
+                        disabled={s.isCurrent || pending !== null}
                         aria-label={t('member.sessions.terminate')}
                         onClick={() => handleTerminate(s.id, s.device)}
                       >
-                        <Icon icon='mdi:logout-variant' />
+                        {pending === s.id ? (
+                          <CircularProgress size={16} />
+                        ) : (
+                          <Icon icon='mdi:logout-variant' />
+                        )}
                       </IconButton>
                     </Box>
                   </Tooltip>
@@ -180,7 +215,8 @@ export const SessionsCard = ({ memberId, isAdmin }: SessionsCardProps) => {
               size='small'
               startIcon={<Icon icon='mdi:logout' />}
               onClick={handleRevokeOthers}
-              loading={mutation.isMutating}
+              disabled={pending !== null}
+              loading={pending === REVOKE_OTHERS}
             >
               {t('member.sessions.revokeOthers')}
             </Button>

@@ -49,7 +49,19 @@ CREATE INDEX idx_sessions_member_id ON member.sessions (member_id);
 -- token exchange, both filter on revoked_at IS NULL.
 CREATE INDEX idx_sessions_member_active ON member.sessions (member_id) WHERE revoked_at IS NULL;
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON member.sessions TO ${app_db_user};
+-- No DELETE: revocation here is a soft delete (revoked_at), and nothing in the
+-- application ever removes a row -- session-queries.ts only inserts, selects and
+-- updates. Withholding it means a compromised app-role connection cannot erase
+-- the session trail.
+--
+-- The REVOKE is not belt and braces: V480 left ALTER DEFAULT PRIVILEGES IN
+-- SCHEMA member GRANT ... DELETE ON TABLES in place, so every new table in this
+-- schema is granted DELETE at creation and simply omitting it below would change
+-- nothing. removeMember()'s hard delete of member.register still cascades in
+-- here -- referential actions run with the referencing table's owner privileges,
+-- not the caller's.
+GRANT SELECT, INSERT, UPDATE ON member.sessions TO ${app_db_user};
+REVOKE DELETE ON member.sessions FROM ${app_db_user};
 
 -- Terminating a session and bulk-revoking the others are login-related events,
 -- so they belong in the same audit log as every other one. ADD VALUE IF NOT

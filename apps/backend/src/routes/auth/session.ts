@@ -12,6 +12,13 @@
  * access-token life rather than instant. See routes/auth/login.ts's `/refresh`,
  * which is where revocation is actually enforced, and the sessions migration for
  * why it is enforced there and nowhere else.
+ *
+ * Denials answer with problem() rather than the bare `{ error }` body
+ * memberPasskeysRouter uses. The card feeds whatever comes back straight into
+ * <SnackAlert>, which renders `detail || title || 'Error'` -- an `{ error }` body
+ * has neither field, so every refusal here would reach the member as a bare
+ * "Error". That matters most for the 409 on deleting your own current session,
+ * whose whole purpose is to tell them to use logout instead.
  */
 
 import { MIKPermissions } from '@mik/contracts/members'
@@ -33,11 +40,9 @@ import {
 } from '../../db/session-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { deviceLabel } from '../../util/deviceLabel.ts'
+import { problem } from '../response.ts'
 
 export const memberSessionsRouter = Router({ mergeParams: true })
-
-/** The shape passkey.ts's sibling routes already answer denials with. */
-type ErrorBody = { error: string }
 
 type Requester = {
   memberId: string
@@ -87,10 +92,10 @@ const toDto = (row: SessionRow, currentSessionId: string | undefined): Session =
 memberSessionsRouter.get(
   '/',
   validateUser(),
-  async (req: Request<Record<string, string>>, res: Response<SessionListResponse | ErrorBody>) => {
+  async (req: Request<Record<string, string>>, res: Response<SessionListResponse>) => {
     const target = resolveTarget(req)
     if (!target) {
-      return res.status(403).json({ error: 'Forbidden' })
+      return problem({ status: 403, detail: 'You may only view your own sessions' })
     }
 
     const sessions = await getActiveSessionsForMember(target.targetMemberId)
@@ -105,7 +110,7 @@ memberSessionsRouter.delete(
     const user = requesterOf(req)
     const target = resolveTarget(req)
     if (!target) {
-      return res.status(403).json({ error: 'Forbidden' })
+      return problem({ status: 403, detail: 'You may only manage your own sessions' })
     }
 
     // Ending your own current session is /logout's job, not this route's:
@@ -114,14 +119,14 @@ memberSessionsRouter.delete(
     // caller's cookies at all. The card also disables the button on that row,
     // but this is the check that actually holds.
     if (user.sid && req.params.sessionId === user.sid) {
-      return res.status(409).json({ error: 'Use logout to end the current session' })
+      return problem({ status: 409, detail: 'Use logout to end the current session' })
     }
 
     // Check the shape before the lookup. The id column is a UUID, so anything
     // that is not one makes Postgres raise on the comparison and turns a
     // mistyped URL into a 500 rather than a 404.
     if (!SessionIdSchema.safeParse(req.params.sessionId).success) {
-      return res.status(404).json({ error: 'Session not found' })
+      return problem({ status: 404, detail: 'Session not found' })
     }
 
     // Look the row up first so the audit entry is attributed to the session's
@@ -129,7 +134,7 @@ memberSessionsRouter.delete(
     // 404 instead of a silent success.
     const session = await getSessionById(req.params.sessionId)
     if (!session || session.memberId !== target.targetMemberId) {
-      return res.status(404).json({ error: 'Session not found' })
+      return problem({ status: 404, detail: 'Session not found' })
     }
 
     const revoked = await revokeSession(
@@ -139,7 +144,7 @@ memberSessionsRouter.delete(
     if (!revoked) {
       // Already revoked. Nothing changed, and the row is not in the active list
       // the caller was looking at, so it reads as gone either way.
-      return res.status(404).json({ error: 'Session not found' })
+      return problem({ status: 404, detail: 'Session not found' })
     }
 
     await createLoginEvent(
@@ -156,11 +161,11 @@ memberSessionsRouter.delete(
 memberSessionsRouter.post(
   '/revoke-others',
   validateUser(),
-  async (req: Request<Record<string, string>>, res: Response<RevokeOthersResponse | ErrorBody>) => {
+  async (req: Request<Record<string, string>>, res: Response<RevokeOthersResponse>) => {
     const user = requesterOf(req)
     const target = resolveTarget(req)
     if (!target) {
-      return res.status(403).json({ error: 'Forbidden' })
+      return problem({ status: 403, detail: 'You may only manage your own sessions' })
     }
 
     // "Others" is relative to the caller. Acting on yourself, that means every
@@ -173,12 +178,18 @@ memberSessionsRouter.post(
       'bulk_logout_others',
     )
 
-    await createLoginEvent(
-      target.targetMemberId,
-      'sessions_bulk_revoked',
-      req.ip,
-      req.headers['user-agent'],
-    )
+    // Only record the event when something was actually revoked, matching the
+    // DELETE handler above. A stale card, a retry or a double-click all reach
+    // here with nothing left to revoke, and an audit row saying a bulk logout
+    // happened alongside revokedCount: 0 tells two different stories.
+    if (revokedCount > 0) {
+      await createLoginEvent(
+        target.targetMemberId,
+        'sessions_bulk_revoked',
+        req.ip,
+        req.headers['user-agent'],
+      )
+    }
 
     res.json({ ok: true, revokedCount })
   },

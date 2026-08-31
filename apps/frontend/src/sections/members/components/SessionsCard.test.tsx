@@ -127,6 +127,47 @@ describe('SessionsCard', () => {
     expect(deleted).toEqual([])
   })
 
+  it('locks the row it is terminating without making the bulk button look busy', async () => {
+    // One useApi() serves both actions, so `mutation.isMutating` says only that
+    // *something* is in flight. Read per row it disabled nothing and spun
+    // everything: the row stayed clickable, and the second half of a double-click
+    // sent a DELETE for a session the first had already revoked — a 404 the
+    // member has no way to interpret.
+    vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+    const deleted: string[] = []
+    let release: () => void = () => {}
+    const inFlight = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    server.use(
+      http.delete(apiUrl('v1/members/me/sessions/:sessionId'), async ({ params }) => {
+        deleted.push(params.sessionId as string)
+        await inFlight
+        return HttpResponse.json({ ok: true })
+      }),
+    )
+
+    const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+    await screen.findByText('Safari on iPhone')
+
+    const otherRow = screen.getByText('Safari on iPhone').closest('li')!
+    await user.click(within(otherRow).getByRole('button', { name: 'Terminate session' }))
+    await waitFor(() => expect(deleted).toEqual([OTHER_ID]))
+
+    await waitFor(() =>
+      expect(within(otherRow).getByRole('button', { name: 'Terminate session' })).toBeDisabled(),
+    )
+    expect(within(otherRow).getByRole('progressbar')).toBeInTheDocument()
+
+    // The bulk button is out of bounds while a row request is running, but it is
+    // not the request in flight and must not present itself as one.
+    const bulk = screen.getByRole('button', { name: 'Log out of all other sessions' })
+    expect(within(bulk).queryByRole('progressbar')).not.toBeInTheDocument()
+
+    release()
+    await waitFor(() => expect(within(otherRow).queryByRole('progressbar')).not.toBeInTheDocument())
+  })
+
   it('surfaces the backend problem when terminating fails', async () => {
     vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
     server.use(
@@ -184,6 +225,37 @@ describe('SessionsCard', () => {
 
       await waitFor(() => expect(called).toBe(true))
       expect(globalThis.confirm).toHaveBeenCalledWith(expect.stringContaining('up to 15 minutes'))
+    })
+
+    it('shows its own spinner while it runs, and locks the rows meanwhile', async () => {
+      vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+      let release: () => void = () => {}
+      const inFlight = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      server.use(
+        http.post(apiUrl('v1/members/me/sessions/revoke-others'), async () => {
+          await inFlight
+          return HttpResponse.json({ ok: true, revokedCount: 1 })
+        }),
+      )
+
+      const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+      await screen.findByText('Safari on iPhone')
+
+      await user.click(screen.getByRole('button', { name: 'Log out of all other sessions' }))
+
+      const otherRow = screen.getByText('Safari on iPhone').closest('li')!
+      await waitFor(() =>
+        expect(within(otherRow).getByRole('button', { name: 'Terminate session' })).toBeDisabled(),
+      )
+      // Locked, but not pretending to be the request that is running.
+      expect(within(otherRow).queryByRole('progressbar')).not.toBeInTheDocument()
+
+      release()
+      await waitFor(() =>
+        expect(within(otherRow).getByRole('button', { name: 'Terminate session' })).toBeEnabled(),
+      )
     })
 
     it('does nothing when its confirmation is dismissed', async () => {

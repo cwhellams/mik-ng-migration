@@ -194,6 +194,7 @@ describe('Member session routes', () => {
 
       expect(res.status).toBe(403)
       expect(mockGetActiveSessionsForMember).not.toHaveBeenCalled()
+      expect(res.body.detail).toBe('You may only view your own sessions')
     })
 
     it('treats a member asking about their own id as a self request', async () => {
@@ -241,6 +242,9 @@ describe('Member session routes', () => {
       expect(res.status).toBe(409)
       expect(mockGetSessionById).not.toHaveBeenCalled()
       expect(mockRevokeSession).not.toHaveBeenCalled()
+      // In `detail`, because that is the only field SnackAlert reads. A bare
+      // { error: '...' } body renders as "Error" and the member is told nothing.
+      expect(res.body.detail).toBe('Use logout to end the current session')
     })
 
     it('answers 404, not a 500, for an id that is not even a UUID', async () => {
@@ -308,6 +312,16 @@ describe('Member session routes', () => {
 
       expect(res.status).toBe(403)
       expect(mockRevokeSession).not.toHaveBeenCalled()
+      expect(res.body.detail).toBe('You may only manage your own sessions')
+    })
+
+    it('answers a 404 in the problem shape too, so the card can render it', async () => {
+      mockGetSessionById.mockResolvedValue(undefined)
+
+      const res = await request(app).delete(`/api/v1/members/me/sessions/${OTHER_SESSION}`)
+
+      expect(res.headers['content-type']).toContain('application/problem+json')
+      expect(res.body).toMatchObject({ status: 404, detail: 'Session not found' })
     })
   })
 
@@ -332,6 +346,19 @@ describe('Member session routes', () => {
         expect.any(String),
         'jest-agent',
       )
+    })
+
+    it('writes no audit entry when there was nothing left to revoke', async () => {
+      // A stale card, a retry or a double-click all land here with zero other
+      // sessions. An event row claiming a bulk logout happened next to
+      // revokedCount: 0 would be an audit trail contradicting itself.
+      mockRevokeOtherSessions.mockResolvedValue(0)
+
+      const res = await request(app).post('/api/v1/members/me/sessions/revoke-others')
+
+      expect(res.status).toBe(200)
+      expect(res.body).toEqual({ ok: true, revokedCount: 0 })
+      expect(mockCreateLoginEvent).not.toHaveBeenCalled()
     })
 
     it('spares nothing when the callers token predates session ids', async () => {
@@ -364,6 +391,7 @@ describe('Member session routes', () => {
 
       expect(res.status).toBe(403)
       expect(mockRevokeOtherSessions).not.toHaveBeenCalled()
+      expect(res.body.detail).toBe('You may only manage your own sessions')
     })
   })
 })
