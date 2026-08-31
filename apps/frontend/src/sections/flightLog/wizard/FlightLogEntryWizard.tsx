@@ -37,11 +37,10 @@ import { calculateNext } from '@mik/ui/utils/duration'
 import {
   readWizardDraft,
   readWizardDraftSavedAt,
-  writeWizardDraft,
   clearWizardDraft,
-  discardAllOrphanWizardDrafts,
 } from '../../../utils/wizardDraft'
 import { useWizardDraftGate } from '../../../hooks/useWizardDraftGate'
+import { useWizardDraftAutosave } from '../../../hooks/useWizardDraftAutosave'
 import { WizardDraftChooserBanner } from '../../../components/WizardDraftChooserBanner'
 import { WizardShell } from './components/WizardShell'
 import { AircraftFlightTypeStep } from './steps/AircraftFlightTypeStep'
@@ -59,6 +58,8 @@ import { useOverlapCheck } from '../useOverlapCheck'
 import { LongTaxiWarningDialog } from '../components/LongTaxiWarningDialog'
 import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
 import { useDefectGroundingConfirm } from '../useDefectGroundingConfirm'
+import { useSafetyReportPrompt } from '../useSafetyReportPrompt'
+import { SafetyReportPromptDialog } from '../components/SafetyReportPromptDialog'
 import { useLongTaxiCheck } from '../useLongTaxiCheck'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { hasBlankReportedDefect, submitReportedDefects } from '../reportDefectsApi'
@@ -401,33 +402,20 @@ const FlightLogEntryWizardInner = ({
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(flightId)
   const { withGroundingConfirm, groundingDialogProps } = useDefectGroundingConfirm()
+  const { withSafetyPrompt, safetyPromptProps } = useSafetyReportPrompt()
   const { withLongTaxiCheck, longTaxiDialogProps } = useLongTaxiCheck()
 
-  // Set the instant the draft is intentionally cleared (discard, or a successful
-  // save) so the debounced autosave below can never resurrect it. Clearing storage
-  // alone isn't enough: the debounce timer armed by the user's last keystroke is only
-  // cancelled by this effect's cleanup on unmount, and unmount (route transition,
-  // onClose) isn't guaranteed to happen before that timer fires — if it doesn't, the
-  // pending write would silently rewrite the just-cleared draft back into storage.
-  const draftClearedRef = useRef(false)
-  const discardDraft = () => {
-    draftClearedRef.current = true
-    clearWizardDraft(draftKey)
-    // Orphan siblings left by other tabs (or by an earlier auto-adoption that
-    // intentionally didn't delete its source — see adoptWizardDraft) must be purged
-    // too, or the next mount's gate check silently re-adopts one and this draft comes
-    // right back even though it was just discarded/saved.
-    discardAllOrphanWizardDrafts(draftKey)
-  }
-
   // Autosave the whole form plus the wizard-only bits (step, flight date, the three
-  // yes/no radio states) on every change, so a reload restores this exact draft.
-  useEffect(() => {
-    // Re-read via getValues() on every watch tick rather than trusting the callback's
-    // own (partial, still-in-flux) values — always snapshots the complete, current form.
-    const snapshot = () => {
-      if (draftClearedRef.current) return
-      writeWizardDraft<FlightLogWizardDraft>(draftKey, {
+  // yes/no radio states) on every change, so a reload restores this exact draft. The
+  // debounce, the cleared-flag guard and the orphan purge all live in the hook — the
+  // occurrence form (#1225) autosaves through the same one.
+  const { discardDraft } = useWizardDraftAutosave<FlightLogWizardDraft, FlightLogUpsertRequest>(
+    {
+      key: draftKey,
+      watch,
+      // Re-read via getValues() rather than trusting watch()'s own (partial,
+      // still-in-flux) values — always snapshots the complete, current form.
+      build: () => ({
         values: getValues(),
         stepIndex,
         flightDateIso: flightDate.toISOString(),
@@ -436,36 +424,19 @@ const FlightLogEntryWizardInner = ({
         pendingOilRecord,
         reportedDefects,
         reportedRemarks,
-      })
-    }
-    snapshot()
-
-    // watch() fires on every keystroke (including per-digit numeric inputs) — writing
-    // synchronously that often would stringify+persist the whole form on the main
-    // thread once per keystroke, jank that's especially noticeable on lower-end mobile
-    // Safari, exactly where this draft-persistence feature matters most. Debounce it.
-    let debounceTimer: ReturnType<typeof setTimeout> | undefined
-    const scheduleSnapshot = () => {
-      clearTimeout(debounceTimer)
-      debounceTimer = setTimeout(snapshot, 400)
-    }
-    const subscription = watch(scheduleSnapshot)
-    return () => {
-      clearTimeout(debounceTimer)
-      subscription.unsubscribe()
-    }
-  }, [
-    draftKey,
-    stepIndex,
-    flightDate,
-    nightOrIfr,
-    pendingFuelRecord,
-    pendingOilRecord,
-    reportedDefects,
-    reportedRemarks,
-    watch,
-    getValues,
-  ])
+      }),
+    },
+    [
+      stepIndex,
+      flightDate,
+      nightOrIfr,
+      pendingFuelRecord,
+      pendingOilRecord,
+      reportedDefects,
+      reportedRemarks,
+      getValues,
+    ],
+  )
 
   const registration = watch('aircraftRegistration')
   const aircraft = aircraftData?.aircrafts.find((a) => a.registration === registration)
@@ -627,11 +598,31 @@ const FlightLogEntryWizardInner = ({
       }
 
       discardDraft()
-      if (isEditing) {
-        onClose?.()
-      } else {
-        navigate(`/logs${location.state ?? ''}#${saved?.flightId ?? ''}`)
+      const goOn = () => {
+        if (isEditing) {
+          onClose?.()
+        } else {
+          navigate(`/logs${location.state ?? ''}#${saved?.flightId ?? ''}`)
+        }
       }
+      // #1225: a remark, defect or observation on this flight may be a safety
+      // matter, and only the pilot knows. Asked here rather than before the save,
+      // since the answer changes where they go next, not whether the entry is stored.
+      // `initialData` is the entry as loaded and never changes for this mount, which
+      // is what the comparison needs -- see SafetyContent in safetyOccurrence.ts.
+      withSafetyPrompt(
+        {
+          sourceFlightId: savedFlightId,
+          flight: data,
+          content: {
+            incidentOrObservations: data.incidentOrObservations,
+            previousIncidentOrObservations: initialData?.incidentOrObservations,
+            reportedDefects,
+            reportedRemarks,
+          },
+        },
+        goOn,
+      )
     } finally {
       setSubmitting(false)
     }
@@ -826,6 +817,7 @@ const FlightLogEntryWizardInner = ({
         cancelText={t('general.cancel')}
         severity='warning'
       />
+      <SafetyReportPromptDialog {...safetyPromptProps} />
     </WizardShell>
   )
 }

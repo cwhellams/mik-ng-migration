@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Paper,
   Typography,
@@ -64,6 +64,15 @@ import { EditButton } from '@mik/ui/components/EditButton'
 import { Box } from '@mui/system'
 import { useTimezone } from '@mik/ui/hooks/useTimezone'
 import { endpoints } from '../../api/endpoints'
+import { readOccurrencePrefill, type OccurrencePrefill } from '../flightLog/safetyOccurrence'
+import {
+  clearWizardDraft,
+  discardAllOrphanWizardDrafts,
+  readWizardDraft,
+} from '../../utils/wizardDraft'
+import { useWizardDraftGate } from '../../hooks/useWizardDraftGate'
+import { useWizardDraftAutosave } from '../../hooks/useWizardDraftAutosave'
+import { WizardDraftChooserBanner } from '../../components/WizardDraftChooserBanner'
 
 const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB, matches the backend's raw upload limit
 const ACCEPTED_ATTACHMENT_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -1187,7 +1196,66 @@ const CommentsForm = ({ comments, canWrite, handleCommentChange }: CommentsFormP
   )
 }
 
+// One slot, shared by every unsubmitted new report — a member only ever writes one at
+// a time, and the tab-scoping in wizardDraft.ts already keeps concurrent tabs apart.
+const OCCURRENCE_DRAFT_KEY = 'occurrence:new'
+
+// Autosaved so a half-written report survives a reload or an iOS-killed tab, exactly
+// like the two wizards' drafts (#1225). `sourceFlightId` is what distinguishes a draft
+// belonging to the flight currently being handed over from one left behind by an
+// earlier, unrelated handoff.
+interface OccurrenceDraft {
+  values: OccurrenceUpsert
+  sourceFlightId: string | null
+}
+
+const prefillValues = (prefill: OccurrencePrefill): Partial<OccurrenceUpsert> => ({
+  occurrenceDate: prefill.occurrenceDate,
+  aircraftRegistration: prefill.aircraftRegistration,
+  departureAirport: prefill.departureAirport,
+  arrivalAirport: prefill.arrivalAirport,
+  description: prefill.description,
+})
+
+// Routes an existing report straight to the form, and a new one through the draft gate
+// first. The split is not cosmetic: useWizardDraftGate resolves orphaned drafts as a
+// side effect of its very first render — with exactly one orphan it silently adopts it,
+// no banner — so merely *opening* someone's existing report would claim a draft this
+// page has nothing to do with, and hand it to the next new report started in this tab
+// (#1303 review). The gate belongs to the create flow only, which is also how both
+// wizards scope theirs.
 export const OccurrenceEntry = () => {
+  const { reportId } = useParams()
+  return reportId === 'new' ? <NewOccurrenceEntry /> : <OccurrenceEntryForm />
+}
+
+// Wraps the form so the conditional early-return needed when several orphaned drafts
+// (left by other, presumably-gone tabs) have to be disambiguated never sits partway
+// through OccurrenceEntryForm's own hooks — the same split the two wizards use.
+const NewOccurrenceEntry = () => {
+  const { t } = useTranslation()
+  const gate = useWizardDraftGate<OccurrenceDraft>(OCCURRENCE_DRAFT_KEY)
+
+  if (gate.status === 'ambiguous') {
+    return (
+      <Box>
+        <Title label={t('occurrences.newReport')} />
+        <WizardDraftChooserBanner
+          title={t('occurrences.draft.ambiguousTitle')}
+          body={t('occurrences.draft.ambiguousBody', { count: gate.candidates.length })}
+          resumeLabel={t('occurrences.draft.resumeMostRecent')}
+          startFreshLabel={t('occurrences.draft.startFresh')}
+          onResumeMostRecent={gate.resumeMostRecent}
+          onStartFresh={gate.startFresh}
+        />
+      </Box>
+    )
+  }
+
+  return <OccurrenceEntryForm />
+}
+
+const OccurrenceEntryForm = () => {
   const { t } = useTranslation()
 
   const navigate = useNavigate()
@@ -1201,6 +1269,28 @@ export const OccurrenceEntry = () => {
   const isAdmin = isSMSManager || hasSudoAccess(MIKPermissions.SMS_PROCESSOR)
 
   const isNew = reportId == 'new'
+
+  // Handed over by the flight log's "was safety affected?" prompt (#1225), so the
+  // pilot doesn't retype what they already wrote on the entry. Nothing has been
+  // written server-side at this point — the report only exists once they submit it.
+  const prefill = readOccurrencePrefill(location.state)
+
+  // Read at most once per mount: only the (lazily evaluated) defaultValues below
+  // consume it, and re-reading on a later render would replay the draft over live edits.
+  const persistedDraftRef = useRef<OccurrenceDraft | null | undefined>(undefined)
+  if (persistedDraftRef.current === undefined) {
+    persistedDraftRef.current = isNew
+      ? readWizardDraft<OccurrenceDraft>(OCCURRENCE_DRAFT_KEY)
+      : null
+  }
+  const storedDraft = persistedDraftRef.current
+  // A draft belonging to some *other* flight's handoff (or to a report started by
+  // hand) must not quietly win over the prefill the pilot just asked for — they'd get
+  // a form describing the wrong flight. Same flight: the draft is their own edits to
+  // this very prefill, and it wins.
+  const persistedDraft =
+    !prefill || storedDraft?.sourceFlightId === prefill.sourceFlightId ? storedDraft : null
+  const [showRestoredBanner, setShowRestoredBanner] = useState(!!persistedDraft)
 
   const { data, mutation, isLoading, error } = useApi<Occurrence>({
     url: `v1/occurrences${isNew ? '' : `/${reportId}`}`,
@@ -1219,11 +1309,13 @@ export const OccurrenceEntry = () => {
       revalidateOnMount: true,
     },
   )
-  // make sure old aircrafts are shown in the list
+  // make sure old aircrafts are shown in the list -- including one carried over from a
+  // flight log (#1225), which may have been retired since the flight was flown
   const currentAircrafts = aircraftData?.aircrafts.map((a) => a.registration) ?? []
+  const selectedAircraft = data?.aircraftRegistration ?? prefill?.aircraftRegistration
   const aircrafts =
-    data?.aircraftRegistration && !currentAircrafts.includes(data.aircraftRegistration)
-      ? [...currentAircrafts, data.aircraftRegistration]
+    selectedAircraft && !currentAircrafts.includes(selectedAircraft)
+      ? [...currentAircrafts, selectedAircraft]
       : currentAircrafts
 
   const access = data?.access
@@ -1246,35 +1338,62 @@ export const OccurrenceEntry = () => {
     (access?.write &&
       (data?.status == OccurrenceStatus.NEW || data?.status == OccurrenceStatus.ANONYMIZING))
 
+  // defaults for new report
+  const blankValues: OccurrenceUpsert = {
+    occurrenceDate: '',
+    aircraftRegistration: '',
+    aircraftTechnicalFault: null,
+    animalNumber: '0',
+    animalSize: '',
+    animalSpecies: '',
+    departureAirport: null,
+    arrivalAirport: null,
+    categories: [],
+    location: '',
+    headline: '',
+    description: '',
+    isDtoReport: me?.isTrainingProgramPilot ?? false,
+    isWeatherRelevant: null,
+  }
+  // What "start over" goes back to: the flight's own data when this report came from
+  // a flight log handoff, an empty form otherwise.
+  const freshValues: OccurrenceUpsert = prefill
+    ? { ...blankValues, ...prefillValues(prefill) }
+    : blankValues
+
   const {
     handleSubmit,
     control,
     watch,
     formState: { errors, isSubmitting },
+    getValues,
     setValue,
     reset,
   } = useForm<OccurrenceUpsert>({
     mode: 'onChange',
     resolver: zodResolver(OccurrenceUpsertSchema.strip() as any, {}),
 
-    // defaults for new report
-    defaultValues: {
-      occurrenceDate: '',
-      aircraftRegistration: '',
-      aircraftTechnicalFault: null,
-      animalNumber: '0',
-      animalSize: '',
-      animalSpecies: '',
-      departureAirport: null,
-      arrivalAirport: null,
-      categories: [],
-      location: '',
-      headline: '',
-      description: '',
-      isDtoReport: me?.isTrainingProgramPilot ?? false,
-      isWeatherRelevant: null,
-    },
+    // A restored draft's values fill in on top, so fields it predates still get a
+    // sane fallback from the defaults underneath it.
+    defaultValues: persistedDraft ? { ...freshValues, ...persistedDraft.values } : freshValues,
   })
+
+  // Autosave every change, so a reload (or an iOS-killed tab) resumes this report
+  // instead of losing it — the "saved as a draft" half of #1225. The debounce, the
+  // cleared-flag guard and the orphan purge are the flight-log wizard's, shared rather
+  // than copied (#1303 review).
+  const { discardDraft } = useWizardDraftAutosave<OccurrenceDraft, OccurrenceUpsert>(
+    {
+      key: OCCURRENCE_DRAFT_KEY,
+      watch,
+      enabled: isNew,
+      build: () => ({
+        values: getValues(),
+        sourceFlightId: prefill?.sourceFlightId ?? null,
+      }),
+    },
+    [prefill?.sourceFlightId, getValues],
+  )
 
   useEffect(() => {
     if (data) {
@@ -1311,6 +1430,8 @@ export const OccurrenceEntry = () => {
       setProblem({ status: 200, detail: t('general.savingSuccess') })
 
       if (isNew) {
+        // The report is filed; nothing is left to resume (#1225).
+        discardDraft()
         navigate(`/logs/occurrences/${responseData?.id}`)
       }
     } catch (err) {
@@ -1319,7 +1440,11 @@ export const OccurrenceEntry = () => {
     }
   }
 
-  const handleCancel = () => navigate(`/logs/occurrences?${location.state}#${reportId}`)
+  // location.state carries the list's search filters when arriving from there, but an
+  // occurrence prefill object when arriving from a flight log (#1225) — which would
+  // otherwise be pasted into the query string as '[object Object]'.
+  const listFilters = typeof location.state === 'string' ? location.state : ''
+  const handleCancel = () => navigate(`/logs/occurrences?${listFilters}#${reportId}`)
 
   const handleStateChange = async (status: OccurrenceStatus, payload?: unknown) => {
     const { data, error } = await mutation.trigger<unknown, Occurrence>(
@@ -1392,6 +1517,32 @@ export const OccurrenceEntry = () => {
         </Breadcrumbs>
 
         <Title label={title} />
+
+        {showRestoredBanner && (
+          <Alert
+            severity='info'
+            onClose={() => setShowRestoredBanner(false)}
+            action={
+              <Button
+                color='inherit'
+                size='small'
+                onClick={() => {
+                  // Throw away what was stored, then let the autosave pick up again
+                  // from the freshly-reset form -- reset() triggers its next snapshot.
+                  clearWizardDraft(OCCURRENCE_DRAFT_KEY)
+                  discardAllOrphanWizardDrafts(OCCURRENCE_DRAFT_KEY)
+                  reset(freshValues)
+                  setShowRestoredBanner(false)
+                }}
+              >
+                {t('occurrences.draft.startFresh')}
+              </Button>
+            }
+            sx={{ mt: 2 }}
+          >
+            {t('occurrences.draft.restored')}
+          </Alert>
+        )}
 
         <Paper sx={{ p: 3, mt: 2 }}>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>

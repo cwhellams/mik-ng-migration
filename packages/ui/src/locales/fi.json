@@ -1679,6 +1679,14 @@
       "oilLinkFailed": "Lento tallennettiin, mutta öljykirjausta ei saatu liitettyä: {{detail}} Voit liittää sen alla käsin.",
       "fuelLabel": "Polttoaine",
       "oilLabel": "Öljy"
+    },
+    "safetyPrompt": {
+      "title": "Turvallisuuteen liittyviä poikkeamia tai havaintoja?",
+      "body": "Kirjasit tälle lennolle huomion, vian tai merkinnän. Jos tapahtuma vaikutti turvallisuuteen, tee siitä poikkeamailmoitus — lennon tiedot siirtyvät valmiiksi ilmoitukselle, joten niitä ei tarvitse kirjoittaa uudelleen.",
+      "yes": "Kyllä, aloita ilmoitus",
+      "no": "Ei",
+      "defectLabel": "Vika",
+      "remarkLabel": "Merkintä"
     }
   },
   "invoicing": {
@@ -2338,6 +2346,13 @@
       "exportButton": "Luo PDF",
       "exporting": "Luodaan...",
       "failed": "Rekisterin luonti ei onnistunut. Yritä uudelleen."
+    },
+    "draft": {
+      "restored": "Keskeneräinen ilmoituksesi palautettiin.",
+      "startFresh": "Aloita alusta",
+      "ambiguousTitle": "Keskeneräisiä ilmoituksia löytyi",
+      "ambiguousBody": "Sinulla on {{count}} keskeneräistä poikkeamailmoitusta tallennettuna muista välilehdistä.",
+      "resumeMostRecent": "Jatka uusinta"
     }
   },
   "outbox": {

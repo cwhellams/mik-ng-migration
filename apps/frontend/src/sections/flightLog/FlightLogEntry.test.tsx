@@ -2,6 +2,7 @@ import { FlightLogStatus, FlightLogUpsertSchema } from '@mik/contracts/flight-lo
 import type { Defect } from '@mik/contracts/defects'
 import type { Remark } from '@mik/contracts/remarks'
 import { screen, waitFor, within } from '@testing-library/react'
+import { Route, Routes, useLocation } from 'react-router'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -17,6 +18,7 @@ import { apiUrl } from '../../test/msw/handlers'
 import { server } from '../../test/msw/server'
 import { renderWithProviders } from '../../test/renderWithProviders'
 import FlightLogEntry from './FlightLogEntry'
+import { readOccurrencePrefill } from './safetyOccurrence'
 
 /**
  * Tests for the FlightLogEntry component, specifically the transfer of wizard
@@ -584,5 +586,186 @@ describe('FlightLogEntry (classic form) long taxi confirmation', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(state.patches).toBe(0)
+  })
+})
+
+/**
+ * The "was safety affected?" prompt (#1225). Shown after the save has already
+ * succeeded — the entry is stored either way, and the answer only decides whether
+ * the pilot is taken on to a pre-filled occurrence report.
+ */
+const OccurrenceLanding = () => {
+  const prefill = readOccurrencePrefill(useLocation().state)
+  return <span>occurrence form for {prefill?.description}</span>
+}
+
+const renderClassicFormRouted = () =>
+  renderWithProviders(
+    <Routes>
+      <Route path='/logs/:flightId' element={<FlightLogEntry />} />
+      <Route path='/logs/occurrences/new' element={<OccurrenceLanding />} />
+    </Routes>,
+    { route: '/logs/fi_inst1' },
+  )
+
+describe('FlightLogEntry (classic form) safety report prompt', () => {
+  const observations = () => screen.getByLabelText(/incidents or observations/i)
+
+  // The form is reset from the server's copy once it arrives, wiping anything typed
+  // before then -- so every test here waits for the loaded entry first. "Add defect"
+  // only appears for an editable entry, so it is a reliable marker that it has.
+  const awaitLoaded = () => screen.findByRole('button', { name: /add defect/i })
+
+  it('asks whether safety was affected once the pilot notes an observation', async () => {
+    const state = classicFormApi()
+    const { user } = renderClassicForm()
+    await awaitLoaded()
+
+    await user.type(observations(), 'Rough')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Safety related incidents or observations?')).toBeInTheDocument()
+    // Asked after the fact: the entry is already stored either way.
+    expect(state.patches).toBe(1)
+  })
+
+  it('asks when a defect was reported, even with nothing written in the observations', async () => {
+    classicFormApi()
+    const { user } = renderClassicForm()
+
+    await user.click(await awaitLoaded())
+    await user.type(screen.getByLabelText(/description/i), 'Oil')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const grounding = await screen.findByRole('dialog')
+    await user.click(within(grounding).getByRole('button', { name: 'Confirm & Save' }))
+
+    expect(await screen.findByText('Safety related incidents or observations?')).toBeInTheDocument()
+  })
+
+  it('does not ask again about an observation that was already on the entry', async () => {
+    classicFormApi([], [], { incidentOrObservations: 'Engine ran rough on climb' })
+    const { user } = renderClassicForm()
+    await awaitLoaded()
+    await waitFor(() => expect(observations()).toHaveValue('Engine ran rough on climb'))
+
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.queryByText('Safety related incidents or observations?')).toBeNull()
+  })
+
+  it('asks when an edit changes what the observation says', async () => {
+    classicFormApi([], [], { incidentOrObservations: 'Engine ran rough on climb' })
+    const { user } = renderClassicForm()
+    await awaitLoaded()
+    await waitFor(() => expect(observations()).toHaveValue('Engine ran rough on climb'))
+
+    await user.type(observations(), ' and in the cruise')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Safety related incidents or observations?')).toBeInTheDocument()
+  })
+
+  it('carries on to the logbook when the answer is no', async () => {
+    classicFormApi()
+    const { user } = renderClassicForm()
+    await awaitLoaded()
+
+    await user.type(observations(), 'Rough')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await user.click(await screen.findByRole('button', { name: 'No' }))
+
+    // The backLink is outside this render's route, so leaving it empties the tree.
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Save' })).toBeNull())
+  })
+
+  it('hands the flight over to a pre-filled occurrence report when the answer is yes', async () => {
+    classicFormApi()
+    const { user } = renderClassicFormRouted()
+    await awaitLoaded()
+
+    await user.type(observations(), 'Rough')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await user.click(await screen.findByRole('button', { name: 'Yes, start a report' }))
+
+    expect(await screen.findByText('occurrence form for Rough')).toBeInTheDocument()
+  })
+})
+
+/**
+ * The wizard's own matchMedia stub, since this one starts on the mobile wizard: the
+ * pending-record staging that a link failure needs only exists for a brand new entry,
+ * and the quickest route to a complete one is the wizard draft the classic form
+ * inherits when the pilot switches to it.
+ */
+describe('FlightLogEntry (classic form) safety prompt after a failed fuel link', () => {
+  let originalMatchMedia: typeof window.matchMedia
+
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+    originalMatchMedia = window.matchMedia
+    window.matchMedia = stubMatchMedia(false)
+  })
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia
+    vi.useRealTimers()
+  })
+
+  it('still asks when a staged fuel record fails to link (#1303 review)', async () => {
+    // The flight itself saved; only the unrelated fuel link failed. The pilot stays on
+    // the page to retry it -- but they wrote an observation, and that has to be asked
+    // about all the same. It used to return early, past the prompt, and (because the
+    // save writes its own response into the SWR cache) the retry then saw no new
+    // content either, so the entry was never asked about at all.
+    //
+    // Same clock freeze as the fuel-linking test above, and for the same reason:
+    // FlightTime recombines "today" with the fixture's fixed 09:00-11:00 UTC times.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date('2025-06-02T12:00:00.000Z'))
+    wizardToClassicApi()
+    server.use(
+      http.post(apiUrl('v1/flight-logs'), () =>
+        HttpResponse.json(aFlightLog({ flightId: 'fl-new' })),
+      ),
+      http.get(apiUrl('v1/liquid/records/linkable'), () =>
+        HttpResponse.json({ records: [aFuelRecord({ recordId: 'rec-fuel-1' })] }),
+      ),
+      http.post(apiUrl('v1/liquid/records/:recordId/link'), () =>
+        HttpResponse.json({ status: 409, detail: 'Already claimed' }, { status: 409 }),
+      ),
+      http.get(apiUrl('v1/flight-logs/airfields'), () => HttpResponse.json({ airfields: [] })),
+      http.get(apiUrl('v1/dto/members/:memberId/syllabus'), () => HttpResponse.json(null)),
+    )
+
+    const validValues = FlightLogUpsertSchema.strip().parse(
+      aFlightLog({ status: FlightLogStatus.NEW }),
+    )
+    seedWizardDraft('flightLog:new', {
+      ...validValues,
+      fuelUpliftLitres: null,
+      oilUpliftLitres: null,
+      incidentOrObservations: 'Rough running on climb',
+    })
+
+    const { user } = renderWithProviders(<FlightLogEntry />, {
+      route: '/logs/new',
+      path: '/logs/:flightId',
+    })
+
+    await user.click(await screen.findByRole('button', { name: 'Use full form instead' }))
+    await user.click(screen.getAllByRole('button', { name: 'Link an existing record' })[0]!)
+    await user.click(await screen.findByRole('button', { name: 'Link' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await user.click(screen.getByRole('checkbox', { name: 'No oil added' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled())
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Safety related incidents or observations?')).toBeInTheDocument()
+    // ...and the link failure is still reported, so the pilot knows to retry it.
+    expect(await screen.findByText(/the fuel record could not be linked/i)).toBeInTheDocument()
   })
 })

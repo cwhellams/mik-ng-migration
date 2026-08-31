@@ -236,7 +236,19 @@ export default defineConfig({
         // Statements stays at 50 deliberately: 51 would leave 0.58 of headroom, and the
         // rule this block follows is the highest bar that still leaves about a point.
         // 49.08 and 38.13 clear 48 and 37 by 1.08 and 1.13, so those two move.
-        'src/sections/**': { statements: 50, branches: 48, functions: 37 },
+        //
+        // statements 50 -> 51 (#1225). Re-measured after the rebase onto #1308's merge,
+        // which is also why only statements moves here: the branch was written against
+        // 50/47/36 and #1304 has since taken branches and functions to 48/37 already.
+        // 52.31/49.63/38.95 on this branch against 51.74/49.22/38.29 on the commit it
+        // now sits on, so the safety prompt contributes +0.57/+0.41/+0.66 — the trigger
+        // rules, the prompt hook and dialog, and the occurrence form's prefill and draft.
+        //
+        // Only statements clears a bar by the point this block asks for: 51 leaves 1.31
+        // (52 would leave 0.31). Branches at 49 would leave 0.63 and functions at 38
+        // would leave 0.95, both under the clearance the two moves above were taken on
+        // (1.08 and 1.13), so those two stay where #1304 put them.
+        'src/sections/**': { statements: 51, branches: 48, functions: 37 },
       },
     },
   },

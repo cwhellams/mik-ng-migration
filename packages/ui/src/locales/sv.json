@@ -1680,6 +1680,14 @@
       "oilLinkFailed": "Flygningen sparades, men oljeposten kunde inte kopplas: {{detail}} Du kan koppla den manuellt nedan.",
       "fuelLabel": "Bränsle",
       "oilLabel": "Olja"
+    },
+    "safetyPrompt": {
+      "title": "Säkerhetsrelaterade händelser eller observationer?",
+      "body": "Du antecknade en anmärkning, ett fel eller en observation på den här flygningen. Om säkerheten påverkades, gör en händelserapport — flygningens uppgifter förs över så att du slipper skriva in dem igen.",
+      "yes": "Ja, börja en rapport",
+      "no": "Nej",
+      "defectLabel": "Fel",
+      "remarkLabel": "Anmärkning"
     }
   },
   "invoicing": {
@@ -2339,6 +2347,13 @@
       "exportButton": "Skapa PDF",
       "exporting": "Skapar...",
       "failed": "Registret kunde inte skapas. Försök igen."
+    },
+    "draft": {
+      "restored": "Din oavslutade rapport har återställts.",
+      "startFresh": "Börja om",
+      "ambiguousTitle": "Oavslutade rapporter hittades",
+      "ambiguousBody": "Du har {{count}} oavslutade händelserapporter sparade från andra flikar.",
+      "resumeMostRecent": "Återuppta senaste"
     }
   },
   "shop": {
