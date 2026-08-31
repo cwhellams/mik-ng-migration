@@ -556,6 +556,30 @@ describe('PATCH /members/me', () => {
   const patch = async (token: string, payload: Partial<Member>) =>
     request(app).patch('/members/me').set('Cookie', `accessToken=${token}`).send(payload)
 
+  /**
+   * The two `defaultInstructorMemberId` tests below leave the field mutated, and
+   * `GET /members/me`'s snapshot pins this member's whole profile — so the value has to
+   * go back or this suite passes once and fails on every rerun against the same
+   * database.
+   *
+   * Captured rather than hardcoded. It used to be restored as a literal `null`, which
+   * was silently correct only because nothing seeded the column; V430 gives Matti1 a
+   * default instructor and turned that literal into a suite that needed a freshly
+   * baselined database to pass twice (#1304).
+   */
+  let seededDefaultInstructor: string | null = null
+
+  beforeAll(async () => {
+    const response = await request(app)
+      .get('/members/me')
+      .set('Cookie', `accessToken=${memberToken}`)
+    seededDefaultInstructor = (response.body as Member).defaultInstructorMemberId ?? null
+  })
+
+  afterAll(async () => {
+    await patch(memberToken, { defaultInstructorMemberId: seededDefaultInstructor })
+  })
+
   it('should update valid fields', async () => {
     const response = await patch(memberToken, { firstName: 'Teppo' })
 
@@ -650,8 +674,9 @@ describe('PATCH /members/me', () => {
     expect(response.status).toBe(200)
     expect((response.body as Member).defaultInstructorMemberId).toEqual('Jukka1')
 
-    // cleanup
-    await patch(memberToken, { defaultInstructorMemberId: null })
+    // cleanup — see `seededDefaultInstructor` above; the afterAll covers the suite,
+    // this keeps the next test in the file from starting on a value it didn't set.
+    await patch(memberToken, { defaultInstructorMemberId: seededDefaultInstructor })
   })
 
   it('should clear defaultInstructorMemberId when set to null', async () => {

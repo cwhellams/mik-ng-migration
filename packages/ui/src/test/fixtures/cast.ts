@@ -22,6 +22,13 @@ export const NO_PERMISSIONS_MEMBER_ID = 'Liisa1'
 /** Jukka Nieminen, `Jukka1`. The instructor. */
 export const INSTRUCTOR_MEMBER_ID = 'Jukka1'
 
+/**
+ * Antti Heikkinen, `Antti1`. The club's other instructor in the seeded data.
+ * Needed wherever a test has to tell two eligible instructors apart — picking
+ * one, or proving the other wasn't picked.
+ */
+export const SECOND_INSTRUCTOR_MEMBER_ID = 'Antti1'
+
 /** Diamond DA40, `OH-STL`. The club's main aircraft in the seeded data. */
 export const AIRCRAFT_REGISTRATION = 'OH-STL'
 

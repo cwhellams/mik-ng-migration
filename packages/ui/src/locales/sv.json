@@ -336,7 +336,7 @@
     },
     "lang": "Språk",
     "defaultInstructor": "Standardinstruktör",
-    "defaultInstructorHelper": "Används för att förifylla instruktören när en skolflygning loggas.",
+    "defaultInstructorHelper": "Används för att förifylla instruktören i träningsbokningar och när en skolflygning loggas.",
     "iban": "IBAN (för utgiftsersättningar)",
     "ibanHelper": "Spara ditt bankkonto IBAN här så att det fylls i automatiskt i utgiftsanspråk.",
     "ibanAccountName": "Kontoinnehavarens namn",

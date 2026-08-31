@@ -5,11 +5,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   aBooking,
   aMember,
+  aMemberListEntry,
   anInstructor,
   INSTRUCTOR_MEMBER_ID,
   MEMBER_ID,
+  NO_PERMISSIONS_MEMBER_ID,
+  SECOND_INSTRUCTOR_MEMBER_ID,
 } from '../../test/fixtures'
-import { bookingFlags, bookingMinDate } from './helpers'
+import { bookingFlags, bookingMinDate, defaultInstructorFor } from './helpers'
 
 afterEach(() => vi.useRealTimers())
 
@@ -153,5 +156,56 @@ describe('bookingFlags', () => {
     // Guards against the fixture drifting away from the ids these tests rely on.
     expect(aBooking().memberId).toBe(MEMBER_ID)
     expect(aBooking().instructorMemberId).toBe(INSTRUCTOR_MEMBER_ID)
+  })
+})
+
+describe('defaultInstructorFor', () => {
+  /** The Instructor / FE picker's options: `GET v1/members?role=INSTRUCTOR&role=EXAMINER`. */
+  const instructors = [aMemberListEntry({ memberId: INSTRUCTOR_MEMBER_ID })]
+
+  const student = (defaultInstructorMemberId: string | null) =>
+    aMember({ memberId: MEMBER_ID, defaultInstructorMemberId })
+
+  it('offers the member’s default instructor for their own booking', () => {
+    expect(defaultInstructorFor(student(INSTRUCTOR_MEMBER_ID), MEMBER_ID, instructors)).toBe(
+      INSTRUCTOR_MEMBER_ID,
+    )
+  })
+
+  it('offers nothing when the member has not set a default instructor', () => {
+    expect(defaultInstructorFor(student(null), MEMBER_ID, instructors)).toBeNull()
+  })
+
+  it('offers nothing when nobody is signed in', () => {
+    expect(defaultInstructorFor(null, MEMBER_ID, instructors)).toBeNull()
+    expect(defaultInstructorFor(undefined, MEMBER_ID, instructors)).toBeNull()
+  })
+
+  // The booking admin case. Inheriting the admin's own default instructor onto a
+  // student's booking would name the wrong person, and the student's own default is
+  // not on the wire to use instead.
+  it('offers nothing on another member’s booking', () => {
+    expect(
+      defaultInstructorFor(student(INSTRUCTOR_MEMBER_ID), NO_PERMISSIONS_MEMBER_ID, instructors),
+    ).toBeNull()
+  })
+
+  it('offers nothing when the booking has no owner yet', () => {
+    expect(defaultInstructorFor(student(INSTRUCTOR_MEMBER_ID), undefined, instructors)).toBeNull()
+  })
+
+  // A default instructor who has since lost the role is absent from the picker's
+  // options: setting the id anyway would leave the field looking empty while Save
+  // stayed enabled, and the backend's validateInstructor would then answer 400.
+  it('offers nothing when the default instructor no longer holds the role', () => {
+    expect(
+      defaultInstructorFor(student(INSTRUCTOR_MEMBER_ID), MEMBER_ID, [
+        aMemberListEntry({ memberId: SECOND_INSTRUCTOR_MEMBER_ID }),
+      ]),
+    ).toBeNull()
+  })
+
+  it('offers nothing before the instructor list has loaded', () => {
+    expect(defaultInstructorFor(student(INSTRUCTOR_MEMBER_ID), MEMBER_ID, [])).toBeNull()
   })
 })

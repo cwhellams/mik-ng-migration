@@ -1,12 +1,22 @@
 import { BookingStatus, BookingType, type Booking } from '@mik/contracts/bookings'
-import { MIKPermissions } from '@mik/contracts/members'
-import { screen } from '@testing-library/react'
+import { MIKPermissions, type MemberList } from '@mik/contracts/members'
+import { screen, waitFor } from '@testing-library/react'
 import dayjs from 'dayjs'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
 
 import { signInAs, signInWithPermissions } from '../../../test/auth'
-import { aBooking, aMember, anAircraftListResponse, MEMBER_ID } from '../../../test/fixtures'
+import {
+  aBooking,
+  aMember,
+  aMemberListEntry,
+  aMemberWithPermissions,
+  anAircraftListResponse,
+  INSTRUCTOR_MEMBER_ID,
+  MEMBER_ID,
+  NO_PERMISSIONS_MEMBER_ID,
+  SECOND_INSTRUCTOR_MEMBER_ID,
+} from '../../../test/fixtures'
 import { apiUrl } from '../../../test/msw/handlers'
 import { server } from '../../../test/msw/server'
 import { renderWithProviders } from '../../../test/renderWithProviders'
@@ -19,12 +29,22 @@ import { BookingEditor } from './EditBookingModal'
  */
 type EditorBooking = Parameters<typeof BookingEditor>[0]['booking']
 
-const bookingApi = () => {
+/**
+ * What `GET v1/members?role=INSTRUCTOR&role=EXAMINER` answers — the Instructor / FE
+ * picker's options. `Jukka1` and `Antti1` are the seeded instructors
+ * (`sql/schema/testdata/V70__MemberRoleData.sql`).
+ */
+const INSTRUCTORS: MemberList[] = [
+  aMemberListEntry({ memberId: INSTRUCTOR_MEMBER_ID, first: 'Jukka', last: 'Nieminen' }),
+  aMemberListEntry({ memberId: SECOND_INSTRUCTOR_MEMBER_ID, first: 'Antti', last: 'Heikkinen' }),
+]
+
+const bookingApi = ({ members = [] as MemberList[] } = {}) => {
   const writes: { method: string; path: string; body: unknown }[] = []
 
   server.use(
     http.get(apiUrl('v1/aircrafts'), () => HttpResponse.json(anAircraftListResponse())),
-    http.get(apiUrl('v1/members'), () => HttpResponse.json({ members: [] })),
+    http.get(apiUrl('v1/members'), () => HttpResponse.json({ members })),
     http.get(apiUrl('v1/bookings'), () => HttpResponse.json({ bookings: [] })),
     http.post(apiUrl('v1/bookings'), async ({ request }) => {
       writes.push({ method: 'POST', path: '', body: await request.json() })
@@ -202,5 +222,139 @@ describe('BookingEditor booking types', () => {
 
     await screen.findByText('Edit Booking')
     expect(screen.getByText(label)).toBeInTheDocument()
+  })
+})
+
+/**
+ * #1304: choosing "Training" pre-fills the member's default instructor, the same
+ * value that pre-fills the instructor crew slot when logging a school flight.
+ *
+ * The decision under test is `defaultInstructorFor` (unit-tested in
+ * `../helpers.test.ts`); these drive it through the form, because *where* the
+ * pre-fill is wired is itself the fix — an effect keyed on "training and no
+ * instructor" would re-fire the moment the member cleared the field.
+ */
+describe('BookingEditor default instructor', () => {
+  const INSTRUCTOR_FIELD = /Instructor \/ FE/
+  const REQUIRED = 'Instructor / FE is required for training bookings'
+
+  /** A brand-new booking as `Schedule.tsx` opens one: the member's own, and Private. */
+  const aNewPrivateBooking = (overrides: Partial<Booking> = {}) =>
+    editorBooking(
+      { memberId: MEMBER_ID, type: BookingType.PRIVATE, instructorMemberId: null, ...overrides },
+      { isNewBooking: true },
+    )
+
+  const chooseType = async (user: ReturnType<typeof renderEditor>['user'], label: string) => {
+    await user.click(await screen.findByRole('combobox', { name: 'Type' }))
+    await user.click(await screen.findByRole('option', { name: label }))
+  }
+
+  const instructorField = () => screen.getByRole('combobox', { name: INSTRUCTOR_FIELD })
+
+  it('pre-fills the member’s default instructor when the type becomes Training', async () => {
+    bookingApi({ members: INSTRUCTORS })
+    signInAs(aMember({ defaultInstructorMemberId: INSTRUCTOR_MEMBER_ID }))
+
+    const { user } = renderEditor(aNewPrivateBooking())
+    await chooseType(user, 'Training')
+
+    expect(instructorField()).toHaveValue('Jukka Nieminen')
+    expect(screen.queryByText(REQUIRED)).toBeNull()
+  })
+
+  it('leaves the field empty and required when the member has no default instructor', async () => {
+    bookingApi({ members: INSTRUCTORS })
+    signInAs(aMember({ defaultInstructorMemberId: null }))
+
+    const { user } = renderEditor(aNewPrivateBooking())
+    await chooseType(user, 'Training')
+
+    expect(instructorField()).toHaveValue('')
+    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
+  })
+
+  // The stale-role case. Setting an id the picker cannot display would leave the
+  // field looking empty while Save stayed enabled, and the backend's
+  // `validateInstructor` would then answer 400. Empty and required is honest —
+  // and deliberately silent, rather than explaining itself (#1304).
+  it('leaves the field empty when the default instructor no longer holds the role', async () => {
+    bookingApi({ members: INSTRUCTORS })
+    signInAs(aMember({ defaultInstructorMemberId: NO_PERMISSIONS_MEMBER_ID }))
+
+    const { user } = renderEditor(aNewPrivateBooking())
+    await chooseType(user, 'Training')
+
+    expect(instructorField()).toHaveValue('')
+    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
+  })
+
+  // The regression an effect-based pre-fill would cause: the field has to stay
+  // clearable, both so another instructor can be picked and because saving it
+  // empty is still a legitimate (blocked) state.
+  it('stays cleared once the member clears the pre-filled instructor', async () => {
+    bookingApi({ members: INSTRUCTORS })
+    signInAs(aMember({ defaultInstructorMemberId: INSTRUCTOR_MEMBER_ID }))
+
+    const { user } = renderEditor(aNewPrivateBooking())
+    await chooseType(user, 'Training')
+    expect(instructorField()).toHaveValue('Jukka Nieminen')
+
+    // The clear button only joins the accessibility tree once the field is focused.
+    await user.click(instructorField())
+    await user.click(screen.getByRole('button', { name: /Clear/ }))
+
+    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
+    await waitFor(() => expect(instructorField()).toHaveValue(''))
+  })
+
+  // Leaving Training already cleared the instructor, so coming back has nothing
+  // to preserve and the default is the right answer again (#1304 Q1).
+  it('pre-fills again after a trip through Private', async () => {
+    bookingApi({ members: INSTRUCTORS })
+    signInAs(aMember({ defaultInstructorMemberId: INSTRUCTOR_MEMBER_ID }))
+
+    const { user } = renderEditor(aNewPrivateBooking())
+    await chooseType(user, 'Training')
+    await chooseType(user, 'Private')
+
+    expect(screen.queryByRole('combobox', { name: INSTRUCTOR_FIELD })).toBeNull()
+
+    await chooseType(user, 'Training')
+
+    expect(instructorField()).toHaveValue('Jukka Nieminen')
+  })
+
+  // A Private booking may legitimately carry an instructor — the backend's
+  // `validateInstructor` only checks the field on Training — so the pre-fill
+  // must never replace a name the booking already has.
+  it('keeps an instructor the booking already names', async () => {
+    bookingApi({ members: INSTRUCTORS })
+    signInAs(aMember({ defaultInstructorMemberId: SECOND_INSTRUCTOR_MEMBER_ID }))
+
+    const { user } = renderEditor(aNewPrivateBooking({ instructorMemberId: INSTRUCTOR_MEMBER_ID }))
+    await chooseType(user, 'Training')
+
+    expect(instructorField()).toHaveValue('Jukka Nieminen')
+  })
+
+  // A booking admin converting somebody else's booking must not name *their own*
+  // default instructor on it. The student's own default is not on the wire to use
+  // instead — the booking's embedded member carries only name and phone number.
+  it('pre-fills nothing on another member’s booking', async () => {
+    bookingApi({ members: INSTRUCTORS })
+    signInAs(
+      aMemberWithPermissions([MIKPermissions.BOOKING_ADMIN], {
+        defaultInstructorMemberId: INSTRUCTOR_MEMBER_ID,
+      }),
+    )
+
+    const { user } = renderEditor(aNewPrivateBooking({ memberId: NO_PERMISSIONS_MEMBER_ID }), {
+      sudo: true,
+    })
+    await chooseType(user, 'Training')
+
+    expect(instructorField()).toHaveValue('')
+    expect(await screen.findByText(REQUIRED)).toBeInTheDocument()
   })
 })

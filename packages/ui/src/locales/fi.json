@@ -336,7 +336,7 @@
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "lang": "Kieli",
     "defaultInstructor": "Oletuslentoopettaja",
-    "defaultInstructorHelper": "Käytetään esitäyttämään lennonopettaja koululentoa kirjattaessa.",
+    "defaultInstructorHelper": "Käytetään esitäyttämään lennonopettaja koululentovarauksissa ja koululentoa kirjattaessa.",
     "iban": "IBAN (kulukorvauksia varten)",
     "ibanHelper": "Tallenna pankkitilin IBAN-numero tähän, jotta se täytetään automaattisesti kuluhakemuksiin.",
     "ibanAccountName": "Tilinomistajan nimi",

@@ -63,6 +63,7 @@ import {
 import { generateGoogleCalendarLink } from '@mik/contracts/calendar'
 import { downloadIcs } from '../../../utils/calendarEvent'
 import { SelectMember } from '../../../components/SelectMember'
+import { defaultInstructorFor } from '../helpers'
 import { endpoints } from '../../../api/endpoints'
 
 // Matches the display order of the Type <Select>'s <MenuItem>s below, which is
@@ -492,13 +493,31 @@ export const BookingEditor = ({
                 value={formData.type ?? ''}
                 label={t('schedule.type')}
                 onChange={({ target }) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    type: target.value as BookingType,
-                    // clear instructor when leaving training so we don't persist
-                    // a stale instructor on non-training bookings
-                    ...(target.value !== BookingType.TRAINING ? { instructorMemberId: null } : {}),
-                  }))
+                  setFormData((prev) => {
+                    const type = target.value as BookingType
+
+                    if (type !== BookingType.TRAINING) {
+                      // clear instructor when leaving training so we don't persist
+                      // a stale instructor on non-training bookings
+                      return { ...prev, type, instructorMemberId: null }
+                    }
+
+                    return {
+                      ...prev,
+                      type,
+                      // Pre-fill the member's default instructor on the way *into*
+                      // training (#1304). Deliberately here rather than in an effect
+                      // keyed on `isTraining && !instructorMemberId`: that fires again
+                      // the moment the member clears the Autocomplete, which makes the
+                      // field impossible to empty in order to pick somebody else. As a
+                      // consequence of the transition it lands once, and re-lands if
+                      // they leave training and come back — which is the intent, since
+                      // leaving already cleared the field.
+                      instructorMemberId:
+                        prev.instructorMemberId ??
+                        defaultInstructorFor(me, prev.memberId, instructors),
+                    }
+                  })
                 }
               >
                 <MenuItem value={BookingType.PRIVATE}>
