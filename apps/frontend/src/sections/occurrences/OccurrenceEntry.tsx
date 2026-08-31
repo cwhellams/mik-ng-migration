@@ -69,9 +69,9 @@ import {
   clearWizardDraft,
   discardAllOrphanWizardDrafts,
   readWizardDraft,
-  writeWizardDraft,
 } from '../../utils/wizardDraft'
 import { useWizardDraftGate } from '../../hooks/useWizardDraftGate'
+import { useWizardDraftAutosave } from '../../hooks/useWizardDraftAutosave'
 import { WizardDraftChooserBanner } from '../../components/WizardDraftChooserBanner'
 
 const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB, matches the backend's raw upload limit
@@ -1217,15 +1217,26 @@ const prefillValues = (prefill: OccurrencePrefill): Partial<OccurrenceUpsert> =>
   description: prefill.description,
 })
 
+// Routes an existing report straight to the form, and a new one through the draft gate
+// first. The split is not cosmetic: useWizardDraftGate resolves orphaned drafts as a
+// side effect of its very first render — with exactly one orphan it silently adopts it,
+// no banner — so merely *opening* someone's existing report would claim a draft this
+// page has nothing to do with, and hand it to the next new report started in this tab
+// (#1303 review). The gate belongs to the create flow only, which is also how both
+// wizards scope theirs.
+export const OccurrenceEntry = () => {
+  const { reportId } = useParams()
+  return reportId === 'new' ? <NewOccurrenceEntry /> : <OccurrenceEntryForm />
+}
+
 // Wraps the form so the conditional early-return needed when several orphaned drafts
 // (left by other, presumably-gone tabs) have to be disambiguated never sits partway
 // through OccurrenceEntryForm's own hooks — the same split the two wizards use.
-export const OccurrenceEntry = () => {
+const NewOccurrenceEntry = () => {
   const { t } = useTranslation()
-  const { reportId } = useParams()
   const gate = useWizardDraftGate<OccurrenceDraft>(OCCURRENCE_DRAFT_KEY)
 
-  if (reportId === 'new' && gate.status === 'ambiguous') {
+  if (gate.status === 'ambiguous') {
     return (
       <Box>
         <Title label={t('occurrences.newReport')} />
@@ -1367,46 +1378,22 @@ const OccurrenceEntryForm = () => {
     defaultValues: persistedDraft ? { ...freshValues, ...persistedDraft.values } : freshValues,
   })
 
-  // Set the instant the draft is intentionally cleared (submitted, or discarded) so
-  // the debounced autosave below can never write it back: the timer armed by the last
-  // keystroke is only cancelled by that effect's cleanup on unmount, which isn't
-  // guaranteed to beat it. Same guard, for the same reason, as in the two wizards.
-  const draftClearedRef = useRef(false)
-  const discardDraft = () => {
-    draftClearedRef.current = true
-    clearWizardDraft(OCCURRENCE_DRAFT_KEY)
-    // Orphan siblings left by other tabs (or by an earlier auto-adoption that
-    // deliberately didn't delete its source — see adoptWizardDraft) have to go too, or
-    // the next mount's gate re-adopts one and the discarded draft comes straight back.
-    discardAllOrphanWizardDrafts(OCCURRENCE_DRAFT_KEY)
-  }
-
   // Autosave every change, so a reload (or an iOS-killed tab) resumes this report
-  // instead of losing it — the "saved as a draft" half of #1225.
-  useEffect(() => {
-    if (!isNew) return
-    const snapshot = () => {
-      if (draftClearedRef.current) return
-      writeWizardDraft<OccurrenceDraft>(OCCURRENCE_DRAFT_KEY, {
+  // instead of losing it — the "saved as a draft" half of #1225. The debounce, the
+  // cleared-flag guard and the orphan purge are the flight-log wizard's, shared rather
+  // than copied (#1303 review).
+  const { discardDraft } = useWizardDraftAutosave<OccurrenceDraft, OccurrenceUpsert>(
+    {
+      key: OCCURRENCE_DRAFT_KEY,
+      watch,
+      enabled: isNew,
+      build: () => ({
         values: getValues(),
         sourceFlightId: prefill?.sourceFlightId ?? null,
-      })
-    }
-    snapshot()
-
-    // watch() fires per keystroke; stringifying and persisting the whole form that
-    // often is main-thread jank on exactly the phones this exists for. Debounced like
-    // the wizards' equivalent effect.
-    let debounceTimer: ReturnType<typeof setTimeout> | undefined
-    const subscription = watch(() => {
-      clearTimeout(debounceTimer)
-      debounceTimer = setTimeout(snapshot, 400)
-    })
-    return () => {
-      clearTimeout(debounceTimer)
-      subscription.unsubscribe()
-    }
-  }, [isNew, prefill?.sourceFlightId, watch, getValues])
+      }),
+    },
+    [prefill?.sourceFlightId, getValues],
+  )
 
   useEffect(() => {
     if (data) {

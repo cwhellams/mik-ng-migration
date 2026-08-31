@@ -11,9 +11,37 @@ import {
   type SafetyContent,
 } from './safetyOccurrence'
 
+/**
+ * The `incidentOrObservations` an entry carried when it was *loaded*, held for the
+ * lifetime of the mount — what `hasNewSafetyContent` needs to compare a save against.
+ *
+ * Both flight-log forms save with `populateCache`, which writes the server's response
+ * — including the observation just written — straight into the SWR cache the classic
+ * form then reads. Handing that live value over as `previousIncidentOrObservations`
+ * would make it equal `current` from the next render on, so any later save of the same
+ * entry would see no new content and silently skip the prompt (#1303 review). The
+ * wizard has never had the problem: its `initialData` prop is fixed for the mount, and
+ * this is what reproduces that for a form fetching its own entry.
+ *
+ * Latched on the entry arriving rather than on the field being non-empty, so an entry
+ * loaded with no observation at all still latches "nothing" instead of waiting around
+ * to latch whatever the first save puts in the cache.
+ */
+export const useIncidentAsLoaded = (
+  entry: { incidentOrObservations?: string | null } | undefined,
+): string | null | undefined => {
+  const latched = useRef<{ text: string | null | undefined } | null>(null)
+  if (!latched.current && entry) latched.current = { text: entry.incidentOrObservations }
+  return latched.current?.text
+}
+
 interface SafetyPromptArgs {
-  /** The flight as just saved — a brand new entry only has an id at this point. */
-  sourceFlightId: string
+  /**
+   * The flight as just saved. Optional because a POST whose response carried no id
+   * leaves nothing to hand over — there is then no report to pre-fill and the caller
+   * simply proceeds, which is why neither form branches on it at the call site.
+   */
+  sourceFlightId?: string
   flight: Pick<
     FlightLogUpsertRequest,
     'aircraftRegistration' | 'departureAirport' | 'arrivalAirport' | 'offBlockTimeEpoch'
@@ -44,7 +72,7 @@ export function useSafetyReportPrompt() {
     { sourceFlightId, flight, content }: SafetyPromptArgs,
     proceed: () => void,
   ) => {
-    if (!hasNewSafetyContent(content)) {
+    if (!sourceFlightId || !hasNewSafetyContent(content)) {
       proceed()
       return
     }

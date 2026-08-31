@@ -83,7 +83,7 @@ import {
 import { MIKPermissions } from '@mik/contracts/members'
 import { useOverlapCheck } from './useOverlapCheck'
 import { useDefectGroundingConfirm } from './useDefectGroundingConfirm'
-import { useSafetyReportPrompt } from './useSafetyReportPrompt'
+import { useIncidentAsLoaded, useSafetyReportPrompt } from './useSafetyReportPrompt'
 import { SafetyReportPromptDialog } from './components/SafetyReportPromptDialog'
 import { useLongTaxiCheck } from './useLongTaxiCheck'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
@@ -567,9 +567,10 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
 
   const backLink = `/logs${location.state ?? ''}#${flightId}`
 
-  // What the entry held before this save — read out here because doSave's own
-  // `data` parameter shadows the fetched entry inside it (#1225).
-  const savedIncidentOrObservations = data?.incidentOrObservations
+  // What the entry held when it was loaded (#1225) — deliberately latched rather than
+  // read live from `data`, which the save below overwrites via populateCache. Read out
+  // here because doSave's own `data` parameter shadows the fetched entry inside it.
+  const savedIncidentOrObservations = useIncidentAsLoaded(data)
 
   const doSave = async (data: FlightLogUpsertRequest) => {
     if (hasBlankReportedDefect(reportedDefects)) {
@@ -654,34 +655,39 @@ const ClassicFlightLogEntry = ({ forceClassicForm = false }: { forceClassicForm?
       }
 
       if (linkErrors.length > 0) {
-        // The flight itself saved fine -- stay on it (now in edit mode, with
-        // a real flightId) so FuelOilSection can retry the link live,
-        // rather than losing the member on a page they can't get back to.
         setProblem({ status: 0, detail: linkErrors.join(' ') })
-        if (isNew && savedFlightId) navigate(`/logs/flights/${savedFlightId}`, { replace: true })
-        return
       }
+
+      // Where this save was always headed. On a link failure the flight itself still
+      // saved fine, so stay on it (now in edit mode, with a real flightId) and let
+      // FuelOilSection retry the link live, rather than losing the member on a page
+      // they can't get back to.
+      const goOn =
+        linkErrors.length > 0
+          ? () => {
+              if (isNew && savedFlightId)
+                navigate(`/logs/flights/${savedFlightId}`, { replace: true })
+            }
+          : () => navigate(backLink)
 
       // #1225: a remark, defect or observation on this flight may be a safety
       // matter, and only the pilot knows. Asked here rather than before the save,
-      // since the answer changes where they go next, not whether the entry is stored.
-      if (savedFlightId) {
-        withSafetyPrompt(
-          {
-            sourceFlightId: savedFlightId,
-            flight: data,
-            content: {
-              incidentOrObservations: data.incidentOrObservations,
-              previousIncidentOrObservations: savedIncidentOrObservations,
-              reportedDefects,
-              reportedRemarks,
-            },
+      // since the answer changes where they go next, not whether the entry is stored
+      // -- and asked on the link-failure path too, since a fuel record that wouldn't
+      // link says nothing about whether what the pilot wrote was a safety matter.
+      withSafetyPrompt(
+        {
+          sourceFlightId: savedFlightId,
+          flight: data,
+          content: {
+            incidentOrObservations: data.incidentOrObservations,
+            previousIncidentOrObservations: savedIncidentOrObservations,
+            reportedDefects,
+            reportedRemarks,
           },
-          () => navigate(backLink),
-        )
-      } else {
-        navigate(backLink)
-      }
+        },
+        goOn,
+      )
     } catch (err) {
       console.error('Unexpected error:', err)
       setProblem({ status: 500, detail: t('general.savingError') })

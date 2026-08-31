@@ -746,4 +746,28 @@ describe('OccurrenceEntry drafts', () => {
 
     expect(draftValues()).toBeUndefined()
   })
+
+  it('leaves another tab’s abandoned draft alone when an existing report is opened', async () => {
+    // The draft gate adopts a lone orphan silently, with no banner (#1303 review). Run
+    // on every mount it would mean that merely *viewing* someone's existing report
+    // claimed a half-written new one left behind elsewhere -- and handed it to the next
+    // new report started in this tab, which would then open pre-filled with an
+    // unrelated incident. Only the create flow gets to resolve drafts.
+    occurrencesApi(anOccurrence())
+    const savedAt = Date.now()
+    localStorage.setItem(
+      `${DRAFT_KEY_PREFIX}:some-other-tab`,
+      JSON.stringify({ savedAt, value: { values: { headline: 'Theirs' }, sourceFlightId: null } }),
+    )
+
+    renderExisting()
+    await screen.findByRole('textbox', { name: /Headline/ })
+
+    // Untouched, and specifically not copied into this tab's own slot.
+    const ownKey = `${DRAFT_KEY_PREFIX}:${sessionStorage.getItem('wizardDraft:tabId')}`
+    expect(localStorage.getItem(ownKey)).toBeNull()
+    expect(localStorage.getItem(`${DRAFT_KEY_PREFIX}:some-other-tab`)).toBe(
+      JSON.stringify({ savedAt, value: { values: { headline: 'Theirs' }, sourceFlightId: null } }),
+    )
+  })
 })

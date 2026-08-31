@@ -45,6 +45,12 @@ export interface SafetyContent {
    * What `incidentOrObservations` held before this save. Only meaningful when
    * editing: a pilot who reopens an entry to fix its fuel figures must not be asked
    * again about a remark they wrote (and were already asked about) days ago.
+   *
+   * It has to be stable for the lifetime of the form — the entry as it was *loaded*,
+   * not as it currently reads. Both flight-log forms write their save's own response
+   * straight into the SWR cache (`populateCache`), so a value read live from there
+   * starts reporting what was just saved: `current === previous`, no new content, and
+   * a second save of the same entry silently never asks (#1303 review).
    */
   previousIncidentOrObservations?: string | null
   /** Defects reported alongside this submission. Always new — existing ones live elsewhere. */

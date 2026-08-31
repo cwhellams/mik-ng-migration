@@ -1,10 +1,10 @@
-import { screen, waitFor } from '@testing-library/react'
+import { renderHook, screen, waitFor } from '@testing-library/react'
 import { Route, Routes, useLocation } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 
 import { renderWithProviders } from '../../test/renderWithProviders'
 import { readOccurrencePrefill } from './safetyOccurrence'
-import { useSafetyReportPrompt } from './useSafetyReportPrompt'
+import { useIncidentAsLoaded, useSafetyReportPrompt } from './useSafetyReportPrompt'
 import { SafetyReportPromptDialog } from './components/SafetyReportPromptDialog'
 
 /**
@@ -19,10 +19,12 @@ const flight = {
 }
 
 const Saver = ({
+  sourceFlightId,
   incidentOrObservations,
   previousIncidentOrObservations,
   onProceed,
 }: {
+  sourceFlightId?: string
   incidentOrObservations?: string | null
   previousIncidentOrObservations?: string | null
   onProceed: () => void
@@ -34,7 +36,7 @@ const Saver = ({
         onClick={() =>
           withSafetyPrompt(
             {
-              sourceFlightId: 'fl-1',
+              sourceFlightId,
               flight,
               content: { incidentOrObservations, previousIncidentOrObservations },
             },
@@ -62,9 +64,11 @@ const Landing = () => {
 
 const renderSaver = (props: Partial<Parameters<typeof Saver>[0]> = {}) => {
   const onProceed = props.onProceed ?? vi.fn()
+  // Spread after the default so a test can deliberately pass `sourceFlightId: undefined`.
+  const saverProps = { sourceFlightId: 'fl-1', ...props }
   const rendered = renderWithProviders(
     <Routes>
-      <Route path='/logs/flights/new' element={<Saver {...props} onProceed={onProceed} />} />
+      <Route path='/logs/flights/new' element={<Saver {...saverProps} onProceed={onProceed} />} />
       <Route path='/logs/occurrences/new' element={<Landing />} />
     </Routes>,
     { route: '/logs/flights/new' },
@@ -146,5 +150,63 @@ describe('useSafetyReportPrompt', () => {
 
     expect(onProceed).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('Safety related incidents or observations?')).not.toBeInTheDocument()
+  })
+
+  it('goes straight on when the save produced no flight to report against', async () => {
+    const { user, onProceed } = renderSaver({
+      sourceFlightId: undefined,
+      incidentOrObservations: 'Engine ran rough',
+    })
+
+    await user.click(screen.getByRole('button', { name: 'save' }))
+
+    expect(onProceed).toHaveBeenCalledTimes(1)
+    expect(screen.queryByText('Safety related incidents or observations?')).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * The comparison baseline. A form that fetches its own entry must not read this live
+ * from the SWR cache, because its own save writes back into that cache (#1303 review).
+ */
+describe('useIncidentAsLoaded', () => {
+  type Entry = { incidentOrObservations?: string | null } | undefined
+
+  const renderLatch = (entry: Entry) =>
+    renderHook(({ entry }: { entry: Entry }) => useIncidentAsLoaded(entry), {
+      initialProps: { entry },
+    })
+
+  it('has nothing to report while the entry has not loaded', () => {
+    const { result } = renderLatch(undefined)
+
+    expect(result.current).toBeUndefined()
+  })
+
+  it('holds what the entry said when it loaded', () => {
+    const { result, rerender } = renderLatch(undefined)
+
+    rerender({ entry: { incidentOrObservations: 'Engine ran rough' } })
+
+    expect(result.current).toBe('Engine ran rough')
+  })
+
+  it('ignores the save writing its own response back into the cache', () => {
+    const { result, rerender } = renderLatch({ incidentOrObservations: null })
+
+    // What populateCache does after a save: `data` now reports the text just written.
+    rerender({ entry: { incidentOrObservations: 'Engine ran rough' } })
+
+    // Still "nothing was there before", so a second save of this entry is still asked
+    // about rather than silently skipped.
+    expect(result.current).toBeNull()
+  })
+
+  it('latches an entry that loaded with no observation, not the first one to appear', () => {
+    const { result, rerender } = renderLatch({})
+
+    rerender({ entry: { incidentOrObservations: 'Written after the fact' } })
+
+    expect(result.current).toBeUndefined()
   })
 })
