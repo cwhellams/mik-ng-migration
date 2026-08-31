@@ -2,6 +2,7 @@ import 'dotenv/config'
 
 import { db } from '../../src/db/connection.ts'
 import { getAogDaysByAcYr, getAogDaysByAcYrMth } from '../../src/db/stats-queries.ts'
+import { deleteBooking } from '../__helpers__/bookingCleanup.ts'
 
 // Keep these in the same UTC calendar month so a single yr/mth filter covers both.
 const MAINTENANCE_START = new Date(Date.UTC(2024, 5, 1, 6, 0, 0)) // 2024-06-01
@@ -48,7 +49,7 @@ describe('stats-queries: AOG (Aircraft On Ground) days', () => {
   })
 
   afterAll(async () => {
-    await db.deleteFrom('schedule.bookings').where('bookingId', '=', bookingId).execute()
+    await deleteBooking(bookingId)
     if (defectId) {
       await db.deleteFrom('flight.defect').where('defectId', '=', defectId).execute()
     }
