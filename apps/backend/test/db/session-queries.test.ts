@@ -19,12 +19,12 @@ import {
  * rows. Mocking Kysely would assert that the query builder was called, not that
  * Postgres agreed.
  *
- * The two members here are deliberately NOT Matti1 or Liisa1. V440 seeds those
+ * The two members here are deliberately NOT Matti1 or Liisa1. V470 seeds those
  * two with demo sessions, and `revokeOtherSessions(member, null, …)` revokes
  * every active row a member has — run against Matti1 it would quietly and
  * permanently revoke the seed data, so the next `pnpm dev` would show an empty
  * card until someone re-baselined. Anna1 and Juha1 own no seeded sessions, and
- * every row these tests create is deleted again afterwards.
+ * every row these tests create is revoked again afterwards.
  */
 const MEMBER = 'Anna1'
 const OTHER_MEMBER = 'Juha1'
@@ -37,9 +37,24 @@ describe('session-queries', () => {
     return id
   }
 
+  // Revoked, not deleted. The app role has no DELETE on member.sessions -- see
+  // V2160, where withholding it is the point of the table's soft-delete design --
+  // so a hard delete here was exercising a privilege the application does not
+  // have. It passed locally only because a developer's DATABASE_URL is the
+  // `admin` superuser, which bypasses grants; CI connects as `mik_app_test` and
+  // answered `permission denied for table sessions`.
+  //
+  // The exact-list assertions below stay exact regardless: every query in this
+  // module filters `revoked_at IS NULL`, so a row left behind by an earlier run
+  // is invisible to all of them.
   afterEach(async () => {
     if (created.length > 0) {
-      await db.deleteFrom('member.sessions').where('id', 'in', created).execute()
+      await db
+        .updateTable('member.sessions')
+        .set({ revokedAt: new Date(), revokedReason: 'user_terminated' })
+        .where('id', 'in', created)
+        .where('revokedAt', 'is', null)
+        .execute()
       created.length = 0
     }
   })
