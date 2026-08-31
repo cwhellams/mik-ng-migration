@@ -40,6 +40,7 @@ import {
   updatePasskeyCounter,
 } from '../../db/passkey-queries.ts'
 import { createLoginEvent } from '../../db/auth-queries.ts'
+import { createSession } from '../../db/session-queries.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '@mik/contracts/members'
@@ -350,7 +351,12 @@ passkeyRouter.post(
       req.ip,
       req.headers['user-agent'],
     )
-    respondWithAccessAndRefreshToken(jwtUser, res)
+    // A successful passkey ceremony is a sign-in like any other, so it opens a
+    // session registry row (#1234). Note the unrelated local `sessionId` above:
+    // that one is the opaque key a discoverable-flow challenge is stored under
+    // and has nothing to do with a login session.
+    const loginSessionId = await createSession(member.memberId, req.ip, req.headers['user-agent'])
+    respondWithAccessAndRefreshToken(jwtUser, res, loginSessionId)
   },
 )
 

@@ -1,0 +1,333 @@
+import { screen, waitFor, within } from '@testing-library/react'
+import { http, HttpResponse } from 'msw'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { Session } from '@mik/contracts/session'
+
+import { authScenarios, renderAs } from '../../../test/auth'
+import { apiUrl, problemResponse } from '../../../test/msw/handlers'
+import { server } from '../../../test/msw/server'
+import { SessionsCard } from './SessionsCard'
+
+const MEMBER_ID = 'Matti1'
+
+// Real UUIDs: the contract declares `Session.id` as one and the terminate route
+// 404s anything that is not, so a fixture id of 'session-1' would describe a
+// payload the backend cannot produce.
+const BASE_ID = '2ec94d3d-2c97-4036-9d48-14cd6fa8980d'
+const CURRENT_ID = '3e1b015a-3248-41b1-982b-ead7bd2b3afd'
+const OTHER_ID = '7006633a-30a8-44af-b112-b4c15e9696d4'
+
+const aSession = (overrides: Partial<Session> = {}): Session => ({
+  id: BASE_ID,
+  ipAddress: '192.0.2.1',
+  userAgent: 'Mozilla/5.0',
+  device: 'Chrome on Windows',
+  createdAt: '2026-08-01T10:00:00.000Z',
+  lastUsedAt: '2026-08-02T12:30:00.000Z',
+  isCurrent: false,
+  ...overrides,
+})
+
+const currentSession = aSession({ id: CURRENT_ID, device: 'Firefox on Linux', isCurrent: true })
+const otherSession = aSession({
+  id: OTHER_ID,
+  device: 'Safari on iPhone',
+  ipAddress: '198.51.100.4',
+})
+
+/** Serve the list for both mount points, so a test can render either. */
+const listReturns = (sessions: Session[]) => {
+  server.use(
+    http.get(apiUrl('v1/members/me/sessions'), () => HttpResponse.json({ sessions })),
+    http.get(apiUrl(`v1/members/${MEMBER_ID}/sessions`), () => HttpResponse.json({ sessions })),
+  )
+}
+
+const terminateButtons = () => screen.getAllByRole('button', { name: 'Terminate session' })
+
+describe('SessionsCard', () => {
+  beforeEach(() => {
+    listReturns([currentSession, otherSession])
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('lists each session with its device, address and times', async () => {
+    renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+
+    const row = (await screen.findByText('Safari on iPhone')).closest('li')!
+
+    // Scoped to the one row: both fixtures share their timestamps, so an
+    // unscoped query would match twice and say nothing about which row is which.
+    expect(within(row).getByText(/198\.51\.100\.4/)).toBeInTheDocument()
+    // Rendered through useTimezone, whose default in the harness is UTC.
+    expect(within(row).getByText(/Signed in 01\.08\.2026 10:00/)).toBeInTheDocument()
+    expect(within(row).getByText(/Last active 02\.08\.2026 12:30/)).toBeInTheDocument()
+  })
+
+  it('marks the current session and refuses to let it be terminated here', async () => {
+    renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+
+    const currentRow = (await screen.findByText('Firefox on Linux')).closest('li')!
+    expect(within(currentRow).getByText('This device')).toBeInTheDocument()
+    expect(within(currentRow).getByRole('button', { name: 'Terminate session' })).toBeDisabled()
+
+    const otherRow = screen.getByText('Safari on iPhone').closest('li')!
+    expect(within(otherRow).getByRole('button', { name: 'Terminate session' })).toBeEnabled()
+  })
+
+  it('always states that terminating is not immediate', async () => {
+    // The 15-minute caveat was an explicit requirement, not a footnote: without
+    // it a member terminates a session, watches it keep working, and concludes
+    // the button is broken.
+    renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+
+    expect(await screen.findByText(/up to 15 minutes/)).toBeInTheDocument()
+  })
+
+  it('terminates a session after confirmation and reloads the list', async () => {
+    vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+    const deleted: string[] = []
+    server.use(
+      http.delete(apiUrl('v1/members/me/sessions/:sessionId'), ({ params }) => {
+        deleted.push(params.sessionId as string)
+        return HttpResponse.json({ ok: true })
+      }),
+    )
+
+    const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+    await screen.findByText('Safari on iPhone')
+
+    const otherRow = screen.getByText('Safari on iPhone').closest('li')!
+    await user.click(within(otherRow).getByRole('button', { name: 'Terminate session' }))
+
+    await waitFor(() => expect(deleted).toEqual([OTHER_ID]))
+    expect(globalThis.confirm).toHaveBeenCalledWith(expect.stringContaining('up to 15 minutes'))
+  })
+
+  it('does nothing when the terminate confirmation is dismissed', async () => {
+    vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
+    const deleted: string[] = []
+    server.use(
+      http.delete(apiUrl('v1/members/me/sessions/:sessionId'), ({ params }) => {
+        deleted.push(params.sessionId as string)
+        return HttpResponse.json({ ok: true })
+      }),
+    )
+
+    const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+    await screen.findByText('Safari on iPhone')
+
+    const otherRow = screen.getByText('Safari on iPhone').closest('li')!
+    await user.click(within(otherRow).getByRole('button', { name: 'Terminate session' }))
+
+    expect(deleted).toEqual([])
+  })
+
+  it('locks the row it is terminating without making the bulk button look busy', async () => {
+    // One useApi() serves both actions, so `mutation.isMutating` says only that
+    // *something* is in flight. Read per row it disabled nothing and spun
+    // everything: the row stayed clickable, and the second half of a double-click
+    // sent a DELETE for a session the first had already revoked — a 404 the
+    // member has no way to interpret.
+    vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+    const deleted: string[] = []
+    let release: () => void = () => {}
+    const inFlight = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    server.use(
+      http.delete(apiUrl('v1/members/me/sessions/:sessionId'), async ({ params }) => {
+        deleted.push(params.sessionId as string)
+        await inFlight
+        return HttpResponse.json({ ok: true })
+      }),
+    )
+
+    const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+    await screen.findByText('Safari on iPhone')
+
+    const otherRow = screen.getByText('Safari on iPhone').closest('li')!
+    await user.click(within(otherRow).getByRole('button', { name: 'Terminate session' }))
+    await waitFor(() => expect(deleted).toEqual([OTHER_ID]))
+
+    await waitFor(() =>
+      expect(within(otherRow).getByRole('button', { name: 'Terminate session' })).toBeDisabled(),
+    )
+    expect(within(otherRow).getByRole('progressbar')).toBeInTheDocument()
+
+    // The bulk button is out of bounds while a row request is running, but it is
+    // not the request in flight and must not present itself as one.
+    const bulk = screen.getByRole('button', { name: 'Log out of all other sessions' })
+    expect(within(bulk).queryByRole('progressbar')).not.toBeInTheDocument()
+
+    release()
+    await waitFor(() => expect(within(otherRow).queryByRole('progressbar')).not.toBeInTheDocument())
+  })
+
+  it('surfaces the backend problem when terminating fails', async () => {
+    vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+    server.use(
+      http.delete(apiUrl('v1/members/me/sessions/:sessionId'), () =>
+        problemResponse(409, 'Use logout to end the current session'),
+      ),
+    )
+
+    const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+    await screen.findByText('Safari on iPhone')
+
+    const otherRow = screen.getByText('Safari on iPhone').closest('li')!
+    await user.click(within(otherRow).getByRole('button', { name: 'Terminate session' }))
+
+    expect(await screen.findByText(/Use logout to end the current session/)).toBeInTheDocument()
+  })
+
+  describe('the bulk action', () => {
+    it('is hidden when the only session is the current one', async () => {
+      listReturns([currentSession])
+
+      renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+      await screen.findByText('Firefox on Linux')
+
+      expect(
+        screen.queryByRole('button', { name: 'Log out of all other sessions' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('is hidden when there are no sessions at all', async () => {
+      listReturns([])
+
+      renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+
+      expect(await screen.findByText('No other active sessions.')).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'Log out of all other sessions' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('revokes the others once there is more than one session', async () => {
+      vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+      let called = false
+      server.use(
+        http.post(apiUrl('v1/members/me/sessions/revoke-others'), () => {
+          called = true
+          return HttpResponse.json({ ok: true, revokedCount: 1 })
+        }),
+      )
+
+      const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+      await screen.findByText('Safari on iPhone')
+
+      await user.click(screen.getByRole('button', { name: 'Log out of all other sessions' }))
+
+      await waitFor(() => expect(called).toBe(true))
+      expect(globalThis.confirm).toHaveBeenCalledWith(expect.stringContaining('up to 15 minutes'))
+    })
+
+    it('shows its own spinner while it runs, and locks the rows meanwhile', async () => {
+      vi.spyOn(globalThis, 'confirm').mockReturnValue(true)
+      let release: () => void = () => {}
+      const inFlight = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      server.use(
+        http.post(apiUrl('v1/members/me/sessions/revoke-others'), async () => {
+          await inFlight
+          return HttpResponse.json({ ok: true, revokedCount: 1 })
+        }),
+      )
+
+      const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+      await screen.findByText('Safari on iPhone')
+
+      await user.click(screen.getByRole('button', { name: 'Log out of all other sessions' }))
+
+      const otherRow = screen.getByText('Safari on iPhone').closest('li')!
+      await waitFor(() =>
+        expect(within(otherRow).getByRole('button', { name: 'Terminate session' })).toBeDisabled(),
+      )
+      // Locked, but not pretending to be the request that is running.
+      expect(within(otherRow).queryByRole('progressbar')).not.toBeInTheDocument()
+
+      release()
+      await waitFor(() =>
+        expect(within(otherRow).getByRole('button', { name: 'Terminate session' })).toBeEnabled(),
+      )
+    })
+
+    it('does nothing when its confirmation is dismissed', async () => {
+      vi.spyOn(globalThis, 'confirm').mockReturnValue(false)
+      let called = false
+      server.use(
+        http.post(apiUrl('v1/members/me/sessions/revoke-others'), () => {
+          called = true
+          return HttpResponse.json({ ok: true, revokedCount: 1 })
+        }),
+      )
+
+      const { user } = renderAs(authScenarios.user, <SessionsCard memberId='me' isAdmin={false} />)
+      await screen.findByText('Safari on iPhone')
+
+      await user.click(screen.getByRole('button', { name: 'Log out of all other sessions' }))
+
+      expect(called).toBe(false)
+    })
+
+    it('is offered for every row when an admin views another member, none being theirs', async () => {
+      // None of the target's sessions is ever isCurrent for the admin, so all of
+      // them are "other" and every terminate button is live.
+      // Not CURRENT_ID: on an admin's view of somebody else no row is current,
+      // and naming one that would imply otherwise.
+      listReturns([
+        aSession({ id: BASE_ID }),
+        aSession({ id: OTHER_ID, device: 'Edge on Windows' }),
+      ])
+
+      renderAs(authScenarios.admin, <SessionsCard memberId={MEMBER_ID} isAdmin />)
+      await screen.findByText('Edge on Windows')
+
+      expect(screen.queryByText('This device')).not.toBeInTheDocument()
+      expect(terminateButtons().every((b) => !b.hasAttribute('disabled'))).toBe(true)
+      expect(
+        screen.getByRole('button', { name: 'Log out of all other sessions' }),
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('permissions', () => {
+    it.each([
+      ['admin in sudo mode', authScenarios.admin],
+      ['admin with sudo off', authScenarios.adminNoSudo],
+      ['ordinary member', authScenarios.user],
+      ['member without permissions', authScenarios.none],
+    ])(
+      'shows %s the empty state rather than an error when the backend refuses the list',
+      async (_name, scenario) => {
+        // Deliberately identical to PasskeysCard's behaviour on the same profile:
+        // it has no error handling for the GET either, and two cards side by side
+        // reacting differently to one 403 would be the confusing outcome.
+        server.use(
+          http.get(apiUrl(`v1/members/${MEMBER_ID}/sessions`), () =>
+            problemResponse(403, 'Forbidden'),
+          ),
+        )
+
+        renderAs(scenario, <SessionsCard memberId={MEMBER_ID} isAdmin={false} />)
+
+        expect(await screen.findByText('No other active sessions.')).toBeInTheDocument()
+        expect(
+          screen.queryByRole('button', { name: 'Log out of all other sessions' }),
+        ).not.toBeInTheDocument()
+      },
+    )
+
+    it('lists an admin-viewed member sessions when the backend allows it', async () => {
+      renderAs(authScenarios.admin, <SessionsCard memberId={MEMBER_ID} isAdmin />)
+
+      expect(await screen.findByText('Safari on iPhone')).toBeInTheDocument()
+    })
+  })
+})

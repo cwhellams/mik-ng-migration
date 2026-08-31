@@ -327,6 +327,23 @@
       "unsupportedBrowser": "Din webbläsare stöder inte passnycklar.",
       "insecureContext": "Passnycklar kräver en säker HTTPS-anslutning."
     },
+    "sessions": {
+      "title": "Sessioner",
+      "empty": "Inga andra aktiva sessioner.",
+      "thisDevice": "Den här enheten",
+      "unknownDevice": "Okänd enhet",
+      "created": "Inloggad",
+      "lastActive": "Senast aktiv",
+      "unknownIp": "IP-adress okänd",
+      "terminate": "Avsluta session",
+      "terminateConfirm": "Avsluta sessionen på {{device}}? Det kan ta upp till 15 minuter innan det träder i kraft — sessionen förblir aktiv på enheten tills dess nuvarande inloggning går ut.",
+      "terminateAdminConfirm": "Avsluta medlemmens session på {{device}}? Det kan ta upp till 15 minuter innan det träder i kraft — sessionen förblir aktiv på enheten tills dess nuvarande inloggning går ut.",
+      "terminateCurrent": "Logga ut för att avsluta sessionen på den här enheten.",
+      "revokeOthers": "Logga ut från alla andra sessioner",
+      "revokeOthersConfirm": "Logga ut från alla andra sessioner? Du förblir inloggad på den här enheten. Det kan ta upp till 15 minuter innan det träder i kraft — varje annan session förblir aktiv tills dess nuvarande inloggning går ut.",
+      "revokeOthersAdminConfirm": "Logga ut medlemmen från alla sessioner? Det kan ta upp till 15 minuter innan det träder i kraft — varje session förblir aktiv tills dess nuvarande inloggning går ut.",
+      "delayNotice": "Att avsluta en session kan ta upp till 15 minuter innan det träder i kraft — den förblir aktiv på annat håll tills enhetens nuvarande inloggning går ut."
+    },
     "pushNotifications": {
       "title": "Push-notiser",
       "description": "Få en webbläsarnotis 1 timme innan din bokning börjar på denna enhet.",

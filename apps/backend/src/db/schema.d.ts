@@ -17,6 +17,8 @@ export type AuthEventType =
   | 'passkey_registered'
   | 'passkey_removed'
   | 'registration_verified'
+  | 'session_terminated'
+  | 'sessions_bulk_revoked'
   | 'token_refresh'
 
 export type BookingStatus = 'CANCELLED' | 'CONFIRMED' | 'TENTATIVE'
@@ -1794,6 +1796,20 @@ export interface MemberRoles {
   updatedBy: string
 }
 
+export interface MemberSessions {
+  createdAt: Generated<Timestamp>
+  id: Generated<string>
+  ipAddress: string | null
+  lastUsedAt: Generated<Timestamp>
+  memberId: string
+  revokedAt: Timestamp | null
+  /**
+   * logout | user_terminated | admin_terminated | bulk_logout_others
+   */
+  revokedReason: string | null
+  userAgent: string | null
+}
+
 export interface MemberSimplbooksSyncState {
   createdAt: Generated<Timestamp>
   errorMessage: string | null
@@ -2540,6 +2556,7 @@ export interface DB {
   'member.register': MemberRegister
   'member.registerAudit': MemberRegisterAudit
   'member.roles': MemberRoles
+  'member.sessions': MemberSessions
   'member.simplbooksSyncState': MemberSimplbooksSyncState
   'member.voteCast': MemberVoteCast
   'member.voteOption': MemberVoteOption

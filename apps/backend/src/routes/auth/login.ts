@@ -20,8 +20,14 @@ import {
   type LoginResponse,
   type RegisterRequest,
 } from '@mik/contracts/auth'
-import { decodeRefreshToken, respondWithAccessAndRefreshToken, type JWTUser } from './token.ts'
-import { clearAuthCookies, readRefreshToken } from './cookies.ts'
+import {
+  decodeAccessTokenIgnoringExpiry,
+  decodeRefreshToken,
+  respondWithAccessAndRefreshToken,
+  type DecodedRefreshToken,
+  type SessionScopedJWTUser,
+} from './token.ts'
+import { clearAuthCookies, readAccessToken, readRefreshToken } from './cookies.ts'
 import { generateJWTUser } from './token.ts'
 import {
   addMember,
@@ -38,6 +44,7 @@ import {
   invalidatePreviousLoginAttempts,
   markLoginAttemptUsed,
 } from '../../db/auth-queries.ts'
+import { createSession, revokeSession, touchSession } from '../../db/session-queries.ts'
 import { getArticleFees } from '../../db/invoicing-queries.ts'
 import {
   ART_JOINING_FEE,
@@ -185,7 +192,8 @@ router.post('/login/verify-code', async (req: Request, res: Response) => {
 
   const jwtUser = generateJWTUser(verifiedMember)
   await createLoginEvent(member.memberId, 'login_success', req.ip, req.headers['user-agent'])
-  respondWithAccessAndRefreshToken(jwtUser, res)
+  const sessionId = await createSession(member.memberId, req.ip, req.headers['user-agent'])
+  respondWithAccessAndRefreshToken(jwtUser, res, sessionId)
 })
 
 // Register a new user
@@ -263,7 +271,8 @@ router.post('/login/validate', async (req: Request, res: Response) => {
 
   const jwtUser = generateJWTUser(member)
   await createLoginEvent(member.memberId, 'login_success', req.ip, req.headers['user-agent'])
-  respondWithAccessAndRefreshToken(jwtUser, res)
+  const sessionId = await createSession(member.memberId, req.ip, req.headers['user-agent'])
+  respondWithAccessAndRefreshToken(jwtUser, res, sessionId)
 })
 
 // Registration verification endpoint
@@ -288,7 +297,8 @@ router.post('/register/verify', async (req: Request, res: Response) => {
         req.ip,
         req.headers['user-agent'],
       )
-      respondWithAccessAndRefreshToken(user, res)
+      const sessionId = await createSession(user.memberId, req.ip, req.headers['user-agent'])
+      respondWithAccessAndRefreshToken(user, res, sessionId)
     } else {
       res.status(401).json({ error: 'Registration verification failed' })
     }
@@ -298,6 +308,15 @@ router.post('/register/verify', async (req: Request, res: Response) => {
   }
 })
 
+/**
+ * Exchange a refresh token for a fresh pair.
+ *
+ * This is also the *only* place session revocation is enforced (#1234). Checking
+ * it here rather than in authMiddleware is what keeps the per-request hot path
+ * free of database lookups, and is why revocation is bounded rather than
+ * instant: a terminated session's existing access token keeps working until it
+ * expires, up to 15 minutes. The sessions card says so in as many words.
+ */
 router.post('/refresh', async (req: Request, res: Response, next: NextFunction) => {
   const refreshToken = readRefreshToken(req)
   if (!refreshToken) {
@@ -307,7 +326,7 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
   // A refresh token this deployment cannot verify is an expired or foreign
   // session, not a server fault: answer 401 so the client redirects to the
   // login screen instead of surfacing a 500 from the error handler.
-  let payload: JWTUser
+  let payload: DecodedRefreshToken
   try {
     payload = decodeRefreshToken(refreshToken)
   } catch {
@@ -316,16 +335,82 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
   }
 
   const user = await getMemberById(payload.memberId)
-  if (user) {
-    const jwtUser = generateJWTUser(user)
-    await createLoginEvent(user.memberId, 'token_refresh', req.ip, req.headers['user-agent'])
-    respondWithAccessAndRefreshToken(jwtUser, res)
-  } else {
-    next(new Error('User not found'))
+  if (!user) {
+    return next(new Error('User not found'))
   }
+
+  // Reuse the session rather than opening a new one. A browser refreshes roughly
+  // every 15 minutes while someone is using the app, so a row per refresh would
+  // bury the one session they actually care about under a day's worth of
+  // duplicates and make "log out of all other sessions" meaningless.
+  let sessionId = payload.jti
+  if (sessionId) {
+    if (!(await touchSession(sessionId))) {
+      // The row is revoked or gone. This is the revocation taking effect: refuse
+      // and clear the cookies rather than quietly minting a replacement session,
+      // which would undo the terminate the member just performed elsewhere.
+      logger.info('refresh refused for revoked session %s (member %s)', sessionId, user.memberId)
+      clearAuthCookies(res)
+      return problem({ status: 401, detail: 'Session has been terminated' })
+    }
+  } else {
+    // A refresh token minted before #1234 shipped carries no jti and so has no
+    // row to touch. Adopting it into a new session is deliberate: treating it as
+    // revoked would sign every member out at deploy time, and the token is a
+    // validly signed one from this deployment — it is old, not forged. Every
+    // such token is rotated into a session-bearing one by this very response,
+    // so the case disappears on its own within one refresh interval.
+    sessionId = await createSession(user.memberId, req.ip, req.headers['user-agent'])
+    logger.info('adopted a pre-session refresh token into session %s', sessionId)
+  }
+
+  const jwtUser = generateJWTUser(user)
+  await createLoginEvent(user.memberId, 'token_refresh', req.ip, req.headers['user-agent'])
+  respondWithAccessAndRefreshToken(jwtUser, res, sessionId)
 })
 
-router.post('/logout', async (_req: Request, res: Response) => {
+router.post('/logout', async (req: Request, res: Response) => {
+  // End the session registry row too, so the device disappears from the member's
+  // sessions list instead of lingering as an active session nobody is using
+  // (#1234).
+  //
+  // The session id comes from the *access* cookie, not the refresh one: the
+  // refresh cookie is scoped to path '/api/auth/refresh' and is therefore never
+  // sent here. Everything in this block is best-effort — a logout must clear
+  // cookies and return 200 even when the token is missing, expired or garbage,
+  // because the alternative is a member who cannot sign out.
+  //
+  // The decode and the two writes are caught separately on purpose. An
+  // unreadable token is the expected case this block exists for; a throw out of
+  // revokeSession or createLoginEvent is a database failure, and folding both
+  // into one bare catch would have logged a real revocation failure under a
+  // message saying the token was garbage.
+  const accessToken = readAccessToken(req)
+  if (accessToken) {
+    let payload: SessionScopedJWTUser | undefined
+    try {
+      payload = decodeAccessTokenIgnoringExpiry(accessToken)
+    } catch {
+      logger.warn('logout with an unreadable access token; clearing cookies anyway')
+    }
+
+    if (payload) {
+      try {
+        if (payload.sid) {
+          await revokeSession(payload.sid, 'logout')
+        }
+        // 'logout' has been in the auth_event_type enum since the beginning and
+        // has never once been written. Closing that gap here.
+        await createLoginEvent(payload.memberId, 'logout', req.ip, req.headers['user-agent'])
+      } catch (err) {
+        // The session row may still be active. Logging out is still allowed to
+        // succeed -- the cookies go either way -- but this is a genuine failure
+        // and has to be visible as one.
+        logger.error('logout failed to revoke session %s: %s', payload.sid ?? 'none', err)
+      }
+    }
+  }
+
   // Clears every name and scope this backend has ever set an auth cookie under
   // — see ./cookies.ts. Clearing only the host-only variant left the shared
   // '.mik.fi' session alive, so logging out of either app logged you out of

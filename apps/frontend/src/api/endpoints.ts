@@ -50,6 +50,7 @@ export const endpoints = {
     me: identityEndpoints.me,
     myLang: 'v1/members/me/lang',
     myPasskeys: 'v1/members/me/passkeys',
+    mySessions: 'v1/members/me/sessions',
     myGdprExport: 'v1/members/me/gdpr-export',
     myAvatar: 'v1/members/me/avatar',
     myAvatarStyle: 'v1/members/me/avatar-style',
@@ -63,6 +64,10 @@ export const endpoints = {
     annualMembershipStats: 'v1/members/annual-membership-stats',
     byId: (memberId: string) => `v1/members/${memberId}`,
     passkeys: (memberId: string) => `v1/members/${memberId}/passkeys`,
+    // Terminate and revoke-others hang off these via trigger's path argument
+    // ('DELETE' with the session id, 'POST' with 'revoke-others'), so they need
+    // no entries of their own.
+    sessions: (memberId: string) => `v1/members/${memberId}/sessions`,
     invoices: (memberId: string) => `v1/members/${memberId}/invoices`,
     flights: (memberId: string) => `v1/members/${memberId}/flights`,
     reservationEfficiency: (memberId: string) => `v1/members/${memberId}/reservation-efficiency`,
