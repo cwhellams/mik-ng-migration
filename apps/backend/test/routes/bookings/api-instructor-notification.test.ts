@@ -36,6 +36,7 @@ const { getMemberById } = await import('../../../src/db/member-queries.ts')
 const { db } = await import('../../../src/db/connection.ts')
 const { emailTemplates } = await import('../../../src/templates/registry.ts')
 const { normaliseEmailLang } = await import('../../../src/templates/renderEmail.ts')
+const { installBookingCleanup } = await import('../../__helpers__/bookingCleanup.ts')
 
 // The subjects now live in the template registry; look them up the same way
 // renderEmail() does so the assertions stay tied to the real strings.
@@ -94,29 +95,49 @@ const sweepSuiteBookings = () =>
     .where('description', 'like', `${testDescriptionPrefix}%`)
     .execute()
 
-// Drains any fire-and-forget instructor notification the booking triggered, so
-// a lingering async call can't land during the *next* test (after its
-// beforeEach clears the mock) and pollute that test's assertions, then deletes
-// the booking.
+// Waits until sendEmail has been quiet for `quietMs`, so a fire-and-forget
+// notification this test triggered cannot land during the *next* one — after its
+// beforeEach has cleared the mock — and pollute that test's assertions.
 //
-// The delete goes straight to the database, as it does in every other suite
-// that creates bookings. It used to be `DELETE /bookings/:id` — a route the
-// bookings router has never had — which answered 404 into an ignored promise,
-// so each run leaked nine CONFIRMED, future-dated OH-IHQ bookings and the next
-// run's overlapping create auto-cancelled them, mailing the instructor a
-// cancellation where the assertion wanted an assignment (#1306). Cleanup that
-// ignores its own result cannot fail loudly, hence the throw below.
-const cleanupBooking = async (bookingId: string) => {
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  const { numDeletedRows } = await db
-    .deleteFrom('schedule.bookings')
-    .where('bookingId', '=', bookingId)
-    .executeTakeFirst()
-  if (numDeletedRows !== 1n) {
-    throw new Error(
-      `Cleanup failed to delete booking ${bookingId}: deleted ${numDeletedRows} rows, expected 1`,
-    )
+// This replaces a flat 300ms sleep. The student confirmation is dispatched before
+// the route responds and an instructor notification adds only a getMemberById
+// round trip, so once the call every test already waits for has arrived the queue
+// is normally quiet on the first poll. That makes the wait both shorter and
+// stronger than the sleep: a straggler resets the window and is waited out
+// rather than assumed to fit inside 300ms.
+const waitForEmailsToSettle = async (quietMs = 100, timeoutMs = 2000) => {
+  const deadline = Date.now() + timeoutMs
+  let seen = mockSendEmail.mock.calls.length
+  let quietSince = Date.now()
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    const calls = mockSendEmail.mock.calls.length
+    if (calls !== seen) {
+      seen = calls
+      quietSince = Date.now()
+    } else if (Date.now() - quietSince >= quietMs) {
+      return
+    }
   }
+}
+
+// Lets the booking's notifications settle, then deletes the booking.
+//
+// The delete goes straight to the database, as it does in every other suite that
+// creates bookings. It used to be `DELETE /bookings/:id` — a route the bookings
+// router has never had — which answered 404 into an ignored promise, so each run
+// leaked nine CONFIRMED, future-dated OH-IHQ bookings and the next run's
+// overlapping create auto-cancelled them, mailing the instructor a cancellation
+// where the assertion wanted an assignment (#1306).
+//
+// Every test calls this from a `finally`, so it must not throw: a throw there
+// would discard the assertion error the block is already propagating. It records
+// a failed delete instead, for the afterEach that installBookingCleanup
+// registered to report alongside the test's own failure.
+const deleteBookingAfterTest = installBookingCleanup()
+const cleanupBooking = async (bookingId: string) => {
+  await waitForEmailsToSettle()
+  await deleteBookingAfterTest(bookingId)
 }
 
 describe('Booking instructor notifications', () => {
@@ -128,9 +149,12 @@ describe('Booking instructor notifications', () => {
     await sweepSuiteBookings()
   })
 
-  // Belt and braces for the per-test cleanup: a test that fails before it can
-  // capture its booking id still leaves a row, and it must not reach the next
-  // run. This suite's rows are all it touches.
+  // Kept for the gaps the per-test `finally` leaves: a timed-out test is
+  // abandoned before its cleanup runs, and a 201 whose body is missing
+  // `bookingId` leaves a row no `finally` has an id for. The beforeAll sweep
+  // heals those too, but only on the *next* run of this suite — until then the
+  // leftover CONFIRMED OH-IHQ booking is visible to every other suite in this
+  // run, and several of them book the same aircraft.
   afterAll(async () => {
     await sweepSuiteBookings()
   })
@@ -550,9 +574,12 @@ describe('Booking instructor notifications', () => {
       expect(response.status).toBe(201)
       bookingId = response.body.bookingId
 
-      // give the fire-and-forget student email (and any accidental instructor
-      // email) a moment to fire, then confirm only the student was emailed
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      // The student confirmation is dispatched before the route responds, so it
+      // is already recorded; an accidental instructor email would follow a
+      // getMemberById round trip later. Waiting for the queue to settle catches
+      // one whenever it arrives, where a flat 300ms only caught a prompt one —
+      // and without paying 300ms here and 300ms again inside cleanupBooking.
+      await waitForEmailsToSettle()
       expect(mockSendEmail.mock.calls).toHaveLength(1)
     } finally {
       if (bookingId) {

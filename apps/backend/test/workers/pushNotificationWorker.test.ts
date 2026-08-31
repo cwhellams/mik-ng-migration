@@ -27,6 +27,7 @@ jest.mock('../../src/lib/webPush.ts', () => ({
 // Import modules AFTER setting up mocks
 import { claimUpcomingBookingsForPushReminder } from '../../src/db/push-queries.ts'
 import { sendWebPush } from '../../src/lib/webPush.ts'
+import { deleteBooking } from '../__helpers__/bookingCleanup.ts'
 import type { ScheduledTask, TaskFn, TaskOptions } from 'node-cron'
 
 describe('Push Notification Worker', () => {
@@ -138,7 +139,7 @@ describe('Push Notification Worker', () => {
   afterEach(async () => {
     if (testBookingId) {
       // Deleting the booking cascades to schedule.push_reminder_log via FK.
-      await db.deleteFrom('schedule.bookings').where('bookingId', '=', testBookingId).execute()
+      await deleteBooking(testBookingId)
     }
     if (savedStlBookings.length > 0) {
       await db.insertInto('schedule.bookings').values(savedStlBookings).execute()

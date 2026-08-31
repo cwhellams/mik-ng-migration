@@ -15,6 +15,7 @@ import { db } from '../../../src/db/connection.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { router } from '../../../src/routes/members/api.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
+import { deleteBookings } from '../../__helpers__/bookingCleanup.ts'
 
 const app = express()
 app.use(express.json())
@@ -262,7 +263,7 @@ describe('GET /members/:memberId/reservation-efficiency', () => {
   afterAll(async () => {
     await db.deleteFrom('flight.logsAudit').where('flightId', 'in', FLIGHT_IDS).execute()
     await db.deleteFrom('flight.logs').where('flightId', 'in', FLIGHT_IDS).execute()
-    await db.deleteFrom('schedule.bookings').where('bookingId', 'in', BOOKING_IDS).execute()
+    await deleteBookings(BOOKING_IDS)
   })
 
   describe('permissions', () => {
@@ -511,7 +512,7 @@ describe('GET /members/:memberId/reservation-efficiency, over a window running p
     jest.useRealTimers()
     await db.deleteFrom('flight.logsAudit').where('flightId', 'in', LIVE_FLIGHT_IDS).execute()
     await db.deleteFrom('flight.logs').where('flightId', 'in', LIVE_FLIGHT_IDS).execute()
-    await db.deleteFrom('schedule.bookings').where('bookingId', 'in', LIVE_BOOKING_IDS).execute()
+    await deleteBookings(LIVE_BOOKING_IDS)
   })
 
   const queryToEndOfToday = () =>

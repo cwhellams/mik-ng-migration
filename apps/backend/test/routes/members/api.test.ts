@@ -24,6 +24,7 @@ import {
 } from '@mik/contracts/members'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import type { Upsert } from '@mik/contracts/schema'
+import { deleteBooking, installBookingCleanup } from '../../__helpers__/bookingCleanup.ts'
 import { deleteSimplbooksOutbox } from '../../db/__helpers__/simplbooksDbHelpers.ts'
 import { HttpStatusCode } from 'axios'
 import { db } from '../../../src/db/connection.ts'
@@ -1171,6 +1172,7 @@ describe('PATCH /members/id', () => {
       canMakeReservations: false,
     }
     let insertedBookingId: string
+    const cleanupBooking = installBookingCleanup()
 
     beforeEach(async () => {
       // Insert a future booking for Matti1 using a fixed far-future date for test stability
@@ -1193,7 +1195,7 @@ describe('PATCH /members/id', () => {
 
     afterEach(async () => {
       // Clean up inserted booking and restore canMakeReservations
-      await db.deleteFrom('schedule.bookings').where('bookingId', '=', insertedBookingId).execute()
+      await deleteBooking(insertedBookingId)
       await patch(testMemberId, { canMakeReservations: true }, adminToken)
       // Restore any testdata bookings for this member that were cancelled as a side-effect of
       // the true→false canMakeReservations transition (stl*/ihq* are shared testdata used by
@@ -1267,10 +1269,9 @@ describe('PATCH /members/id', () => {
         const bookingsAfter = await getBookings({ memberId: testMemberId })
         expect(bookingsAfter.some((b) => b.bookingId === secondBooking.bookingId)).toBe(true)
       } finally {
-        await db
-          .deleteFrom('schedule.bookings')
-          .where('bookingId', '=', secondBooking.bookingId)
-          .execute()
+        // Recording rather than throwing: a throw from `finally` would discard
+        // the assertion error above it.
+        await cleanupBooking(secondBooking.bookingId)
       }
     })
   })
