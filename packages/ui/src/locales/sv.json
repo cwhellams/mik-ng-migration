@@ -1563,8 +1563,9 @@
     },
     "longTaxi": {
       "confirmTitle": "Lång taxningstid",
-      "outMessage": "Du har angett {{minutes}} minuter taxningstid ut, bekräfta att detta stämmer.",
-      "inMessage": "Du har angett {{minutes}} minuter taxningstid in, bekräfta att detta stämmer.",
+      "intro": "Kontrollera taxningstiderna nedan och bekräfta att de stämmer.",
+      "outItem": "Taxning ut (från block → start): {{minutes}} min",
+      "inItem": "Taxning in (landning → till block): {{minutes}} min",
       "confirmButton": "Bekräfta och spara"
     },
     "includeCrewFlights": "Visa även flygningar som besättning",

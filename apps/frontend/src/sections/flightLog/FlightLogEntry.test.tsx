@@ -503,8 +503,20 @@ describe('FlightLogEntry (classic form) long taxi confirmation', () => {
     offBlockTimeEpoch: '1748854800',
     takeoffTimeEpoch: '1748858700',
   }
+  /**
+   * 50 minutes of taxi on both legs -- the scenario reported in #1250: off block
+   * 09:00Z, takeoff 09:50Z, landing 10:50Z, on block 11:40Z. Under the old 60-out /
+   * 30-in thresholds only the taxi-in was over its bar, so the pilot was asked about
+   * one of two identical entries.
+   */
+  const longTaxiBothOverrides = {
+    offBlockTimeEpoch: '1748854800',
+    takeoffTimeEpoch: '1748857800',
+    landingTimeEpoch: '1748861400',
+    onBlockTimeEpoch: '1748864400',
+  }
 
-  it('asks for confirmation before saving when taxi-out exceeds an hour', async () => {
+  it('asks for confirmation before saving when taxi-out is long', async () => {
     const state = classicFormApi([], [], longTaxiOutOverrides)
     const { user } = renderClassicForm()
 
@@ -512,8 +524,39 @@ describe('FlightLogEntry (classic form) long taxi confirmation', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByText(/65 minutes of taxi-out time/)).toBeInTheDocument()
+    expect(within(dialog).getByText('Taxi-out (off-block → takeoff): 65 min')).toBeInTheDocument()
     expect(state.patches).toBe(0)
+  })
+
+  it('warns about both legs in one dialog, as two separate rows, when both are long', async () => {
+    const state = classicFormApi([], [], longTaxiBothOverrides)
+    const { user } = renderClassicForm()
+
+    await screen.findByRole('button', { name: /add defect/i })
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    // One dialog, not one per leg and not only the taxi-in.
+    const dialogs = await screen.findAllByRole('dialog')
+    expect(dialogs).toHaveLength(1)
+    const dialog = dialogs[0]!
+    expect(within(dialog).getByText('Taxi-out (off-block → takeoff): 50 min')).toBeInTheDocument()
+    expect(within(dialog).getByText('Taxi-in (landing → on-block): 50 min')).toBeInTheDocument()
+    expect(state.patches).toBe(0)
+  })
+
+  it('saves once, not once per long leg, when the both-legs confirmation is accepted', async () => {
+    const state = classicFormApi([], [], longTaxiBothOverrides)
+    const { user } = renderClassicForm()
+
+    await screen.findByRole('button', { name: /add defect/i })
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm & Save' }))
+
+    await waitFor(() => expect(state.patches).toBe(1))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(state.patches).toBe(1)
   })
 
   it('saves once the long-taxi confirmation is accepted', async () => {

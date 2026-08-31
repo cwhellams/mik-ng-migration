@@ -1555,8 +1555,9 @@
     },
     "longTaxi": {
       "confirmTitle": "Long taxi time",
-      "outMessage": "You have entered {{minutes}} minutes of taxi-out time, please confirm this is correct.",
-      "inMessage": "You have entered {{minutes}} minutes of taxi-in time, please confirm this is correct.",
+      "intro": "Please check the taxi times below and confirm they are correct.",
+      "outItem": "Taxi-out (off-block → takeoff): {{minutes}} min",
+      "inItem": "Taxi-in (landing → on-block): {{minutes}} min",
       "confirmButton": "Confirm & Save"
     },
     "includeCrewFlights": "Include flights as crew",

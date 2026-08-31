@@ -24,7 +24,7 @@ describe('useLongTaxiCheck', () => {
     expect(result.current.longTaxiDialogProps.open).toBe(false)
   })
 
-  it('withholds submission when taxi-out exceeds 60 minutes', () => {
+  it('withholds submission when taxi-out exceeds 30 minutes', () => {
     const { result } = renderHook(() => useLongTaxiCheck())
     const submit = vi.fn()
 
@@ -38,7 +38,7 @@ describe('useLongTaxiCheck', () => {
 
     expect(submit).not.toHaveBeenCalled()
     expect(result.current.longTaxiDialogProps.open).toBe(true)
-    expect(result.current.longLegs).toEqual([{ leg: 'out', minutes: 65 }])
+    expect(result.current.longTaxiDialogProps.longLegs).toEqual([{ leg: 'out', minutes: 65 }])
   })
 
   it('withholds submission when taxi-in exceeds 30 minutes', () => {
@@ -54,7 +54,7 @@ describe('useLongTaxiCheck', () => {
     )
 
     expect(submit).not.toHaveBeenCalled()
-    expect(result.current.longLegs).toEqual([{ leg: 'in', minutes: 31 }])
+    expect(result.current.longTaxiDialogProps.longLegs).toEqual([{ leg: 'in', minutes: 31 }])
   })
 
   it('reports both legs when both are long', () => {
@@ -73,24 +73,56 @@ describe('useLongTaxiCheck', () => {
       ),
     )
 
-    expect(result.current.longLegs).toEqual([
+    expect(result.current.longTaxiDialogProps.longLegs).toEqual([
       { leg: 'out', minutes: 65 },
       { leg: 'in', minutes: 31 },
     ])
   })
 
-  it('does not warn at exactly the threshold, only past it', () => {
+  it('reports both legs at 50 minutes each -- one threshold, not 60 out / 30 in', () => {
+    // The exact scenario from #1250. Under the old inherited 60/30 split the
+    // 50-minute taxi-out was silently under its bar and only the taxi-in warned,
+    // so the pilot was asked about one of two identical entries.
     const { result } = renderHook(() => useLongTaxiCheck())
     const submit = vi.fn()
 
     act(() =>
       result.current.withLongTaxiCheck(
-        values({ offBlockTimeEpoch: '1000', takeoffTimeEpoch: String(1000 + 60 * 60) }),
+        values({
+          offBlockTimeEpoch: '1000',
+          takeoffTimeEpoch: String(1000 + 50 * 60),
+          landingTimeEpoch: '5000',
+          onBlockTimeEpoch: String(5000 + 50 * 60),
+        }),
+        submit,
+      ),
+    )
+
+    expect(submit).not.toHaveBeenCalled()
+    expect(result.current.longTaxiDialogProps.longLegs).toEqual([
+      { leg: 'out', minutes: 50 },
+      { leg: 'in', minutes: 50 },
+    ])
+  })
+
+  it('does not warn at exactly the threshold, only past it -- on either leg', () => {
+    const { result } = renderHook(() => useLongTaxiCheck())
+    const submit = vi.fn()
+
+    act(() =>
+      result.current.withLongTaxiCheck(
+        values({
+          offBlockTimeEpoch: '1000',
+          takeoffTimeEpoch: String(1000 + 30 * 60),
+          landingTimeEpoch: '5000',
+          onBlockTimeEpoch: String(5000 + 30 * 60),
+        }),
         submit,
       ),
     )
 
     expect(submit).toHaveBeenCalledTimes(1)
+    expect(result.current.longTaxiDialogProps.open).toBe(false)
   })
 
   it('submits and closes the dialog once confirmed', () => {
