@@ -503,10 +503,10 @@ function mapInvoiceItemRowToItem(row: any): Item | null {
     id: row.id,
     code: row.code,
     name: row.name,
-    expense_claim_item: Boolean(row.expense_claim_item),
-    is_fuel_item: Boolean(row.is_fuel_item),
-    is_km_item: Boolean(row.is_km_item),
-    is_other_item: Boolean(row.is_other_item),
+    expense_claim_item: Boolean(row.expenseClaimItem),
+    is_fuel_item: Boolean(row.isFuelItem),
+    is_km_item: Boolean(row.isKmItem),
+    is_other_item: Boolean(row.isOtherItem),
   }
 
   const parsed = ItemSchema.partial().safeParse(flat)

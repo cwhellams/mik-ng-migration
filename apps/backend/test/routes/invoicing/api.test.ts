@@ -89,6 +89,121 @@ describe('GET /items', () => {
   })
 })
 
+// Dedicated, disposable items for the flag-flip tests below. The canonical
+// testdata rows (ids 10/20/22/30 in V100__Items.sql) are deleted and
+// recreated by other suites' beforeAll hooks (e.g. flightInvoiceCreator.test.ts
+// clears out the OH-IHQ and VIRHEMERKINTA codes to seed its own fixtures), and
+// Jest runs suites in separate workers against the same database, so a PATCH
+// against one of those ids can race a concurrent delete and 500. Using
+// private ids/codes nothing else touches avoids that.
+async function insertTestItem(id: number, code: string) {
+  // Delete first so a row left behind by a crashed prior run doesn't turn
+  // this into a duplicate-key error instead of a clean insert.
+  await deleteTestItem(id)
+  await db
+    .insertInto('accts.items')
+    .values({
+      id,
+      code,
+      name: `Test item ${code}`,
+      item: { amount: 1, price_per_unit: 1, sum_with_vat: 1, markup_value: 1 },
+    })
+    .execute()
+}
+
+async function deleteTestItem(id: number) {
+  await db.deleteFrom('accts.items').where('id', '=', id).execute()
+}
+
+describe('PATCH /items/:id/expense-claim-item', () => {
+  // Regression test for a bug where the DB update succeeded but the response
+  // (and every later GET /items) always reported the flag as false, because
+  // the row->Item mapper read the Kysely camelCase keys under their snake_case
+  // wire names. This left every product invisible as an expense claim option.
+  const itemId = 800001
+
+  beforeEach(() => insertTestItem(itemId, 'TEST_EXPENSE_CLAIM_ITEM'))
+  afterEach(() => deleteTestItem(itemId))
+
+  it('persists the flag change and reflects it in the response', async () => {
+    const enableRes = await request(app)
+      .patch(`/invoices/items/${itemId}/expense-claim-item`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ expenseClaimItem: true })
+    expect(enableRes.status).toBe(200)
+    const enabledItem = enableRes.body.items.find((item: any) => item.id === itemId)
+    expect(enabledItem.expense_claim_item).toBe(true)
+
+    const disableRes = await request(app)
+      .patch(`/invoices/items/${itemId}/expense-claim-item`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ expenseClaimItem: false })
+    expect(disableRes.status).toBe(200)
+    const disabledItem = disableRes.body.items.find((item: any) => item.id === itemId)
+    expect(disabledItem.expense_claim_item).toBe(false)
+  })
+
+  it('should return 401 for invalid token', async () => {
+    const res = await request(app)
+      .patch(`/invoices/items/${itemId}/expense-claim-item`)
+      .set('Cookie', `accessToken=badToken`)
+      .send({ expenseClaimItem: true })
+    expect(res.status).toBe(401)
+  })
+})
+
+describe('PATCH /items/:id/is-fuel-item, is-km-item, is-other-item', () => {
+  // Same regression as above, covering the other three flags that share the
+  // buggy mapper.
+  const cases = [
+    {
+      path: 'is-fuel-item',
+      field: 'isFuelItem',
+      responseField: 'is_fuel_item',
+      itemId: 800002,
+      code: 'TEST_IS_FUEL_ITEM',
+    },
+    {
+      path: 'is-km-item',
+      field: 'isKmItem',
+      responseField: 'is_km_item',
+      itemId: 800003,
+      code: 'TEST_IS_KM_ITEM',
+    },
+    {
+      path: 'is-other-item',
+      field: 'isOtherItem',
+      responseField: 'is_other_item',
+      itemId: 800004,
+      code: 'TEST_IS_OTHER_ITEM',
+    },
+  ]
+
+  beforeAll(() => Promise.all(cases.map(({ itemId, code }) => insertTestItem(itemId, code))))
+  afterAll(() => Promise.all(cases.map(({ itemId }) => deleteTestItem(itemId))))
+
+  it.each(cases)(
+    'persists $path and reflects it in the response',
+    async ({ path, field, responseField, itemId }) => {
+      const enableRes = await request(app)
+        .patch(`/invoices/items/${itemId}/${path}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ [field]: true })
+      expect(enableRes.status).toBe(200)
+      const enabledItem = enableRes.body.items.find((item: any) => item.id === itemId)
+      expect(enabledItem[responseField]).toBe(true)
+
+      const disableRes = await request(app)
+        .patch(`/invoices/items/${itemId}/${path}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ [field]: false })
+      expect(disableRes.status).toBe(200)
+      const disabledItem = disableRes.body.items.find((item: any) => item.id === itemId)
+      expect(disabledItem[responseField]).toBe(false)
+    },
+  )
+})
+
 describe('Invoice Simplbooks tests', () => {
   beforeAll(() => {
     jest.clearAllMocks()
