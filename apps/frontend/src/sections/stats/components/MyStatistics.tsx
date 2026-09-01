@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import useApi from '@mik/ui/hooks/useApi'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import { formatHHMM } from '@mik/ui/utils/format'
 import { useNivoTheme } from '../useNivoTheme'
 import type { MyStatistics as MyStatisticsType } from '@mik/contracts/stats'
@@ -175,6 +176,14 @@ export const MyStatistics = () => {
                 ))}
               </Select>
             </FormControl>
+
+            <StatInfoButton
+              titleKey='stats.info.myStatistics.title'
+              summaryKey='stats.info.myStatistics.summary'
+              calculationKey='stats.info.myStatistics.calculation'
+              caveatKeys={['stats.info.myStatistics.caveats.picOnly']}
+              sx={{ ml: 'auto' }}
+            />
           </Box>
         </CardContent>
       </Card>

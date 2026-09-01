@@ -167,6 +167,22 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
         ],
       },
       {
+        label: 'admin.nav.dtoFlightTime',
+        icon: 'mdi:school',
+        path: '/stats/dto',
+        permissions: [
+          MIKPermissions.FLIGHTLOG_ADMIN,
+          MIKPermissions.AIRCRAFT_ADMIN,
+          MIKPermissions.INVOICING_ADMIN,
+        ],
+      },
+      {
+        label: 'admin.nav.oilFuelUplift',
+        icon: 'mdi:fuel',
+        path: '/stats/oil-fuel-uplift',
+        permissions: [MIKPermissions.FLIGHTLOG_ADMIN, MIKPermissions.AIRCRAFT_ADMIN],
+      },
+      {
         label: 'admin.nav.occurrenceRegistry',
         icon: 'mdi:printer',
         path: '/occurrences/registry',

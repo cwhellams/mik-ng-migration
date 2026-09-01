@@ -8,12 +8,14 @@ import {
   ToggleButton,
   Grid,
 } from '@mui/material'
+import { Stack } from '@mui/system'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import type { Dayjs } from 'dayjs'
 import { ResponsiveBar } from '@nivo/bar'
 import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import type { PilotStatistics as PilotStatisticsType } from '@mik/contracts/stats'
 import { useTranslation } from 'react-i18next'
 import { dayjs } from '@mik/ui/utils/date'
@@ -141,9 +143,15 @@ export const PilotStatistics = () => {
       {/* Date Range Controls */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Typography variant='h6' gutterBottom>
-            {t('stats.pilots.dateRange')}
-          </Typography>
+          <Stack direction='row' spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+            <Typography variant='h6'>{t('stats.pilots.dateRange')}</Typography>
+            <StatInfoButton
+              titleKey='stats.info.pilotStatistics.title'
+              summaryKey='stats.info.pilotStatistics.summary'
+              calculationKey='stats.info.pilotStatistics.calculation'
+              caveatKeys={['stats.info.pilotStatistics.caveats.binSize']}
+            />
+          </Stack>
           <Box
             sx={{
               display: 'flex',

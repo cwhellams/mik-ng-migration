@@ -248,7 +248,11 @@ export default defineConfig({
         // (52 would leave 0.31). Branches at 49 would leave 0.63 and functions at 38
         // would leave 0.95, both under the clearance the two moves above were taken on
         // (1.08 and 1.13), so those two stay where #1304 put them.
-        'src/sections/**': { statements: 51, branches: 48, functions: 37 },
+        //
+        // 51/48/37 -> 55/51/42: #1323 added the stat-explanation buttons across every
+        // `sections/stats` component plus tests for them, and none of these components
+        // had any tests before — measured 56.23/52.62/42.98.
+        'src/sections/**': { statements: 55, branches: 51, functions: 42 },
       },
     },
   },

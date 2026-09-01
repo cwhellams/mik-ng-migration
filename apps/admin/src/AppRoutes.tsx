@@ -54,6 +54,8 @@ import { UnpaidOverdueInvoices } from './sections/accounting/UnpaidOverdueInvoic
 import { UpliftReport } from './sections/accounting/UpliftReport'
 
 import CommercialFlightTime from './sections/stats/CommercialFlightTime'
+import DtoFlightTime from './sections/stats/DtoFlightTime'
+import OilFuelUplift from './sections/stats/OilFuelUplift'
 import DocumentsAdmin from './sections/documents/DocumentsAdmin'
 import FuelPricesAdmin from './sections/fuelPrices/FuelPricesAdmin'
 import LiquidRecordsAdmin from './sections/liquid/LiquidRecordsAdmin'
@@ -459,6 +461,30 @@ const AppRoutes = () => {
               ]}
             >
               <CommercialFlightTime />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/stats/dto'
+          element={
+            <RequirePermission
+              permissions={[
+                MIKPermissions.FLIGHTLOG_ADMIN,
+                MIKPermissions.AIRCRAFT_ADMIN,
+                MIKPermissions.INVOICING_ADMIN,
+              ]}
+            >
+              <DtoFlightTime />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path='/stats/oil-fuel-uplift'
+          element={
+            <RequirePermission
+              permissions={[MIKPermissions.FLIGHTLOG_ADMIN, MIKPermissions.AIRCRAFT_ADMIN]}
+            >
+              <OilFuelUplift />
             </RequirePermission>
           }
         />

@@ -108,7 +108,11 @@ export default defineConfig({
         // at the ceiling.
         // 56/50/44 -> 57/51/45, measuring 58.79/52.67/47.57 (57.96/52.12/46.39
         // without #1230's findings pages) — see the note on the global bars above.
-        'src/sections/**': { statements: 57, branches: 51, functions: 45 },
+        //
+        // 57/51/45 -> 58/52/47: #1323 added `DtoFlightTime`/`OilFuelUplift` (new
+        // pages, both fully covered) and the stat-explanation button + its test to
+        // `CommercialFlightTime` — measuring 59.34/53.08/48.97.
+        'src/sections/**': { statements: 58, branches: 52, functions: 47 },
         'src/{*,hooks/**,theme/**,config/**}': { statements: 74, branches: 36, functions: 50 },
       },
     },

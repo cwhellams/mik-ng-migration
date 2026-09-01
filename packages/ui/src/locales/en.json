@@ -1146,7 +1146,10 @@
   },
   "findings": {
     "title": "Defect and remark search",
-    "tabs": { "search": "Search", "patterns": "Patterns" },
+    "tabs": {
+      "search": "Search",
+      "patterns": "Patterns"
+    },
     "filters": {
       "aircraft": "Aircraft",
       "allAircraft": "All aircraft",
@@ -2722,6 +2725,147 @@
         "local": "Local",
         "utc": "UTC"
       }
+    },
+    "info": {
+      "common": {
+        "anonymizedIdentifier": "Individual members are identified only by an anonymised code (a one-way hash of their member ID), never by name. The same member always gets the same code across different periods, so patterns are comparable — but the code cannot be turned back into a name from this data alone.",
+        "aggregateMatching": "Reservations and logged flights are matched in aggregate, by the same aircraft and year (and month, where shown) — not booking by booking. There is no link from one specific reservation to the specific flight it produced. Because of this, the figure can exceed 100% (more time was flown than was reserved in that period).",
+        "efficiencyZeroOnNoReservation": "When there were no reservations at all in a period, this shows 0%, not \"no data\". That is a deliberate choice for this figure and differs from the Safety page's occurrence rate, which shows no value at all when there is no flight time to divide by — see that page's explanation for why the two differ."
+      },
+      "flightTimeByAircraft": {
+        "titles": {
+          "ytd": "Flight Hours YTD",
+          "calendar": "Flight Time Calendar",
+          "monthly": "Monthly Flight Time by Aircraft",
+          "yearly": "Flight Time by Aircraft (Yearly)",
+          "yoy": "Year on Year Flight Time"
+        },
+        "summary": "The total flight time logged for each aircraft, added up from every flight log entry for that aircraft.",
+        "calculation": "Every flight log entry records a flight (air) time in minutes. This figure is the sum of that field across all flights for the aircraft, grouped by year, by year and month, or by calendar day depending on the chart. Night-flying minutes and instrument (IFR) minutes are summed the same way and shown alongside the total where the chart has room for them.",
+        "caveats": {
+          "noStatusFilter": "Every logged flight is counted, regardless of its review or validation status in the flight log."
+        }
+      },
+      "memberCountByType": {
+        "title": "Member Count by Type",
+        "summary": "How many active members the club currently has, broken down by membership type.",
+        "calculation": "A simple count of member records, grouped by membership type. Removed members and internal system accounts are excluded, so this reflects members the club currently considers active."
+      },
+      "landingsByYear": {
+        "title": "Landings by Aircraft (Yearly)",
+        "summary": "The total number of landings recorded for each aircraft, per year.",
+        "calculation": "Each flight log entry records a number of landings for that flight (touch-and-goes count as separate landings). This figure sums that field across all flights for the aircraft, per year."
+      },
+      "visitedAirfields": {
+        "title": "Visited Airfields",
+        "summary": "Which airfields an aircraft has flown to or from most often, over the last two years.",
+        "calculation": "Every flight has a departure and an arrival airport. Both are counted as a \"visit\" to that airfield, then added together per airfield. The chart shows only the top 15 airfields by visit count, for the two selected aircraft, over the last two years."
+      },
+      "occupancyDistribution": {
+        "title": "Occupancy Distribution",
+        "summary": "How many people were on board, across all flights of an aircraft — useful for seeing how often the aircraft flies full versus with just a pilot.",
+        "calculation": "Every flight is placed into one of three groups by the number of people on board recorded on the log: 1–2, 3, or 4 or more. The pie chart shows the share of flights in each group; the table below it adds the flight hours and the share of \"cross-country\" flights (a flight that lands somewhere other than where it took off) for each group.",
+        "caveats": {
+          "aircraftRestriction": "Only shown for aircraft with more than 2 seats, since occupancy is not a meaningful split for a 2-seat aircraft. Currently that means OH-STL only.",
+          "crossCountryDefinition": "\"Cross-country\" here means simply that the arrival airport differs from the departure airport — there is no separate flag for it, and no minimum distance is applied."
+        }
+      },
+      "myStatistics": {
+        "title": "My Statistics",
+        "summary": "A personal summary of the flights you have flown as pilot-in-command (PIC), for the period and aircraft selected above.",
+        "calculation": "Every number on this page — the totals, the calendar and the monthly chart — comes from flight log entries where you are recorded as PIC. The totals are a straightforward sum (flight time, block time, landings) or a count (flights, distinct airports visited) over those entries. The calendar and monthly chart are the same flight-time sum, grouped by day and by month.",
+        "caveats": {
+          "picOnly": "This counts flights where you were PIC, not flights that were billed to your account — the two are usually the same but are not guaranteed to be, e.g. for shared or instructional flights."
+        }
+      },
+      "pilotStatistics": {
+        "title": "Pilot Statistics",
+        "summary": "How flight hours and visited airports are distributed across all pilots who flew in the selected period.",
+        "calculation": "For every pilot-in-command (PIC) who flew in the period, their total flight time and the number of distinct airports they visited are calculated, then grouped into bars. The \"Unique PICs\" figure is simply the number of different people who were PIC at least once in the period.",
+        "caveats": {
+          "binSize": "The hours histogram groups pilots into fixed 2-hour bands (0–2h, 2–4h, and so on) — a pilot with 1.9 hours and one with 0.1 hours land in the same bar."
+        }
+      },
+      "reservationEfficiencyAll": {
+        "title": "Reservation Efficiency — All Flights",
+        "summary": "How much of the time members reserve an aircraft for actually gets flown — a low figure suggests aircraft are being reserved but not used for as long as booked.",
+        "calculation": "For a period, this compares two sums: the total time flown (from flight logs) against the total time reserved (the length of every non-cancelled booking, from the schedule). Efficiency is flown time divided by reserved time, as a percentage."
+      },
+      "reservationEfficiencySchool": {
+        "title": "Reservation Efficiency — School Flights",
+        "summary": "The same idea as the general Reservation Efficiency figure, but scoped to training: how much of the time reserved for training bookings is actually used for training flights.",
+        "calculation": "Only bookings marked as training are counted on the reservation side, and only flights logged as school or DTO training flights are counted on the flown side. Efficiency is the flown amount divided by the reserved amount, as a percentage — the same formula as the general figure, but with training-only inputs.",
+        "caveats": {
+          "blockTimeNumerator": "This figure deliberately uses block time (gate-to-gate) for the flown side, not flight/air time — unlike almost every other flight-time figure on this page, which uses air time. This matches how a training booking is actually occupied: from the moment the aircraft leaves its parking spot to the moment it returns, not just the airborne portion.",
+          "instructorView": "The \"by instructor\" breakdown infers the instructor from whichever crew position on the flight is recorded as Flight Instructor (FI) — there is no separate \"instructor of record\" field."
+        }
+      },
+      "airfieldEfficiency": {
+        "title": "Airfield Efficiency",
+        "summary": "Where flight time is spent relative to the club's home field (EFNU): flights entirely at EFNU, flights that only touch EFNU on one end, and flights that never touch EFNU at all — plus the same reservation-efficiency figure as the general report.",
+        "calculation": "Every flight's departure and arrival airport are checked against EFNU. Flight time is split into three buckets: both ends at EFNU, exactly one end at EFNU, and neither end at EFNU (\"away\" flights). The efficiency percentage alongside these buckets is calculated the same way as the general Reservation Efficiency figure — total flown time divided by total reserved time for the same period."
+      },
+      "aogStatistics": {
+        "titles": {
+          "monthly": "AOG Days per Month",
+          "ytd": "AOG Days — Year to Date & Previous Years"
+        },
+        "summary": "How many days each aircraft was unavailable to fly — either booked out for maintenance, or grounded by an open defect.",
+        "calculation": "An aircraft counts as AOG (\"aircraft on ground\") on any calendar day it is either booked as a maintenance reservation, or has a defect that was open that day (from when it was reported until it was marked resolved, or today if it is still open). The monthly chart and the year-to-date table both count distinct calendar days this way — a day where the aircraft was AOG for only part of the day still counts as a full AOG day.",
+        "caveats": {
+          "holdItemList": "This is a simplification: a defect deferred onto a Hold Item List (allowed to fly with, under specific limits) is not modelled separately here — it is treated the same as any other open defect for as long as it stays open.",
+          "totalNotSum": "The \"total AOG days\" figure is the number of distinct days the aircraft was AOG for any reason — it can be less than \"maintenance days\" plus \"unserviceable days\" added together, because a day with both a maintenance booking and an open defect is only counted once in the total."
+        }
+      },
+      "safetyStatistics": {
+        "titles": {
+          "chart": "Occurrences per 100 Flight Hours",
+          "table": "Safety Performance — Per Aircraft, Per Year"
+        },
+        "summary": "A safety occurrence rate per aircraft, per year: how many occurrence reports were filed relative to how much the aircraft actually flew, so that a busier aircraft is not unfairly penalised for having more reports.",
+        "calculation": "For each aircraft and year, the number of occurrence reports (excluding deleted ones, and counting each event once even though anonymisation creates a linked copy of every report) is divided by the flight hours logged for that aircraft that year, then multiplied by 100 — giving a rate \"per 100 flight hours\", the same way accident rates are usually expressed in aviation.",
+        "caveats": {
+          "nullOnNoFlightTime": "When an aircraft has occurrence reports but no logged flight hours for that year, no rate is shown at all (rather than 0 or an error) — there is nothing meaningful to divide by. This is the opposite convention from the Reservation, Airfield and School-Flight Efficiency figures elsewhere on this page, which show 0% rather than no value when their denominator is zero; both are deliberate choices for their respective figures, just not the same one.",
+          "deduplication": "Each occurrence report is counted once. Reports go through an anonymisation step that creates a linked, separately-tracked copy of the original — without de-duplicating, an event could otherwise be counted twice."
+        }
+      },
+      "commercialFlightTime": {
+        "title": "Commercial Flight Time",
+        "summary": "Flight time logged as commercial (as opposed to private) flying, per aircraft and month, over the last 12 months.",
+        "calculation": "Every flight log entry is marked as either a private or a commercial flight. This figure sums the flight (air) time of commercial-marked entries only, per aircraft and month."
+      },
+      "dtoFlightTime": {
+        "title": "DTO (Training) Flight Time",
+        "summary": "Flight time logged specifically as DTO (Declared Training Organisation) training flights, per aircraft.",
+        "calculation": "Every flight log entry is flagged as a DTO training flight or not. This figure sums the flight (air) time of the DTO-flagged entries only, per aircraft, day, month or year depending on the chart — the same summation as the general Flight Time by Aircraft report, just restricted to DTO training flights.",
+        "caveats": {
+          "airTimeNotBlockTime": "This uses flight/air time, not block time — unlike the School-Flight Reservation Efficiency report elsewhere in this app, which deliberately uses block (gate-to-gate) time for training flights. The two reports measure training activity differently; this one is on the same air-time basis as every other flight-time figure in this app."
+        }
+      },
+      "oilFuelUplift": {
+        "titles": {
+          "oil": "Oil Uplift",
+          "fuel": "Fuel Uplift"
+        },
+        "summary": "The total oil or fuel recorded as added (\"uplifted\") to each aircraft, per month.",
+        "calculation": "Each flight log entry can record an oil and/or fuel uplift in litres, entered by whoever fuelled or serviced the aircraft. This figure sums that field per aircraft and month.",
+        "caveats": {
+          "recordedNotEstimated": "This is a sum of what was actually recorded as uplifted on flight log entries — it is not an estimate of fuel or oil consumption, and a missed entry means that uplift is simply absent from the total."
+        }
+      },
+      "nonBillableFlightTime": {
+        "title": "Non-Billable Flight Time by Aircraft",
+        "summary": "Flight time logged as non-billable — flights that do not generate an invoice to a member's account — per aircraft.",
+        "calculation": "Every flight log entry is flagged as billable or not, independent of its flight type. This figure sums the flight (air) time of the non-billable-flagged entries only, per aircraft — the same summation as the general Flight Time by Aircraft report, just restricted to non-billable flights.",
+        "caveats": {
+          "flagMeaning": "\"Non-billable\" reflects how the flight log entry itself was flagged, not a fixed list of flight types — the same flight type can in principle be billable in one case and not in another."
+        }
+      },
+      "flightLengthStats": {
+        "title": "Flight Length Statistics",
+        "summary": "How long a typical flight is on each aircraft, per year — the shortest, longest, average and median flight length.",
+        "calculation": "For each aircraft and year, every logged flight's length (flight/air time) is collected, and the shortest, longest, and average (mean) are taken directly from that set. The median is the middle value of the set when sorted — useful alongside the average because a handful of unusually long or short flights can pull the average away from what a \"typical\" flight looks like, while the median is not affected by them in the same way."
+      }
     }
   },
   "upliftReport": {
@@ -3486,7 +3630,9 @@
       "commercialFlightTime": "Commercial flight time",
       "liquidRecords": "Fuel & oil records",
       "liquidOil": "Oil inventory",
-      "liquidQr": "QR codes"
+      "liquidQr": "QR codes",
+      "dtoFlightTime": "DTO Flight Time",
+      "oilFuelUplift": "Oil & Fuel Uplift"
     },
     "dashboard": {
       "welcome": "Welcome back, {{name}}",
@@ -3497,7 +3643,14 @@
       "commercialFlightTime": "Commercial flight time by aircraft (last 12 months)",
       "noCommercialFlights": "No commercial flights recorded in the last 12 months.",
       "month": "Month",
-      "commercialHours": "Commercial hours"
+      "commercialHours": "Commercial hours",
+      "dtoFlightTime": "DTO (training) flight time by aircraft (last 12 months)",
+      "noDtoFlights": "No DTO training flights recorded in the last 12 months.",
+      "dtoHours": "DTO hours",
+      "oilFuelUplift": "Oil & fuel uplift by aircraft (last 12 months)",
+      "noUpliftData": "No uplift recorded in the last 12 months.",
+      "oilLitres": "Oil (litres)",
+      "fuelLitres": "Fuel (litres)"
     }
   },
   "itemReservations": {

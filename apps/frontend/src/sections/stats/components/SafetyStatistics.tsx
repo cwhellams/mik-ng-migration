@@ -9,13 +9,24 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Stack,
 } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
 import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import type { OccurrencesPerHundredHrsByAcYr } from '@mik/contracts/stats'
 import { getYearRange } from '../statsUtils'
+
+const safetyInfoProps = {
+  summaryKey: 'stats.info.safetyStatistics.summary',
+  calculationKey: 'stats.info.safetyStatistics.calculation',
+  caveatKeys: [
+    'stats.info.safetyStatistics.caveats.nullOnNoFlightTime',
+    'stats.info.safetyStatistics.caveats.deduplication',
+  ],
+}
 
 export const SafetyStatistics = () => {
   const { yrFrom, yrTo: currentYear } = getYearRange()
@@ -83,9 +94,15 @@ export const SafetyStatistics = () => {
       <RemoteContent isLoading={isLoading} error={error}>
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant='h6' gutterBottom>
-              Occurrences per 100 Flight Hours
-            </Typography>
+            <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+              <Typography variant='h6' gutterBottom>
+                Occurrences per 100 Flight Hours
+              </Typography>
+              <StatInfoButton
+                titleKey='stats.info.safetyStatistics.titles.chart'
+                {...safetyInfoProps}
+              />
+            </Stack>
             <Typography
               variant='body2'
               sx={{
@@ -165,9 +182,15 @@ export const SafetyStatistics = () => {
         </Card>
         <Card>
           <CardContent>
-            <Typography variant='h6' gutterBottom>
-              Safety Performance — Per Aircraft, Per Year
-            </Typography>
+            <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+              <Typography variant='h6' gutterBottom>
+                Safety Performance — Per Aircraft, Per Year
+              </Typography>
+              <StatInfoButton
+                titleKey='stats.info.safetyStatistics.titles.table'
+                {...safetyInfoProps}
+              />
+            </Stack>
             <Typography
               variant='body2'
               sx={{

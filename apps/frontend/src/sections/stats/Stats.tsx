@@ -13,6 +13,7 @@ import {
   TableRow,
   TableCell,
 } from '@mui/material'
+import { Stack } from '@mui/system'
 import { ResponsiveBar } from '@nivo/bar'
 import { ResponsiveCalendar } from '@nivo/calendar'
 import { ResponsivePie } from '@nivo/pie'
@@ -32,8 +33,11 @@ import {
   VisitedAirfieldsByAc,
   TotalLandingsByAcYr,
   PobDistributionByAcYr,
+  NonBillableFlightTimeByAcYr,
+  LongestShortestAvgFlightByAcYr,
 } from '@mik/contracts/stats'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import { PilotStatistics as PilotStatisticsView } from './components/PilotStatistics'
 import { ReservationEfficiency as ReservationEfficiencyView } from './components/ReservationEfficiency'
 import { YearOnYearReport } from './components/YearOnYearReport'
@@ -228,6 +232,42 @@ export const Stats = () => {
     },
   )
 
+  // Fetch non-billable flight time by aircraft per year
+  const {
+    data: nonBillableYearlyData,
+    error: nonBillableError,
+    isLoading: nonBillableLoading,
+  } = useApi<NonBillableFlightTimeByAcYr[]>(
+    {
+      url: 'v1/stats/non-billable/flight-time/aircraft/year',
+      params: {
+        yrFrom: yrFrom,
+        yrTo: yrTo,
+      },
+    },
+    {
+      refreshInterval: 0,
+    },
+  )
+
+  // Fetch flight length statistics (shortest/longest/average/median) by aircraft per year
+  const {
+    data: flightLengthData,
+    error: flightLengthError,
+    isLoading: flightLengthLoading,
+  } = useApi<LongestShortestAvgFlightByAcYr[]>(
+    {
+      url: 'v1/stats/flight-stats/year',
+      params: {
+        yrFrom: yrFrom,
+        yrTo: yrTo,
+      },
+    },
+    {
+      refreshInterval: 0,
+    },
+  )
+
   // Fetch occupancy (persons-on-board) distribution — server-side view already
   // restricts this to aircraft with more than 2 seats (currently only OH-STL)
   const {
@@ -375,6 +415,44 @@ export const Stats = () => {
     const keys = new Set(landingsYearlyData.map((d) => d.aircraftRegistration))
     return Array.from(keys).sort()
   }, [landingsYearlyData])
+
+  // Transform non-billable flight time data for bar chart
+  const nonBillableBarData = useMemo(() => {
+    if (!nonBillableYearlyData) return []
+
+    const grouped = new Map<number, { [key: string]: number }>()
+
+    nonBillableYearlyData.forEach((item) => {
+      if (!grouped.has(item.yr)) {
+        grouped.set(item.yr, {})
+      }
+      const yearData = grouped.get(item.yr)!
+      yearData[item.aircraftRegistration] =
+        (yearData[item.aircraftRegistration] || 0) + Math.round(item.totalFlightMins / 60)
+    })
+
+    return Array.from(grouped.entries())
+      .map(([yr, data]) => ({
+        year: yr.toString(),
+        ...data,
+      }))
+      .sort((a, b) => a.year.localeCompare(b.year))
+  }, [nonBillableYearlyData])
+
+  // Get all unique aircraft keys for the non-billable flight time bar chart
+  const nonBillableBarKeys = useMemo(() => {
+    if (!nonBillableYearlyData) return []
+    const keys = new Set(nonBillableYearlyData.map((d) => d.aircraftRegistration))
+    return Array.from(keys).sort()
+  }, [nonBillableYearlyData])
+
+  // Sort flight length statistics for the table, most recent year first per aircraft
+  const flightLengthRows = useMemo(() => {
+    if (!flightLengthData) return []
+    return [...flightLengthData].sort(
+      (a, b) => a.aircraftRegistration.localeCompare(b.aircraftRegistration) || b.yr - a.yr,
+    )
+  }, [flightLengthData])
 
   // Transform visited airfields data for pie chart (separate for OH-STL and OH-IHQ)
   const visitedAirfieldsPieData = useMemo(() => {
@@ -656,14 +734,23 @@ export const Stats = () => {
                   <Grid key={stats.aircraft} size={{ xs: 12, sm: 6 }}>
                     <Card>
                       <CardContent>
-                        <Typography
-                          gutterBottom
-                          sx={{
-                            color: 'text.secondary',
-                          }}
-                        >
-                          {stats.aircraft} - Flight Hours YTD
-                        </Typography>
+                        <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
+                          <Typography
+                            gutterBottom
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
+                            {stats.aircraft} - Flight Hours YTD
+                          </Typography>
+                          <StatInfoButton
+                            titleKey='stats.info.flightTimeByAircraft.titles.ytd'
+                            summaryKey='stats.info.flightTimeByAircraft.summary'
+                            calculationKey='stats.info.flightTimeByAircraft.calculation'
+                            caveatKeys={['stats.info.flightTimeByAircraft.caveats.noStatusFilter']}
+                            sx={{ mb: 1 }}
+                          />
+                        </Stack>
                         <Typography variant='h4'>{stats.ytd}</Typography>
                         <Box sx={{ mt: 2 }}>
                           {stats.previousYears.map((yearData) => (
@@ -689,9 +776,16 @@ export const Stats = () => {
             <RemoteContent isLoading={memberCountLoading} error={memberCountError}>
               <Card sx={{ mb: 3 }}>
                 <CardContent>
-                  <Typography variant='h6' gutterBottom>
-                    Member Count by Type
-                  </Typography>
+                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                    <Typography variant='h6' gutterBottom>
+                      Member Count by Type
+                    </Typography>
+                    <StatInfoButton
+                      titleKey='stats.info.memberCountByType.title'
+                      summaryKey='stats.info.memberCountByType.summary'
+                      calculationKey='stats.info.memberCountByType.calculation'
+                    />
+                  </Stack>
                   <Box sx={{ height: 400 }}>
                     <ResponsivePie
                       data={memberCountPieData}
@@ -754,9 +848,17 @@ export const Stats = () => {
                 {calendarDataByAircraft.map((aircraftCalendar) => (
                   <Card key={aircraftCalendar.aircraft} sx={{ mb: 3 }}>
                     <CardContent>
-                      <Typography variant='h6' gutterBottom>
-                        Flight Time Calendar - {aircraftCalendar.aircraft} (Last 2 Years)
-                      </Typography>
+                      <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                        <Typography variant='h6' gutterBottom>
+                          Flight Time Calendar - {aircraftCalendar.aircraft} (Last 2 Years)
+                        </Typography>
+                        <StatInfoButton
+                          titleKey='stats.info.flightTimeByAircraft.titles.calendar'
+                          summaryKey='stats.info.flightTimeByAircraft.summary'
+                          calculationKey='stats.info.flightTimeByAircraft.calculation'
+                          caveatKeys={['stats.info.flightTimeByAircraft.caveats.noStatusFilter']}
+                        />
+                      </Stack>
                       <Box sx={{ height: 400 }}>
                         <ResponsiveCalendar
                           data={aircraftCalendar.data}
@@ -797,9 +899,17 @@ export const Stats = () => {
             <RemoteContent isLoading={monthlyLoading} error={monthlyError}>
               <Card sx={{ mb: 3 }}>
                 <CardContent>
-                  <Typography variant='h6' gutterBottom>
-                    Monthly Flight Time by Aircraft (Last 12 Months)
-                  </Typography>
+                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                    <Typography variant='h6' gutterBottom>
+                      Monthly Flight Time by Aircraft (Last 12 Months)
+                    </Typography>
+                    <StatInfoButton
+                      titleKey='stats.info.flightTimeByAircraft.titles.monthly'
+                      summaryKey='stats.info.flightTimeByAircraft.summary'
+                      calculationKey='stats.info.flightTimeByAircraft.calculation'
+                      caveatKeys={['stats.info.flightTimeByAircraft.caveats.noStatusFilter']}
+                    />
+                  </Stack>
                   <Box>
                     {monthlyDataByAircraft.map((aircraftData) => (
                       <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
@@ -894,9 +1004,17 @@ export const Stats = () => {
             <RemoteContent isLoading={isLoading} error={error}>
               <Card>
                 <CardContent>
-                  <Typography variant='h6' gutterBottom>
-                    Flight Time by Aircraft (Yearly)
-                  </Typography>
+                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                    <Typography variant='h6' gutterBottom>
+                      Flight Time by Aircraft (Yearly)
+                    </Typography>
+                    <StatInfoButton
+                      titleKey='stats.info.flightTimeByAircraft.titles.yearly'
+                      summaryKey='stats.info.flightTimeByAircraft.summary'
+                      calculationKey='stats.info.flightTimeByAircraft.calculation'
+                      caveatKeys={['stats.info.flightTimeByAircraft.caveats.noStatusFilter']}
+                    />
+                  </Stack>
                   <Box sx={{ height: 500 }}>
                     <ResponsiveBar
                       data={barData}
@@ -948,9 +1066,16 @@ export const Stats = () => {
             <RemoteContent isLoading={landingsLoading} error={landingsError}>
               <Card sx={{ mb: 3 }}>
                 <CardContent>
-                  <Typography variant='h6' gutterBottom>
-                    {t('stats.totalLandingsByYear')}
-                  </Typography>
+                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                    <Typography variant='h6' gutterBottom>
+                      {t('stats.totalLandingsByYear')}
+                    </Typography>
+                    <StatInfoButton
+                      titleKey='stats.info.landingsByYear.title'
+                      summaryKey='stats.info.landingsByYear.summary'
+                      calculationKey='stats.info.landingsByYear.calculation'
+                    />
+                  </Stack>
                   <Box sx={{ height: 500 }}>
                     <ResponsiveBar
                       data={landingsBarData}
@@ -1021,6 +1146,136 @@ export const Stats = () => {
             </RemoteContent>
           )}
 
+          {/* Non-Billable Flight Time by Aircraft (Yearly) */}
+          {viewMode === 'aircraft' && (
+            <RemoteContent isLoading={nonBillableLoading} error={nonBillableError}>
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                    <Typography variant='h6' gutterBottom>
+                      Non-Billable Flight Time by Aircraft
+                    </Typography>
+                    <StatInfoButton
+                      titleKey='stats.info.nonBillableFlightTime.title'
+                      summaryKey='stats.info.nonBillableFlightTime.summary'
+                      calculationKey='stats.info.nonBillableFlightTime.calculation'
+                      caveatKeys={['stats.info.nonBillableFlightTime.caveats.flagMeaning']}
+                    />
+                  </Stack>
+                  <Box sx={{ height: 500 }}>
+                    <ResponsiveBar
+                      data={nonBillableBarData}
+                      keys={nonBillableBarKeys}
+                      indexBy='year'
+                      margin={{ top: 20, right: 130, bottom: 50, left: 60 }}
+                      padding={0.3}
+                      valueScale={{ type: 'linear' }}
+                      groupMode='grouped'
+                      colors={{ scheme: 'nivo' }}
+                      borderColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      axisTop={null}
+                      axisRight={null}
+                      axisBottom={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: t('stats.yearAxis'),
+                        legendPosition: 'middle',
+                        legendOffset: 40,
+                      }}
+                      axisLeft={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: 'Hours',
+                        legendPosition: 'middle',
+                        legendOffset: -50,
+                      }}
+                      labelSkipWidth={12}
+                      labelSkipHeight={12}
+                      labelTextColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      theme={nivoTheme}
+                      legends={[
+                        {
+                          dataFrom: 'keys',
+                          anchor: 'bottom-right',
+                          direction: 'column',
+                          justify: false,
+                          translateX: 120,
+                          translateY: 0,
+                          itemsSpacing: 2,
+                          itemWidth: 100,
+                          itemHeight: 20,
+                          itemDirection: 'left-to-right',
+                          itemOpacity: 0.85,
+                          symbolSize: 20,
+                          effects: [
+                            {
+                              on: 'hover',
+                              style: {
+                                itemOpacity: 1,
+                              },
+                            },
+                          ],
+                        },
+                      ]}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
+
+          {/* Flight Length Statistics */}
+          {viewMode === 'aircraft' && flightLengthRows.length > 0 && (
+            <RemoteContent isLoading={flightLengthLoading} error={flightLengthError}>
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                    <Typography variant='h6' gutterBottom>
+                      Flight Length Statistics
+                    </Typography>
+                    <StatInfoButton
+                      titleKey='stats.info.flightLengthStats.title'
+                      summaryKey='stats.info.flightLengthStats.summary'
+                      calculationKey='stats.info.flightLengthStats.calculation'
+                    />
+                  </Stack>
+                  <Table size='small'>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Aircraft</TableCell>
+                        <TableCell align='right'>Year</TableCell>
+                        <TableCell align='right'>Shortest</TableCell>
+                        <TableCell align='right'>Longest</TableCell>
+                        <TableCell align='right'>Average</TableCell>
+                        <TableCell align='right'>Median</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {flightLengthRows.map((row) => (
+                        <TableRow key={`${row.aircraftRegistration}-${row.yr}`}>
+                          <TableCell>{row.aircraftRegistration}</TableCell>
+                          <TableCell align='right'>{row.yr}</TableCell>
+                          <TableCell align='right'>{Math.round(row.shortestFlight)} min</TableCell>
+                          <TableCell align='right'>{Math.round(row.longestFlight)} min</TableCell>
+                          <TableCell align='right'>{Math.round(row.averageFlight)} min</TableCell>
+                          <TableCell align='right'>{Math.round(row.medianFlight)} min</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
+
           {/* Visited Airfields Pie Chart */}
           {viewMode === 'aircraft' && visitedAirfieldsPieData.length > 0 && (
             <RemoteContent isLoading={visitedAirfieldsLoading} error={visitedAirfieldsError}>
@@ -1028,9 +1283,16 @@ export const Stats = () => {
                 {visitedAirfieldsPieData.map((aircraftPie) => (
                   <Card key={aircraftPie.aircraft} sx={{ mb: 3 }}>
                     <CardContent>
-                      <Typography variant='h6' gutterBottom>
-                        Visited Airfields - {aircraftPie.aircraft} (Last 2 Years)
-                      </Typography>
+                      <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                        <Typography variant='h6' gutterBottom>
+                          Visited Airfields - {aircraftPie.aircraft} (Last 2 Years)
+                        </Typography>
+                        <StatInfoButton
+                          titleKey='stats.info.visitedAirfields.title'
+                          summaryKey='stats.info.visitedAirfields.summary'
+                          calculationKey='stats.info.visitedAirfields.calculation'
+                        />
+                      </Stack>
                       <Box sx={{ height: 500 }}>
                         <ResponsivePie
                           data={aircraftPie.data}
@@ -1095,9 +1357,20 @@ export const Stats = () => {
                 {pobDistributionPieData.map((aircraftPie) => (
                   <Card key={aircraftPie.aircraft} sx={{ mb: 3 }}>
                     <CardContent>
-                      <Typography variant='h6' gutterBottom>
-                        Occupancy Distribution - {aircraftPie.aircraft}
-                      </Typography>
+                      <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                        <Typography variant='h6' gutterBottom>
+                          Occupancy Distribution - {aircraftPie.aircraft}
+                        </Typography>
+                        <StatInfoButton
+                          titleKey='stats.info.occupancyDistribution.title'
+                          summaryKey='stats.info.occupancyDistribution.summary'
+                          calculationKey='stats.info.occupancyDistribution.calculation'
+                          caveatKeys={[
+                            'stats.info.occupancyDistribution.caveats.aircraftRestriction',
+                            'stats.info.occupancyDistribution.caveats.crossCountryDefinition',
+                          ]}
+                        />
+                      </Stack>
                       <Typography
                         variant='body2'
                         sx={{

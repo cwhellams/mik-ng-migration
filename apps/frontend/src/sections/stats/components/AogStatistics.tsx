@@ -9,13 +9,24 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Stack,
 } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
 import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import type { AogDaysByAcYr, AogDaysByAcYrMth } from '@mik/contracts/stats'
 import { getYearRange } from '../statsUtils'
+
+const aogInfoProps = {
+  summaryKey: 'stats.info.aogStatistics.summary',
+  calculationKey: 'stats.info.aogStatistics.calculation',
+  caveatKeys: [
+    'stats.info.aogStatistics.caveats.holdItemList',
+    'stats.info.aogStatistics.caveats.totalNotSum',
+  ],
+}
 
 export const AogStatistics = () => {
   const now = new Date()
@@ -150,9 +161,15 @@ export const AogStatistics = () => {
       <RemoteContent isLoading={monthlyLoading} error={monthlyError}>
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant='h6' gutterBottom>
-              AOG Days per Month (Last 12 Months)
-            </Typography>
+            <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+              <Typography variant='h6' gutterBottom>
+                AOG Days per Month (Last 12 Months)
+              </Typography>
+              <StatInfoButton
+                titleKey='stats.info.aogStatistics.titles.monthly'
+                {...aogInfoProps}
+              />
+            </Stack>
             <Typography
               variant='body2'
               sx={{
@@ -234,9 +251,12 @@ export const AogStatistics = () => {
       <RemoteContent isLoading={yearlyLoading} error={yearlyError}>
         <Card>
           <CardContent>
-            <Typography variant='h6' gutterBottom>
-              AOG Days — Year to Date &amp; Previous Years
-            </Typography>
+            <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+              <Typography variant='h6' gutterBottom>
+                AOG Days — Year to Date &amp; Previous Years
+              </Typography>
+              <StatInfoButton titleKey='stats.info.aogStatistics.titles.ytd' {...aogInfoProps} />
+            </Stack>
             <Typography
               variant='body2'
               sx={{

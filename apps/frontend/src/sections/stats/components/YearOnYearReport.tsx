@@ -11,11 +11,13 @@ import {
   ToggleButtonGroup,
   ToggleButton,
 } from '@mui/material'
+import { Stack } from '@mui/system'
 import { ResponsiveBar } from '@nivo/bar'
 import { useTranslation } from 'react-i18next'
 import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import type { TotalFlightTimeByAcYrMth } from '@mik/contracts/stats'
 import type { AircraftListResponse } from '@mik/contracts/aircrafts'
 import { endpoints } from '../../../api/endpoints'
@@ -118,11 +120,19 @@ export const YearOnYearReport = () => {
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>
-        <Typography variant='h6' gutterBottom>
-          {t('stats.yearOnYear.title')}
-        </Typography>
+        <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+          <Typography variant='h6' gutterBottom sx={{ mb: 0 }}>
+            {t('stats.yearOnYear.title')}
+          </Typography>
+          <StatInfoButton
+            titleKey='stats.info.flightTimeByAircraft.titles.yoy'
+            summaryKey='stats.info.flightTimeByAircraft.summary'
+            calculationKey='stats.info.flightTimeByAircraft.calculation'
+            caveatKeys={['stats.info.flightTimeByAircraft.caveats.noStatusFilter']}
+          />
+        </Stack>
 
-        <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ mb: 3, mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <FormControl size='small' sx={{ maxWidth: 280 }}>
             <InputLabel id='yoy-aircraft-label'>{t('stats.yearOnYear.aircraft')}</InputLabel>
             <Select

@@ -10,11 +10,13 @@ import {
   ToggleButton,
   Grid,
   Chip,
+  Stack,
 } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
 import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
 import { getMonthlyRange, getYearRange } from '../statsUtils'
 import { efficiencyColor, formatEfficiency } from '../../../utils/efficiency'
@@ -330,6 +332,31 @@ export const ReservationEfficiency = () => {
   const reportTitle = isSchool ? 'School Flight Reservation Efficiency' : 'Reservation Efficiency'
   const numeratorLabel = isSchool ? 'block time flown' : 'logged airtime'
 
+  // The explanation must track the Flight Type toggle: school-flight efficiency
+  // uses a different (block-time) numerator and different filters than the
+  // general figure, so the two need separate copy rather than one static prop.
+  const infoProps = isSchool
+    ? {
+        titleKey: 'stats.info.reservationEfficiencySchool.title',
+        summaryKey: 'stats.info.reservationEfficiencySchool.summary',
+        calculationKey: 'stats.info.reservationEfficiencySchool.calculation',
+        caveatKeys: [
+          'stats.info.reservationEfficiencySchool.caveats.blockTimeNumerator',
+          'stats.info.reservationEfficiencySchool.caveats.instructorView',
+          'stats.info.common.aggregateMatching',
+          'stats.info.common.efficiencyZeroOnNoReservation',
+        ],
+      }
+    : {
+        titleKey: 'stats.info.reservationEfficiencyAll.title',
+        summaryKey: 'stats.info.reservationEfficiencyAll.summary',
+        calculationKey: 'stats.info.reservationEfficiencyAll.calculation',
+        caveatKeys: [
+          'stats.info.common.aggregateMatching',
+          'stats.info.common.efficiencyZeroOnNoReservation',
+        ],
+      }
+
   return (
     <Box>
       {/* Controls */}
@@ -337,9 +364,12 @@ export const ReservationEfficiency = () => {
         <CardContent>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <Typography variant='subtitle2' gutterBottom>
-                Flight Type
-              </Typography>
+              <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                <Typography variant='subtitle2' gutterBottom>
+                  Flight Type
+                </Typography>
+                <StatInfoButton {...infoProps} />
+              </Stack>
               <ToggleButtonGroup
                 value={flightScope}
                 exclusive

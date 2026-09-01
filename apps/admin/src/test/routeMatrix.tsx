@@ -213,6 +213,22 @@ export const ROUTES: RouteUnderTest[] = [
       MIKPermissions.INVOICING_ADMIN,
     ],
   },
+  // DTO flight time and oil/fuel uplift (#1323) — two more stats reports
+  // reusing the same reports-group gates as commercial flight time.
+  {
+    path: '/stats/dto',
+    url: '/stats/dto',
+    permissions: [
+      MIKPermissions.FLIGHTLOG_ADMIN,
+      MIKPermissions.AIRCRAFT_ADMIN,
+      MIKPermissions.INVOICING_ADMIN,
+    ],
+  },
+  {
+    path: '/stats/oil-fuel-uplift',
+    url: '/stats/oil-fuel-uplift',
+    permissions: [MIKPermissions.FLIGHTLOG_ADMIN, MIKPermissions.AIRCRAFT_ADMIN],
+  },
 
   // Liquid Management System (#1119) — reporting stayed in the member app.
   { path: '/liquid/records', url: '/liquid/records', permissions: [MIKPermissions.LIQUID_ADMIN] },

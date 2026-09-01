@@ -9,10 +9,12 @@ import {
   Grid,
   Chip,
 } from '@mui/material'
+import { Stack } from '@mui/system'
 import { ResponsiveBar } from '@nivo/bar'
 import useApi from '@mik/ui/hooks/useApi'
 import { useNivoTheme } from '../useNivoTheme'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
+import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import { wrappingToggleGroupSx } from '../wrappingToggleGroupSx'
 import { getMonthlyRange, getYearRange } from '../statsUtils'
 import type {
@@ -369,10 +371,21 @@ export const AirfieldEfficiency = () => {
       <RemoteContent isLoading={isLoading} error={error}>
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant='h6' gutterBottom>
-              Airfield Efficiency {groupBy === 'aircraft' ? 'by Aircraft' : ''} (
-              {period === 'year' ? 'Yearly' : 'Last 12 Months'})
-            </Typography>
+            <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+              <Typography variant='h6' gutterBottom sx={{ mb: 0 }}>
+                Airfield Efficiency {groupBy === 'aircraft' ? 'by Aircraft' : ''} (
+                {period === 'year' ? 'Yearly' : 'Last 12 Months'})
+              </Typography>
+              <StatInfoButton
+                titleKey='stats.info.airfieldEfficiency.title'
+                summaryKey='stats.info.airfieldEfficiency.summary'
+                calculationKey='stats.info.airfieldEfficiency.calculation'
+                caveatKeys={[
+                  'stats.info.common.aggregateMatching',
+                  'stats.info.common.efficiencyZeroOnNoReservation',
+                ]}
+              />
+            </Stack>
             <Typography
               variant='body2'
               sx={{

@@ -1153,7 +1153,10 @@
   },
   "findings": {
     "title": "Vikojen ja huomioiden haku",
-    "tabs": { "search": "Haku", "patterns": "Toistuvat" },
+    "tabs": {
+      "search": "Haku",
+      "patterns": "Toistuvat"
+    },
     "filters": {
       "aircraft": "Kone",
       "allAircraft": "Kaikki koneet",
@@ -2728,6 +2731,147 @@
         "local": "Paikallinen",
         "utc": "UTC"
       }
+    },
+    "info": {
+      "common": {
+        "anonymizedIdentifier": "Yksittäiset jäsenet tunnistetaan vain anonymisoidulla koodilla (jäsennumerosta laskettu yksisuuntainen tiiviste), ei koskaan nimellä. Sama jäsen saa aina saman koodin eri ajanjaksoilla, joten kaavoja voi vertailla keskenään — mutta koodia ei voi pelkän tämän datan perusteella muuttaa takaisin nimeksi.",
+        "aggregateMatching": "Varaukset ja kirjatut lennot yhdistetään vain karkealla tasolla, saman lentokoneen ja vuoden (sekä kuukauden, jos näkyvissä) perusteella — ei varaus kerrallaan. Yksittäisestä varauksesta ei ole suoraa linkkiä siitä syntyneeseen lentoon. Tämän vuoksi luku voi ylittää 100 % (lentoaikaa kertyi enemmän kuin varauksia oli kyseisellä jaksolla).",
+        "efficiencyZeroOnNoReservation": "Jos jaksolla ei ollut yhtään varausta, luku näytetään 0 %:na eikä \"ei tietoa\" -tilana. Tämä on tietoinen valinta juuri tälle luvulle, ja se eroaa Turvallisuus-sivun tapahtumasuhteesta, joka ei näytä lainkaan arvoa, kun jakajana toimivaa lentoaikaa ei ole — katso syy kyseisen sivun selityksestä."
+      },
+      "flightTimeByAircraft": {
+        "titles": {
+          "ytd": "Lentotunnit kuluvana vuonna",
+          "calendar": "Lentoaikakalenteri",
+          "monthly": "Kuukausittainen lentoaika koneittain",
+          "yearly": "Lentoaika koneittain (vuosittain)",
+          "yoy": "Vuosi vuodelta lentoajat"
+        },
+        "summary": "Kunkin lentokoneen yhteenlaskettu lentoaika, laskettuna yhteen kaikista kyseisen koneen lentopäiväkirjamerkinnöistä.",
+        "calculation": "Jokaiseen lentopäiväkirjamerkintään kirjataan lentoaika (ilma-aika) minuutteina. Tämä luku on kyseisen kentän summa koneen kaikkien lentojen yli, ryhmiteltynä vuoden, vuoden ja kuukauden tai kalenteripäivän mukaan kaaviosta riippuen. Yölento- ja mittarilentoajat (IFR) lasketaan yhteen samalla tavalla ja näytetään kokonaisajan rinnalla, kun kaaviossa on tilaa.",
+        "caveats": {
+          "noStatusFilter": "Mukaan lasketaan jokainen kirjattu lento riippumatta sen tarkastus- tai hyväksymistilasta lentopäiväkirjassa."
+        }
+      },
+      "memberCountByType": {
+        "title": "Jäsenmäärä tyypeittäin",
+        "summary": "Kuinka monta aktiivista jäsentä seuralla on tällä hetkellä, jaoteltuna jäsentyypin mukaan.",
+        "calculation": "Yksinkertainen jäsentietueiden laskenta jäsentyypeittäin. Poistetut jäsenet ja sisäiset järjestelmätilit on jätetty pois, joten luku kuvaa seuran tällä hetkellä aktiivisina pitämiä jäseniä."
+      },
+      "landingsByYear": {
+        "title": "Laskeutumiset koneittain (vuosittain)",
+        "summary": "Kullekin lentokoneelle kirjattujen laskeutumisten kokonaismäärä vuosittain.",
+        "calculation": "Jokaiseen lentopäiväkirjamerkintään kirjataan kyseisen lennon laskeutumisten määrä (myös touch-and-go-laskeutumiset lasketaan erikseen). Tämä luku laskee kyseisen kentän yhteen koneen kaikkien lentojen yli, vuosittain."
+      },
+      "visitedAirfields": {
+        "title": "Vieraillut lentopaikat",
+        "summary": "Mihin lentopaikkoihin konetta on lennetty tai mistä sillä on lähdetty useimmin, viimeisen kahden vuoden aikana.",
+        "calculation": "Jokaisella lennolla on lähtö- ja saapumislentopaikka. Molemmat lasketaan \"käyntinä\" kyseisellä lentopaikalla, ja käynnit lasketaan yhteen lentopaikoittain. Kaaviossa näytetään vain 15 eniten käytettyä lentopaikkaa valituille kahdelle koneelle, viimeisen kahden vuoden ajalta."
+      },
+      "occupancyDistribution": {
+        "title": "Miehitysjakauma",
+        "summary": "Kuinka monta henkilöä koneessa on ollut mukana kaikilla sen lennoilla — hyödyllinen tieto siihen, kuinka usein kone lentää täynnä verrattuna vain lentäjän kanssa lentämiseen.",
+        "calculation": "Jokainen lento sijoitetaan yhteen kolmesta ryhmästä lentopäiväkirjaan kirjatun miehitysmäärän perusteella: 1–2, 3 tai 4 tai enemmän. Ympyräkaavio näyttää kunkin ryhmän osuuden lennoista; sen alla oleva taulukko lisää lentotunnit ja \"maastolentojen\" (lento, joka laskeutuu muualle kuin mistä se lähti) osuuden kussakin ryhmässä.",
+        "caveats": {
+          "aircraftRestriction": "Näytetään vain koneille, joissa on enemmän kuin 2 istuinta, koska miehitysjakauma ei ole mielekäs jaottelu kaksipaikkaiselle koneelle. Tällä hetkellä tämä tarkoittaa vain konetta OH-STL.",
+          "crossCountryDefinition": "\"Maastolento\" tarkoittaa tässä yksinkertaisesti sitä, että saapumislentopaikka poikkeaa lähtölentopaikasta — tälle ei ole erillistä merkintää, eikä mitään vähimmäismatkaa sovelleta."
+        }
+      },
+      "myStatistics": {
+        "title": "Omat tilastot",
+        "summary": "Henkilökohtainen yhteenveto lennoista, joilla olet toiminut päällikkönä (PIC), valitulla ajanjaksolla ja koneella.",
+        "calculation": "Kaikki tämän sivun luvut — yhteissummat, kalenteri ja kuukausikaavio — perustuvat lentopäiväkirjamerkintöihin, joissa sinut on merkitty päälliköksi. Yhteissummat ovat suora summa (lentoaika, blokkiaika, laskeutumiset) tai laskenta (lennot, eri vierailulentopaikkojen määrä) näiden merkintöjen yli. Kalenteri ja kuukausikaavio ovat sama lentoaikasumma, ryhmiteltynä päivän ja kuukauden mukaan.",
+        "caveats": {
+          "picOnly": "Tässä lasketaan lennot, joilla olit päällikkönä — ei lentoja, jotka on laskutettu sinun tililtäsi. Nämä ovat yleensä samat, mutta eivät välttämättä aina, esimerkiksi jaetuilla tai koululennoilla."
+        }
+      },
+      "pilotStatistics": {
+        "title": "Lentäjätilastot",
+        "summary": "Kuinka lentotunnit ja vierailut lentopaikat jakautuvat kaikkien valitulla jaksolla lentäneiden lentäjien kesken.",
+        "calculation": "Jokaiselle jaksolla lentäneelle päällikölle (PIC) lasketaan hänen yhteenlaskettu lentoaikansa ja eri lentopaikkojen määrä, jotka hän vieraili, ja nämä ryhmitellään palkkeihin. \"Yksittäisten päälliköiden\" luku on yksinkertaisesti eri henkilöiden määrä, jotka toimivat päällikkönä vähintään kerran jaksolla.",
+        "caveats": {
+          "binSize": "Tuntihistogrammi ryhmittelee lentäjät kiinteisiin 2 tunnin luokkiin (0–2 h, 2–4 h ja niin edelleen) — lentäjä, jolla on 1,9 tuntia, ja lentäjä, jolla on 0,1 tuntia, päätyvät samaan palkkiin."
+        }
+      },
+      "reservationEfficiencyAll": {
+        "title": "Varausten käyttöaste — kaikki lennot",
+        "summary": "Kuinka suuri osa jäsenten varaamasta konenajasta todella lennetään — matala luku viittaa siihen, että koneita varataan mutta ei käytetä yhtä pitkään kuin on varattu.",
+        "calculation": "Jaksolle verrataan kahta summaa: todellista lennettyä aikaa (lentopäiväkirjoista) varattuun kokonaisaikaan (jokaisen peruuttamattoman varauksen kesto aikataulusta). Käyttöaste on lennetty aika jaettuna varatulla ajalla, prosentteina."
+      },
+      "reservationEfficiencySchool": {
+        "title": "Varausten käyttöaste — koululennot",
+        "summary": "Sama ajatus kuin yleisessä varausten käyttöasteessa, mutta rajattuna koulutukseen: kuinka suuri osa koulutusvarauksiin varatusta ajasta todella käytetään koulutuslentoihin.",
+        "calculation": "Varauspuolella lasketaan mukaan vain koulutukseksi merkityt varaukset, ja lentopuolella vain koululennoiksi tai DTO-koulutuslennoiksi kirjatut lennot. Käyttöaste on lennetty määrä jaettuna varatulla määrällä, prosentteina — sama kaava kuin yleisessä luvussa, mutta vain koulutukseen liittyvillä syötteillä.",
+        "caveats": {
+          "blockTimeNumerator": "Tämä luku käyttää tarkoituksella blokkiaikaa (ovelta ovelle) lennetyn ajan puolella, ei lento- tai ilma-aikaa — toisin kuin lähes kaikki muut tämän sivun lentoaikaluvut, jotka käyttävät ilma-aikaa. Tämä vastaa sitä, miten koulutusvaraus todellisuudessa varaa koneen: siitä hetkestä, kun kone lähtee parkkipaikaltaan, siihen hetkeen, kun se palaa, ei vain ilmassaoloaikaa.",
+          "instructorView": "\"Kouluttajan mukaan\" -erittely päättelee kouluttajan siitä, kenen lennon miehistöpaikka on merkitty lennonopettajaksi (FI) — erillistä \"vastuukouluttaja\"-kenttää ei ole."
+        }
+      },
+      "airfieldEfficiency": {
+        "title": "Lentopaikkatehokkuus",
+        "summary": "Mihin lentoaika kuluu suhteessa seuran kotikenttään (EFNU): kokonaan EFNU:lla lennetyt lennot, lennot jotka koskettavat EFNU:ta vain toisesta päästä, ja lennot jotka eivät kosketa EFNU:ta lainkaan — sekä sama varausten käyttöasteluku kuin yleisessä raportissa.",
+        "calculation": "Jokaisen lennon lähtö- ja saapumislentopaikkaa verrataan EFNU:hun. Lentoaika jaetaan kolmeen ryhmään: molemmat päät EFNU:lla, tasan toinen pää EFNU:lla, ja kumpikaan pää ei ole EFNU:lla (\"poissaolevat\" lennot). Näiden ryhmien rinnalla näytettävä käyttöasteprosentti lasketaan samalla tavalla kuin yleisessä varausten käyttöasteraportissa — kokonaislennetty aika jaettuna kokonaisvaratulla ajalla samalta jaksolta."
+      },
+      "aogStatistics": {
+        "titles": {
+          "monthly": "AOG-päivät kuukausittain",
+          "ytd": "AOG-päivät — kuluva vuosi ja edelliset vuodet"
+        },
+        "summary": "Kuinka monta päivää kukin kone oli poissa käytöstä — joko varattuna huoltoon tai avoimen vian vuoksi lentokelvottomana.",
+        "calculation": "Kone lasketaan AOG-tilaan (\"aircraft on ground\") jokaisena kalenteripäivänä, jolloin se joko on varattuna huoltovarauksena tai sillä on kyseisenä päivänä avoinna ollut vika (siitä hetkestä kun vika ilmoitettiin siihen hetkeen kun se merkittiin korjatuksi, tai tähän päivään asti, jos se on yhä avoinna). Sekä kuukausikaavio että kuluvan vuoden taulukko laskevat näin erillisiä kalenteripäiviä — päivä, jolloin kone oli AOG-tilassa vain osan päivästä, lasketaan silti kokonaiseksi AOG-päiväksi.",
+        "caveats": {
+          "holdItemList": "Tämä on yksinkertaistus: vikaa, joka on siirretty Hold Item Listille (sallittu lentää tietyin rajoituksin), ei mallinneta tässä erikseen — sitä kohdellaan samoin kuin mitä tahansa muuta avointa vikaa niin kauan kuin se pysyy avoimena.",
+          "totalNotSum": "\"AOG-päivien yhteismäärä\" on niiden erillisten päivien määrä, jolloin kone oli AOG-tilassa mistä tahansa syystä — se voi olla pienempi kuin \"huoltopäivät\" ja \"lentokelvottomuuspäivät\" yhteenlaskettuna, koska päivä, jolla on sekä huoltovaraus että avoin vika, lasketaan yhteismäärässä vain kerran."
+        }
+      },
+      "safetyStatistics": {
+        "titles": {
+          "chart": "Tapahtumat / 100 lentotuntia",
+          "table": "Turvallisuussuorituskyky — koneittain ja vuosittain"
+        },
+        "summary": "Turvallisuustapahtumasuhde koneittain ja vuosittain: kuinka monta poikkeamailmoitusta tehtiin suhteessa siihen, kuinka paljon kone todellisuudessa lensi, jotta vilkkaampaa konetta ei rangaista epäoikeudenmukaisesti suuremmasta ilmoitusmäärästä.",
+        "calculation": "Jokaiselle koneelle ja vuodelle poikkeamailmoitusten määrä (pois lukien poistetut, ja jokainen tapahtuma lasketaan kerran, vaikka anonymisointi luo jokaisesta ilmoituksesta linkitetyn kopion) jaetaan kyseisen koneen kyseisenä vuonna kirjatuilla lentotunneilla ja kerrotaan 100:lla — tuloksena suhde \"100 lentotuntia kohti\", samaan tapaan kuin onnettomuussuhteet yleensä ilmaistaan ilmailussa.",
+        "caveats": {
+          "nullOnNoFlightTime": "Jos koneella on poikkeamailmoituksia mutta ei kirjattuja lentotunteja kyseiseltä vuodelta, mitään suhdetta ei näytetä lainkaan (ei 0:aa eikä virhettä) — jakajaksi ei ole mitään mielekästä. Tämä on vastakkainen käytäntö kuin tämän sivun muissa luvuissa (varausten, lentopaikan ja koululentojen käyttöasteet), jotka näyttävät 0 %:n ei-minkään-arvon sijaan, kun niiden jakaja on nolla; molemmat ovat tietoisia valintoja omille luvuilleen, mutta eivät samoja.",
+          "deduplication": "Jokainen poikkeamailmoitus lasketaan kerran. Ilmoitukset käyvät läpi anonymisointivaiheen, joka luo alkuperäisestä erillisen, linkitetyn kopion — ilman kaksoislaskennan poistoa sama tapahtuma voisi muuten laskea kahteen kertaan."
+        }
+      },
+      "commercialFlightTime": {
+        "title": "Kaupallinen lentoaika",
+        "summary": "Kaupalliseksi (yksityislentämisen sijaan) kirjattu lentoaika koneittain ja kuukausittain, viimeisen 12 kuukauden ajalta.",
+        "calculation": "Jokainen lentopäiväkirjamerkintä on merkitty joko yksityis- tai kaupalliseksi lennoksi. Tämä luku laskee yhteen vain kaupalliseksi merkittyjen merkintöjen lentoajan (ilma-ajan), koneittain ja kuukausittain."
+      },
+      "dtoFlightTime": {
+        "title": "DTO-koulutuslentoaika",
+        "summary": "Erikseen DTO (Declared Training Organisation) -koulutuslennoiksi kirjattu lentoaika, koneittain.",
+        "calculation": "Jokainen lentopäiväkirjamerkintä on merkitty joko DTO-koulutuslennoksi tai ei. Tämä luku laskee yhteen vain DTO-merkittyjen merkintöjen lentoajan (ilma-ajan), koneittain, päivittäin, kuukausittain tai vuosittain kaaviosta riippuen — sama laskutapa kuin yleisessä Lentoaika koneittain -raportissa, rajattuna vain DTO-koulutuslentoihin.",
+        "caveats": {
+          "airTimeNotBlockTime": "Tämä käyttää lento- eli ilma-aikaa, ei blokkiaikaa — toisin kuin sovelluksen Koululentojen varausten käyttöaste -raportti, joka käyttää tarkoituksella blokkiaikaa (ovelta ovelle) koulutuslennoille. Nämä kaksi raporttia mittaavat koulutustoimintaa eri tavoin; tämä raportti käyttää samaa ilma-aikaperustetta kuin kaikki muutkin sovelluksen lentoaikaluvut."
+        }
+      },
+      "oilFuelUplift": {
+        "titles": {
+          "oil": "Öljyntäyttö",
+          "fuel": "Polttoainetäyttö"
+        },
+        "summary": "Kullekin koneelle kirjatun öljyn tai polttoaineen kokonaismäärä (\"täyttö\"), kuukausittain.",
+        "calculation": "Jokaiseen lentopäiväkirjamerkintään voidaan kirjata öljyn ja/tai polttoaineen täyttö litroina, sen kirjaamana joka tankkasi tai huolsi koneen. Tämä luku laskee kyseisen kentän yhteen koneittain ja kuukausittain.",
+        "caveats": {
+          "recordedNotEstimated": "Tämä on summa siitä, mikä on todellisuudessa kirjattu täytöksi lentopäiväkirjamerkintöihin — se ei ole arvio polttoaineen tai öljyn kulutuksesta, ja unohtunut merkintä tarkoittaa, että kyseinen täyttö puuttuu yksinkertaisesti summasta."
+        }
+      },
+      "nonBillableFlightTime": {
+        "title": "Laskuttamaton lentoaika koneittain",
+        "summary": "Laskuttamattomaksi kirjattu lentoaika — lennot, joista ei synny laskua jäsenen tilille — koneittain.",
+        "calculation": "Jokainen lentopäiväkirjamerkintä on merkitty laskutettavaksi tai ei, riippumatta lentolajista. Tämä luku laskee yhteen vain laskuttamattomaksi merkittyjen merkintöjen lentoajan (ilma-ajan), koneittain — sama laskutapa kuin yleisessä Lentoaika koneittain -raportissa, rajattuna vain laskuttamattomiin lentoihin.",
+        "caveats": {
+          "flagMeaning": "\"Laskuttamaton\" kuvastaa sitä, miten itse lentopäiväkirjamerkintä on merkitty, ei kiinteää lentolajilistaa — sama lentolaji voi periaatteessa olla laskutettava yhdessä tapauksessa ja laskuttamaton toisessa."
+        }
+      },
+      "flightLengthStats": {
+        "title": "Lentojen kestotilastot",
+        "summary": "Kuinka pitkä tyypillinen lento on kullakin koneella, vuosittain — lyhin, pisin, keskimääräinen ja mediaanikesto.",
+        "calculation": "Jokaiselle koneelle ja vuodelle kerätään kaikkien kirjattujen lentojen kesto (lento-/ilma-aika), ja lyhin, pisin ja keskiarvo otetaan suoraan tästä joukosta. Mediaani on joukon keskimmäinen arvo järjestettynä — hyödyllinen keskiarvon rinnalla, koska muutama poikkeuksellisen pitkä tai lyhyt lento voi vetää keskiarvoa pois siitä, miltä \"tyypillinen\" lento näyttää, kun taas mediaaniin ne eivät vaikuta samalla tavalla."
+      }
     }
   },
   "upliftReport": {
@@ -3492,7 +3636,9 @@
       "commercialFlightTime": "Kaupallinen lentoaika",
       "liquidRecords": "Polttoaine- ja öljykirjaukset",
       "liquidOil": "Öljyvarasto",
-      "liquidQr": "QR-koodit"
+      "liquidQr": "QR-koodit",
+      "dtoFlightTime": "DTO-lentoaika",
+      "oilFuelUplift": "Öljy- ja polttoainetäytöt"
     },
     "dashboard": {
       "welcome": "Tervetuloa takaisin, {{name}}",
@@ -3503,7 +3649,14 @@
       "commercialFlightTime": "Kaupallinen lentoaika ilma-aluksittain (viimeiset 12 kk)",
       "noCommercialFlights": "Viimeisen 12 kuukauden ajalta ei ole kirjattu kaupallisia lentoja.",
       "month": "Kuukausi",
-      "commercialHours": "Kaupalliset tunnit"
+      "commercialHours": "Kaupalliset tunnit",
+      "dtoFlightTime": "DTO-koulutuslentoaika koneittain (viimeiset 12 kk)",
+      "noDtoFlights": "DTO-koulutuslentoja ei ole kirjattu viimeisen 12 kuukauden aikana.",
+      "dtoHours": "DTO-tunnit",
+      "oilFuelUplift": "Öljy- ja polttoainetäytöt koneittain (viimeiset 12 kk)",
+      "noUpliftData": "Täyttöjä ei ole kirjattu viimeisen 12 kuukauden aikana.",
+      "oilLitres": "Öljy (litraa)",
+      "fuelLitres": "Polttoaine (litraa)"
     }
   },
   "itemReservations": {

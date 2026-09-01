@@ -1154,7 +1154,10 @@
   },
   "findings": {
     "title": "Sökning av fel och anmärkningar",
-    "tabs": { "search": "Sök", "patterns": "Mönster" },
+    "tabs": {
+      "search": "Sök",
+      "patterns": "Mönster"
+    },
     "filters": {
       "aircraft": "Flygplan",
       "allAircraft": "Alla flygplan",
@@ -2695,6 +2698,147 @@
         "local": "Lokal",
         "utc": "UTC"
       }
+    },
+    "info": {
+      "common": {
+        "anonymizedIdentifier": "Enskilda medlemmar identifieras endast med en anonymiserad kod (en enkelriktad hash av deras medlems-ID), aldrig med namn. Samma medlem får alltid samma kod under olika perioder, så mönster kan jämföras — men koden kan inte omvandlas tillbaka till ett namn utifrån enbart denna data.",
+        "aggregateMatching": "Bokningar och loggade flygningar matchas endast på aggregerad nivå, per flygplan och år (och månad, där det visas) — inte bokning för bokning. Det finns ingen koppling från en specifik bokning till den specifika flygning den resulterade i. Därför kan siffran överstiga 100 % (mer tid flögs än vad som bokades under perioden).",
+        "efficiencyZeroOnNoReservation": "Om det inte fanns några bokningar alls under en period visas denna siffra som 0 %, inte som \"ingen data\". Det är ett medvetet val för just denna siffra och skiljer sig från Säkerhet-sidans händelsefrekvens, som inte visar något värde alls när det saknas flygtid att dividera med — se den sidans förklaring för varför de skiljer sig åt."
+      },
+      "flightTimeByAircraft": {
+        "titles": {
+          "ytd": "Flygtimmar i år",
+          "calendar": "Flygtidskalender",
+          "monthly": "Månatlig flygtid per flygplan",
+          "yearly": "Flygtid per flygplan (årsvis)",
+          "yoy": "År för år flygtid"
+        },
+        "summary": "Den totala loggade flygtiden för varje flygplan, summerad från varje flygloggpost för det flygplanet.",
+        "calculation": "Varje flygloggpost registrerar en flygtid (lufttid) i minuter. Denna siffra är summan av det fältet över alla flygningar för flygplanet, grupperat per år, per år och månad, eller per kalenderdag beroende på diagrammet. Nattflygningsminuter och instrumentflygningsminuter (IFR) summeras på samma sätt och visas bredvid totalen där diagrammet har plats för det.",
+        "caveats": {
+          "noStatusFilter": "Varje loggad flygning räknas, oavsett dess gransknings- eller godkännandestatus i flygloggen."
+        }
+      },
+      "memberCountByType": {
+        "title": "Antal medlemmar per typ",
+        "summary": "Hur många aktiva medlemmar klubben har just nu, uppdelat per medlemstyp.",
+        "calculation": "En enkel räkning av medlemsposter, grupperade per medlemstyp. Borttagna medlemmar och interna systemkonton är exkluderade, så detta återspeglar medlemmar klubben för närvarande anser aktiva."
+      },
+      "landingsByYear": {
+        "title": "Landningar per flygplan (årsvis)",
+        "summary": "Det totala antalet landningar registrerade för varje flygplan, per år.",
+        "calculation": "Varje flygloggpost registrerar ett antal landningar för den flygningen (touch-and-go räknas som separata landningar). Denna siffra summerar det fältet över alla flygningar för flygplanet, per år."
+      },
+      "visitedAirfields": {
+        "title": "Besökta flygplatser",
+        "summary": "Vilka flygplatser ett flygplan oftast har flugit till eller från, under de senaste två åren.",
+        "calculation": "Varje flygning har en avgångs- och en ankomstflygplats. Båda räknas som ett \"besök\" på den flygplatsen, och läggs sedan ihop per flygplats. Diagrammet visar bara de 15 mest besökta flygplatserna för de två valda flygplanen, under de senaste två åren."
+      },
+      "occupancyDistribution": {
+        "title": "Beläggningsfördelning",
+        "summary": "Hur många personer som varit ombord, över alla flygningar för ett flygplan — användbart för att se hur ofta flygplanet flyger fullt jämfört med bara med en pilot.",
+        "calculation": "Varje flygning placeras i en av tre grupper baserat på antalet personer ombord som registrerats i loggen: 1–2, 3, eller 4 eller fler. Cirkeldiagrammet visar andelen flygningar i varje grupp; tabellen under den lägger till flygtimmarna och andelen \"sträckflygningar\" (en flygning som landar någon annanstans än där den lyfte) för varje grupp.",
+        "caveats": {
+          "aircraftRestriction": "Visas bara för flygplan med fler än 2 säten, eftersom beläggning inte är en meningsfull uppdelning för ett tvåsitsigt flygplan. För närvarande betyder det bara OH-STL.",
+          "crossCountryDefinition": "\"Sträckflygning\" betyder här helt enkelt att ankomstflygplatsen skiljer sig från avgångsflygplatsen — det finns ingen separat flagga för det, och inget minimiavstånd tillämpas."
+        }
+      },
+      "myStatistics": {
+        "title": "Min statistik",
+        "summary": "En personlig sammanfattning av de flygningar du har genomfört som befälhavare (PIC), för perioden och flygplanet som valts ovan.",
+        "calculation": "Alla siffror på denna sida — totalerna, kalendern och månadsdiagrammet — kommer från flygloggposter där du är registrerad som befälhavare. Totalerna är antingen en enkel summa (flygtid, blocktid, landningar) eller en räkning (flygningar, unika besökta flygplatser) över dessa poster. Kalendern och månadsdiagrammet är samma flygtidssumma, grupperad per dag och per månad.",
+        "caveats": {
+          "picOnly": "Detta räknar flygningar där du var befälhavare, inte flygningar som fakturerades till ditt konto — de två är oftast desamma men det är inte garanterat, t.ex. för delade flygningar eller skolflygningar."
+        }
+      },
+      "pilotStatistics": {
+        "title": "Pilotstatistik",
+        "summary": "Hur flygtimmar och besökta flygplatser fördelas mellan alla piloter som flög under den valda perioden.",
+        "calculation": "För varje befälhavare (PIC) som flög under perioden beräknas deras totala flygtid och antalet unika flygplatser de besökte, och dessa grupperas sedan i staplar. Siffran \"Unika PIC\" är helt enkelt antalet olika personer som var befälhavare minst en gång under perioden.",
+        "caveats": {
+          "binSize": "Timhistogrammet grupperar piloter i fasta 2-timmarsintervall (0–2 tim, 2–4 tim, och så vidare) — en pilot med 1,9 timmar och en med 0,1 timmar hamnar i samma stapel."
+        }
+      },
+      "reservationEfficiencyAll": {
+        "title": "Bokningseffektivitet — alla flygningar",
+        "summary": "Hur stor del av den tid medlemmar bokar ett flygplan för som faktiskt flygs — en låg siffra tyder på att flygplan bokas men inte används lika länge som de bokades.",
+        "calculation": "För en period jämförs två summor: den totala flugna tiden (från flygloggar) mot den totala bokade tiden (längden på varje icke-avbokad bokning, från schemat). Effektivitet är flugen tid dividerat med bokad tid, i procent."
+      },
+      "reservationEfficiencySchool": {
+        "title": "Bokningseffektivitet — skolflygningar",
+        "summary": "Samma idé som den generella bokningseffektiviteten, men avgränsad till utbildning: hur stor del av den tid som bokats för utbildningsbokningar som faktiskt används till utbildningsflygningar.",
+        "calculation": "På bokningssidan räknas endast bokningar markerade som utbildning, och på flygsidan endast flygningar loggade som skol- eller DTO-utbildningsflygningar. Effektivitet är den flugna mängden dividerad med den bokade mängden, i procent — samma formel som den generella siffran, men med enbart utbildningsrelaterade indata.",
+        "caveats": {
+          "blockTimeNumerator": "Denna siffra använder medvetet blocktid (från gate till gate) på den flugna sidan, inte flyg-/lufttid — till skillnad från nästan alla andra flygtidssiffror på denna sida, som använder lufttid. Detta motsvarar hur en utbildningsbokning faktiskt upptar flygplanet: från stunden det lämnar sin parkeringsplats till stunden det återvänder, inte bara den tid det är i luften.",
+          "instructorView": "Uppdelningen \"per instruktör\" härleder instruktören från vilken besättningsposition på flygningen som registrerats som flyginstruktör (FI) — det finns inget separat fält för \"ansvarig instruktör\"."
+        }
+      },
+      "airfieldEfficiency": {
+        "title": "Flygplatseffektivitet",
+        "summary": "Var flygtiden spenderas i förhållande till klubbens hemmaflygplats (EFNU): flygningar helt vid EFNU, flygningar som bara berör EFNU i ena änden, och flygningar som aldrig berör EFNU alls — plus samma bokningseffektivitetssiffra som i den generella rapporten.",
+        "calculation": "Varje flygnings avgångs- och ankomstflygplats kontrolleras mot EFNU. Flygtiden delas upp i tre grupper: båda ändarna vid EFNU, exakt en ände vid EFNU, och ingen ände vid EFNU (\"bortaflygningar\"). Effektivitetsprocenten bredvid dessa grupper beräknas på samma sätt som den generella bokningseffektiviteten — total flugen tid dividerad med total bokad tid för samma period."
+      },
+      "aogStatistics": {
+        "titles": {
+          "monthly": "AOG-dagar per månad",
+          "ytd": "AOG-dagar — innevarande år och tidigare år"
+        },
+        "summary": "Hur många dagar varje flygplan var otillgängligt för flygning — antingen bokat för underhåll, eller på marken på grund av en öppen anmärkning.",
+        "calculation": "Ett flygplan räknas som AOG (\"aircraft on ground\") varje kalenderdag det antingen är bokat som en underhållsbokning, eller har en anmärkning som var öppen den dagen (från när den rapporterades tills den markerades som åtgärdad, eller till idag om den fortfarande är öppen). Både månadsdiagrammet och tabellen för innevarande år räknar distinkta kalenderdagar på detta sätt — en dag då flygplanet var AOG bara under en del av dagen räknas ändå som en hel AOG-dag.",
+        "caveats": {
+          "holdItemList": "Detta är en förenkling: en anmärkning som skjutits upp på en Hold Item List (tillåten att flyga med, under specifika begränsningar) modelleras inte separat här — den behandlas som vilken annan öppen anmärkning som helst så länge den förblir öppen.",
+          "totalNotSum": "Siffran \"totalt antal AOG-dagar\" är antalet distinkta dagar flygplanet var AOG av någon anledning — den kan vara lägre än \"underhållsdagar\" plus \"icke-luftvärdiga dagar\" adderade, eftersom en dag med både en underhållsbokning och en öppen anmärkning bara räknas en gång i totalen."
+        }
+      },
+      "safetyStatistics": {
+        "titles": {
+          "chart": "Händelser per 100 flygtimmar",
+          "table": "Säkerhetsprestanda — per flygplan och år"
+        },
+        "summary": "En säkerhetshändelsefrekvens per flygplan och år: hur många händelserapporter som lämnades in i förhållande till hur mycket flygplanet faktiskt flög, så att ett flitigare flygplan inte orättvist straffas för fler rapporter.",
+        "calculation": "För varje flygplan och år divideras antalet händelserapporter (exklusive borttagna, och varje händelse räknas en gång trots att anonymisering skapar en länkad kopia av varje rapport) med de loggade flygtimmarna för det flygplanet det året, och multipliceras med 100 — vilket ger en frekvens \"per 100 flygtimmar\", på samma sätt som olycksfrekvenser vanligtvis uttrycks inom flyget.",
+        "caveats": {
+          "nullOnNoFlightTime": "När ett flygplan har händelserapporter men inga loggade flygtimmar för det året visas ingen frekvens alls (istället för 0 eller ett fel) — det finns inget meningsfullt att dividera med. Detta är motsatt konvention jämfört med boknings-, flygplats- och skolflygningseffektiviteten på övriga delar av denna sida, som visar 0 % istället för inget värde när deras nämnare är noll; båda är medvetna val för sina respektive siffror, men inte samma val.",
+          "deduplication": "Varje händelserapport räknas en gång. Rapporter genomgår ett anonymiseringssteg som skapar en länkad, separat spårad kopia av originalet — utan avdubblering skulle en händelse annars kunna räknas två gånger."
+        }
+      },
+      "commercialFlightTime": {
+        "title": "Kommersiell flygtid",
+        "summary": "Flygtid loggad som kommersiell (i motsats till privat) flygning, per flygplan och månad, under de senaste 12 månaderna.",
+        "calculation": "Varje flygloggpost är markerad som antingen en privat eller en kommersiell flygning. Denna siffra summerar flygtiden (lufttiden) för enbart de kommersiellt markerade posterna, per flygplan och månad."
+      },
+      "dtoFlightTime": {
+        "title": "DTO-utbildningsflygtid",
+        "summary": "Flygtid loggad specifikt som DTO (Declared Training Organisation) -utbildningsflygningar, per flygplan.",
+        "calculation": "Varje flygloggpost är markerad som en DTO-utbildningsflygning eller inte. Denna siffra summerar flygtiden (lufttiden) för enbart de DTO-markerade posterna, per flygplan, dag, månad eller år beroende på diagrammet — samma summering som i den generella rapporten Flygtid per flygplan, bara avgränsad till DTO-utbildningsflygningar.",
+        "caveats": {
+          "airTimeNotBlockTime": "Denna siffra använder flyg-/lufttid, inte blocktid — till skillnad från rapporten Bokningseffektivitet för skolflygningar på andra ställen i appen, som medvetet använder blocktid (gate till gate) för utbildningsflygningar. De två rapporterna mäter utbildningsaktivitet på olika sätt; denna använder samma lufttidsbas som alla andra flygtidssiffror i appen."
+        }
+      },
+      "oilFuelUplift": {
+        "titles": {
+          "oil": "Oljepåfyllning",
+          "fuel": "Bränslepåfyllning"
+        },
+        "summary": "Den totala mängden olja eller bränsle registrerad som tillsatt (\"påfylld\") till varje flygplan, per månad.",
+        "calculation": "Varje flygloggpost kan registrera en olje- och/eller bränslepåfyllning i liter, inmatad av den som tankade eller servade flygplanet. Denna siffra summerar det fältet per flygplan och månad.",
+        "caveats": {
+          "recordedNotEstimated": "Detta är en summa av det som faktiskt registrerats som påfyllt på flygloggposter — det är inte en uppskattning av bränsle- eller oljeförbrukning, och en missad registrering innebär att den påfyllningen helt enkelt saknas i totalen."
+        }
+      },
+      "nonBillableFlightTime": {
+        "title": "Ej fakturerbar flygtid per flygplan",
+        "summary": "Flygtid loggad som ej fakturerbar — flygningar som inte genererar en faktura till en medlems konto — per flygplan.",
+        "calculation": "Varje flygloggpost är markerad som fakturerbar eller inte, oberoende av flygtyp. Denna siffra summerar flygtiden (lufttiden) för enbart de ej fakturerbart markerade posterna, per flygplan — samma summering som i den generella rapporten Flygtid per flygplan, bara avgränsad till ej fakturerbara flygningar.",
+        "caveats": {
+          "flagMeaning": "\"Ej fakturerbar\" återspeglar hur själva flygloggposten flaggades, inte en fast lista över flygtyper — samma flygtyp kan i princip vara fakturerbar i ett fall och inte i ett annat."
+        }
+      },
+      "flightLengthStats": {
+        "title": "Flyglängdsstatistik",
+        "summary": "Hur lång en typisk flygning är för varje flygplan, per år — kortaste, längsta, genomsnittliga och median-flyglängden.",
+        "calculation": "För varje flygplan och år samlas längden (flyg-/lufttid) för varje loggad flygning, och kortaste, längsta och genomsnitt (medelvärde) tas direkt från den mängden. Medianen är mittvärdet i mängden när den sorteras — användbar tillsammans med genomsnittet, eftersom ett fåtal ovanligt långa eller korta flygningar kan dra genomsnittet bort från hur en \"typisk\" flygning ser ut, medan medianen inte påverkas på samma sätt."
+      }
     }
   },
   "upliftReport": {
@@ -3459,7 +3603,9 @@
       "commercialFlightTime": "Kommersiell flygtid",
       "liquidRecords": "Bränsle- och oljeposter",
       "liquidOil": "Oljelager",
-      "liquidQr": "QR-koder"
+      "liquidQr": "QR-koder",
+      "dtoFlightTime": "DTO-flygtid",
+      "oilFuelUplift": "Olje- och bränslepåfyllning"
     },
     "dashboard": {
       "welcome": "Välkommen tillbaka, {{name}}",
@@ -3470,7 +3616,14 @@
       "commercialFlightTime": "Kommersiell flygtid per flygplan (senaste 12 månaderna)",
       "noCommercialFlights": "Inga kommersiella flygningar registrerade de senaste 12 månaderna.",
       "month": "Månad",
-      "commercialHours": "Kommersiella timmar"
+      "commercialHours": "Kommersiella timmar",
+      "dtoFlightTime": "DTO-utbildningsflygtid per flygplan (senaste 12 månaderna)",
+      "noDtoFlights": "Inga DTO-utbildningsflygningar registrerade under de senaste 12 månaderna.",
+      "dtoHours": "DTO-timmar",
+      "oilFuelUplift": "Olje- och bränslepåfyllning per flygplan (senaste 12 månaderna)",
+      "noUpliftData": "Ingen påfyllning registrerad under de senaste 12 månaderna.",
+      "oilLitres": "Olja (liter)",
+      "fuelLitres": "Bränsle (liter)"
     }
   },
   "itemReservations": {

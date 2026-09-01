@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Box, Card, CardContent, Typography } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
-import type { CommercialFlightTimeByAcYrMth } from '@mik/contracts/stats'
+import type { DtoFlightTimeByAcYrMth } from '@mik/contracts/stats'
 import { RemoteContent } from '@mik/ui/components/RemoteContent'
 import { StatInfoButton } from '@mik/ui/components/StatInfoButton'
 import { Title } from '@mik/ui/components/Title'
@@ -13,15 +13,32 @@ import { monthKey, monthlySeriesByAircraft } from '@mik/ui/utils/monthlySeries'
 import { useNivoTheme } from './useNivoTheme'
 
 /**
- * Commercial flight hours per aircraft over the last 12 months.
- *
- * This was a panel inside the member app's `/club/stats`, hidden behind a
- * sudo-gated `hasCommercialAccess` check while the rest of that page showed
- * members their own flying. Revenue reporting is desk work and belongs beside
- * the accounting section, so #1233 moved it here and `/club/stats` lost its
- * only admin branch.
+ * `stats.dto_total_flight_time_by_ac_yr_mth` is grouped by flight_type as well
+ * as aircraft/year/month, so an aircraft can have more than one row for the
+ * same month (e.g. DTO-flagged SCHOOL and DTO-flagged DTO-type flights both in
+ * one month) — `merge` folds onto the existing entry rather than overwriting
+ * it, or one row's hours silently disappear. Exported so the accumulation can
+ * be tested directly, without depending on nivo rendering bars in jsdom.
  */
-const CommercialFlightTime = () => {
+export const dtoMonthlyBarData = (data: DtoFlightTimeByAcYrMth[]) =>
+  monthlySeriesByAircraft<DtoFlightTimeByAcYrMth, { month: string; hours: number }>(data, {
+    aircraftOf: (item) => item.aircraftRegistration,
+    keyOf: (item) => monthKey(item.yr, item.mth),
+    merge: (existing, item, month) => ({
+      month,
+      hours: (existing?.hours ?? 0) + Math.round(item.totalFlightMins / 60),
+    }),
+    empty: (month) => ({ month, hours: 0 }),
+  })
+
+/**
+ * DTO (Declared Training Organisation) training flight time per aircraft over
+ * the last 12 months — issue #1323. Uses flight/air time (`totalFlightMins`),
+ * not block time, matching every other flight-time report in this app; see
+ * this page's info button for why that differs from School-Flight Reservation
+ * Efficiency, which deliberately uses block time for the same training flights.
+ */
+const DtoFlightTime = () => {
   const { t } = useTranslation()
   const nivoTheme = useNivoTheme()
 
@@ -34,40 +51,29 @@ const CommercialFlightTime = () => {
     return { yrFrom: currentMonth === 12 ? currentYear : currentYear - 1, yrTo: currentYear }
   }, [])
 
-  const { data, error, isLoading } = useApi<CommercialFlightTimeByAcYrMth[]>(
+  const { data, error, isLoading } = useApi<DtoFlightTimeByAcYrMth[]>(
     {
-      url: 'v1/stats/commercial/flight-time/aircraft/year/month',
+      url: 'v1/stats/dto/flight-time/aircraft/year/month',
       params: { yrFrom, yrTo },
     },
     { refreshInterval: 0 },
   )
 
-  const barData = useMemo(
-    () =>
-      monthlySeriesByAircraft(data ?? [], {
-        aircraftOf: (item) => item.aircraftRegistration,
-        keyOf: (item) => monthKey(item.yr, item.mth),
-        merge: (_existing, item, month) => ({
-          month,
-          hours: Math.round(item.totalCommercialFlightMins / 60),
-        }),
-        empty: (month) => ({ month, hours: 0 }),
-      }),
-    [data],
-  )
+  const barData = useMemo(() => dtoMonthlyBarData(data ?? []), [data])
 
   return (
     <Box>
-      <Title label={t('admin.stats.commercialFlightTime')}>
+      <Title label={t('admin.stats.dtoFlightTime')}>
         <StatInfoButton
-          titleKey='stats.info.commercialFlightTime.title'
-          summaryKey='stats.info.commercialFlightTime.summary'
-          calculationKey='stats.info.commercialFlightTime.calculation'
+          titleKey='stats.info.dtoFlightTime.title'
+          summaryKey='stats.info.dtoFlightTime.summary'
+          calculationKey='stats.info.dtoFlightTime.calculation'
+          caveatKeys={['stats.info.dtoFlightTime.caveats.airTimeNotBlockTime']}
         />
       </Title>
       <RemoteContent isLoading={isLoading} error={error}>
         {barData.length === 0 ? (
-          <Typography color='text.secondary'>{t('admin.stats.noCommercialFlights')}</Typography>
+          <Typography color='text.secondary'>{t('admin.stats.noDtoFlights')}</Typography>
         ) : (
           <Card>
             <CardContent>
@@ -100,7 +106,7 @@ const CommercialFlightTime = () => {
                         tickSize: 5,
                         tickPadding: 5,
                         tickRotation: 0,
-                        legend: t('admin.stats.commercialHours'),
+                        legend: t('admin.stats.dtoHours'),
                         legendPosition: 'middle',
                         legendOffset: -50,
                       }}
@@ -121,4 +127,4 @@ const CommercialFlightTime = () => {
   )
 }
 
-export default CommercialFlightTime
+export default DtoFlightTime
