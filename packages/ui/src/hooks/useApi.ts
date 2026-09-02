@@ -8,7 +8,7 @@
  * unshareable. Both apps now use this one, and the one thing they disagree on
  * comes from `useApiConfig()`.
  */
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import useSWR, { type SWRConfiguration, type SWRResponse } from 'swr'
 import { type PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { type AxiosRequestConfig, type AxiosResponse, type AxiosError } from 'axios'
@@ -207,8 +207,52 @@ export default function useApi<
   // Only redirect when SWR has settled (isValidating = false) to avoid
   // redirecting during a transient re-validation.
   const isLoggedOut = error?.response?.status === 401 && !rest.isValidating
-  const shouldRedirect =
+
+  const sessionLost =
     isLoggedOut && !request.allowUnauthenticated && !request.skipRedirectOnUnauthorized
+
+  // "Settled", though, is not the same as "answered here". SWR returns a cached
+  // error on the first render after a mount together with the
+  // `isValidating: false` left behind by the request that produced it — the
+  // mount revalidation only starts in the layout effect that follows. A 401
+  // cached by a session that has since been replaced is therefore
+  // indistinguishable from a freshly received one for exactly one render, and
+  // navigating on it leaves the page before the refetch that would have
+  // succeeded has even been sent.
+  //
+  // #1312 is what that cost: a member who entered a valid login code landed
+  // back on the code-entry page, because the header's roles call found the 401
+  // its own earlier, logged-out call had cached. Requiring that this instance
+  // saw a request in flight tells the two apart, and costs at most one render —
+  // if the refetch 401s as well, `sessionLost` goes false and true again and the
+  // effect below runs a second time with the flag set.
+  //
+  // Unlike a latch on *having redirected* (see below), this one is only ever
+  // set, never reset by time passing — only by the key itself changing (next).
+  const requestSeen = useRef(false)
+
+  // "This instance" isn't the same guarantee once the key it watches can change
+  // under it: a component whose `params` change without unmounting (e.g. a
+  // list page's filters, or a detail page keyed by a route param) keeps its
+  // `requestSeen` ref from the *previous* key. Without resetting it here, a
+  // cached 401 already sitting under the *new* key — left over from an earlier,
+  // unrelated visit — would redirect immediately, exactly the bug above for a
+  // different trigger than a fresh mount.
+  //
+  // Declared before the `isValidating` effect below (and before the redirect
+  // effect further down), so that on any commit where the key change and a
+  // fresh isValidating both land together, the reset always runs first —
+  // effects for one component fire in declaration order. Reading or writing
+  // `.current` during render itself is deliberately avoided; both effects
+  // here only ever touch the ref from inside an effect.
+  const cacheKeySignature = JSON.stringify(cacheKey)
+  useEffect(() => {
+    requestSeen.current = false
+  }, [cacheKeySignature])
+
+  useEffect(() => {
+    if (rest.isValidating) requestSeen.current = true
+  }, [rest.isValidating])
 
   // Redirecting is a side effect, so it belongs in an effect rather than the
   // render body. Calling navigate() during render used to terminate only
@@ -222,19 +266,20 @@ export default function useApi<
   // `target` keeps the page the user was actually on rather than being
   // overwritten with '/login' itself.
   //
-  // This is deliberately not a `useRef` latch. `isValidating` flickers true on
-  // any background revalidation, which drops `shouldRedirect` to false and would
-  // re-arm such a latch; when the revalidation settled still-401 it would fire a
-  // second navigate, from /login, clobbering `target`. Reading the current
-  // pathname has no equivalent stale state to reset.
+  // Redirecting once is deliberately not done with a `useRef` latch either.
+  // `isValidating` flickers true on any background revalidation, which drops
+  // `sessionLost` to false and would re-arm such a latch; when the revalidation
+  // settled still-401 it would fire a second navigate, from /login, clobbering
+  // `target`. Reading the current pathname has no equivalent stale state to
+  // reset.
   useEffect(() => {
-    if (!shouldRedirect || location.pathname === LOGIN_PATH) return
+    if (!sessionLost || !requestSeen.current || location.pathname === LOGIN_PATH) return
 
     // authentication is required
     navigate(LOGIN_PATH, {
       state: { target: location.pathname },
     })
-  }, [shouldRedirect, navigate, location.pathname])
+  }, [sessionLost, navigate, location.pathname])
 
   const mutation = useSWRMutation<
     AxiosResponse,

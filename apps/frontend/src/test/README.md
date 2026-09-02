@@ -71,6 +71,10 @@ Two things to know before writing a hook test:
   the render body, where it only settled because the redirect unmounted the caller — a hook left
   mounted across the redirect spun forever. Redirect behaviour is still best observed through a
   `<Routes>` tree (see `useApi.test.tsx`).
+- **It only redirects on a 401 its own request returned.** SWR replays a cached error on the first
+  render after a mount, so a hook that remounts onto a key some earlier test step 401'd stays put
+  until its refetch settles (#1312). A redirect test therefore has to let the request happen —
+  seeding the cache with a 401 and remounting proves the opposite of what it looks like.
 - **MSW cannot parse a multipart upload with `request.formData()`** — the body carries a jsdom
   `File`, which undici's parser rejects. Read `await request.text()` and parse the fields
   (see `useAircraftDocumentUpload.test.tsx`).

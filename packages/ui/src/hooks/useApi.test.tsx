@@ -1,5 +1,6 @@
 import { delay, http, HttpResponse } from 'msw'
-import { Route, Routes, useLocation } from 'react-router'
+import { useState } from 'react'
+import { Link, Route, Routes, useLocation } from 'react-router'
 import { screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 
@@ -333,12 +334,13 @@ describe('useApi 401 handling', () => {
  */
 describe('useApi redirect to login', () => {
   const Protected = ({ request }: { request: Parameters<typeof useApi>[0] }) => {
-    const { error } = useApi<Payload>(request)
+    const { data, error } = useApi<Payload>(request)
     const { pathname } = useLocation()
     return (
       <div>
         <span>at {pathname}</span>
         {error ? <span>failed {error.status}</span> : null}
+        {data ? <span>value {data.value}</span> : null}
       </div>
     )
   }
@@ -469,7 +471,7 @@ describe('useApi redirect to login', () => {
   })
 
   it('keeps the original target when a later revalidation 401s again', async () => {
-    // A latch that re-arms whenever `shouldRedirect` drops would break here:
+    // A latch that re-arms whenever `sessionLost` drops would break here:
     // `isValidating` flickers true on any revalidation, and when this one
     // settles still-401 the second navigate would run from /login and overwrite
     // `target` with '/login' itself. Guarding on the current pathname has no
@@ -501,6 +503,110 @@ describe('useApi redirect to login', () => {
 
     expect(screen.getByRole('button', { name: 'at /login from /club/members' })).toBeInTheDocument()
     expect(visited).toEqual(['/club/members', '/login'])
+  })
+
+  it('does not act on a 401 the cache was holding from before the member signed in', async () => {
+    // #1312, and the reason `requestSeen` exists. The member lands on a page with
+    // no session, is bounced here, signs in — and the 401 that bounce left in
+    // the SWR cache is what this page's own hook reads on its first render back.
+    // SWR returns a cached error with `isValidating` already false, so for that
+    // one render it is indistinguishable from a freshly received one; redirecting
+    // on it sent the member back to /login before the refetch that would have
+    // succeeded had even been sent, which presented as the login page reloading.
+    const session = { valid: false }
+    server.use(
+      http.post(apiUrl('auth/refresh'), () =>
+        session.valid ? HttpResponse.json({}) : problemResponse(401, 'Refresh token expired'),
+      ),
+      http.get(apiUrl('v1/thing'), () =>
+        session.valid ? HttpResponse.json(PAYLOAD) : problemResponse(401, 'Token expired'),
+      ),
+    )
+
+    const { user } = renderWithProviders(
+      <Routes>
+        <Route path='/club/members' element={<Protected request={{ url: 'v1/thing' }} />} />
+        <Route path='/login' element={<Link to='/club/members'>signed in</Link>} />
+      </Routes>,
+      { route: '/club/members' },
+    )
+
+    // The bounce itself, which is what fills the cache with the 401.
+    await screen.findByRole('link', { name: 'signed in' })
+
+    // What verifying a login code does: the cookie is now valid.
+    session.valid = true
+    await user.click(screen.getByRole('link', { name: 'signed in' }))
+
+    expect(await screen.findByText('value ok')).toBeInTheDocument()
+    expect(screen.getByText('at /club/members')).toBeInTheDocument()
+  })
+
+  it('resets its stale-401 guard when the same instance switches to a different key', async () => {
+    // `requestSeen` is only reliable if it tracks the *key*, not the component
+    // instance: a caller whose `params`/`url` change without unmounting (e.g. a
+    // filtered list, or a page keyed by a route param) keeps the same ref. If it
+    // carried over from an earlier, already-validated key, a 401 already sitting
+    // in the cache under the *new* key — left over from an unrelated earlier
+    // visit — would redirect immediately, on this instance's very first render
+    // of that key, before its own request for it is even sent.
+    let otherIsBackOnline = false
+    server.use(
+      http.get(apiUrl('v1/thing'), () => HttpResponse.json(PAYLOAD)),
+      http.get(apiUrl('v1/other'), () =>
+        otherIsBackOnline
+          ? HttpResponse.json({ value: 'also ok' })
+          : problemResponse(401, 'Token expired'),
+      ),
+      http.post(apiUrl('auth/refresh'), () => problemResponse(401, 'Refresh token expired')),
+    )
+
+    // Leaves a settled 401 for `v1/other` in the shared cache, as if it had
+    // been visited earlier in this browsing session while logged out — fully
+    // unmounted (its own click, its own commit) before the switch below, so
+    // the switch is the *only* subscriber left by the time it happens, the
+    // same as any page reached long after whichever earlier visit left the
+    // 401 behind.
+    const Preload = () => {
+      useApi<Payload>({ url: 'v1/other', skipRedirectOnUnauthorized: true })
+      return null
+    }
+
+    const Switchable = () => {
+      const [showPreload, setShowPreload] = useState(true)
+      const [url, setUrl] = useState<'v1/thing' | 'v1/other'>('v1/thing')
+      const { data } = useApi<Payload>({ url })
+      return (
+        <div>
+          {showPreload && <Preload />}
+          <button onClick={() => setShowPreload(false)}>drop preload</button>
+          <button onClick={() => setUrl('v1/other')}>switch</button>
+          <span>{data ? `value ${data.value}` : 'loading'}</span>
+        </div>
+      )
+    }
+
+    const { user } = renderWithProviders(
+      <Routes>
+        <Route path='/club/members' element={<Switchable />} />
+        <Route path='/login' element={<span>login page</span>} />
+      </Routes>,
+      { route: '/club/members' },
+    )
+
+    // `Switchable`'s own first key (`v1/thing`) succeeds — this is what sets
+    // `requestSeen.current = true` on this instance before the switch below.
+    await screen.findByText('value ok')
+
+    await user.click(screen.getByRole('button', { name: 'drop preload' }))
+
+    otherIsBackOnline = true
+    await user.click(screen.getByRole('button', { name: 'switch' }))
+
+    // Must wait for its own request against the new key rather than acting on
+    // the stale cached 401 immediately.
+    expect(await screen.findByText('value also ok')).toBeInTheDocument()
+    expect(screen.queryByText('login page')).not.toBeInTheDocument()
   })
 })
 

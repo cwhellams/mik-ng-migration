@@ -10,6 +10,7 @@ import { MIKLang } from '@mik/contracts/members'
 import LanguageSelector from '../../components/LanguageSelector'
 import { validateInternalPath } from '@mik/contracts/sanitizers'
 import { TurnstileWidget } from '@mik/ui/components/TurnstileWidget'
+import { useClearApiCache } from '@mik/ui/hooks/apiCache'
 import {
   loginWithPasskey,
   loginWithPasskeyDiscoverable,
@@ -31,6 +32,12 @@ const Login = () => {
   const location = useLocation()
 
   const { isMutating, trigger } = useAuth<LoginRequest, LoginResponse>('login')
+
+  // A passkey login goes straight to the backend through `sharedApi` rather than
+  // through `useAuth`, so it is the one sign-in path that has to empty the API
+  // cache itself. Same reason as every other: nothing the logged-out session
+  // cached may answer for the member who just signed in (#1312).
+  const clearApiCache = useClearApiCache()
 
   // Update i18n language when language selector changes
   const handleLanguageChange = (language: MIKLang) => {
@@ -54,6 +61,7 @@ const Login = () => {
       const safeTarget = validateInternalPath(location.state?.target)
       const result = await loginWithPasskey(email)
       if (result.ok) {
+        await clearApiCache()
         navigate(safeTarget)
         return true
       }
@@ -101,6 +109,7 @@ const Login = () => {
         const safeTarget = validateInternalPath(location.state?.target)
         const result = await loginWithPasskeyDiscoverable()
         if (result.ok) {
+          await clearApiCache()
           navigate(safeTarget)
         } else if (result.reason !== 'cancelled') {
           setEmailError(t(result.message ?? 'login.passkey.failed'))
