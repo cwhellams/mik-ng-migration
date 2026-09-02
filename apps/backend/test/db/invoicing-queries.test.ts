@@ -235,15 +235,19 @@ describe('Invoicing Queries', () => {
       const equipmentFee = await getAnnualEquipmentFee()
       expect(equipmentFee).toBeUndefined()
 
-      // Restore the equipment fee for other tests
+      // Restore the equipment fee for other tests. id must match the seed row in
+      // sql/schema/testdata/V480__EquipmentFeeItemTestData.sql — see that file's
+      // comment for why id 20 (this test's original value), anything > 76, and
+      // ids 52-56/60/61 (hardcoded in the SimplBooks articles-list mock) all
+      // silently break this restore in one way or another.
       await db
         .insertInto('accts.items')
         .values({
-          id: 20,
+          id: 40,
           code: ART_EQUIP_FEE_CODE,
           name: 'Kalustomaksu',
           item: {
-            id: 20,
+            id: 40,
             code: ART_EQUIP_FEE_CODE,
             name: 'Kalustomaksu',
             unit: 'kpl',

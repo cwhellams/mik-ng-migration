@@ -41,18 +41,21 @@ const sampleMembershipFees = [
     name: 'Regular Member Fee',
     price: 100,
     description: 'Annual membership fee',
+    seasonalDiscountPercent: 50,
   },
   {
     code: 'NJASEN',
     name: 'Junior Member Fee',
     price: 50,
     description: 'Annual junior membership fee',
+    seasonalDiscountPercent: 50,
   },
   {
     code: 'KJASEN',
     name: 'Supporting Member Fee',
     price: 75,
     description: 'Annual supporting membership fee',
+    seasonalDiscountPercent: 50,
   },
 ]
 
@@ -61,6 +64,7 @@ const sampleEquipmentFee = {
   name: 'Equipment Fee',
   price: 200,
   description: 'Annual equipment fee',
+  seasonalDiscountPercent: 50,
 }
 
 describe('Prices API', () => {

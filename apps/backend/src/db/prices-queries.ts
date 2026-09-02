@@ -10,6 +10,11 @@ import {
   ART_JUNIOR_MEMBER_FEE_CODE,
   ART_SUPPORTING_MEMBER_FEE_CODE,
 } from '../services/accounting/config.ts'
+import {
+  HALF_YEAR_DISCOUNT_PERCENT,
+  isAfterEquipmentFeeDiscountDate,
+  isAfterMembershipFeeDiscountDate,
+} from '../util/feeDiscounts.ts'
 
 /**
  * Get current aircraft pricing (currently valid or most recent)
@@ -54,6 +59,10 @@ export async function getMembershipFees(): Promise<PublicMembershipFee[]> {
     .where('code', 'in', membershipCodes)
     .execute()
 
+  const seasonalDiscountPercent = isAfterMembershipFeeDiscountDate()
+    ? HALF_YEAR_DISCOUNT_PERCENT
+    : undefined
+
   return results
     .filter((result) => result.item)
     .map((result) => {
@@ -63,6 +72,7 @@ export async function getMembershipFees(): Promise<PublicMembershipFee[]> {
         name: result.name,
         price: Number(rawItem.markup_value ?? 0),
         description: (rawItem.contents as string) ?? null,
+        seasonalDiscountPercent,
       }
     })
 }
@@ -87,5 +97,8 @@ export async function getEquipmentFee(): Promise<PublicEquipmentFee | null> {
     name: result.name,
     price: Number(rawItem.markup_value ?? 0),
     description: (rawItem.contents as string) ?? null,
+    seasonalDiscountPercent: isAfterEquipmentFeeDiscountDate()
+      ? HALF_YEAR_DISCOUNT_PERCENT
+      : undefined,
   }
 }
