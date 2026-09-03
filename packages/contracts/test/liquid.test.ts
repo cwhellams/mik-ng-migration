@@ -23,6 +23,7 @@ import {
   liquidReportPath,
   OIL_MAX_LITRES,
   OilSource,
+  QrCodeFilterSchema,
   qrScanPath,
   QrTargetType,
   requiresTotalCost,
@@ -766,6 +767,16 @@ describe('QR schemas and links', () => {
       AssignQrCodeSchema.safeParse({ targetType: QrTargetType.OIL_CANISTER, targetId }).success,
     ).toBe(true)
     expect(AssignQrCodeSchema.safeParse({ targetType: 'AIRCRAFT', targetId }).success).toBe(false)
+  })
+
+  it('does not treat the query string "false" as true', () => {
+    // Regression: z.coerce.boolean() is Boolean(value), and Boolean('false')
+    // is true — every request sent with the toggle off (a literal
+    // ?unassignedOnly=false, which is what the admin console sends) would have
+    // filtered to unassigned codes anyway, hiding every assigned one.
+    expect(QrCodeFilterSchema.parse({ unassignedOnly: 'false' }).unassignedOnly).toBe(false)
+    expect(QrCodeFilterSchema.parse({ unassignedOnly: 'true' }).unassignedOnly).toBe(true)
+    expect(QrCodeFilterSchema.parse({}).unassignedOnly).toBe(false)
   })
 
   it('encodes only the code in the scan path, never the target', () => {

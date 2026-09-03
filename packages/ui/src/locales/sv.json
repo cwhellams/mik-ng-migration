@@ -3713,6 +3713,7 @@
       "prefilled": "Skannat: {{context}}",
       "selectAircraft": "Välj luftfartyg.",
       "selectAircraftFirst": "Välj luftfartyg först.",
+      "selectAircraftToConfirmFuelType": "Från QR-koden — välj luftfartyg för att bekräfta att det tar detta bränsle.",
       "selectAirport": "Välj flygplats.",
       "selectFuelType": "Välj bränsletyp.",
       "selectProvider": "Välj leverantör.",

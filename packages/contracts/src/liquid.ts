@@ -4,6 +4,7 @@ import { FlightLogStatus } from './flight-log.ts'
 import { MIK_SUPPORTED_CURRENCIES } from './expenses.ts'
 import {
   AuditableSchema,
+  BooleanSchema,
   LimitOffsetSchema,
   nullableTrimmedString,
   optionalTrimmedString,
@@ -778,8 +779,16 @@ export type AssignQrCodeRequest = z.infer<typeof AssignQrCodeSchema>
 
 export const QrCodeFilterSchema = z.object({
   batchId: z.string().guid().optional(),
-  /** `true` for codes still waiting to be stuck on something. */
-  unassignedOnly: z.coerce.boolean().default(false),
+  /**
+   * `true` for codes still waiting to be stuck on something.
+   *
+   * `BooleanSchema` rather than `z.coerce.boolean()`: the latter is
+   * `Boolean(value)`, and `Boolean('false')` is `true` — every request with the
+   * toggle off (sent as the literal query string `unassignedOnly=false`) would
+   * filter to unassigned codes anyway, hiding every already-assigned one from
+   * the admin list regardless of the toggle.
+   */
+  unassignedOnly: BooleanSchema,
 })
 export type QrCodeFilter = z.infer<typeof QrCodeFilterSchema>
 

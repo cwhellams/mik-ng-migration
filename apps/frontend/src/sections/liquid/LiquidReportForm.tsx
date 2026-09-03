@@ -209,9 +209,13 @@ export function LiquidReportForm({ prefill, qrCode, flightLogId, onSaved }: Prop
    * The fuel type actually in effect — *derived*, not stored, so it can never lag
    * the aircraft by a render.
    *
-   * Two rules, both of them the issue's: an aircraft that takes exactly one fuel
-   * type isn't offering a choice, and a selection the new aircraft cannot take
-   * has to go rather than sit there waiting to be rejected by the server.
+   * Three rules, the first two the issue's: an aircraft that takes exactly one
+   * fuel type isn't offering a choice, and a selection the new aircraft cannot
+   * take has to go rather than sit there waiting to be rejected by the server.
+   * The third is what makes a scanned pump prefill visibly: a shared pump's QR
+   * code knows the grade before it knows the aircraft, and showing the field as
+   * blank/disabled until the member also picks a plane hid a value the member
+   * had already told, once, by scanning.
    */
   const fuelType = ((): string => {
     if (!isFuel) return ''
@@ -219,7 +223,11 @@ export function LiquidReportForm({ prefill, qrCode, flightLogId, onSaved }: Prop
     if (form.fuelType && allowedFuelTypes.includes(form.fuelType)) return form.fuelType
     // Fall back to the aircraft's preference, but only if it is actually allowed.
     const preferred = selectedAircraft?.preferredFuelType
-    return preferred && allowedFuelTypes.includes(preferred) ? preferred : ''
+    if (preferred && allowedFuelTypes.includes(preferred)) return preferred
+    // No aircraft chosen yet, so there is nothing to constrain against — show
+    // exactly what the QR/deep link prefilled instead of looking unset.
+    if (!selectedAircraft && form.fuelType) return form.fuelType
+    return ''
   })()
 
   /**
@@ -530,6 +538,12 @@ function FuelFields({
 }: FuelFieldsProps) {
   const { t } = useTranslation()
 
+  // Before an aircraft is chosen there is nothing to constrain the dropdown
+  // against, but a scanned pump may already have told us the grade — offer
+  // that one option rather than showing an empty, disabled field.
+  const fuelTypeOptions =
+    allowedFuelTypes.length > 0 ? allowedFuelTypes : form.fuelType ? [form.fuelType] : []
+
   return (
     <Stack spacing={2}>
       {/* The home-base flow: the member sees EFNU and a fuel type, nothing else.
@@ -581,12 +595,16 @@ function FuelFields({
           label={t('liquid.form.fuelType')}
           value={fuelType}
           onChange={(e) => set('fuelType', e.target.value)}
-          disabled={allowedFuelTypes.length === 0}
+          disabled={fuelTypeOptions.length === 0}
           helperText={
-            allowedFuelTypes.length === 0 ? t('liquid.form.selectAircraftFirst') : undefined
+            allowedFuelTypes.length > 0
+              ? undefined
+              : form.fuelType
+                ? t('liquid.form.selectAircraftToConfirmFuelType')
+                : t('liquid.form.selectAircraftFirst')
           }
         >
-          {allowedFuelTypes.map((fuelType) => (
+          {fuelTypeOptions.map((fuelType) => (
             <MenuItem key={fuelType} value={fuelType}>
               {fuelType}
             </MenuItem>

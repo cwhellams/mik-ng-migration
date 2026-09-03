@@ -726,7 +726,8 @@ export async function countRecordsForCanister(canisterId: string): Promise<numbe
 export interface FuelStationRow {
   stationId: string
   label: string
-  airport: string
+  /** Null for a station stuck on a plane rather than a fixed pump — the member picks it. */
+  airport: string | null
   fuelType: string | null
   providerId: number | null
   providerName: string | null
@@ -1018,14 +1019,18 @@ export async function resolveQrPrefill(qr: QrCode): Promise<LiquidPrefill | unde
       .where('s.isActive', '=', true)
       .executeTakeFirst()
     if (!station) return undefined
+    // A fixed pump's airport/fuel type say enough on their own; a plane-mounted
+    // station with neither (a Kanair or "Other" code) would otherwise show a
+    // bare aircraft registration, so the provider fills in for context instead.
+    const context = [station.airport, station.fuelType].filter(Boolean)
     return {
       liquidType: LiquidType.FUEL,
       aircraftRegistration: station.aircraftRegistration ?? undefined,
-      airport: station.airport,
+      airport: station.airport ?? undefined,
       fuelType: station.fuelType ?? undefined,
       providerId: station.providerId ?? undefined,
       providerName: station.providerName ?? undefined,
-      label: [station.aircraftRegistration, station.airport, station.fuelType]
+      label: [station.aircraftRegistration, ...(context.length ? context : [station.providerName])]
         .filter(Boolean)
         .join(' · '),
     }

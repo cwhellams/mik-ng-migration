@@ -1333,7 +1333,7 @@ export interface LiquidFuelProvider {
 
 export interface LiquidFuelStation {
   aircraftRegistration: string | null
-  airport: string
+  airport: string | null
   createdAt: Generated<Timestamp>
   createdBy: string
   fuelType: string | null

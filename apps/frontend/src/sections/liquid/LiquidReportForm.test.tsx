@@ -466,6 +466,31 @@ describe('LiquidReportForm — deep links and scans', () => {
 
     expect(await screen.findByText('Scanned: EFNU · JET A-1')).toBeInTheDocument()
     expect(screen.getByLabelText('Airport')).toHaveValue('EFNU')
+    // Regression: a shared pump's QR code knows the fuel type before it knows
+    // the aircraft, and the field used to look blank/disabled until the member
+    // also picked a plane — hiding a value the scan had already provided.
+    expect(fuelTypeSelect()).toHaveTextContent('JET A-1')
+  })
+
+  it('shows the fuel type a shared pump scanned even before an aircraft is chosen', async () => {
+    const { user } = renderWithProviders(
+      <LiquidReportForm
+        prefill={{
+          liquidType: LiquidType.FUEL,
+          airport: 'EFNU',
+          fuelType: 'JET A-1',
+          label: 'EFNU · JET A-1',
+        }}
+      />,
+    )
+
+    await waitFor(() => expect(fuelTypeSelect()).toHaveTextContent('JET A-1'))
+
+    // Once the member picks an aircraft that doesn't take it, it has to go —
+    // the same "cannot take" rule a manually chosen fuel type already follows.
+    await user.click(aircraftSelect())
+    await user.click(await screen.findByRole('option', { name: 'OH-IHQ' }))
+    await waitFor(() => expect(fuelTypeSelect()).not.toHaveTextContent('JET A-1'))
   })
 
   it('records which code was scanned, so provenance is answerable later', async () => {

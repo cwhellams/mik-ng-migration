@@ -3746,6 +3746,7 @@
       "prefilled": "Skannattu: {{context}}",
       "selectAircraft": "Valitse ilma-alus.",
       "selectAircraftFirst": "Valitse ensin ilma-alus.",
+      "selectAircraftToConfirmFuelType": "QR-koodista — valitse ilma-alus varmistaaksesi, että se käyttää tätä polttoainetta.",
       "selectAirport": "Valitse lentopaikka.",
       "selectFuelType": "Valitse polttoainelaatu.",
       "selectProvider": "Valitse toimittaja.",

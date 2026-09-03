@@ -3740,6 +3740,7 @@
       "prefilled": "Scanned: {{context}}",
       "selectAircraft": "Choose an aircraft.",
       "selectAircraftFirst": "Choose an aircraft first.",
+      "selectAircraftToConfirmFuelType": "From the QR code — choose the aircraft to confirm it takes this fuel.",
       "selectAirport": "Choose an airport.",
       "selectFuelType": "Choose a fuel type.",
       "selectProvider": "Choose a provider.",

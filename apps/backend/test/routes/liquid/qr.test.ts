@@ -40,11 +40,13 @@ const mintBatch = async (count = 2, label = 'Test batch') => {
   return res
 }
 
-const firstStationId = async (): Promise<string> => {
+const firstStationId = async (): Promise<string> => stationIdByLabel('EFNU Jet A-1')
+
+const stationIdByLabel = async (label: string): Promise<string> => {
   const station = await db
     .selectFrom('liquid.fuelStation')
     .select(['stationId'])
-    .where('label', '=', 'EFNU Jet A-1')
+    .where('label', '=', label)
     .executeTakeFirstOrThrow()
   return station.stationId
 }
@@ -529,6 +531,55 @@ describe('GET /liquid/qr/:code/resolve', () => {
     expect(res.body.prefill.aircraftRegistration).toBeUndefined()
   })
 
+  it('prefills the aircraft and provider from a plane-mounted Kanair sticker, leaving the airport open', async () => {
+    // Kanair fuels wherever OH-IHQ happens to be, not at a fixed pump, and
+    // sells both grades OH-IHQ takes — so unlike the EFNU pumps, neither the
+    // airport nor the fuel type is known in advance; only the plane and the
+    // seller are.
+    const batch = await mintBatch(1)
+    const stationId = await stationIdByLabel('OH-IHQ Kanair')
+    const code = batch.body.codes[0].code
+
+    await request(app)
+      .post(`/liquid/qr/${code}/assign`)
+      .set('Cookie', asAdmin)
+      .send({ targetType: QrTargetType.FUEL_STATION, targetId: stationId })
+
+    const res = await request(app).get(`/liquid/qr/${code}/resolve`).set('Cookie', asMember)
+
+    expect(res.body.prefill).toMatchObject({
+      liquidType: LiquidType.FUEL,
+      aircraftRegistration: PISTON_AIRCRAFT,
+      providerName: 'Kanair',
+    })
+    expect(res.body.prefill.airport).toBeUndefined()
+    expect(res.body.prefill.fuelType).toBeUndefined()
+    // Neither airport nor fuel type name anything, so the label falls back to
+    // the provider rather than reading as a bare "OH-IHQ".
+    expect(res.body.prefill.label).toBe('OH-IHQ · Kanair')
+  })
+
+  it('prefills the fixed grade from a plane-mounted Kanair sticker that only sells one', async () => {
+    const batch = await mintBatch(1)
+    const stationId = await stationIdByLabel('OH-STL Kanair JET A-1')
+    const code = batch.body.codes[0].code
+
+    await request(app)
+      .post(`/liquid/qr/${code}/assign`)
+      .set('Cookie', asAdmin)
+      .send({ targetType: QrTargetType.FUEL_STATION, targetId: stationId })
+
+    const res = await request(app).get(`/liquid/qr/${code}/resolve`).set('Cookie', asMember)
+
+    expect(res.body.prefill).toMatchObject({
+      liquidType: LiquidType.FUEL,
+      aircraftRegistration: 'OH-STL',
+      fuelType: 'JET A-1',
+      providerName: 'Kanair',
+    })
+    expect(res.body.prefill.airport).toBeUndefined()
+  })
+
   it('offers the assignment flow to a liquid admin scanning a blank code', async () => {
     const batch = await mintBatch(1)
     const res = await request(app)
@@ -591,6 +642,28 @@ describe('GET /liquid/qr', () => {
 
     const codes = res.body.map((c: { code: string }) => c.code)
     expect(codes).toEqual([unassigned!.code])
+  })
+
+  it('still lists an assigned code when the toggle is sent off, not just when it is omitted', async () => {
+    // Regression: the admin console always sends unassignedOnly as a literal
+    // query string ('true'/'false'), and the schema used to coerce 'false' to
+    // true — so an assigned code vanished from the list the moment it was
+    // assigned, no matter what the toggle showed.
+    const batch = await mintBatch(1)
+    const canisterId = await insertCanister()
+    const code = batch.body.codes[0].code as string
+
+    await request(app)
+      .post(`/liquid/qr/${code}/assign`)
+      .set('Cookie', asAdmin)
+      .send({ targetType: QrTargetType.OIL_CANISTER, targetId: canisterId })
+
+    const res = await request(app)
+      .get('/liquid/qr')
+      .query({ batchId: batch.body.batch.batchId, unassignedOnly: 'false' })
+      .set('Cookie', asAdmin)
+
+    expect(res.body.map((c: { code: string }) => c.code)).toEqual([code])
   })
 
   it('counts a batch’s assigned codes', async () => {
