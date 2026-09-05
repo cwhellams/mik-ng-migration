@@ -313,11 +313,13 @@ jobs:
         working-directory: apps/edge
         run: pnpm test
 
-      # Proves the assets step finds the member bundle and assembles it, which
-      # is the half of `pnpm --filter edge build` that typechecking cannot cover.
+      # Builds both SPAs for the single-origin topology and assembles them.
+      # This is the half the unit tests cannot reach: it is where a wrong Vite
+      # base in the admin bundle is caught, and that failure otherwise shows up
+      # only as a blank admin page in a browser.
       - name: Assemble the asset bundle
+        working-directory: apps/edge
         run: |
-          pnpm --filter frontend build
-          pnpm --filter edge build
-          test -f apps/edge/dist/index.html
-          test -f apps/edge/dist/_headers
+          pnpm run assets
+          test -f dist/index.html
+          test -f dist/admin/index.html

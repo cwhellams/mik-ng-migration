@@ -1,7 +1,8 @@
 # `apps/edge` — the Cloudflare edge Worker
 
-Serves the built member SPA from Cloudflare's Static Assets and proxies everything the API
-owns to the origin, so both stay on **one hostname**. This is step one of the strangler
+Serves both built SPAs from Cloudflare's Static Assets — the member app at `/`, the admin
+app at `/admin/` — and proxies everything the API owns to the origin, so all three stay on
+**one hostname**. This is step one of the strangler
 migration described in [`docs/cloudflare-migration-plan.md`](../../docs/cloudflare-migration-plan.md);
 nothing about the backend changes yet.
 
@@ -35,26 +36,47 @@ Two details are load-bearing and have tests:
 - **`/t/:code` redirects are returned unfollowed.** That route answers `302` to a presigned
   storage URL; following it in the Worker would stream the file back under a URL the
   browser never navigated to.
+- **An admin deep-link gets the admin `index.html`.** The two apps are separate bundles, so
+  answering `/admin/shop/orders` with the member app's `index.html` loads the wrong
+  application with nothing on screen to say so.
 
 Note that auth is at `/api/auth`, not `/auth` — see the `app.use()` mounts in
 `apps/backend/src/app.ts`.
 
+## The two topologies
+
+Both are live during the migration, and the SPAs are **not** interchangeable between them:
+
+|                       | DigitalOcean (subdomains) | Cloudflare (one origin) |
+| --------------------- | ------------------------- | ----------------------- |
+| Admin app's Vite base | `/`                       | `/admin/`               |
+| Member → admin links  | `https://twr.mik.fi`      | `/admin`                |
+| Admin → member links  | `https://intra.mik.fi`    | `/`                     |
+| CORS                  | needed                    | none                    |
+| Auth cookie           | `COOKIE_DOMAIN=.mik.fi`   | can be host-only        |
+
+`scripts/build-assets.sh` therefore _builds_ both apps rather than copying whatever
+`apps/*/dist` happens to hold, and asserts afterwards that the admin `index.html` really
+does reference `/admin/assets/`. A wrong base there is silent: the admin app simply serves
+a blank page.
+
 ## Local use
 
 ```bash
-pnpm --filter frontend build      # produces apps/frontend/dist
-pnpm --filter edge build          # typechecks, then copies that bundle to apps/edge/dist
-pnpm --filter edge dev            # wrangler dev, proxying /api to localhost:3000
+pnpm --filter edge assets    # builds both SPAs for this topology into apps/edge/dist
+pnpm --filter edge dev       # the above, then wrangler dev, proxying /api to localhost:3000
 pnpm --filter edge test
+pnpm --filter edge build     # typecheck only, like packages/ui
 ```
 
-`pnpm build` at the repo root does the first two in the right order: `frontend` is a
-workspace dependency of this package purely to make the build topological.
+`build` is deliberately just the typecheck. Assembling the assets rebuilds both SPAs, and
+the root `pnpm build` already builds them for the DigitalOcean topology — folding the two
+together would build each app twice on every recursive build.
 
 ## Deploying
 
 ```bash
-pnpm --filter edge deploy --env beta
+pnpm --filter edge deploy --env beta   # assembles the assets, then wrangler deploy
 ```
 
 **There is no `routes` entry in `wrangler.jsonc`, deliberately.** Adding one is the

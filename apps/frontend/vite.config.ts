@@ -67,10 +67,28 @@ export default defineConfig(({ mode }) => {
           // Deny the SPA navigation fallback (index.html) for /t/:code routes so the
           // browser navigation falls through to the network and reaches the backend.
           // The regex is tested against the full URL, so we match the path segment anywhere.
-          navigateFallbackDenylist: [/^\/t\/.*$/, /^https?:\/\/.*\/t\/.*$/],
+          //
+          // /admin/* is denied for a different reason: under the Cloudflare
+          // single-origin topology the admin app is a *separate bundle* served
+          // from a path on this app's origin, which puts it inside this service
+          // worker's scope. Without this, navigating to /admin/anything is
+          // answered with the member app's index.html and the admin app never
+          // loads. Harmless on DigitalOcean, where /admin/* is an
+          // AdminAppRedirect route on this origin and a network fetch of it
+          // returns this same index.html anyway.
+          navigateFallbackDenylist: [
+            /^\/t\/.*$/,
+            /^https?:\/\/.*\/t\/.*$/,
+            /^\/admin(\/.*)?$/,
+            /^https?:\/\/[^/]*\/admin(\/.*)?$/,
+          ],
           runtimeCaching: [
             {
               urlPattern: /\/t\/.*/,
+              handler: 'NetworkOnly',
+            },
+            {
+              urlPattern: /^\/admin(\/.*)?$/,
               handler: 'NetworkOnly',
             },
             {

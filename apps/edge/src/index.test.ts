@@ -19,6 +19,8 @@ function assetsFrom(files: Record<string, string>): Env['ASSETS'] {
 const bundle = {
   '/index.html': '<!doctype html>member app',
   '/assets/index-abc123.js': 'console.log(1)',
+  '/admin/index.html': '<!doctype html>admin app',
+  '/admin/assets/index-def456.js': 'console.log(2)',
 }
 
 let env: Env
@@ -89,6 +91,21 @@ describe('static assets', () => {
 
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('<!doctype html>member app')
+  })
+
+  it('serves the admin bundle for an admin deep link', async () => {
+    // The apps are separate bundles: answering this with the member app's
+    // index.html loads the wrong application without any visible error.
+    const res = await get('/admin/shop/orders', { headers: { accept: 'text/html' } })
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('<!doctype html>admin app')
+  })
+
+  it('serves an admin asset from the admin bundle', async () => {
+    const res = await get('/admin/assets/index-def456.js')
+
+    expect(await res.text()).toBe('console.log(2)')
   })
 
   it('leaves a missing chunk as a 404 rather than serving HTML', async () => {

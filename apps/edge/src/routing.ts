@@ -4,8 +4,9 @@
  *
  * The Worker serves two kinds of thing from one origin:
  *
- *   - static assets — the built SPA bundles, answered from the Static Assets
- *     binding, with an index.html fallback so client-side routes deep-link;
+ *   - static assets — the two built SPA bundles, answered from the Static
+ *     Assets binding, each with an index.html fallback so its client-side
+ *     routes deep-link;
  *   - everything the API owns, proxied to the legacy backend.
  *
  * Same-origin is the point. DigitalOcean's ingress puts the SPA and the API on
@@ -34,7 +35,23 @@ export function isOriginPath(pathname: string): boolean {
 }
 
 /**
+ * Where the admin bundle (apps/admin) is mounted.
+ *
+ * It is a path here rather than the separate subdomain DigitalOcean gives it,
+ * so that the two apps share an origin. That is what lets the auth cookie be
+ * host-only — see the COOKIE_DOMAIN/COOKIE_PREFIX history in
+ * apps/backend/src/routes/auth/cookies.ts, where a cookie shared across
+ * subdomains took production down — and it removes CORS from every admin call.
+ * The admin bundle must be built with a matching Vite `base`.
+ */
+export const ADMIN_BASE = '/admin'
+
+/**
  * The index.html to serve when no asset matches, or null to let the 404 stand.
+ *
+ * Which index matters: the two apps are separate bundles, so an admin
+ * deep-link answered with the member app's index.html silently loads the wrong
+ * application.
  *
  * Only navigations get the fallback. A miss on a hashed `.js` or `.css` chunk
  * must stay a 404: answering it with HTML is what produces the classic
@@ -44,5 +61,8 @@ export function isOriginPath(pathname: string): boolean {
 export function spaFallbackFor(request: Request): string | null {
   if (request.method !== 'GET' && request.method !== 'HEAD') return null
   if (!request.headers.get('accept')?.includes('text/html')) return null
-  return '/index.html'
+
+  const { pathname } = new URL(request.url)
+  const isAdmin = pathname === ADMIN_BASE || pathname.startsWith(`${ADMIN_BASE}/`)
+  return isAdmin ? `${ADMIN_BASE}/index.html` : '/index.html'
 }
