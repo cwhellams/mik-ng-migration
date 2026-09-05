@@ -1,0 +1,42 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mik-edge",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-05",
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // "none", not "single-page-application": the Worker decides when to serve
+    // index.html, so that a missing JS chunk stays a 404 instead of being
+    // answered with HTML. See spaFallbackFor() in src/routing.ts.
+    //
+    // `run_worker_first` is deliberately left off. A matching asset is then
+    // served without invoking the Worker at all, which is both cheaper and
+    // faster; the Worker still runs for every miss, which is where all the
+    // routing decisions live.
+    "not_found_handling": "none",
+  },
+
+  "observability": { "enabled": true },
+
+  // No `routes` here on purpose. Adding one is the cutover: it takes the
+  // hostname away from the DigitalOcean ingress the moment it deploys. Until
+  // then each environment is reachable on its workers.dev preview URL, which is
+  // enough to exercise everything except the production DNS name.
+  "env": {
+    "beta": {
+      "name": "mik-edge-beta",
+      "workers_dev": true,
+      "vars": { "LEGACY_ORIGIN": "https://beta.mik.fi" },
+    },
+    "production": {
+      "name": "mik-edge",
+      "workers_dev": true,
+      "vars": { "LEGACY_ORIGIN": "https://intra.mik.fi" },
+    },
+  },
+
+  // Used by `wrangler dev` only, where the backend is the local `pnpm dev` one.
+  "vars": { "LEGACY_ORIGIN": "http://localhost:3000" },
+}
