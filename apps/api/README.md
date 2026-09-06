@@ -9,16 +9,17 @@ so that this one can be reviewed without a production blast radius.
 
 ## What is here
 
-| File                         | Why it exists                                                     |
-| ---------------------------- | ----------------------------------------------------------------- |
-| `src/context.ts`             | Per-request `env` via `AsyncLocalStorage`                         |
-| `src/config.ts`              | Which domains this Worker owns, and the rollback lever            |
-| `src/proxy.ts`               | The strangler facade — everything else goes to the legacy backend |
-| `src/problem.ts`             | RFC 9457 responses, ported from `routes/response.ts`              |
-| `src/securityHeaders.ts`     | The headers `helmet` sets today, reproduced exactly               |
-| `src/routes/time/api.ts`     | The first ported domain                                           |
-| `src/lib/fieldEncryption.ts` | AES-256-GCM on WebCrypto, same stored format                      |
-| `src/lib/jwt.ts`             | HS256 on `jose`, same tokens                                      |
+| File                                                  | Why it exists                                                     |
+| ----------------------------------------------------- | ----------------------------------------------------------------- |
+| `src/context.ts`                                      | Per-request `env` via `AsyncLocalStorage`                         |
+| `src/config.ts`                                       | Which domains this Worker owns, and the rollback lever            |
+| `src/proxy.ts`                                        | The strangler facade — everything else goes to the legacy backend |
+| `src/problem.ts`                                      | RFC 9457 responses, ported from `routes/response.ts`              |
+| `src/securityHeaders.ts`                              | The headers `helmet` sets today, reproduced exactly               |
+| `src/routes/time/api.ts`                              | The first ported domain                                           |
+| `src/lib/fieldEncryption.ts`                          | AES-256-GCM on WebCrypto, same stored format                      |
+| `src/lib/jwt.ts`                                      | HS256 on `jose`, same tokens                                      |
+| `src/db/connection.ts`, `session.ts`, `middleware.ts` | Postgres through Hyperdrive, one transaction per request          |
 
 ## The request context, and why it is not a parameter
 
@@ -109,6 +110,65 @@ silently disable `nbf` and `iat` validation too.
 **Both encryption functions are now async**, because importing a key through
 `crypto.subtle` returns a promise. Call sites need `await` when their domain ports.
 
+## The database
+
+`pg` through a **Hyperdrive** binding, with Kysely on top — the same driver and the same
+plugin the Express backend uses, so ported query modules move unchanged.
+
+**One client per request, not a pool.** A `pg.Pool` is meaningless here: an isolate handles
+one request at a time and may be evicted between them. Hyperdrive _is_ the pool — it keeps
+warm connections to the origin, so the handshake is inside Cloudflare's network rather than
+a round trip to the database. The client is closed through `ctx.waitUntil()`, so a socket
+teardown never holds up the response. There is no `ssl` config and no CA certificate,
+unlike `apps/backend/src/db/connection.ts`: Hyperdrive terminates TLS to the origin itself.
+
+### Every request runs in a transaction, reads included
+
+That is deliberate, and there are two independent reasons:
+
+- **Hyperdrive multiplexes** client connections onto a smaller set of origin ones, so
+  anything set at _session_ scope can be seen by another request. `SET app.tenant_id` there
+  would be a cross-tenant data leak; set transaction-locally it cannot outlive the
+  transaction that set it. Phase 7 depends on this entirely.
+- **Hyperdrive does not forward libpq startup parameters**, so the backend's
+  `options: '-c timezone=UTC'` silently does nothing and the connection gets whatever
+  timezone the provider chose. `set local time zone 'UTC'` per transaction is the
+  replacement.
+
+A read-only request pays a `begin`/`commit` for this. That is cheap; the alternatives are
+not correct.
+
+### `withTransaction()` replaces `db.transaction()`
+
+All 65 of the backend's `db.transaction()` call sites have to become this, because the
+request is already inside a transaction and **Kysely refuses to nest one** — it throws
+`calling the transaction method for a Transaction is not supported`. That is a good
+failure: loud, and at the call site rather than in the data.
+
+It is a **savepoint**, not a no-op, and the difference is not cosmetic. Postgres marks a
+whole transaction aborted after any error in it, so without a savepoint the first caught
+database error would poison the rest of the request — code that today catches a constraint
+violation and carries on would find every later statement failing with
+`current transaction is aborted`. There is a test for exactly that.
+
+One difference from Express behaviour remains, deliberately: there, a committed inner
+transaction survives a later failure elsewhere in the request. Here the outer transaction
+owns the commit, so it does not. A failed request now leaves nothing behind, which is the
+safer of the two and what phase 7 wants anyway.
+
+### Why the database tests run in Node
+
+`pg` is CommonJS and reaches for `node:tls`. The Workers test runner's module loader cannot
+load it; three ways round it were tried (`deps.optimizer.ssr`, `server.deps.inline`, and
+leaving it external) and all three fail **in the runner, not in workerd**.
+
+That distinction matters, so it was checked rather than assumed: `pnpm --filter api dev`
+with the Hyperdrive binding pointed at a local Postgres serves a real query from real
+`workerd`. `pnpm test` runs both suites — `test:workers` in workerd, `test:db` in Node
+against a Postgres. The database tests use casts and temp tables rather than application
+tables, so what they assert is the executor's own behaviour and not any particular
+migration's.
+
 ## Tests
 
 They run **inside `workerd`**, via `@cloudflare/vitest-plugin`. That is worth the setup cost
@@ -123,8 +183,11 @@ pnpm --filter api dev     # wrangler dev, proxying unported paths to localhost:3
 
 ## Not yet ported
 
-Deliberately out of scope here, each with its own step in the plan: the Hyperdrive/Kysely
-per-request transaction executor, bundled email templates, rate limiting
-(`RateLimiterMemory` is per-isolate and therefore effectively absent on Workers), and
-`routes/version` — which reads the root `package.json` off disk and so needs the bundling
-step first.
+Deliberately out of scope here, each with its own step in the plan: bundled email
+templates, rate limiting (`RateLimiterMemory` is per-isolate and therefore effectively
+absent on Workers), and `routes/version` — which reads the root `package.json` off disk and
+so needs the bundling step first.
+
+No route uses the database yet either. The `database` middleware is applied per route group
+rather than globally, so that a request which never touches Postgres does not pay a
+connection and a `begin`/`commit` for the privilege — `/api/v1/time` is that case today.

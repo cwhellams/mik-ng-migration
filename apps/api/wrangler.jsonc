@@ -7,6 +7,22 @@
   // the backend's remaining npm dependencies will need as domains port.
   "compatibility_flags": ["nodejs_compat"],
 
+  // Hyperdrive pools and multiplexes connections to the origin Postgres, so a
+  // Worker isolate does not pay a TCP+TLS handshake per request. `id` is per
+  // environment and comes from `wrangler hyperdrive create`; the placeholders
+  // below are replaced when the phase-0 provisioning happens.
+  //
+  // `localConnectionString` is what `wrangler dev` and the test runner use
+  // instead, so neither needs a Cloudflare account or a Hyperdrive config to
+  // run against a real Postgres.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "localConnectionString": "postgres://admin:password@127.0.0.1:5432/mik_ng",
+    },
+  ],
+
   "observability": { "enabled": true },
 
   // No `routes`, for the same reason apps/edge has none: adding one is the

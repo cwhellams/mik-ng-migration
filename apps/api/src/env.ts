@@ -12,6 +12,9 @@
  * nothing else about it changes.
  */
 export interface Env {
+  /** Hyperdrive binding to the MIK Postgres. See src/db/connection.ts. */
+  HYPERDRIVE: Hyperdrive
+
   /**
    * Origin of the legacy Express backend. Everything not yet ported is proxied
    * there; see `proxy.ts`. It goes away with the last unported domain.
