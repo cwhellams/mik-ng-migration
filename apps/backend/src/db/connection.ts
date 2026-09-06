@@ -4,7 +4,7 @@ import pg from 'pg'
 import { readFileSync } from 'fs'
 import logger from '../lib/logger.ts'
 
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 
 //Digital Ocean requires SSL connection to the database with a CA Certificate also used
 const useSSL = process.env.DB_SSL

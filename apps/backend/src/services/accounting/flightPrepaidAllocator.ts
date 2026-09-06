@@ -1,7 +1,7 @@
 import type { Kysely, Transaction } from 'kysely'
 
 import { db } from '../../db/connection.ts'
-import type { DB } from '../../db/schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import type {
   InvoicableFlight,
   PrepaidFlightGroup,

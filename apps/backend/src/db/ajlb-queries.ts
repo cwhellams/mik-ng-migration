@@ -5,9 +5,9 @@ import type {
   AircraftJourneyLogBook,
   AircraftLandingsBaseline,
 } from '@mik/contracts/ajlb'
-import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './schema.js'
+import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from '@mik/db-schema/schema'
 import { sql, type Selectable, type Transaction } from 'kysely'
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import type { Upsert } from '@mik/contracts/schema'
 import type { JWTUser } from '../routes/auth/token.ts'
 

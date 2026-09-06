@@ -5,7 +5,7 @@ import { HttpStatusCode } from 'axios'
 import { db } from './connection.ts'
 import { problem } from '../routes/response.ts'
 import { getRecordsForClaim, linkRecordsToClaim, unlinkRecordsFromClaim } from './liquid-queries.ts'
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   ExpenseClaimStatus,

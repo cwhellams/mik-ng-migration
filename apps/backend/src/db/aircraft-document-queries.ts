@@ -1,7 +1,10 @@
 import { auditCreate, auditUpdate } from './audit.ts'
 import type { Updateable } from 'kysely'
 
-import type { FlightAircraftDocumentsFiles, FlightAircraftDocumentType } from './schema.d.ts'
+import type {
+  FlightAircraftDocumentsFiles,
+  FlightAircraftDocumentType,
+} from '@mik/db-schema/schema'
 import type { DbRow } from './connection.ts'
 import { sql } from 'kysely'
 import * as connection from './connection.ts'

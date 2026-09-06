@@ -3,7 +3,7 @@ import type { Updateable } from 'kysely'
 import { sql, type Selectable } from 'kysely'
 
 import * as connection from './connection.ts'
-import type { FlightAircraft } from './schema.d.ts'
+import type { FlightAircraft } from '@mik/db-schema/schema'
 import type { Aircraft, AircraftNote, FuelTypeEntry } from '@mik/contracts/aircrafts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'

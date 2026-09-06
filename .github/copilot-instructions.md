@@ -236,6 +236,7 @@ instead, all of which are `noEmit`.
 │   └── simplbooks_sync/  # Standalone CLI that syncs SimplBooks into the MIK database
 ├── packages/
 │   ├── contracts/        # @mik/contracts — API models shared by every app (see below)
+│   ├── db-schema/       # @mik/db-schema — generated Kysely types, shared by the two API services
 │   └── ui/               # @mik/ui — components, utils and i18n shared by the two frontends (see below)
 ├── simplbooks/           # SimplBooks OpenAPI spec + local mock servers (see below)
 ├── sql/                  # Database migrations and test data
@@ -250,7 +251,10 @@ uses npm with its own lockfile.
 
 Always check these locations when working on the codebase:
 
-- `apps/backend/src/db/schema.d.ts` - Generated database types (run `pnpm schema` to regenerate)
+- `packages/db-schema/src/schema.d.ts` - Generated database types, imported as
+  `@mik/db-schema/schema` by both `apps/backend` and `apps/api`. Still regenerated with
+  `pnpm schema` from `apps/backend`, which owns the connection settings. Never edit it by
+  hand — the next regeneration discards the edit silently.
 - `apps/backend/.env` - Backend environment configuration
 - `sql/schema/migration/` - Database schema migrations
 - `sql/schema/testdata/` - Test data scripts

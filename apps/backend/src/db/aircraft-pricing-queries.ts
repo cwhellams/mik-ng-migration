@@ -1,6 +1,6 @@
 import type { Updateable } from 'kysely'
 
-import type { AcctsAircraftPricing } from './schema.d.ts'
+import type { AcctsAircraftPricing } from '@mik/db-schema/schema'
 import * as connection from './connection.ts'
 import type {
   AircraftPricing,

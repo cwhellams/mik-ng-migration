@@ -5,7 +5,7 @@ import type { Updateable } from 'kysely'
 import { auditUpdate, mapAudit } from './audit.ts'
 import { db, type DbRow } from './connection.ts'
 import { writeAuditLog, type Executor } from './inventory-queries.ts'
-import type { InventoryItemUnits, Json } from './schema.d.ts'
+import type { InventoryItemUnits, Json } from '@mik/db-schema/schema'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { generateShortId } from '../util/nanoId.ts'
 

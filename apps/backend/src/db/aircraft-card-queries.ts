@@ -2,7 +2,7 @@ import { noExtraKeys } from './rowToContract.ts'
 import { auditCreate, auditUpdate } from './audit.ts'
 import type { Updateable } from 'kysely'
 
-import type { FlightAircraftCards } from './schema.d.ts'
+import type { FlightAircraftCards } from '@mik/db-schema/schema'
 import type { DbRow } from './connection.ts'
 import * as connection from './connection.ts'
 import type {

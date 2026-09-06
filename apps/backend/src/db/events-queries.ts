@@ -1,7 +1,7 @@
 import { auditUpdate, mapAudit } from './audit.ts'
 import type { Updateable } from 'kysely'
 
-import type { MemberEvents } from './schema.d.ts'
+import type { MemberEvents } from '@mik/db-schema/schema'
 import { db } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {

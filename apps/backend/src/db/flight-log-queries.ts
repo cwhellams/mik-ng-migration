@@ -30,7 +30,7 @@ import {
 } from '@mik/contracts/flight-log'
 import type { MIKPermissions } from '@mik/contracts/members'
 import { generateShortId } from '../util/nanoId.ts'
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import {
   sql,
   type ExpressionBuilder,

@@ -18,7 +18,7 @@ import dayjs from 'dayjs'
 import { sql, type Kysely } from 'kysely'
 
 import { db } from './connection.ts'
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 
 /**
  * Queries behind the defect/remark search and monitoring tool (#1230).

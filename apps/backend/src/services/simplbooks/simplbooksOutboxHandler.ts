@@ -50,7 +50,7 @@ import {
   getNextCreditNoteSequenceNumber,
 } from '../../db/outbox-simplbooks-queries.ts'
 import type { Transaction } from 'kysely'
-import type { DB } from '../../db/schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import { createPlannedFlightInvoicePayload } from '../accounting/flightInvoiceCreator.ts'
 import { FlightInvoicePayloadSchema } from '@mik/contracts/flight-log'
 import { isRecurringFeeAlreadyCreated } from '../accounting/recurringFeesProcessor.ts'
