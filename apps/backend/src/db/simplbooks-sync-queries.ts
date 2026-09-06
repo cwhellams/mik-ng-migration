@@ -1,6 +1,6 @@
 import { db } from './connection.ts'
 import type { Selectable } from 'kysely'
-import type { MemberRegister, MemberSimplbooksSyncState } from './schema.d.ts'
+import type { MemberRegister, MemberSimplbooksSyncState } from '@mik/db-schema/schema'
 import logger from '../lib/logger.ts'
 import type { SimplbooksSyncStatus } from '../services/simplbooks/models.ts'
 import { MIKMemberTypes } from '@mik/contracts/members'

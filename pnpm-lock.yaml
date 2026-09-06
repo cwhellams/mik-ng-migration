@@ -266,6 +266,9 @@ importers:
       '@mik/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@mik/db-schema':
+        specifier: workspace:*
+        version: link:../../packages/db-schema
       '@simplewebauthn/server':
         specifier: 13.3.2
         version: 13.3.2
@@ -801,6 +804,19 @@ importers:
       vitest:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@26.2.0)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1(@noble/hashes@1.8.0))(msw@2.15.0(@types/node@26.2.0)(typescript@6.0.3))(vite@8.2.1(@types/node@26.2.0)(esbuild@0.28.2)(terser@5.50.0)(tsx@4.23.12))
+
+  packages/db-schema:
+    dependencies:
+      kysely:
+        specifier: ^0.29.5
+        version: 0.29.5
+    devDependencies:
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/ui:
     dependencies:

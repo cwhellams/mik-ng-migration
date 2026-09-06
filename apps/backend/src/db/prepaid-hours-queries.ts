@@ -1,7 +1,7 @@
 import { auditUpdate } from './audit.ts'
 import { db } from './connection.ts'
 import { sql, type Updateable } from 'kysely'
-import type { PrepaidPackages, ShopProducts } from './schema.d.ts'
+import type { PrepaidPackages, ShopProducts } from '@mik/db-schema/schema'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   PrepaidPackage,

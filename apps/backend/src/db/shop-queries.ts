@@ -1,7 +1,7 @@
 import { mapAudit } from './audit.ts'
 import type { Updateable } from 'kysely'
 
-import type { ShopCategories, ShopDiscountCodes, ShopProducts } from './schema.d.ts'
+import type { ShopCategories, ShopDiscountCodes, ShopProducts } from '@mik/db-schema/schema'
 import { db, type DbRow } from './connection.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
@@ -22,7 +22,7 @@ import type {
   OrderFilters,
 } from '@mik/contracts/shop'
 import { sql } from 'kysely'
-import type { Json, JsonValue } from './schema.d.ts'
+import type { Json, JsonValue } from '@mik/db-schema/schema'
 import { insertOutboxItem } from './outbox-simplbooks-queries.ts'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
 import { problem } from '../routes/response.ts'

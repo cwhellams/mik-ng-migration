@@ -1,7 +1,7 @@
 import { noExtraKeys } from './rowToContract.ts'
 import type { Updateable } from 'kysely'
 
-import type { DtoSyllabus, DtoSyllabusFlights, DtoSyllabusFlightItems } from './schema.d.ts'
+import type { DtoSyllabus, DtoSyllabusFlights, DtoSyllabusFlightItems } from '@mik/db-schema/schema'
 import { db, type DbRow } from './connection.ts'
 import { renderMarkdown } from '../util/markdown.ts'
 import type {

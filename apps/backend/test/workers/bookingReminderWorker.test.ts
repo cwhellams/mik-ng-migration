@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals'
 import type { Selectable } from 'kysely'
 import { db } from '../../src/db/connection.ts'
-import type { ScheduleBookings } from '../../src/db/schema.d.ts'
+import type { ScheduleBookings } from '@mik/db-schema/schema'
 import dayjs from 'dayjs'
 
 type SavedBooking = Omit<

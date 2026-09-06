@@ -21,7 +21,7 @@ import {
 } from '@mik/contracts/occurrences'
 import { generateShortId } from '../util/nanoId.ts'
 import * as connection from './connection.ts'
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import { camelCaseNestedRows } from './connection.ts'
 import type { DbRow } from './connection.ts'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'

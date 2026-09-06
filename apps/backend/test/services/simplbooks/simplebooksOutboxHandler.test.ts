@@ -44,7 +44,7 @@ import {
   insertOutboxItem,
 } from '../../../src/db/outbox-simplbooks-queries.ts'
 import { db } from '../../../src/db/connection.ts'
-import type { Json } from '../../../src/db/schema.d.ts'
+import type { Json } from '@mik/db-schema/schema'
 
 const newMemberId = 'Anna1'
 

@@ -1,7 +1,7 @@
 import { auditCreate, auditUpdate } from './audit.ts'
 import type { Updateable } from 'kysely'
 
-import type { MemberDocuments } from './schema.d.ts'
+import type { MemberDocuments } from '@mik/db-schema/schema'
 import * as connection from './connection.ts'
 import { sql } from 'kysely'
 import type { Document, DocumentFilters } from '@mik/contracts/documents'

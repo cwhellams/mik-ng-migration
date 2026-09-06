@@ -3,7 +3,7 @@ import { sql, type ExpressionBuilder, type Kysely, type Transaction } from 'kyse
 import { db, type DbRow } from './connection.ts'
 import { auditCreate, auditUpdate, mapAudit } from './audit.ts'
 import { noExtraKeys } from './rowToContract.ts'
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import { FlightLogStatus } from '@mik/contracts/flight-log'
 import {
   compareToReferencePrice,

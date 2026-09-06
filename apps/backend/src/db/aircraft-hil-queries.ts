@@ -4,7 +4,7 @@ import { sql, type Kysely } from 'kysely'
 
 import * as connection from './connection.ts'
 import type { DbRow } from './connection.ts'
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import type {
   AircraftHil,
   AircraftHilAuditEntry,

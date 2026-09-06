@@ -1,0 +1,25 @@
+{
+  "name": "@mik/db-schema",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The generated Kysely database types, shared by apps/backend and apps/api. Types only - there is no runtime code here.",
+  "exports": {
+    "./schema": {
+      "types": "./src/schema.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "kysely": "^0.29.5"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.3"
+  }
+}

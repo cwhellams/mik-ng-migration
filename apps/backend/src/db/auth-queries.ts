@@ -1,5 +1,5 @@
 import { db } from './connection.ts'
-import type { AuthEventType } from './schema.d.ts'
+import type { AuthEventType } from '@mik/db-schema/schema'
 
 const MAX_FAILED_ATTEMPTS = 5
 

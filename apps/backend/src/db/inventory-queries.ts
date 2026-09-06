@@ -14,8 +14,13 @@ import type {
   InventoryFilters,
   InventoryAuditLogEntry,
 } from '@mik/contracts/inventory'
-import type { InventoryCategories, InventoryItems, InventoryLocations, Json } from './schema.d.ts'
-import type { DB } from './schema.d.ts'
+import type {
+  InventoryCategories,
+  InventoryItems,
+  InventoryLocations,
+  Json,
+} from '@mik/db-schema/schema'
+import type { DB } from '@mik/db-schema/schema'
 import { sql, type Kysely, type Transaction } from 'kysely'
 
 export type Executor = Kysely<DB> | Transaction<DB>

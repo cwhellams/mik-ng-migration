@@ -17,7 +17,7 @@ import {
   type PlannedPrepaidUsage,
 } from './flightPrepaidAllocator.ts'
 import type { Kysely, Transaction } from 'kysely'
-import type { DB } from '../../db/schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

@@ -1,7 +1,7 @@
 import { noExtraKeys } from './rowToContract.ts'
 import { sql, type Kysely, type Transaction } from 'kysely'
 import { db, type DbRow } from './connection.ts'
-import type { DB } from './schema.d.ts'
+import type { DB } from '@mik/db-schema/schema'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   MileageAllowance,

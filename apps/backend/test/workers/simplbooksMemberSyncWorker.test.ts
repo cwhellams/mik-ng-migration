@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import type { Selectable } from 'kysely'
-import type { MemberRegister, MemberBrevoSyncState } from '../../src/db/schema.ts'
+import type { MemberRegister, MemberBrevoSyncState } from '@mik/db-schema/schema'
 
 // Create mock functions first with proper types
 const mockUpdateClient = jest.fn<(...args: any[]) => Promise<void>>()
