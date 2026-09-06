@@ -41,6 +41,22 @@ describe('AdminAppRedirect', () => {
     expect(replace).toHaveBeenCalledWith('https://twr.mik.fi/shop/orders')
   })
 
+  it('lands on the same path under the single-origin topology', () => {
+    // Both apps on one hostname, admin under /admin/. The redirect strips this
+    // app's /admin prefix and the base puts it straight back, so the URL is
+    // unchanged and the browser simply loads the other bundle. /club/members/*
+    // still gets rewritten, which is the case that makes this worth pinning.
+    vi.stubEnv('VITE_ADMIN_URL', '/admin')
+
+    renderWithProviders(<AdminAppRedirect />, {
+      route: '/admin/shop/orders',
+      path: '/admin/*',
+      serverClock: false,
+    })
+
+    expect(replace).toHaveBeenCalledWith('/admin/shop/orders')
+  })
+
   it('keeps path parameters, query string and hash', () => {
     renderWithProviders(<AdminAppRedirect />, {
       route: '/admin/shop/orders/42?status=PENDING#items',
@@ -124,5 +140,15 @@ describe('adminBase', () => {
     vi.stubEnv('VITE_API_TARGET', 'https://intra.mik.fi')
 
     expect(adminBase()).toBe('https://staging-twr.mik.fi')
+  })
+
+  it('is a same-origin path under the single-origin topology', () => {
+    // On Cloudflare both apps are served from one hostname and the admin app
+    // lives under /admin/, so there is no subdomain to derive. apps/edge's
+    // scripts/build-assets.sh sets VITE_ADMIN_URL='/admin' for that build.
+    vi.stubEnv('VITE_ADMIN_URL', '/admin')
+    vi.stubEnv('VITE_API_TARGET', 'https://intra.mik.fi')
+
+    expect(adminBase()).toBe('/admin')
   })
 })

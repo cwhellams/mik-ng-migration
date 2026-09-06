@@ -28,15 +28,19 @@ const WithTimezone = ({ children }: { children: React.ReactNode }) => {
 }
 
 function App() {
-  // No basename: the admin app is served from the root of its own subdomain
-  // (twr.mik.fi / beta-twr.mik.fi), not a path on another app's domain.
+  // The router's basename is Vite's `base` (see vite.config.ts): '/' on
+  // DigitalOcean, where this app owns its own subdomain, and '/admin/' on
+  // Cloudflare, where it is a path on the tenant's single hostname. Reading it
+  // from BASE_URL rather than repeating the literal keeps the router and the
+  // asset URLs from drifting apart, which shows up as a blank page rather than
+  // as anything that names the cause.
   return (
     <ApiConfigProvider value={API_CONFIG}>
       <ThemeProvider>
         <WithTimezone>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
             <SnackbarProvider>
-              <BrowserRouter>
+              <BrowserRouter basename={import.meta.env.BASE_URL}>
                 <AppRoutes />
               </BrowserRouter>
             </SnackbarProvider>

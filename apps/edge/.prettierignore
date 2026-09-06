@@ -1,0 +1,14 @@
+node_modules
+build
+*.min.js
+
+# The assembled asset bundle: two whole SPA builds, written by
+# `pnpm run assets`. Gitignored, but Prettier reads the .prettierignore next to
+# its cwd, so the repo-root one that lists `dist` is not in scope here.
+dist
+
+# Written by this package's CI job, one step before `pnpm format:check` runs in
+# the same directory (`eslint . --format json > eslint-results.json`). Same cwd
+# reason as above: without this line the lint step makes the format step fail.
+# apps/frontend, apps/admin and packages/ui each carry one for exactly this.
+**/eslint-results.json

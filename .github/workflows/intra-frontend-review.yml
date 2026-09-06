@@ -7,6 +7,7 @@ on:
     paths:
       - 'apps/frontend/**'
       - 'apps/admin/**'
+      - 'apps/edge/**'
       - 'packages/**'
       - '.github/workflows/**'
   push:
@@ -14,6 +15,7 @@ on:
     paths:
       - 'apps/frontend/**'
       - 'apps/admin/**'
+      - 'apps/edge/**'
       - 'packages/**'
       - '.github/workflows/**'
 
@@ -252,3 +254,72 @@ jobs:
           name: admin-coverage-report
           path: apps/admin/coverage/
           if-no-files-found: ignore
+
+  build-and-test-edge:
+    # The Cloudflare edge Worker (apps/edge) sits in front of the built SPA and
+    # the API origin, so a break here takes the whole site down even though no
+    # application code changed. It runs as its own job for the same reason
+    # packages/ui does: the failure should name the package.
+    runs-on: ubuntu-latest
+    environment: DEV
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # Zero, like packages/ui and packages/contracts: a package written from
+      # scratch has no inherited backlog to ratchet down from.
+      - name: Run ESLint and check error count
+        working-directory: apps/edge
+        run: |
+          npx eslint . --format json > eslint-results.json || ESLINT_EXIT=$?
+          if [ "${ESLINT_EXIT:-0}" -gt 1 ]; then
+            echo "::error::ESLint failed to run (exit ${ESLINT_EXIT})"
+            exit 1
+          fi
+          if ! jq -e 'type == "array"' eslint-results.json > /dev/null 2>&1; then
+            echo "::error::ESLint produced no usable report — treating as a failure"
+            exit 1
+          fi
+          ERROR_COUNT=$(jq '[.[] | .errorCount] | add // 0' eslint-results.json)
+          echo "Total ESLint errors: $ERROR_COUNT"
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "ESLint errors ($ERROR_COUNT) exceed threshold (0)"
+            exit 1
+          fi
+
+      - name: Run Prettier Check
+        working-directory: apps/edge
+        run: pnpm format:check
+
+      - name: Typecheck
+        working-directory: apps/edge
+        run: pnpm run typecheck
+
+      - name: Run tests
+        working-directory: apps/edge
+        run: pnpm test
+
+      # Builds both SPAs for the single-origin topology and assembles them.
+      # This is the half the unit tests cannot reach: it is where a wrong Vite
+      # base in the admin bundle is caught, and that failure otherwise shows up
+      # only as a blank admin page in a browser.
+      - name: Assemble the asset bundle
+        working-directory: apps/edge
+        run: |
+          pnpm run assets
+          test -f dist/index.html
+          test -f dist/admin/index.html

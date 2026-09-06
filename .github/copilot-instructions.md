@@ -639,6 +639,56 @@ When a browser opens and shows the login screen, test both users:
 4. After login, use the admin/sudo toggle in the header (the admin/user icon; check its tooltip text if needed) to activate admin privileges
 5. Verify admin features are accessible at http://localhost:5173/
 
+## Stacked Pull Requests
+
+Work that splits into dependent parts ships as a **stack**: each PR targets the branch
+below it, the bottom one targets `main`. GitHub supports this natively (public preview
+since July 2026) — reviewers get one PR per idea, and each diff contains only its own
+commits rather than everything underneath.
+
+**Chaining the base branches is not enough.** A PR whose base is another feature branch is
+just a PR with an unusual base: no stack icon, no stack map in the merge box, and nothing
+in the UI relating it to its neighbours. The stack has to be registered with GitHub, and
+that is what `gh stack` does. Getting this wrong is invisible — everything looks fine from
+the command line, because `gh pr view` reports exactly the base you set.
+
+```bash
+gh extension install github/gh-stack     # once; needs gh >= 2.0
+```
+
+| Task                                                 | Command                                                                          |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Start a new stack                                    | `gh stack init -b main`, then `gh stack add` per branch                          |
+| Push branches and open/refresh the PRs               | `gh stack submit`                                                                |
+| **Register PRs or branches that already exist**      | `gh stack link <bottom> … <top>`                                                 |
+| Adopt an existing stack locally                      | `gh stack checkout <stack-number>`                                               |
+| See the stack and its check status                   | `gh stack view`                                                                  |
+| Re-sync after `main` moves                           | `gh stack sync` (fetch, fast-forward trunk, cascade rebase, push, sync PR state) |
+| Move around                                          | `gh stack up` / `down` / `top` / `bottom` / `switch`                             |
+| Restructure (drop, combine, insert, reorder, rename) | `gh stack modify`                                                                |
+| Merge                                                | `gh stack merge`, or merge in the UI                                             |
+
+`gh stack link` takes its arguments **bottom to top**, and accepts branch names, PR numbers
+or PR URLs interchangeably. It creates PRs for branches that do not have one and adopts
+those that do, so it is the way to rescue a stack that was assembled by hand. It
+deliberately sets up no local tracking; follow it with `gh stack checkout <n>` if you want
+`gh stack view` and friends to work in the worktree.
+
+Things worth knowing before you rely on it:
+
+- **CI runs on every PR in the stack.** The checks configured for pull requests against the
+  default branch run mid-stack too, even though those PRs target a feature branch. So do
+  branch protection rules and CODEOWNER approvals. You do **not** need to add the stack's
+  branch pattern to a workflow's `pull_request.branches` filter to get checks — that was
+  assumed once here and it was wrong.
+- **Merging mid-stack is allowed.** Everything below it merges too, and the PRs above stay
+  open and re-target automatically. Merge commit, squash and rebase are all supported.
+- **Do not hand-maintain a stack table in the PR body.** The merge box renders the stack
+  map, including each PR's status. A table written by hand duplicates it and then goes
+  stale on the first reorder.
+- **Same repository only.** Cross-fork stacks are not supported, and neither is GitHub
+  Desktop.
+
 ## Changelogs
 
 Changelog files live in `changelogs/` at the repo root, one file per comparison, named:

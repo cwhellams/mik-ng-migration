@@ -8,11 +8,17 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    // The admin app is served from its own subdomain (twr.mik.fi / beta-twr.mik.fi
-    // in production/beta — see .do/mik-intranet-{prod,test}.yaml), so it is
-    // always at the root of whatever host it's on. mode is unused now but the
-    // parameter stays so this factory signature matches the member app's.
-    base: '/',
+    // Where this bundle is mounted, which differs by deployment topology:
+    //
+    //   DigitalOcean  '/'        — its own subdomain (twr.mik.fi / beta-twr.mik.fi,
+    //                              see .do/mik-intranet-{prod,test}.yaml)
+    //   Cloudflare    '/admin/'  — a path on the tenant's single hostname, so the
+    //                              auth cookie can be host-only and there is no CORS
+    //
+    // Both topologies are live during the migration, so this is configuration
+    // rather than a constant. `App.tsx` feeds `import.meta.env.BASE_URL` to the
+    // router's basename, so the two stay in step from this one value.
+    base: env.VITE_BASE_PATH || '/',
     server: {
       port: 5174,
       proxy: {
