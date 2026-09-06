@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // Node types are here only for `node:async_hooks`, which workers-types does
+    // not declare and which AsyncLocalStorage (see src/context.ts) needs. They
+    // bring `process` and `Buffer` back into scope for tsc even though workerd
+    // has neither, so unlike packages/ui the tsconfig cannot be the guard —
+    // eslint.config.js carries the whole weight of it here.
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types", "node"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src", "*.ts"]
+}

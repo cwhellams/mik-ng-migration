@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mik-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-05",
+  // AsyncLocalStorage (src/context.ts) is the reason. It is also what most of
+  // the backend's remaining npm dependencies will need as domains port.
+  "compatibility_flags": ["nodejs_compat"],
+
+  "observability": { "enabled": true },
+
+  // No `routes`, for the same reason apps/edge has none: adding one is the
+  // cutover. Nothing routes to this Worker yet - apps/edge still proxies
+  // straight to DigitalOcean. Wiring the two together is a separate change.
+  "env": {
+    "beta": {
+      "name": "mik-api-beta",
+      "workers_dev": true,
+      "vars": { "LEGACY_ORIGIN": "https://beta.mik.fi", "NODE_ENV": "production" },
+    },
+    "production": {
+      "name": "mik-api",
+      "workers_dev": true,
+      "vars": { "LEGACY_ORIGIN": "https://intra.mik.fi", "NODE_ENV": "production" },
+    },
+  },
+
+  // `wrangler dev` only, where the backend is the local `pnpm dev` one.
+  "vars": { "LEGACY_ORIGIN": "http://localhost:3000", "NODE_ENV": "development" },
+}
