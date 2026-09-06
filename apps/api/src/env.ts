@@ -25,6 +25,21 @@ export interface Env {
   NODE_ENV?: string
 
   /**
+   * 32 bytes as 64 hex characters, for the AES-256-GCM field encryption in
+   * `lib/fieldEncryption.ts`. A secret, not a var: it decrypts every HETU in
+   * the members table.
+   */
+  FIELD_ENCRYPTION_KEY?: string
+
+  /** HS256 signing secrets for the access and refresh tokens. Secrets. */
+  ACCESS_TOKEN_SECRET?: string
+  REFRESH_TOKEN_SECRET?: string
+
+  /** Token lifetimes, as durations ('15m', '7d'). */
+  ACCESS_TOKEN_EXPIRATION?: string
+  REFRESH_TOKEN_EXPIRATION?: string
+
+  /**
    * Comma-separated path prefixes served by this Worker instead of being
    * proxied, overriding the compiled-in list in `config.ts`. This is the
    * rollback lever: emptying it sends every path back to the legacy backend
