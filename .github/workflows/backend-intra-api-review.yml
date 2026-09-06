@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'apps/backend/**'
+      - 'apps/api/**'
       - 'packages/**'
       - 'sql/schema/**'
       - '.github/workflows/**'
@@ -14,6 +15,7 @@ on:
     branches: [main]
     paths:
       - 'apps/backend/**'
+      - 'apps/api/**'
       - 'packages/**'
       - 'sql/schema/**'
       - '.github/workflows/**'
@@ -231,3 +233,64 @@ jobs:
           name: backend-coverage-report
           path: apps/backend/coverage/
           if-no-files-found: ignore
+
+  build-and-test-api:
+    # apps/api is the Workers API. It runs as its own job rather than a step in
+    # build-and-test because it needs none of that job's apparatus - no Postgres
+    # service, no Flyway, no SimplBooks credentials - and because a failure
+    # should name the package rather than land inside the Express backend's job.
+    runs-on: ubuntu-latest
+    environment: DEV
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # Zero, like packages/contracts, packages/ui and apps/edge: a package
+      # written from scratch has no inherited backlog to ratchet down from.
+      - name: Run ESLint and check error count
+        working-directory: apps/api
+        run: |
+          npx eslint . --format json > eslint-results.json || ESLINT_EXIT=$?
+          if [ "${ESLINT_EXIT:-0}" -gt 1 ]; then
+            echo "::error::ESLint failed to run (exit ${ESLINT_EXIT})"
+            exit 1
+          fi
+          if ! jq -e 'type == "array"' eslint-results.json > /dev/null 2>&1; then
+            echo "::error::ESLint produced no usable report — treating as a failure"
+            exit 1
+          fi
+          ERROR_COUNT=$(jq '[.[] | .errorCount] | add // 0' eslint-results.json)
+          echo "Total ESLint errors: $ERROR_COUNT"
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "ESLint errors ($ERROR_COUNT) exceed threshold (0)"
+            exit 1
+          fi
+
+      - name: Run Prettier Check
+        working-directory: apps/api
+        run: pnpm format:check
+
+      - name: Typecheck
+        working-directory: apps/api
+        run: pnpm run typecheck
+
+      # These run inside workerd, not Node. That is the point: AsyncLocalStorage
+      # under nodejs_compat, per-request env and fetch subrequest semantics are
+      # exactly what this package provides, and Node would not exercise any of them.
+      - name: Run tests
+        working-directory: apps/api
+        run: pnpm test
