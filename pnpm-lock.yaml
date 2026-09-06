@@ -202,6 +202,9 @@ importers:
       '@mik/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@mik/db-schema':
+        specifier: workspace:*
+        version: link:../../packages/db-schema
       hono:
         specifier: ^4.13.7
         version: 4.13.7
@@ -211,6 +214,12 @@ importers:
       jose:
         specifier: ^6.2.12
         version: 6.2.12
+      kysely:
+        specifier: ^0.29.5
+        version: 0.29.5
+      pg:
+        specifier: ^8.22.0
+        version: 8.23.0
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -227,6 +236,9 @@ importers:
       '@types/node':
         specifier: ^26.0.0
         version: 26.2.0
+      '@types/pg':
+        specifier: ^8.15.6
+        version: 8.21.0
       eslint:
         specifier: ^9.39.5
         version: 9.39.5

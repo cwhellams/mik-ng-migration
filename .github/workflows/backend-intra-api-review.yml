@@ -244,6 +244,27 @@ jobs:
     permissions:
       contents: read
 
+    # The database-layer tests connect for real. They need no schema - they use
+    # casts and temp tables, so that what they assert is the executor's own
+    # behaviour rather than any particular migration's - so this service needs
+    # no Flyway step, unlike build-and-test above.
+    services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_PORT: ${{ env.POSTGRES_PORT }}
+          POSTGRES_INITDB_ARGS: '--locale-provider=libc --locale=en_US.UTF-8'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -293,4 +314,14 @@ jobs:
       # exactly what this package provides, and Node would not exercise any of them.
       - name: Run tests
         working-directory: apps/api
-        run: pnpm test
+        run: pnpm run test:workers
+
+      # The database layer runs in Node instead, against the service above.
+      # `pg` is CommonJS and reaches for node:tls, which the Workers test
+      # runner's module loader cannot load - wrangler's bundler can, so `pnpm
+      # dev` and a deployed Worker are both fine. See apps/api/vitest.node.config.ts.
+      - name: Run database-layer tests
+        working-directory: apps/api
+        env:
+          TEST_DATABASE_URL: postgres://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+        run: pnpm run test:db

@@ -79,3 +79,6 @@ test_*.html
 sample-*.html
 sample-*.png
 example-*.png
+
+# Wrangler's local state: the miniflare persistence directory and dev caches.
+.wrangler/
